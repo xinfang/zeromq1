@@ -66,6 +66,6 @@ namespace perf
 	unsigned char buffer [65536];
     };
 
-};
+}
 
 #endif

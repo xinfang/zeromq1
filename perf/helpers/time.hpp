@@ -43,6 +43,6 @@ namespace perf
         return ((time_t) tv.tv_sec) * 1000000 + tv.tv_usec;
     }
 
-};
+}
 
 #endif

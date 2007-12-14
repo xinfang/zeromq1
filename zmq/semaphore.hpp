@@ -73,6 +73,6 @@ namespace zmq
         pthread_mutex_t mutex;
     };
 
-};
+}
 
 #endif

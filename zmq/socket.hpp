@@ -117,6 +117,6 @@ namespace zmq
         int s;
     };
 
-};
+}
 
 #endif

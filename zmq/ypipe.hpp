@@ -105,6 +105,6 @@ namespace zmq
         atomic_ptr <item_t> c;
     };
 
-};
+}
 
 #endif

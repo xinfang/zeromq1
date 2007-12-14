@@ -88,6 +88,6 @@ namespace perf
         size_t message_size;
     };
 
-};
+}
 
 #endif

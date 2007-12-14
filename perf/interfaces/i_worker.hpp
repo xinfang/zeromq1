@@ -31,6 +31,6 @@ namespace perf
         virtual void run (i_transport &transport, const char *prefix) = 0;
     };
 
-};
+}
 
 #endif

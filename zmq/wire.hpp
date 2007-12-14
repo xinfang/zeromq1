@@ -65,6 +65,6 @@ namespace zmq
         return size;
     }
 
-};
+}
 
 #endif

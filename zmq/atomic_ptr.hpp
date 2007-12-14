@@ -113,6 +113,6 @@ namespace zmq
 #endif
     };
 
-};
+}
 
 #endif

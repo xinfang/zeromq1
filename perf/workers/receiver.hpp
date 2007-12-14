@@ -73,6 +73,6 @@ namespace perf
         int message_count;
     };
 
-};
+}
 
 #endif

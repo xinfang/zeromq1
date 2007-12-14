@@ -599,6 +599,6 @@ namespace zmq
         pthread_t worker;
     };
 
-};
+}
 
 #endif

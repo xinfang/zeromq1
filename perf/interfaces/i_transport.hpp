@@ -38,6 +38,6 @@ namespace perf
         virtual size_t receive () = 0;
     };
 
-};
+}
 
 #endif

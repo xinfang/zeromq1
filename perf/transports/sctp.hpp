@@ -162,6 +162,6 @@ namespace perf
         int s;
     };
 
-};
+}
 
 #endif
