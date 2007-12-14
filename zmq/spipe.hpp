@@ -39,7 +39,7 @@ namespace zmq
         inline spipe_t ()
         {
             int sv [2];
-            int rc = socketpair (AF_LOCAL, SOCK_STREAM, 0, sv);
+            int rc = socketpair (AF_UNIX, SOCK_STREAM, 0, sv);
             errno_assert (rc == 0);
             w = sv [0];
             r = sv [1];
