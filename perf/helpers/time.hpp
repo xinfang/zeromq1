@@ -20,6 +20,7 @@
 #ifndef __PERF_TIME_HPP_INCLUDED__
 #define __PERF_TIME_HPP_INCLUDED__
 
+#include <assert.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
