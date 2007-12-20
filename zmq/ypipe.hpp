@@ -86,6 +86,29 @@ namespace zmq
             }
         }
 
+        //  Write multiple items to the pipe. If pipe is in dead state, function
+        //  returns false. Otherwise it returns true. Writing an item to the
+        //  pipe revives it in case it is dead. Writing an item to a dead pipe
+        //  enqueues the ite
+        bool write (item_t *first, item_t *last)
+        {
+            item_t *n = new item_t;
+            last->next = n;
+            
+            *w = *first;
+            delete first;
+
+            if (c.cas (w, n) == w) {
+                w = n;
+                return true;
+            }
+            else {
+                w = n;
+                c.set (n);
+                return false;
+            }
+        }
+
         //  Reads all the items from the pipe. If there is no item in the pipe,
         //  function returns false and the pipe 'dies'. Otherwise, 'first'
         //  points to first retrieved item, 'last' points one past the last
