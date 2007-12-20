@@ -36,10 +36,13 @@ namespace zmq
         enum {wait_index = 31};
 
     public:
+
+        //  Create the pollset
         inline ypollset_t ()
         {
         }
 
+        //  Send a signal to the pollset
         inline void signal (int index)
         {
             assert (index >= 0 && index < 31);
@@ -49,11 +52,9 @@ namespace zmq
                 sync.post (); 
         }
 
-        inline uint32_t check ()
-        {
-            return bits.xchg (0);
-        }
-
+        //  Wait for signal. Returns a set of signals in form of a bitmap.
+        //  Signal with index 0 corresponds to value 1, index 1 to value 2,
+        //  index 2 to value 4 etc.
         inline uint32_t poll ()
         {
             uint32_t result = bits.izte (1 << wait_index, 0);
@@ -62,6 +63,13 @@ namespace zmq
                 result = bits.xchg (0);
             }
             return result;      
+        }
+
+        //  Same as poll, however, if there is no signal, function returns
+        //  zero instead of waiting for a signal.
+        inline uint32_t check ()
+        {
+            return bits.xchg (0);
         }
 
     protected:
