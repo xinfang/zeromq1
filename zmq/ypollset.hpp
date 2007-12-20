@@ -24,7 +24,7 @@
 #include <stdint.h>
 
 #include "atomic_uint32.hpp"
-#include "semaphore.hpp"
+#include "ysemaphore.hpp"
 
 namespace zmq
 {
@@ -66,7 +66,7 @@ namespace zmq
 
     protected:
         atomic_uint32 bits;
-        semaphore_t sync;
+        ysemaphore_t sync;
     };
 
 }

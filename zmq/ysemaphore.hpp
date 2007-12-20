@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SEMAPHORE_HPP_INCLUDED__
-#define __ZMQ_SEMAPHORE_HPP_INCLUDED__
+#ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
+#define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
 #include <semaphore.h>
 
@@ -31,12 +31,12 @@ namespace zmq
     //  Also, the semaphore may not be posted before the previous post
     //  was matched by corresponding wait and the waiting thread was
     //  released.
-    class semaphore_t
+    class ysemaphore_t
     { 
     public:
 
         //  Initialise the semaphore
-        inline semaphore_t ()
+        inline ysemaphore_t ()
         {
             int rc = pthread_mutex_init (&mutex, NULL);
 	    errno_assert (rc == 0);
@@ -45,7 +45,7 @@ namespace zmq
         }
 
         //  Destroy the semaphore
-        inline ~semaphore_t ()
+        inline ~ysemaphore_t ()
         {
             int rc = pthread_mutex_unlock (&mutex);
 	    errno_assert (rc == 0);

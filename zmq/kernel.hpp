@@ -30,7 +30,7 @@
 #include "spipe.hpp"
 #include "ypipe.hpp"
 #include "socket.hpp"
-#include "semaphore.hpp"
+#include "ysemaphore.hpp"
 #include "wire.hpp"
 
 #define ZMQ_RECV_CHUNK_SIZE 8192
@@ -587,7 +587,7 @@ namespace zmq
 
         //  Semaphore used by receiver thread to wait for a message if none
         //  is available immediately.
-        semaphore_t receive_sync;
+        ysemaphore_t receive_sync;
 
         //  Pipe to pass commands from client thread to worker thread
         spipe_t command_pipe;
