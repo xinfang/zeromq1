@@ -65,8 +65,8 @@ namespace zmq
             return result;      
         }
 
-        //  Same as poll, however, if there is no signal, function returns
-        //  zero instead of waiting for a signal.
+        //  Same as poll, however, if there is no signal available,
+        //  function returns zero immediately instead of waiting for a signal.
         inline uint32_t check ()
         {
             return bits.xchg (0);
