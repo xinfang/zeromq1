@@ -27,7 +27,7 @@
 #include <algorithm>
 
 #include "err.hpp"
-#include "spipe.hpp"
+#include "ysocketpair.hpp"
 #include "ypipe.hpp"
 #include "socket.hpp"
 #include "ysemaphore.hpp"
@@ -590,7 +590,7 @@ namespace zmq
         ysemaphore_t receive_sem;
 
         //  Pipe to pass commands from client thread to worker thread
-        spipe_t command_pipe;
+        ysocketpair_t command_pipe;
 
         //  Underlying socket
         socket_t sock;

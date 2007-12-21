@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SPIPE_HPP_INCLUDED__
-#define __ZMQ_SPIPE_HPP_INCLUDED__
+#ifndef __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
+#define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -31,12 +31,12 @@ namespace zmq
     //  This pipe can be used to send individual bytes from one thread to
     //  another. The specific of this queue is that it has associated file
     //  descriptor and it can be polled for.
-    class spipe_t
+    class ysocketpair_t
     {
     public:
 
         //  Initialise the pipe
-        inline spipe_t ()
+        inline ysocketpair_t ()
         {
             int sv [2];
             int rc = socketpair (AF_UNIX, SOCK_STREAM, 0, sv);
@@ -46,7 +46,7 @@ namespace zmq
         }
 
         //  Destroy the pipe
-        inline ~spipe_t ()
+        inline ~ysocketpair_t ()
         {
             close (w);
             close (r);

@@ -33,7 +33,7 @@ PERF_HEADERS = ../perf/helpers/time.hpp ../perf/interfaces/i_transport.hpp \
 	../perf/workers/receiver.hpp ../perf/workers/sender.hpp \
 	../perf/workers/echo.hpp ../perf/workers/ping_pong.hpp 
 ZMQ_HEADERS = ../zmq/kernel.hpp ../zmq/atomic_ptr.hpp ../zmq/socket.hpp \
-	../zmq/spipe.hpp ../zmq/ypipe.hpp ../zmq/err.hpp ../zmq/ysemaphore.hpp \
+	../zmq/ysocketpair.hpp ../zmq/ypipe.hpp ../zmq/err.hpp ../zmq/ysemaphore.hpp \
 	../zmq/wire.hpp
 
 CC = g++
