@@ -52,15 +52,17 @@ namespace zmq
             close (r);
         }
 
-        //  Send one byte to the pipe
-        inline void write (unsigned char c)
+        //  Send specific signal to the pipe
+        inline void signal (int index)
         {
+            assert (index > 0 && index < 256);
+            unsigned char c = (unsigned char) index;
             ssize_t nbytes = send (w, &c, 1, 0);
             errno_assert (nbytes == 1);
         }
 
-        //  Read one byte from the pipe
-        inline unsigned char read ()
+        //  Get first available signal from the pipe
+        inline int get_signal ()
         {
             unsigned char c;
             ssize_t nbytes = recv (r, &c, 1, MSG_WAITALL);

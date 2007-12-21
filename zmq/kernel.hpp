@@ -87,7 +87,7 @@ namespace zmq
         ~kernel_t ()
         {
             //  Ask worker thread to stop
-            command_pipe.write (command_stop);
+            command_pipe.signal (command_stop);
 
             //  Wait for worker thread to terminate
             int rc = pthread_join (worker, NULL);
@@ -127,7 +127,7 @@ namespace zmq
             if (xmode_blocked)
             {
                 if (!send_pipe.write (msg))
-                    command_pipe.write (command_resurrect);
+                    command_pipe.signal (command_resurrect);
                 return true;
             }
 
@@ -185,7 +185,7 @@ namespace zmq
             //  enqueue it into send pipe and resurrect the worker thread.
             //  We are actually switching to batch mode at this point.
             send_pipe.write (msg);
-            command_pipe.write (command_resurrect);
+            command_pipe.signal (command_resurrect);
             xmode = false;
 
             return true;
@@ -393,7 +393,7 @@ namespace zmq
                 //  worker thread and transfer the chunks afterwards.
                 if (recvbuf_first == recvbuf_last) {
                     if (!receive_pipe.read (&recvbuf_first, &recvbuf_last)) {
-                        receive_sync.wait ();
+                        receive_sem.wait ();
                         if (!receive_pipe.read (&recvbuf_first, &recvbuf_last))
                             assert (0);
                     }
@@ -483,7 +483,7 @@ namespace zmq
                 //  Command from client thread was received by the worker
                 //  thread.
                 if (pfd [0].revents & POLLIN) {
-                    switch (command_pipe.read ()) {
+                    switch (command_pipe.get_signal ()) {
                     case command_stop:
 
                         //  Worker thread is scheduled to terminate.
@@ -526,7 +526,7 @@ namespace zmq
                     //  that is waiting for a message.
                     msg_t ch = {chunk, nbytes, 0, free};
                     if (!receive_pipe.write (ch))
-                        receive_sync.post ();
+                        receive_sem.signal (0);
 
                     //  If batch mode is set by user and the received
                     //  chunk is too small, wait for a while to improve the
@@ -587,7 +587,7 @@ namespace zmq
 
         //  Semaphore used by receiver thread to wait for a message if none
         //  is available immediately.
-        ysemaphore_t receive_sync;
+        ysemaphore_t receive_sem;
 
         //  Pipe to pass commands from client thread to worker thread
         spipe_t command_pipe;

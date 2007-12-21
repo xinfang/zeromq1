@@ -49,7 +49,7 @@ namespace zmq
             bits.bts (index);
             bool wait = bits.btr (wait_index);
             if (wait)
-                sync.post (); 
+                sem.signal (0); 
         }
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
@@ -59,7 +59,7 @@ namespace zmq
         {
             uint32_t result = bits.izte (1 << wait_index, 0);
             if (!result) {
-                sync.wait ();
+                sem.wait ();
                 result = bits.xchg (0);
             }
             return result;      
@@ -74,7 +74,7 @@ namespace zmq
 
     protected:
         atomic_uint32 bits;
-        ysemaphore_t sync;
+        ysemaphore_t sem;
     };
 
 }

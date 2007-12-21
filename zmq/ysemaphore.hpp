@@ -61,8 +61,9 @@ namespace zmq
         }
 
         //  Post the semaphore
-        inline void post ()
+        inline void signal (int index)
         {
+            assert (index == 0);
             int rc = pthread_mutex_unlock (&mutex);
 	    errno_assert (rc == 0);
         }
