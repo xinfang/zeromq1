@@ -20,6 +20,7 @@
 #ifndef __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 #define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
+#include <assert.h>
 #include <unistd.h>
 #include <sys/socket.h>
 

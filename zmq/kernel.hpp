@@ -20,6 +20,7 @@
 #ifndef __ZMQ_KERNEL_HPP_INCLUDED__
 #define __ZMQ_KERNEL_HPP_INCLUDED__
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
