@@ -30,18 +30,26 @@ namespace perf
     //  For measurement purposes the exact point when the timer started
     //  (e.g. midnight January 1, 1970) is irrelevant. The only requirement
     //  is that all times are measured from the same starting point.
-    typedef long long time_instant_t;
+    typedef unsigned long long time_instant_t;
 
     //  Time interval in microseconds
-    typedef long long time_interval_t;
+    typedef unsigned long long time_interval_t;
 
     //  Get current time
     inline time_instant_t now ()
     {
+#if (defined (__PERF_USE_TSC__) && defined (__GNUC__))
+       uint32_t low;
+       uint32_t high;
+       __asm__ volatile ("rdtsc"
+           : "=a" (low), "=d" (high));
+       return (time_instant_t) high << 32 | low;
+#else
         timeval tv;
         int rc = gettimeofday (&tv, NULL);
         assert (rc == 0);
         return ((time_t) tv.tv_sec) * 1000000 + tv.tv_usec;
+#endif
     }
 
 }
