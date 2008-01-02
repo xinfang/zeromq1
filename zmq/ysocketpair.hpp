@@ -56,7 +56,7 @@ namespace zmq
         //  Send specific signal to the pipe
         inline void signal (int index)
         {
-            assert (index > 0 && index < 256);
+            assert (index >= 0 && index < 256);
             unsigned char c = (unsigned char) index;
             ssize_t nbytes = send (w, &c, 1, 0);
             errno_assert (nbytes == 1);

@@ -32,6 +32,13 @@ namespace zmq
     //  Also, the semaphore may not be posted before the previous post
     //  was matched by corresponding wait and the waiting thread was
     //  released.
+    //
+    //  Take into account that ysemaphore is designed for platforms where
+    //  both mutex locking and unlocking provides full memory fence.
+    //  On the platforms where lock is implemented using one-way acquire-only
+    //  memory barrier and/or unlock uses release-only memory barrier,
+    //  real semaphore should be used instead (or a lock extended by release
+    //  barrier and unlock extended by acquire barrier).
     class ysemaphore_t
     { 
     public:

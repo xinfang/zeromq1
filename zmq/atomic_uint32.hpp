@@ -30,9 +30,13 @@ namespace zmq
 {
 
     //  This class encapuslates several atomic operations on unsigned 32-bit
-    //  integer. There are bitwise operations available as well as operations
-    //  managing the integer as a whole.
-    //  For i386 and x86_64 platforms, there's a native assembly implementation.
+    //  integer. Selection of the provided instructions is driven specifically
+    //  by the needs of ypollset implementation.
+    //
+    //  Note that i386 and x86_64 implementations are dependend on processors'
+    //  full memory barrier associated with atomic operations (lock prefix).
+    //  On different platforms memory fencing may be required to be implemented
+    //  explicitly.
     class atomic_uint32
     {
     public:
@@ -54,54 +58,35 @@ namespace zmq
 #endif
         }
 
-        //  Sets index-th bit of the value. Returns the old value of the bit.
-        inline bool bts (int index)
+        //  Bit-test-set-and-reset. Sets one bit of the value and resets
+        //  another one. Returns the original value of the reseted bit.
+        //
+        //  There's no need for the operation to be fully atomic. The only
+        //  requirement is that setting of the bit is performed first and
+        //  resetting afterwards. Getting the original value of the reseted
+        //  bit and actual reset, however, have to be done atomically.
+        inline bool btsr (int set_index, int reset_index)
         {
-            int oldval;
-            assert (index < 32);
 #if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
+            uint32_t oldval;
             __asm__ volatile (
-                "lock; btsl %1, (%2)\n\t"
+                "lock; btsl %1, (%3)\n\t"
+                "lock; btrl %2, (%3)\n\t"
                 "setc %%al\n\t"
                 "movzb %%al, %0\n\t"
                 : "=r" (oldval)
-                : "r" (index), "r" (&value)
+                : "r" (set_index), "r" (reset_index), "r" (&value)
                 : "memory", "cc", "%eax");
+            return (bool) oldval;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
-            oldval = value & (1 << index);
-            if (!oldval)
-                value |= (1 << index);
+            uit32_t oldval = value;
+            value = oldval | (1 << set_index) | ~(1 << reset_index);
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
+            return (bool) (oldval & (1 << reset_index));
 #endif
-            return (bool) oldval;
-        }
-
-        //  Resets index-th bit of the value. Returns the old value of the bit.
-        inline bool btr (int index)
-        {
-            int oldval;
-            assert (index < 32);
-#if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
-            __asm__ volatile (
-                "lock; btrl %1, (%2)\n\t"
-                "setc %%al\n\t"
-                "movzb %%al, %0\n\t"
-                : "=r" (oldval)
-                : "r" (index), "r" (&value)
-                : "memory", "cc", "%eax");
-#else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
-            bool oldval = value & (1 << index);
-            if (oldval)
-                value &= ~(1 << index);
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
-#endif
-            return (bool) oldval;
         }
 
         //  Sets value to newval. Returns the original value.

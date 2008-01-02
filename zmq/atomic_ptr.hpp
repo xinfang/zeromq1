@@ -35,6 +35,11 @@ namespace zmq
 
     //  This class stores a single pointer and allows you to perform
     //  atomic operations on the pointer.
+    //
+    //  Note that i386 and x86_64 implementations are dependend on processors'
+    //  full memory barrier associated with atomic operations (lock prefix).
+    //  On different platforms memory fencing may be required to be implemented
+    //  explicitly.
     template <typename T> class atomic_ptr
     {
     public:

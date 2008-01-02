@@ -46,9 +46,7 @@ namespace zmq
         inline void signal (int index)
         {
             assert (index >= 0 && index < 31);
-            bits.bts (index);
-            bool wait = bits.btr (wait_index);
-            if (wait)
+            if (bits.btsr (index, wait_index))
                 sem.signal (0); 
         }
 
