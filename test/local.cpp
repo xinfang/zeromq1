@@ -36,8 +36,8 @@ void read_times_1f (perf::time_instant_t *start_time_,
     snprintf (filename, 256, "%sin.dat", PREFIX);
     FILE *input = ::fopen (filename, "r");
     assert (input);
-    fscanf (input, "%lld", start_time_);
-    fscanf (input, "%lld", stop_time_);
+    fscanf (input, "%llu", start_time_);
+    fscanf (input, "%llu", stop_time_);
     fclose (input);
 }
 
@@ -49,13 +49,13 @@ void read_times_2f (perf::time_instant_t *start_time_,
     snprintf (filename, 256, "%sin.dat", PREFIX);
     FILE *input = ::fopen (filename, "r");
     assert (input);
-    fscanf (input, "%lld", stop_time_);
+    fscanf (input, "%llu", stop_time_);
     fclose (input);
     
     snprintf (filename, 256, "%sout.dat", PREFIX);
     input = ::fopen (filename, "r");
     assert (input);
-    fscanf (input, "%lld", start_time_);
+    fscanf (input, "%llu", start_time_);
     fclose (input);
 }
 
