@@ -22,7 +22,7 @@
 
 #include "../interfaces/i_transport.hpp"
 
-#include "../../zmq/kernel.hpp"
+#include "../../zmq/kernel.h"
 
 namespace perf
 {

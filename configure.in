@@ -1,0 +1,77 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.61)
+AC_INIT([zmq],[0.1],[malosek@fastmq.com])
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(zmq/config.h)
+AM_INIT_AUTOMAKE(zmq, 0.1)
+
+#PORT
+#AC_ARG_WITH(port,
+#[  --with-port=PORT_NUMBER                           Port on which to listen/connect to (default 5555)],
+#    ,
+#    [port_number=5555])
+
+#AC_DEFINE_UNQUOTED(PORT_NUMBER, ${port_number},
+#    [Port on which to listen/connect to.])
+
+#TEST_MSG_SIZE
+#AC_ARG_WITH(msg-size,
+#[  --with-msg-size=TEST_MSG_SIZE                     Size of the test message (default 6B)], 
+#    , 
+#    [test_msg_size=6])
+
+#AC_DEFINE_UNQUOTED(TEST_MSG_SIZE,${test_msg_size},
+#    [Define size of the test message.])
+
+#TEST_MSG_COUNT_THRPUT
+#AC_ARG_WITH(msg-count-thrput,
+#[  --with-msg-count-thrput=TEST_MSG_COUNT_THRPUT     Count of the messages in throughput test (default 1000000)],
+#    ,
+#    [test_msg_count_thrput=1000000])
+
+#AC_DEFINE_UNQUOTED(TEST_MSG_COUNT_THRPUT, $test_msg_count_thrput, 
+#    [Count of the messages in throughput test.])
+
+
+#TEST_MSG_COUNT_LATENCY
+#AC_ARG_WITH(msg-count-latency,
+#[  --with-msg-count-latency=TEST_MSG_COUNT_LATENCY   Count of the messages in latency test (default 50000)],
+#    ,
+#    [test_msg_count_latency=50000])
+
+#AC_DEFINE_UNQUOTED(TEST_MSG_COUNT_LATENCY, $test_msg_count_latency,
+#    [Count of the messages in latency test.])
+
+
+
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_RANLIB
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lpthread':
+AC_CHECK_LIB([pthread], [main])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_HEADER_TIME
+AC_TYPE_UINT32_T
+AC_C_VOLATILE
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(perror gettimeofday memset socket)
+
+#AC_CONFIG_FILES([test/Makefile])
+AC_OUTPUT(Makefile zmq/Makefile test/Makefile)

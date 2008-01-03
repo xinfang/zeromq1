@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <semaphore.h>
 
-#include "err.hpp"
+#include "err.h"
 
 namespace zmq
 {

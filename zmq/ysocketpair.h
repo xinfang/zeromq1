@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-#include "err.hpp"
+#include "err.h"
 
 namespace zmq
 {

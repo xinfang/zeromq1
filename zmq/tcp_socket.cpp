@@ -17,29 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SOCKET_INCLUDED__
-#define __ZMQ_SOCKET_INCLUDED__
+#include "./tcp_socket.h"
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-
-#include "err.hpp"
-
-namespace zmq
-{
-
-    //  Encapsulates simple TCP socket
-    class socket_t
-    {
-    public:
+using namespace zmq;
 
         // Opens a TCP socket. Either connectes to the host specified by
         // 'address' argument (when listen = false), or listens to the incoming
         // connections on the network interface specified by 'address'
         // (when listen = true).
-        inline socket_t (bool listen, const char *address, unsigned short port)
+        tcp_socket_t::tcp_socket_t (bool listen, const char *address, unsigned short port)
         {
             //  Create IP addess
             sockaddr_in ip_address;
@@ -96,7 +82,7 @@ namespace zmq
         }
 
         //  Closes the socket
-        inline ~socket_t ()
+        tcp_socket_t::~tcp_socket_t ()
         {
             int rc = close (s);
             errno_assert (rc == 0);
@@ -107,16 +93,3 @@ namespace zmq
             }
         }
 
-        //  Returns the underlying raw socket
-        inline operator int ()
-        {
-            return s;
-        }
-    protected:
-        int listening_socket;
-        int s;
-    };
-
-}
-
-#endif

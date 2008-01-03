@@ -20,7 +20,7 @@
 #ifndef __ZMQ_XPIPE_HPP_INCLUDED__
 #define __ZMQ_XPIPE_HPP_INCLUDED__
 
-#include "atomic_ptr.hpp"
+#include "atomic_ptr.h"
 
 namespace zmq
 {

@@ -23,8 +23,8 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "atomic_uint32.hpp"
-#include "ysemaphore.hpp"
+#include "atomic_uint32.h"
+#include "ysemaphore.h"
 
 namespace zmq
 {

@@ -22,7 +22,7 @@
 
 #include <pthread.h>
 
-#include "err.hpp"
+#include "err.h"
 
 //  128 bytes is the max cache line size we've encountered so far.
 //  This value may be tuned for specific microarchitecture to save few

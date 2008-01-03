@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "err.hpp"
+#include "err.h"
 
 namespace zmq
 {

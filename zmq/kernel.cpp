@@ -17,54 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_KERNEL_HPP_INCLUDED__
-#define __ZMQ_KERNEL_HPP_INCLUDED__
+#include "./kernel.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/poll.h>
-#include <algorithm>
+using namespace zmq;
 
-#include "err.hpp"
-#include "ysocketpair.hpp"
-#include "ypipe.hpp"
-#include "socket.hpp"
-#include "ysemaphore.hpp"
-#include "wire.hpp"
-
-#define ZMQ_RECV_CHUNK_SIZE 8192
-#define ZMQ_SEND_VECTOR_SIZE 1024
-
-namespace zmq
-{
-
-    //  Prototype for the message body deallocation functions.
-    //  Deliberately defined in the way to comply with standard C free.
-    typedef void (free_fn) (void *data);
-
-    //  Kernel class implements core of the messaging engine
-    class kernel_t
-    {
-    protected:
-
-        //  Internal structure to hold the chunks of data or messages
-        struct msg_t
-        {
-            unsigned char *data;
-            size_t size;
-            size_t offset;
-            free_fn *ffn;
-        };
-
-    public:
 
         //  Initialises the kernel. 'listen', 'address' and 'port' arguments
         //  are forwarded to underlying socket (see socket.hpp for reference)
         //  The kernel is by default created in batch mode. In case you want
         //  to create it in the x-mode, set xmode argument to true.
-        kernel_t (bool listen, const char *address, unsigned short port,
+    kernel_t::kernel_t (bool listen, const char *address, unsigned short port,
                 bool xmode) :
             xmode (xmode),
             xmode_blocked (!xmode),
@@ -85,7 +47,7 @@ namespace zmq
         }
 
         //  Destroy the kernel object
-        ~kernel_t ()
+    kernel_t::~kernel_t ()
         {
             //  Ask worker thread to stop
             command_pipe.signal (command_stop);
@@ -113,7 +75,7 @@ namespace zmq
         //  by ffn will be used to deallocate the data. If the data are stored
         //  in static buffer, use NULL to indicate that no deallocation is
         //  needed.
-        bool send (void *data, size_t size, free_fn *ffn)
+        bool kernel_t::send (void *data, size_t size, free_fn *ffn)
         {
             //  If the other party closed the socket, we are not able to
             //  send messages any more
@@ -195,7 +157,7 @@ namespace zmq
         //  Receives a message. If message is not immediately available, blocks
         //  until one arrives. Use function returned in 'ffn' to deallocate the
         //  received data chunk.
-        bool receive (void **data, size_t *size, free_fn **ffn)
+        bool kernel_t::receive (void **data, size_t *size, free_fn **ffn)
         {
             //  If the other party have closed the socket, we cannot read
             //  messages.
@@ -234,18 +196,8 @@ namespace zmq
             *ffn = msg.ffn;
             return true;
         }
-    protected:
 
-        //  Constants for individual commands sent through the command pipe
-        enum
-        {
-            command_stop = 1,
-            command_resurrect = 2
-        };
-
-        //  Top-level routine for worker thread. 
-        //  Delegates all the work to 'do_work' function.
-        static void *worker_routine (void *arg)
+        void *kernel_t::worker_routine (void *arg)
         {
             kernel_t *self = (kernel_t*) arg;
             self->do_work ();
@@ -254,7 +206,7 @@ namespace zmq
 
         //  Flushes as much data from send buffer to the socket as possible.
         //  Returns true is all the data are flushed, false otherwise.
-        bool flush_sendbuf ()
+        bool kernel_t::flush_sendbuf ()
         {
             //  If send buffer is empty, there's nothing to do.
             if (sendbuf_first == sendbuf_last)
@@ -381,7 +333,7 @@ namespace zmq
         //  in advance and 'size' and 'offset' members set as needed.
         //  Returns false if the other party have closed the socket, otherwise
         //  true.
-        bool fill_msg (msg_t &msg)
+        bool kernel_t::fill_msg (msg_t &msg)
         {
             assert (msg.offset < msg.size);
 
@@ -449,7 +401,7 @@ namespace zmq
         }
 
         //  Main routine of the worker thread
-        void do_work ()
+        void kernel_t::do_work ()
         {
             //  Initialise structures needed for polling
             pollfd pfd [2];
@@ -561,45 +513,3 @@ namespace zmq
                 }
             }
         }
-
-        //  Determines whether the kernel is currently in x-mode (true) or
-        //  batch mode (false).
-        bool xmode;
-
-        //  If true, kernel will work only in batch mode, never switching to
-        //  x-mode.
-        bool xmode_blocked;
-
-        //  If true, the other party have closed the underlying socket.
-        bool peer_dead;
-
-        //  The pipe for communication between sender thread and working thread
-        //  and two pointers to hold the list of items retrieved from the pipe.
-        ypipe_t <msg_t> send_pipe;
-        ypipe_t <msg_t>::item_t *sendbuf_first;
-        ypipe_t <msg_t>::item_t *sendbuf_last;
-
-        //  The pipe for communication between receiver thread and working
-        //  thread and two pointers to hold the list of items retrieved
-        //  from the pipe.
-        ypipe_t <msg_t> receive_pipe;
-        ypipe_t <msg_t>::item_t *recvbuf_first;
-        ypipe_t <msg_t>::item_t *recvbuf_last;
-
-        //  Semaphore used by receiver thread to wait for a message if none
-        //  is available immediately.
-        ysemaphore_t receive_sem;
-
-        //  Pipe to pass commands from client thread to worker thread
-        ysocketpair_t command_pipe;
-
-        //  Underlying socket
-        socket_t sock;
-
-        //  Worker thread
-        pthread_t worker;
-    };
-
-}
-
-#endif
