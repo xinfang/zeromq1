@@ -15,7 +15,7 @@ local_SOURCES = local.cpp ../perf/transports/tcp.hpp ../perf/transports/zmq.hpp 
 remote_SOURCES = remote.cpp ../perf/transports/tcp.hpp ../perf/transports/zmq.hpp \
 ../perf/helpers/time.hpp ../perf/workers/raw_sender.hpp ../perf/workers/echo.hpp
 
-local_CPPFLAGS = -D'TEST_MSG_COUNT_LATENCY=${TEST_MSG_COUNT_LATENCY}' \ 
+local_CPPFLAGS = -D'TEST_MSG_COUNT_LATENCY=${TEST_MSG_COUNT_LATENCY}' \
 -D'TEST_MSG_COUNT_THRPUT=${TEST_MSG_COUNT_THRPUT}' -D'TEST_MSG_SIZE=${TEST_MSG_SIZE}' \
 -D'PORT_NUMBER=${PORT_NUMBER}'
 
