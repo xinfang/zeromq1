@@ -25,12 +25,6 @@
 namespace perf
 {
 
-    enum transport_type_t
-    {
-        loopback,
-        roundtrip
-    };
-
     struct i_transport
     {
         virtual ~i_transport () {}
