@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "i_signaler.hpp"
 #include "atomic_uint32.hpp"
 #include "ysemaphore.hpp"
 
@@ -31,7 +32,7 @@ namespace zmq
 
     //  ypollset_t class allows for rapid polling for up to 31 different signals
     //  each produced by a different thread.
-    class ypollset_t
+    class ypollset_t : public i_signaler
     {
         enum {wait_index = 31};
 
@@ -43,12 +44,7 @@ namespace zmq
         }
 
         //  Send a signal to the pollset
-        inline void signal (int index)
-        {
-            assert (index >= 0 && index < 31);
-            if (bits.btsr (index, wait_index))
-                sem.signal (0); 
-        }
+        virtual void signal (int index);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
