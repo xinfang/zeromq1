@@ -19,77 +19,71 @@
 
 #include "tcp_socket.hpp"
 
-using namespace zmq;
+zmq::tcp_socket_t::tcp_socket_t (bool listen, const char *address,
+    unsigned short port)
+{
+    //  Create IP addess
+    sockaddr_in ip_address;
+    memset (&ip_address, 0, sizeof (ip_address));
+    ip_address.sin_family = AF_INET;
+    int rc = inet_pton (AF_INET, address, &ip_address.sin_addr);
+    errno_assert (rc > 0);
+    ip_address.sin_port = htons (port);
 
-        // Opens a TCP socket. Either connectes to the host specified by
-        // 'address' argument (when listen = false), or listens to the incoming
-        // connections on the network interface specified by 'address'
-        // (when listen = true).
-        tcp_socket_t::tcp_socket_t (bool listen, const char *address, unsigned short port)
-        {
-            //  Create IP addess
-            sockaddr_in ip_address;
-            memset (&ip_address, 0, sizeof (ip_address));
-            ip_address.sin_family = AF_INET;
-            int rc = inet_pton (AF_INET, address, &ip_address.sin_addr);
-            errno_assert (rc > 0);
-            ip_address.sin_port = htons (port);
+    if (listen) {
 
-            if (listen) {
+        //  Create a listening socket
+        listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        errno_assert (listening_socket != -1);
 
-                //  Create a listening socket
-                listening_socket = socket (AF_INET, SOCK_STREAM,
-                    IPPROTO_TCP);
-                errno_assert (listening_socket != -1);
+        //  Allow socket reusing
+        int flag = 1;
+        rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
+            &flag, sizeof (int));
+        errno_assert (rc == 0);
 
-                //  Allow socket reusing
-                int flag = 1;
-                rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
-                    &flag, sizeof (int));
-                errno_assert (rc == 0);
-
-                //  Bind the socket to the network interface and port
-                rc = bind (listening_socket, (struct sockaddr*) &ip_address,
-                    sizeof (ip_address));
-                errno_assert (rc == 0);
+        //  Bind the socket to the network interface and port
+        rc = bind (listening_socket, (struct sockaddr*) &ip_address,
+            sizeof (ip_address));
+        errno_assert (rc == 0);
               
-                //  Listen for incomming connections
-                rc = ::listen (listening_socket, 1);
-                errno_assert (rc == 0);
+        //  Listen for incomming connections
+        rc = ::listen (listening_socket, 1);
+        errno_assert (rc == 0);
 
-                //  Accept first incoming connection
-                s = accept (listening_socket, NULL, NULL);
-                errno_assert (s != -1);
-            }
-            else {
+        //  Accept first incoming connection
+        s = accept (listening_socket, NULL, NULL);
+        errno_assert (s != -1);
+    }
+    else {
 
-                //  Mark listening socket as unused
-                listening_socket = -1;
+        //  Mark listening socket as unused
+        listening_socket = -1;
 
-                //  Create the socket
-                s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-                errno_assert (s != -1);
+        //  Create the socket
+        s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        errno_assert (s != -1);
 
-                //  Connect to the remote peer
-                rc = connect (s, (sockaddr*) &ip_address, sizeof (ip_address));
-                errno_assert (rc != -1);
-            }
+        //  Connect to the remote peer
+        rc = connect (s, (sockaddr*) &ip_address, sizeof (ip_address));
+        errno_assert (rc != -1);
+    }
 
-            //  Disable Nagle's algorithm
-            int flag = 1;
-            rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
-            errno_assert (rc == 0);
-        }
+    //  Disable Nagle's algorithm
+    int flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
+    errno_assert (rc == 0);
+}
 
-        //  Closes the socket
-        tcp_socket_t::~tcp_socket_t ()
-        {
-            int rc = close (s);
-            errno_assert (rc == 0);
+//  Closes the socket
+zmq::tcp_socket_t::~tcp_socket_t ()
+{
+    int rc = close (s);
+    errno_assert (rc == 0);
 
-            if (listening_socket != -1) {
-                rc = close (listening_socket);
-                errno_assert (rc == 0);
-            }
-        }
+    if (listening_socket != -1) {
+        rc = close (listening_socket);
+        errno_assert (rc == 0);
+    }
+}
 
