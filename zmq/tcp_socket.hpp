@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SOCKET_INCLUDED__
-#define __ZMQ_SOCKET_INCLUDED__
+#ifndef __ZMQ_SOCKET_HPP_INCLUDED__
+#define __ZMQ_SOCKET_HPP_INCLUDED__
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -26,7 +26,7 @@
 #include <netinet/tcp.h>
 #include <cstring>
 
-#include "err.h"
+#include "err.hpp"
 
 namespace zmq
 {

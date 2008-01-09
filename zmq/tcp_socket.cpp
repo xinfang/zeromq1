@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "./tcp_socket.h"
+#include "tcp_socket.hpp"
 
 using namespace zmq;
 

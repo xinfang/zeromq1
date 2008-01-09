@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_YPOLLSET_INCLUDED__
-#define __ZMQ_YPOLLSET_INCLUDED__
+#ifndef __ZMQ_YPOLLSET_HPP_INCLUDED__
+#define __ZMQ_YPOLLSET_HPP_INCLUDED__
 
 #include <assert.h>
 #include <stdint.h>
 
-#include "atomic_uint32.h"
-#include "ysemaphore.h"
+#include "atomic_uint32.hpp"
+#include "ysemaphore.hpp"
 
 namespace zmq
 {

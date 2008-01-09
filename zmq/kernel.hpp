@@ -27,12 +27,12 @@
 #include <sys/poll.h>
 #include <algorithm>
 
-#include "err.h"
-#include "ysocketpair.h"
-#include "ypipe.h"
-#include "tcp_socket.h"
-#include "ysemaphore.h"
-#include "wire.h"
+#include "err.hpp"
+#include "ysocketpair.hpp"
+#include "ypipe.hpp"
+#include "tcp_socket.hpp"
+#include "ysemaphore.hpp"
+#include "wire.hpp"
 
 #define ZMQ_RECV_CHUNK_SIZE 8192
 #define ZMQ_SEND_VECTOR_SIZE 1024

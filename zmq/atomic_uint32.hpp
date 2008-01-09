@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ATOMIC_UINT32_INCLUDED__
-#define __ZMQ_ATOMIC_UINT32_INCLUDED__
+#ifndef __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
+#define __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 
 #include <assert.h>
 #include <stdint.h>
 #include <pthread.h>
 
-#include "err.h"
+#include "err.hpp"
 
 namespace zmq
 {

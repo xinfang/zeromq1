@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ATOMIC_PTR_INCLUDED__
-#define __ZMQ_ATOMIC_PTR_INCLUDED__
+#ifndef __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
+#define __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
 
 #include <pthread.h>
 
-#include "err.h"
+#include "err.hpp"
 
 //  128 bytes is the max cache line size we've encountered so far.
 //  This value may be tuned for specific microarchitecture to save few
