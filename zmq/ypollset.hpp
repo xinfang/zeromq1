@@ -44,7 +44,7 @@ namespace zmq
         }
 
         //  Send a signal to the pollset
-        virtual void signal (int index);
+        void signal (int index);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,

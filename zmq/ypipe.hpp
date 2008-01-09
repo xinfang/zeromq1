@@ -44,7 +44,7 @@ namespace zmq
 
         //  Initialises the pipe. If 'dead' is set to true, the pipe is
         //  created in 'dead' state.
-        ypipe_t (bool dead)
+        ypipe_t (bool dead = false)
         {
             r = w = new item_t;
             c.set (dead ? NULL : w);
