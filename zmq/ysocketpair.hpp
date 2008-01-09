@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "i_signaler.hpp"
 #include "err.hpp"
 
 namespace zmq
@@ -32,7 +33,7 @@ namespace zmq
     //  This pipe can be used to send individual bytes from one thread to
     //  another. The specific of this queue is that it has associated file
     //  descriptor and it can be polled for.
-    class ysocketpair_t
+    class ysocketpair_t : public i_signaler
     {
     public:
 
@@ -54,13 +55,7 @@ namespace zmq
         }
 
         //  Send specific signal to the pipe
-        inline void signal (int index)
-        {
-            assert (index >= 0 && index < 256);
-            unsigned char c = (unsigned char) index;
-            ssize_t nbytes = send (w, &c, 1, 0);
-            errno_assert (nbytes == 1);
-        }
+        void signal (int index);
 
         //  Get first available signal from the pipe
         inline int get_signal ()
@@ -72,7 +67,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe
-        inline operator int ()
+        inline int get_fd ()
         {
             return r;
         }

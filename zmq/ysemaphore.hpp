@@ -22,7 +22,9 @@
 
 #include <assert.h>
 #include <semaphore.h>
+#include <pthread.h>
 
+#include "i_signaler.hpp"
 #include "err.hpp"
 
 namespace zmq
@@ -39,7 +41,7 @@ namespace zmq
     //  memory barrier and/or unlock uses release-only memory barrier,
     //  real semaphore should be used instead (or a lock extended by release
     //  barrier and unlock extended by acquire barrier).
-    class ysemaphore_t
+    class ysemaphore_t : public i_signaler
     { 
     public:
 
@@ -69,12 +71,7 @@ namespace zmq
         }
 
         //  Post the semaphore
-        inline void signal (int index)
-        {
-            assert (index == 0);
-            int rc = pthread_mutex_unlock (&mutex);
-	    errno_assert (rc == 0);
-        }
+        void signal (int index);
     protected:
 
         //  Simple semaphore is implemented by mutex, as it is more efficient

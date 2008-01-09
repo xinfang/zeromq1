@@ -46,7 +46,7 @@ namespace zmq
         ~tcp_socket_t ();
 
         //  Returns the underlying raw socket
-        inline operator int ()
+        inline int get_fd ()
         {
             return s;
         }

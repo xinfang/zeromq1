@@ -130,7 +130,7 @@ using namespace zmq;
             hdr.msg_iovlen = 2;
 
             //  Push the message to the socket
-            ssize_t nbytes = sendmsg (sock, &hdr, MSG_DONTWAIT);
+            ssize_t nbytes = sendmsg (sock.get_fd (), &hdr, MSG_DONTWAIT);
             errno_assert (nbytes > 0);
 
             //  If the send is successful, deallocate the message and
@@ -289,7 +289,7 @@ using namespace zmq;
                 //  happens every now and then on Linux, so we have to handle
                 //  it gracefully.
                 hdr.msg_iovlen = pos;
-                ssize_t nbytes = sendmsg (sock, &hdr, MSG_DONTWAIT);
+                ssize_t nbytes = sendmsg (sock.get_fd (), &hdr, MSG_DONTWAIT);
                 if (nbytes == -1 && errno == EAGAIN)
                     nbytes = 0;
                 errno_assert (nbytes != -1);
@@ -405,9 +405,9 @@ using namespace zmq;
         {
             //  Initialise structures needed for polling
             pollfd pfd [2];
-            pfd [0].fd = command_pipe;
+            pfd [0].fd = command_pipe.get_fd ();
             pfd [0].events = POLLIN;
-            pfd [1].fd = sock;
+            pfd [1].fd = sock.get_fd ();
             pfd [1].events = 0;
 
             bool stopping = false;
@@ -463,7 +463,8 @@ using namespace zmq;
                     unsigned char *chunk =
                         (unsigned char*) malloc (ZMQ_RECV_CHUNK_SIZE);
                     assert (chunk);
-                    ssize_t nbytes = recv (sock, chunk, ZMQ_RECV_CHUNK_SIZE, 0);
+                    ssize_t nbytes = recv (sock.get_fd (), chunk,
+                        ZMQ_RECV_CHUNK_SIZE, 0);
                     errno_assert (nbytes >= 0);
 
                     //  Enqueue empty chunk to let the client thread know that
