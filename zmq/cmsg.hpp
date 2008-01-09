@@ -20,8 +20,6 @@
 #ifndef __ZMQ_CMSG_HPP_INCLUDED__
 #define __ZMQ_CMSG_HPP_INCLUDED__
 
-#include <string>
-
 typedef int cmsg_t;
 
 #endif
