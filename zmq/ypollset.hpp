@@ -20,8 +20,16 @@
 #ifndef __ZMQ_YPOLLSET_HPP_INCLUDED__
 #define __ZMQ_YPOLLSET_HPP_INCLUDED__
 
+#if HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <assert.h>
-#include <stdint.h>
+#if defined HAVE_STDINT_H
+    #include <stdint.h>
+#elif defined HAVE_INTTYPES_H
+    #include <inttypes.h>
+#endif
 
 #include "i_signaler.hpp"
 #include "atomic_uint32.hpp"

@@ -20,8 +20,16 @@
 #ifndef __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 
+#if HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <assert.h>
-#include <stdint.h>
+#if defined HAVE_STDINT_H
+    #include <stdint.h>
+#elif defined HAVE_INTTYPES_H
+    #include <inttypes.h>
+#endif
 #include <pthread.h>
 
 #include "err.hpp"
@@ -81,7 +89,7 @@ namespace zmq
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
-            uit32_t oldval = value;
+            uint32_t oldval = value;
             value = oldval | (1 << set_index) | ~(1 << reset_index);
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
