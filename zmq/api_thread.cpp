@@ -28,7 +28,7 @@ zmq::api_thread_t::api_thread_t (int thread_id, dispatcher_t *dispatcher) :
     current_thread = thread_count - 1;
     assert (thread_id < thread_count);
 
-    recvbufs = new recvbuf [thread_count];
+    recvbufs = new recvbuf_t [thread_count];
     assert (recvbufs);
     for (int buf_nbr = 0; buf_nbr != thread_count; buf_nbr ++) {
         recvbufs [buf_nbr].alive = true;

@@ -41,7 +41,7 @@ namespace zmq
 
     protected:
 
-        struct recvbuf
+        struct recvbuf_t
         {
             bool alive;
             dispatcher_t::item_t *first;
@@ -54,7 +54,7 @@ namespace zmq
         int threads_alive;
         dispatcher_t *dispatcher;
         ypollset_t pollset;
-        recvbuf *recvbufs;
+        recvbuf_t *recvbufs;
     };
 
 }
