@@ -104,16 +104,16 @@ bool zmq::kernel_t::send (void *data, size_t size, free_fn *ffn)
     //  Fill in the iovec
     if (msg.size < 255) {
         sizebuf [0] = (unsigned char) msg.size;
-        iovs [0].iov_base = &sizebuf;
+        iovs [0].iov_base = (char*) &sizebuf;
         iovs [0].iov_len = 1;
     }
     else {
         sizebuf [0] = 0xff;         
         put_size_64 (sizebuf + 1, msg.size);
-        iovs [0].iov_base = &sizebuf;
+        iovs [0].iov_base = (char*) &sizebuf;
         iovs [0].iov_len = 9;
     }
-    iovs [1].iov_base = msg.data;
+    iovs [1].iov_base = (char*) msg.data;
     iovs [1].iov_len = msg.size;
     hdr.msg_iovlen = 2;
 
@@ -196,8 +196,8 @@ bool zmq::kernel_t::flush_sendbuf ()
 
     //  Initialise som structures needed for sending
     bool can_write = true;
-    iovec iovs [ZMQ_SEND_VECTOR_SIZE];
-    unsigned char sizes [ZMQ_SEND_VECTOR_SIZE * 9];
+    iovec iovs [IOV_MAX];
+    unsigned char sizes [IOV_MAX * 9];
     msghdr hdr;
     memset (&hdr, 0, sizeof (hdr));
     hdr.msg_iov = iovs;
@@ -222,7 +222,7 @@ bool zmq::kernel_t::flush_sendbuf ()
 
                 //  Store remainder of message body into an iovec.
                 iovs [pos].iov_base =
-                    msg.data + msg.offset - header_size;
+                    (char*) (msg.data + msg.offset - header_size);
                 iovs [pos].iov_len =
                     msg.size - msg.offset + header_size;
                 sz += msg.size - msg.offset + header_size;
@@ -233,7 +233,7 @@ bool zmq::kernel_t::flush_sendbuf ()
                 //  Store message header into an iovec
                 if (msg.size < 255) {
                     sizes [sizes_pos] = (unsigned char) msg.size;
-                    iovs [pos].iov_base = &(sizes [sizes_pos]);
+                    iovs [pos].iov_base = (char*) &(sizes [sizes_pos]);
                     iovs [pos].iov_len = 1;
                     sizes_pos ++;
                     sz ++;
@@ -241,7 +241,7 @@ bool zmq::kernel_t::flush_sendbuf ()
                 else {
                     sizes [sizes_pos] = 0xff;
                     put_size_64 (sizes + sizes_pos + 1, msg.size);
-                    iovs [pos].iov_base = sizes + sizes_pos + msg.offset;
+                    iovs [pos].iov_base = (char*) (sizes + sizes_pos + msg.offset);
                     iovs [pos].iov_len = 9 - msg.offset;
                     sizes_pos += 9;
                     sz += 9 - msg.offset;
@@ -249,7 +249,7 @@ bool zmq::kernel_t::flush_sendbuf ()
                 pos ++;
 
                 //  Store message body into an iovec
-                iovs [pos].iov_base = msg.data;
+                iovs [pos].iov_base = (char*) msg.data;
                 iovs [pos].iov_len = msg.size;
                 sz += msg.size;
                 pos ++;
@@ -261,7 +261,7 @@ bool zmq::kernel_t::flush_sendbuf ()
             //  If the iovec array have reached the OS-defined limit
             //  stop generating new iovecs even if there are more data
             //  available in the send buffer.
-            if (pos >= ZMQ_SEND_VECTOR_SIZE - 1)
+            if (pos >= IOV_MAX - 1)
                 break;
         }
 

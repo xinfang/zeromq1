@@ -19,9 +19,9 @@
 
 #include "api_thread.hpp"
 
-zmq::api_thread_t::api_thread_t (int thread_id, dispatcher_t *dispatcher) :
-    thread_id (thread_id),
-    dispatcher (dispatcher)
+zmq::api_thread_t::api_thread_t (int thread_id_, dispatcher_t *dispatcher_) :
+    thread_id (thread_id_),
+    dispatcher (dispatcher_)
 {
     thread_count = dispatcher->get_thread_count ();
     threads_alive = thread_count;

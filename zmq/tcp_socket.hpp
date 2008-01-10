@@ -24,7 +24,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-#include <cstring>
+#include <string.h>
 
 #include "err.hpp"
 

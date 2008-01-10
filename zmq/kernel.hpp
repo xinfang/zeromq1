@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <sys/poll.h>
 #include <algorithm>
+#include <limits.h>
 
 #include "err.hpp"
 #include "ysocketpair.hpp"
@@ -35,7 +36,6 @@
 #include "wire.hpp"
 
 #define ZMQ_RECV_CHUNK_SIZE 8192
-#define ZMQ_SEND_VECTOR_SIZE 1024
 
 namespace zmq
 {
