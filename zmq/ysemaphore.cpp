@@ -19,10 +19,23 @@
 
 #include "ysemaphore.hpp"
 
+#if (defined HAVE_LINUX || defined HAVE_OSX)
+
 void zmq::ysemaphore_t::signal (int index)
 {
     assert (index == 0);
     int rc = pthread_mutex_unlock (&mutex);
     errno_assert (rc == 0);
 }
+
+#else
+
+void zmq::ysemaphore_t::signal (int index)
+{
+    assert (index == 0);
+    int rc = sem_post (&sem);
+    errno_assert (rc != -1);
+}
+
+#endif
 

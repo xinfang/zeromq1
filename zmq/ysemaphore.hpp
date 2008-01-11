@@ -21,8 +21,10 @@
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
 #include <assert.h>
-#include <semaphore.h>
 #include <pthread.h>
+#if (!defined HAVE_LINUX && !defined HAVE_OSX)
+#include <semaphore.h>
+#endif
 
 #include "i_signaler.hpp"
 #include "err.hpp"
@@ -41,6 +43,15 @@ namespace zmq
     //  memory barrier and/or unlock uses release-only memory barrier,
     //  real semaphore should be used instead (or a lock extended by release
     //  barrier and unlock extended by acquire barrier).
+    //
+    //  Implementation notes:
+    //  - on BSD platform mutex cannot be locked twice from the same thread
+    //    therefore real semaphore should be used
+    //  - on OS X unnamed semaphores are not supported, therefore mutex-based
+    //    substitute should be used
+
+#if (defined HAVE_LINUX || defined HAVE_OSX)
+
     class ysemaphore_t : public i_signaler
     { 
     public:
@@ -78,6 +89,42 @@ namespace zmq
         //  on Linux platform.
         pthread_mutex_t mutex;
     };
+
+#else
+
+    class ysemaphore_t : public i_signaler
+    { 
+    public:
+
+        //  Initialise the semaphore
+        inline ysemaphore_t ()
+        {
+             int rc = sem_init (&sem, 0, 0);
+             errno_assert (rc != -1);
+        }
+
+        //  Destroy the semaphore
+        inline ~ysemaphore_t ()
+        {
+             int rc = sem_destroy (&sem);
+             errno_assert (rc != -1);
+        }
+
+        //  Wait for the semaphore
+        inline void wait ()
+        {
+             int rc = sem_wait (&sem);
+             errno_assert (rc != -1);
+        }
+
+        //  Post the semaphore
+        void signal (int index);
+    protected:
+
+        sem_t sem;
+    };
+
+#endif
 
 }
 
