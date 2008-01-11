@@ -28,9 +28,9 @@ case "${host_os}" in
         AC_CHECK_LIB([nsl], [main])
         AC_CHECK_LIB([rt], [main])
         ;;
-#    freebsd*)
-#        AC_DEFINE(FREEBSD, 1, [FreeBSD asi])
-#        ;;
+    *freebsd*)
+        AC_DEFINE(FREEBSD, 1, [Have FreeBSD OS])
+        ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
         ;;
@@ -39,7 +39,7 @@ esac
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
+AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
