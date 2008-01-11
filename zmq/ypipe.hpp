@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_XPIPE_HPP_INCLUDED__
-#define __ZMQ_XPIPE_HPP_INCLUDED__
+#ifndef __ZMQ_YPIPE_HPP_INCLUDED__
+#define __ZMQ_YPIPE_HPP_INCLUDED__
 
 #include "atomic_ptr.hpp"
 
