@@ -47,6 +47,12 @@ namespace zmq
             }
         }
 
+        //  The "iov" array itself is owned by the calling thread and should be
+        //  deallocated by it. However, the data pointed to by individual iovecs
+        //  are to be managed by the parser engine. Parser engine manages
+        //  data lifetime by setting appropriate deallocation functions to the
+        //  outgoing canonical messages. The data should be deallocated using
+        //  standard 'free' function.
         inline void write (iovec *iov, size_t iovlen)
         {
             for (size_t iovec_nbr = 0; iovec_nbr != iovlen; iovec_nbr ++) {

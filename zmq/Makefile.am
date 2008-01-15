@@ -23,5 +23,8 @@ libzmq_la_SOURCES = \
     dispatcher.hpp \
     api_thread.hpp \
     api_thread.cpp \
-    cmsg.hpp 
+    cmsg.hpp \
+    parser.hpp \
+    bp_parser.hpp \
+    bp_parser.cpp
 libzmq_la_LDFLAGS = -version-info 0:0:0

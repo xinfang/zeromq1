@@ -31,6 +31,7 @@ namespace zmq
 
     struct cmsg_t
     {
+        unsigned char routing_tag;
         void *data;
         size_t size;
         free_fn *ffn;

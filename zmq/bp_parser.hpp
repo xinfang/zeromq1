@@ -24,7 +24,6 @@
 #include <sys/uio.h>
 #include <algorithm>
 
-#include "wire.hpp"
 #include "dispatcher.hpp"
 #include "parser.hpp"
 
@@ -35,56 +34,15 @@ namespace zmq
     {
     public:
 
-        //  The "iov" array itself is owned by the calling thread and should be
-        //  deallocated by it. However, the data pointed to by individual iovecs
-        //  are to be managed by the parser engine. Parser engine manages
-        //  data lifetime by setting appropriate deallocation functions to the
-        //  outgoing canonical messages. The data should be deallocated using
-        //  standard 'free' function.
-
-        bp_parser_t ()
-        {
-            next_step (tmpbuf, 1, &bp_parser_t::one_byte_size_ready);
-        }
+        bp_parser_t (unsigned char routing_tag_);
 
     protected:
 
-        void one_byte_size_ready ()
-        {
-            if (*tmpbuf == 0xff)
-                next_step (tmpbuf, 8, &bp_parser_t::eight_byte_size_ready);
-            else {
-                msg = new dispatcher_t::item_t;
-                assert (msg);
-                msg->value.size = *tmpbuf;
-                msg->value.data = malloc (*tmpbuf);
-                assert (msg->value.data);
-                msg->value.ffn = free;
+        void one_byte_size_ready ();
+        void eight_byte_size_ready ();
+        void message_ready ();
 
-                next_step (msg->value.data, *tmpbuf,
-                    &bp_parser_t::message_ready);
-            }
-        }
-
-        void eight_byte_size_ready ()
-        {
-            msg = new dispatcher_t::item_t;
-            assert (msg);
-            msg->value.size = get_size_64 (tmpbuf);
-            msg->value.data = malloc (msg->value.size);
-            assert (msg->value.data);
-            msg->value.ffn = free;
-
-            next_step (msg->value.data, msg->value.size,
-                &bp_parser_t::message_ready);
-        }
-
-        void message_ready ()
-        {
-            done (msg);
-            next_step (tmpbuf, 1, &bp_parser_t::one_byte_size_ready);
-        }
-
+        unsigned char routing_tag;
         unsigned char tmpbuf [8];
         dispatcher_t::item_t *msg;
     };
