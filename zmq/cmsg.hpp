@@ -20,6 +20,28 @@
 #ifndef __ZMQ_CMSG_HPP_INCLUDED__
 #define __ZMQ_CMSG_HPP_INCLUDED__
 
-typedef int cmsg_t;
+#include <stddef.h>
+
+namespace zmq
+{
+
+    //  Prototype for the message body deallocation functions.
+    //  It is deliberately defined in the way to comply with standard C free.
+    typedef void (free_fn) (void *data);
+
+    struct cmsg_t
+    {
+        void *data;
+        size_t size;
+        free_fn *ffn;
+    };
+
+    inline void free_cmsg (cmsg_t &msg)
+    {
+        if (msg.ffn && msg.data)
+            msg.ffn (msg.data);
+    }
+
+}
 
 #endif
