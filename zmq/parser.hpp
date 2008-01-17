@@ -21,6 +21,7 @@
 #define __ZMQ_PARSER_HPP_INCLUDED__
 
 #include "dispatcher.hpp"
+#include "dispatcher_proxy.hpp"
 
 namespace zmq
 {
@@ -29,58 +30,37 @@ namespace zmq
     {
     public:
 
-        inline parser_t () :
+        inline parser_t (dispatcher_proxy_t *proxy_,
+              int destination_thread_id_) :
+            proxy (proxy_),
+            destination_thread_id (destination_thread_id_),
             read_pos (NULL),
-            next (NULL),
-            msgbuf_first (NULL),
-            msgbuf_last (NULL)
+            to_read (0),
+            next (NULL)
         {
         }
 
-        inline ~parser_t ()
+        //  The data pointed to by 'data' parameter are to be managed
+        //  by the parser engine. Parser engine manages data lifetime
+        //  by setting appropriate deallocation functions to the outgoing
+        //  canonical messages. The data should be deallocated using
+        //  function pointer to by 'ffn' parameter.
+        inline void write (unsigned char *data, size_t size, free_fn *ffn)
         {
-            while (msgbuf_first) {
-                dispatcher_t::item_t *o = msgbuf_first;
-                msgbuf_first = o->next;
-                free_cmsg (o->value);
-                delete o;
+            size_t pos = 0;
+            while (true) {
+                size_t to_copy = std::min (to_read, size - pos);
+                memcpy (read_pos, data + pos, to_copy);
+                read_pos += to_copy;
+                pos += to_copy;
+                to_read -= to_copy;
+                if (!to_read)
+                    (static_cast <T*> (this)->*next) ();
+                if (pos == size)
+                    break;
             }
-        }
-
-        //  The "iov" array itself is owned by the calling thread and should be
-        //  deallocated by it. However, the data pointed to by individual iovecs
-        //  are to be managed by the parser engine. Parser engine manages
-        //  data lifetime by setting appropriate deallocation functions to the
-        //  outgoing canonical messages. The data should be deallocated using
-        //  standard 'free' function.
-        inline void write (iovec *iov, size_t iovlen)
-        {
-            for (size_t iovec_nbr = 0; iovec_nbr != iovlen; iovec_nbr ++) {
-                size_t pos = 0;
-                while (true) {
-                    size_t to_copy = std::min (to_read,
-                        iov [iovec_nbr].iov_len - pos);
-                    memcpy (read_pos,
-                        ((unsigned char*) iov [iovec_nbr].iov_base) + pos,
-                        to_copy);
-                    read_pos += to_copy;
-                    pos += to_copy;
-                    to_read -= to_copy;
-                    if (!to_read)
-                        (static_cast <T*> (this)->*next) ();
-                    if (pos == iov [iovec_nbr].iov_len)
-                        break;
-                }
-            }
-        }
-
-        inline void read (dispatcher_t::item_t **first,
-            dispatcher_t::item_t **last)
-        {
-            *first = msgbuf_first;
-            *last = msgbuf_last;
-            msgbuf_first = NULL;
-            msgbuf_last = NULL;
+            if (ffn)
+                ffn (data);
         }
 
     protected:
@@ -95,24 +75,18 @@ namespace zmq
             next = next_;
         }
 
-        inline void done (dispatcher_t::item_t *msg)
+        inline void done (cmsg_t &msg)
         {
-            msg->next = NULL;
-            if (msgbuf_last)
-                msgbuf_last->next = msg;
-            msgbuf_last = msg;
-            if (!msgbuf_first)
-                msgbuf_first = msg;
+            proxy->write (destination_thread_id, msg);
         }
 
     private:
 
+        dispatcher_proxy_t *proxy;
+        int destination_thread_id;
         size_t to_read;
         unsigned char *read_pos;
         parse_step_t next;
-
-        dispatcher_t::item_t *msgbuf_first;
-        dispatcher_t::item_t *msgbuf_last;
     };
 
 }

@@ -21,6 +21,8 @@ libzmq_la_SOURCES = \
     ysemaphore.cpp \
     ydispatcher.hpp \
     dispatcher.hpp \
+    ydispatcher_proxy.hpp \
+    dispatcher_proxy.hpp \
     api_thread.hpp \
     api_thread.cpp \
     cmsg.hpp \
