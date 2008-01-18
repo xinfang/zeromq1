@@ -22,11 +22,14 @@
 
 zmq::io_thread_t::io_thread_t (bool listen_, const char *address_,
       uint16_t port_, int thread_id_, dispatcher_t *dispatcher_,
-      int source_thread_id_, int destination_thread_id_) :
+      int source_thread_id_, int destination_thread_id_,
+      size_t write_buffer_size_, size_t read_buffer_size_) :
     proxy (dispatcher_, thread_id_, &signaler),
-    encoder (&proxy, 8192, source_thread_id_),
+    encoder (&proxy, write_buffer_size, source_thread_id_),
     decoder (&proxy, destination_thread_id_),
     socket (listen_, address_, port_),
+    write_buffer_size (write_buffer_size_),
+    read_buffer_size (read_buffer_size_),
     out_buf (NULL),
     out_buf_size (0),
     out_buf_pos (0)
@@ -99,9 +102,10 @@ void zmq::io_thread_t::loop ()
 
         if (pfd [1].revents & POLLIN) {
 
-            unsigned char *buf = (unsigned char*) malloc (8192);
+            unsigned char *buf = (unsigned char*) malloc (read_buffer_size);
             assert (buf);
-            ssize_t nbytes = recv (pfd [1].fd, buf, 8192, MSG_DONTWAIT);
+            ssize_t nbytes = recv (pfd [1].fd, buf, read_buffer_size,
+                MSG_DONTWAIT);
             errno_assert (nbytes != -1);
             if (nbytes == 0) {
                 free (buf);

@@ -26,6 +26,8 @@
 namespace zmq
 {
 
+    //  TODO: message bodies stored in the dispatcher_proxy's writebufs and
+    //  readbufs are not deallocated when dispatcher_proxy is destroyed
     typedef ydispatcher_proxy_t <cmsg_t> dispatcher_proxy_t;
 
 }

@@ -63,8 +63,26 @@ namespace zmq
 
         ~ydispatcher_proxy_t ()
         {
-            //  TODO: clean the messages in the buffers
+            for (int writebuf_nbr = 0; writebuf_nbr != thread_count;
+                  writebuf_nbr ++) {
+                writebuf_t &writebuf = writebufs [writebuf_nbr];
+                while (writebuf.first) {
+                    item_t *o = writebuf.first;
+                    writebuf.first = o->next;
+                    delete o;
+                }
+            }
             delete [] writebufs;
+
+            for (int readbuf_nbr = 0; readbuf_nbr != thread_count;
+                  readbuf_nbr ++) {
+                readbuf_t &readbuf = readbufs [readbuf_nbr];
+                while (readbuf.first != readbuf.last) {
+                    item_t *o = readbuf.first;
+                    readbuf.first = o->next;
+                    delete o;
+                }
+            }
             delete [] readbufs;
         }
 

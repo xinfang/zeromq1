@@ -26,6 +26,8 @@
 namespace zmq
 {
 
+    //  TODO: message bodies stored in the dispatcher are not deallocated
+    //  when dispatcher is destroyed
     typedef ydispatcher_t <cmsg_t> dispatcher_t;
 
 }
