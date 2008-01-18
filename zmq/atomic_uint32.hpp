@@ -20,10 +20,6 @@
 #ifndef __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 
-#if HAVE_CONFIG_H
-    #include "config.h"
-#endif
-
 #include <assert.h>
 #include <pthread.h>
 
