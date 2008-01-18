@@ -48,6 +48,7 @@ zmq::api_thread_t::~api_thread_t ()
             recvbufs [thread_nbr].first = o->next;
             delete o;
         }
+    delete [] recvbufs;
 }
 
 void zmq::api_thread_t::send (int destination_thread_id_, const cmsg_t &value_)

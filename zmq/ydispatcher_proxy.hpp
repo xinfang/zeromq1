@@ -87,10 +87,13 @@ namespace zmq
         {
             for (int thread_nbr = 0; thread_nbr != thread_count;
                   thread_nbr ++)
-                if (writebufs [thread_nbr].first)
+                if (writebufs [thread_nbr].first) {
                     dispatcher->write (thread_id, thread_nbr,
                         writebufs [thread_nbr].first,
                         writebufs [thread_nbr].last);
+                    writebufs [thread_nbr].first = NULL;
+                    writebufs [thread_nbr].last = NULL;
+                }
         }
 
         //  The result is composed of bool that's true when reading was

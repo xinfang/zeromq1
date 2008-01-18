@@ -103,6 +103,10 @@ void zmq::io_thread_t::loop ()
             assert (buf);
             ssize_t nbytes = recv (pfd [1].fd, buf, 8192, MSG_DONTWAIT);
             errno_assert (nbytes != -1);
+            if (nbytes == 0) {
+                free (buf);
+                return;
+            }
             decoder.write (buf, nbytes, free);
         }
     }

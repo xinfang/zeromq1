@@ -96,6 +96,7 @@ namespace zmq
         {
             //  TODO: review the deallocation of msg (w.r.t. zero copy)
             free_cmsg (msg);
+            init_cmsg (msg);
             std::pair <bool, int> result = proxy->read (source_thread_id, &msg);
             return result.first;
         }
