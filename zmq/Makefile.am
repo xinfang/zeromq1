@@ -1,6 +1,11 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
-pkginclude_HEADERS      = kernel.hpp
+pkginclude_HEADERS      = kernel.hpp api_thread.hpp atomic_ptr.hpp \
+atomic_uint32.hpp bp_decoder.hpp cmsg.hpp decoder.hpp dispatcher.hpp \
+dispatcher_proxy.hpp err.hpp i_signaler.hpp tcp_socket.hpp wire.hpp \
+ydispatcher.hpp ydispatcher_proxy.hpp ypipe.hpp ypollset.hpp \
+ysemaphore.hpp ysocketpair.hpp io_thread.hpp bp_encoder.hpp encoder.hpp \
+platform.hpp stdint.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -36,5 +41,7 @@ libzmq_la_SOURCES = \
     api_thread.hpp \
     api_thread.cpp \
     io_thread.hpp \
-    io_thread.cpp
+    io_thread.cpp \
+	platform.hpp \
+	stdint.hpp
 libzmq_la_LDFLAGS = -version-info 0:0:0

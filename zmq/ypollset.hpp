@@ -25,15 +25,11 @@
 #endif
 
 #include <assert.h>
-#if defined HAVE_STDINT_H
-    #include <stdint.h>
-#elif defined HAVE_INTTYPES_H
-    #include <inttypes.h>
-#endif
 
 #include "i_signaler.hpp"
 #include "atomic_uint32.hpp"
 #include "ysemaphore.hpp"
+#include "stdint.hpp"
 
 namespace zmq
 {

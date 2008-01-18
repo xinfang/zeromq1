@@ -25,14 +25,10 @@
 #endif
 
 #include <assert.h>
-#if defined HAVE_STDINT_H
-    #include <stdint.h>
-#elif defined HAVE_INTTYPES_H
-    #include <inttypes.h>
-#endif
 #include <pthread.h>
 
 #include "err.hpp"
+#include "stdint.hpp"
 
 namespace zmq
 {

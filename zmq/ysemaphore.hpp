@@ -22,10 +22,11 @@
 
 #include <assert.h>
 #include <pthread.h>
-#if (!defined HAVE_LINUX && !defined HAVE_OSX)
-#include <semaphore.h>
+#if (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
+    #include <semaphore.h>
 #endif
 
+#include "platform.hpp"
 #include "i_signaler.hpp"
 #include "err.hpp"
 
@@ -50,7 +51,7 @@ namespace zmq
     //  - on OS X unnamed semaphores are not supported, therefore mutex-based
     //    substitute should be used
 
-#if (defined HAVE_LINUX || defined HAVE_OSX)
+#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 
     class ysemaphore_t : public i_signaler
     { 
