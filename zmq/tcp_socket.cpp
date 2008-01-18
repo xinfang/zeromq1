@@ -20,7 +20,7 @@
 #include "tcp_socket.hpp"
 
 zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
-    unsigned short port_)
+    uint16_t port_)
 {
     //  Create IP addess
     sockaddr_in ip_address;

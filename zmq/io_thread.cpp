@@ -21,7 +21,7 @@
 #include "err.hpp"
 
 zmq::io_thread_t::io_thread_t (bool listen_, const char *address_,
-      unsigned short port_, int thread_id_, dispatcher_t *dispatcher_,
+      uint16_t port_, int thread_id_, dispatcher_t *dispatcher_,
       int source_thread_id_, int destination_thread_id_) :
     proxy (dispatcher_, thread_id_, &signaler),
     encoder (&proxy, 8192, source_thread_id_),

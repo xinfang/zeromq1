@@ -39,7 +39,7 @@ namespace zmq
     {
     public:
 
-        io_thread_t (bool listen_, const char *address_, unsigned short port_,
+        io_thread_t (bool listen_, const char *address_, uint16_t port_,
             int thread_id_, dispatcher_t *dispatcher_, int source_thread_id_,
             int destination_thread_id_);
         ~io_thread_t ();

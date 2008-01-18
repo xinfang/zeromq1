@@ -26,6 +26,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "err.hpp"
 
@@ -41,7 +42,7 @@ namespace zmq
         // 'address' argument (when listen = false), or listens to the incoming
         // connections on the network interface specified by 'address'
         // (when listen = true).
-        tcp_socket_t (bool listen_, const char *address_, unsigned short port_);
+        tcp_socket_t (bool listen_, const char *address_, uint16_t port_);
 
         //  Closes the socket
         ~tcp_socket_t ();
