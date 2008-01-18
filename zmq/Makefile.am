@@ -35,5 +35,6 @@ libzmq_la_SOURCES = \
     bp_encoder.cpp \
     api_thread.hpp \
     api_thread.cpp \
-    io_thread.hpp
+    io_thread.hpp \
+    io_thread.cpp
 libzmq_la_LDFLAGS = -version-info 0:0:0
