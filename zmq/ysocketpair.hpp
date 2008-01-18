@@ -55,7 +55,7 @@ namespace zmq
         }
 
         //  Send specific signal to the pipe
-        void signal (int index);
+        void signal (int signal_);
 
         //  Get first available signal from the pipe
         inline int get_signal ()

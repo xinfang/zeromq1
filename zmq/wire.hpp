@@ -24,44 +24,44 @@ namespace zmq
 {
 
     //  Writes the size to the buffer as a 64-bit network-byte-order value.
-    inline void put_size_64 (unsigned char *buffer, size_t size)
+    inline void put_size_64 (unsigned char *buffer_, size_t size_)
     {
-        buffer [7] = size & 0xff;
-        size >>= 8;
-        buffer [6] = size & 0xff;
-        size >>= 8;
-        buffer [5] = size & 0xff;
-        size >>= 8;
-        buffer [4] = size & 0xff;
-        size >>= 8;
-        buffer [3] = size & 0xff;
-        size >>= 8;
-        buffer [2] = size & 0xff;
-        size >>= 8;
-        buffer [1] = size & 0xff;
-        size >>= 8;
-        buffer [0] = size & 0xff;
+        buffer_ [7] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [6] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [5] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [4] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [3] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [2] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [1] = size_ & 0xff;
+        size_ >>= 8;
+        buffer_ [0] = size_ & 0xff;
     }
 
     //  Reads the size (64-bit network-byte-order value) from the buffer.
-    inline size_t get_size_64 (unsigned char *buffer)
+    inline size_t get_size_64 (unsigned char *buffer_)
     {
         size_t size = 0;
-        size |= buffer [0];
+        size |= buffer_ [0];
         size <<= 8;
-        size |= buffer [1];
+        size |= buffer_ [1];
         size <<= 8;
-        size |= buffer [2];
+        size |= buffer_ [2];
         size <<= 8;
-        size |= buffer [3];
+        size |= buffer_ [3];
         size <<= 8;
-        size |= buffer [4];
+        size |= buffer_ [4];
         size <<= 8;
-        size |= buffer [5];
+        size |= buffer_ [5];
         size <<= 8;
-        size |= buffer [6];
+        size |= buffer_ [6];
         size <<= 8;
-        size |= buffer [7];
+        size |= buffer_ [7];
         return size;
     }
 

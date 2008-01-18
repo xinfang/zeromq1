@@ -17,25 +17,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_PARSER_HPP_INCLUDED__
-#define __ZMQ_BP_PARSER_HPP_INCLUDED__
+#ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
+#define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
 #include <stddef.h>
-#include <sys/uio.h>
 #include <algorithm>
 
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
-#include "parser.hpp"
+#include "decoder.hpp"
 
 namespace zmq
 {
 
-    class bp_parser_t : public parser_t <bp_parser_t>
+    class bp_decoder_t : public decoder_t <bp_decoder_t>
     {
     public:
 
-        bp_parser_t (dispatcher_proxy_t *dispatcher_proxy_,
+        bp_decoder_t (dispatcher_proxy_t *dispatcher_proxy_,
             int destination_thread_id_);
 
     protected:

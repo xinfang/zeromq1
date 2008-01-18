@@ -50,12 +50,12 @@ zmq::api_thread_t::~api_thread_t ()
         }
 }
 
-void zmq::api_thread_t::send (int destination_thread_id, const cmsg_t &value)
+void zmq::api_thread_t::send (int destination_thread_id_, const cmsg_t &value_)
 {
-    dispatcher->write (thread_id, destination_thread_id, value);
+    dispatcher->write (thread_id, destination_thread_id_, value_);
 }
 
-void zmq::api_thread_t::receive (cmsg_t *value)
+void zmq::api_thread_t::receive (cmsg_t *value_)
 {
     while (true) {
 
@@ -92,7 +92,7 @@ void zmq::api_thread_t::receive (cmsg_t *value)
         if (recvbufs [current_thread].first !=
               recvbufs [current_thread].last) {
             dispatcher_t::item_t *o = recvbufs [current_thread].first;
-            *value = o->value;
+            *value_ = o->value;
             recvbufs [current_thread].first = o->next;
             delete o;
             return;

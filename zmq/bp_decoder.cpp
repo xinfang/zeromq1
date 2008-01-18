@@ -17,43 +17,43 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bp_parser.hpp"
+#include "bp_decoder.hpp"
 #include "wire.hpp"
 
-zmq::bp_parser_t::bp_parser_t (dispatcher_proxy_t *dispatcher_proxy_,
+zmq::bp_decoder_t::bp_decoder_t (dispatcher_proxy_t *dispatcher_proxy_,
       int destination_thread_id_) :
-    parser_t <bp_parser_t> (dispatcher_proxy_, destination_thread_id_)
+    decoder_t <bp_decoder_t> (dispatcher_proxy_, destination_thread_id_)
 {
-     next_step (tmpbuf, 1, &bp_parser_t::one_byte_size_ready);
+     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 
-void zmq::bp_parser_t::one_byte_size_ready ()
+void zmq::bp_decoder_t::one_byte_size_ready ()
 {
     if (*tmpbuf == 0xff)
-        next_step (tmpbuf, 8, &bp_parser_t::eight_byte_size_ready);
+        next_step (tmpbuf, 8, &bp_decoder_t::eight_byte_size_ready);
     else {
         msg.size = *tmpbuf;
         msg.data = malloc (*tmpbuf);
         assert (msg.data);
         msg.ffn = free;
 
-        next_step (msg.data, *tmpbuf, &bp_parser_t::message_ready);
+        next_step (msg.data, *tmpbuf, &bp_decoder_t::message_ready);
     }
 }
 
-void zmq::bp_parser_t::eight_byte_size_ready ()
+void zmq::bp_decoder_t::eight_byte_size_ready ()
 {
     msg.size = get_size_64 (tmpbuf);
     msg.data = malloc (msg.size);
     assert (msg.data);
     msg.ffn = free;
 
-    next_step (msg.data, msg.size, &bp_parser_t::message_ready);
+    next_step (msg.data, msg.size, &bp_decoder_t::message_ready);
 }
 
-void zmq::bp_parser_t::message_ready ()
+void zmq::bp_decoder_t::message_ready ()
 {
     done (msg);
-    next_step (tmpbuf, 1, &bp_parser_t::one_byte_size_ready);
+    next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 

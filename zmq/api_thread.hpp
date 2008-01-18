@@ -33,11 +33,11 @@ namespace zmq
     class api_thread_t
     {
     public:
-        api_thread_t (int thread_id, dispatcher_t *dispatcher);
+        api_thread_t (int thread_id_, dispatcher_t *dispatcher_);
         ~api_thread_t ();
 
-        void send (int destination_thread_id, const cmsg_t &value);
-        void receive (cmsg_t *value);
+        void send (int destination_thread_id_, const cmsg_t &value_);
+        void receive (cmsg_t *value_);
 
     protected:
 

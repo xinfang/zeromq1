@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-//  Provide convenient way to check for errno-style errors
+//  Provides convenient way to check for errno-style errors
 #define errno_assert(x) if (!(x)) {\
     perror (NULL);\
     printf ("%s (%s:%d)\n", #x, __FILE__, __LINE__);\

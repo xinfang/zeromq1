@@ -48,8 +48,8 @@ namespace zmq
 
         typedef typename ypipe_t <T>::item_t item_t;
 
-        ydispatcher_t (int thread_count) :
-            thread_count (thread_count)
+        ydispatcher_t (int thread_count_) :
+            thread_count (thread_count_)
         {
             cells = new cell_t [thread_count * thread_count];
             assert (cells);
@@ -72,40 +72,40 @@ namespace zmq
         //  versions thread-id should be assigned by dispatcher, however,
         //  at the moment routing is done on thread-ids rather than on
         //  business criteria, therefore thread-id should be user-assigned.
-        void set_signaler (int thread_id, i_signaler *signaler)
+        void set_signaler (int thread_id_, i_signaler *signaler_)
         {
             for (int thread_nbr = 0; thread_nbr != thread_count; thread_nbr ++)
-                cells [thread_nbr * thread_count + thread_id].signaler =
-                    signaler; 
+                cells [thread_nbr * thread_count + thread_id_].signaler =
+                    signaler_; 
         }
 
-        inline void write (int sender_thread_id, int receiver_thread_id,
-            const T &value)
+        inline void write (int source_thread_id_, int destination_thread_id_,
+            const T &value_)
         {
-            cell_t &cell = cells [sender_thread_id * thread_count +
-                receiver_thread_id];
-            if (!cell.pipe.write (value))
-                cell.signaler->signal (sender_thread_id);
+            cell_t &cell = cells [source_thread_id_ * thread_count +
+                destination_thread_id_];
+            if (!cell.pipe.write (value_))
+                cell.signaler->signal (source_thread_id_);
         }
 
-        inline void write (int sender_thread_id, int receiver_thread_id,
-            item_t *first, item_t *last)
+        inline void write (int source_thread_id_, int destination_thread_id_,
+            item_t *first_, item_t *last_)
         {
-            cell_t &cell = cells [sender_thread_id * thread_count +
-                receiver_thread_id];
-            if (!cell.pipe.write (first, last))
-                cell.signaler->signal (sender_thread_id);
+            cell_t &cell = cells [source_thread_id_ * thread_count +
+                destination_thread_id_];
+            if (!cell.pipe.write (first_, last_))
+                cell.signaler->signal (source_thread_id_);
         }
 
-
-        inline bool read (int sender_thread_id, int receiver_thread_id,
-            item_t **first, item_t **last)
+        inline bool read (int source_thread_id_, int destination_thread_id_,
+            item_t **first_, item_t **last_)
         {
-            return cells [sender_thread_id * thread_count + receiver_thread_id].
-                pipe.read (first, last);
+            return cells [source_thread_id_ * thread_count +
+                destination_thread_id_].pipe.read (first_, last_);
         }
 
     protected:
+
         struct cell_t
         {
             ypipe_t <T> pipe;

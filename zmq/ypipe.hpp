@@ -44,10 +44,10 @@ namespace zmq
 
         //  Initialises the pipe. If 'dead' is set to true, the pipe is
         //  created in 'dead' state.
-        ypipe_t (bool dead = false)
+        ypipe_t (bool dead_ = false)
         {
             r = w = new item_t;
-            c.set (dead ? NULL : w);
+            c.set (dead_ ? NULL : w);
         }
 
         //  Destroys the pipe
@@ -66,17 +66,17 @@ namespace zmq
         //  pipe revives it in case it is dead. Writing an item to a dead pipe
         //  enqueues the item if 'write_always' is true. Otherwise it
         //  leaves the pipe as is.
-        bool write (const T &value, bool write_always = true)
+        bool write (const T &value_, bool write_always_ = true)
         {
             item_t *n = new item_t;
-            w->value = value;
+            w->value = value_;
             w->next = n;
             if (c.cas (w, n) == w) {
                 w = n;
                 return true;
             }
             else {
-                if (write_always) {
+                if (write_always_) {
                     w = n;
                     c.set (n);
                 }
@@ -89,14 +89,14 @@ namespace zmq
         //  Write multiple items to the pipe. If pipe is in dead state, function
         //  returns false. Otherwise it returns true. Writing an item to the
         //  pipe revives it in case it is dead. Writing an item to a dead pipe
-        //  enqueues the ite
-        bool write (item_t *first, item_t *last)
+        //  enqueues the item nontheless.
+        bool write (item_t *first_, item_t *last_)
         {
             item_t *n = new item_t;
-            last->next = n;
+            last_->next = n;
             
-            *w = *first;
-            delete first;
+            *w = *first_;
+            delete first_;
 
             if (c.cas (w, n) == w) {
                 w = n;
@@ -110,15 +110,15 @@ namespace zmq
         }
 
         //  Reads all the items from the pipe. If there is no item in the pipe,
-        //  function returns false and the pipe 'dies'. Otherwise, 'first'
-        //  points to first retrieved item, 'last' points one past the last
+        //  function returns false and the pipe 'dies'. Otherwise, 'first_'
+        //  points to first retrieved item, 'last_' points one past the last
         //  retrieved item. The caller is responsible for deallocation of
         //  the retrieved items afterwards.
-        bool read (item_t **first, item_t **last)
+        bool read (item_t **first_, item_t **last_)
         {
-            *first = r;
-            r = *last = c.cas (r, NULL);
-            return *first != *last;
+            *first_ = r;
+            r = *last_ = c.cas (r, NULL);
+            return *first_ != *last_;
         }
 
     protected:

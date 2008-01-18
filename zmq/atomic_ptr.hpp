@@ -24,12 +24,6 @@
 
 #include "err.hpp"
 
-//  128 bytes is the max cache line size we've encountered so far.
-//  This value may be tuned for specific microarchitecture to save few
-//  bytes of memory, however, given that 0MQ uses just a limited number
-//  of atomic pointers, there's no much point in doing so.
-#define ZMQ_MAX_CACHE_LINE_SIZE 128
-
 namespace zmq
 {
 
@@ -66,37 +60,37 @@ namespace zmq
         //  Set value of atomic pointer in a non-threadsafe way
         //  Use this function only when you are sure that at most one
         //  thread is accessing the pointer at the moment.
-        void set (T *ptr)
+        void set (T *ptr_)
         {
-            this->ptr = ptr;
+            this->ptr = ptr_;
         }
 
         //  Perform atomic 'compare and swap' operation on the pointer.
         //  The pointer is compared to 'cmp' argument and if they are
         //  equal, its value is set to 'val'. Old value of the pointer
         //  is returned in any case.
-        T *cas (T *cmp, T *val)
+        T *cas (T *cmp_, T *val_)
         {
 #if (defined (__i386__) && defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgl %1, %2"             
                 : "=a" (old)               
-                : "r" (val), "m" (ptr), "0" (cmp) 
+                : "r" (val_), "m" (ptr), "0" (cmp_) 
                 : "memory", "cc");
             return old;
 #elif (defined (__x86_64__) && defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgq %1, %2"             
                 : "=a" (old)               
-                : "r" (val), "m" (ptr), "0" (cmp) 
+                : "r" (val_), "m" (ptr), "0" (cmp_) 
                 : "memory", "cc");
             return old;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
             T *old = (T*) ptr;
-            if (ptr == cmp)
-                ptr = val;
+            if (ptr == cmp_)
+                ptr = val_;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
             return old;
@@ -104,18 +98,11 @@ namespace zmq
         }
     protected:
         
-#ifdef __GNUC__
-        //  On GNU C platform, pointer is aligned and padded in the way
-        //  that is fits into single cache line.
-        volatile T *ptr __attribute__ ((aligned (ZMQ_MAX_CACHE_LINE_SIZE)));
-        char padding [ZMQ_MAX_CACHE_LINE_SIZE - sizeof (T*)];
-#else
         volatile T *ptr;
-#endif
-
 #if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;
 #endif
+
     };
 
 }

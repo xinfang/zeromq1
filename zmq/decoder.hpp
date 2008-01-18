@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_PARSER_HPP_INCLUDED__
-#define __ZMQ_PARSER_HPP_INCLUDED__
+#ifndef __ZMQ_DECODER_HPP_INCLUDED__
+#define __ZMQ_DECODER_HPP_INCLUDED__
 
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
@@ -26,11 +26,11 @@
 namespace zmq
 {
 
-    template <typename T> class parser_t
+    template <typename T> class decoder_t
     {
     public:
 
-        inline parser_t (dispatcher_proxy_t *proxy_,
+        inline decoder_t (dispatcher_proxy_t *proxy_,
               int destination_thread_id_) :
             proxy (proxy_),
             destination_thread_id (destination_thread_id_),
@@ -41,26 +41,27 @@ namespace zmq
         }
 
         //  The data pointed to by 'data' parameter are to be managed
-        //  by the parser engine. Parser engine manages data lifetime
+        //  by the decoder engine. Decoder engine manages data lifetime
         //  by setting appropriate deallocation functions to the outgoing
         //  canonical messages. The data should be deallocated using
         //  function pointer to by 'ffn' parameter.
-        inline void write (unsigned char *data, size_t size, free_fn *ffn)
+        inline void write (unsigned char *data_, size_t size_, free_fn *ffn_)
         {
             size_t pos = 0;
             while (true) {
-                size_t to_copy = std::min (to_read, size - pos);
-                memcpy (read_pos, data + pos, to_copy);
+                size_t to_copy = std::min (to_read, size_ - pos);
+                memcpy (read_pos, data_ + pos, to_copy);
                 read_pos += to_copy;
                 pos += to_copy;
                 to_read -= to_copy;
                 if (!to_read)
                     (static_cast <T*> (this)->*next) ();
-                if (pos == size)
+                if (pos == size_)
                     break;
             }
-            if (ffn)
-                ffn (data);
+            proxy->flush ();
+            if (ffn_)
+                ffn_ (data_);
         }
 
     protected:
@@ -75,9 +76,9 @@ namespace zmq
             next = next_;
         }
 
-        inline void done (cmsg_t &msg)
+        inline void done (cmsg_t &msg_)
         {
-            proxy->write (destination_thread_id, msg);
+            proxy->write (destination_thread_id, msg_);
         }
 
     private:

@@ -26,9 +26,9 @@ namespace zmq
     struct i_signaler
     {
         //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings.
+        //  such results in compiler warnings with some compilers.
         virtual ~i_signaler () {};
-        virtual void signal (int index) = 0;
+        virtual void signal (int signal_) = 0;
     };
 
 }

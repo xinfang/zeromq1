@@ -27,7 +27,7 @@ namespace zmq
 
     //  Prototype for the message body deallocation functions.
     //  It is deliberately defined in the way to comply with standard C free.
-    typedef void (free_fn) (void *data);
+    typedef void (free_fn) (void *data_);
 
     struct cmsg_t
     {
@@ -36,10 +36,17 @@ namespace zmq
         free_fn *ffn;
     };
 
-    inline void free_cmsg (cmsg_t &msg)
+    inline void init_cmsg (cmsg_t &msg_)
     {
-        if (msg.ffn && msg.data)
-            msg.ffn (msg.data);
+        msg_.data = NULL;
+        msg_.size = 0;
+        msg_.ffn = NULL;
+    }
+
+    inline void free_cmsg (cmsg_t &msg_)
+    {
+        if (msg_.ffn && msg_.data)
+            msg_.ffn (msg_.data);
     }
 
 }

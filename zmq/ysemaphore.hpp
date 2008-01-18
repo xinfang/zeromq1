@@ -82,7 +82,8 @@ namespace zmq
         }
 
         //  Post the semaphore
-        void signal (int index);
+        void signal (int signal_);
+
     protected:
 
         //  Simple semaphore is implemented by mutex, as it is more efficient
@@ -118,7 +119,8 @@ namespace zmq
         }
 
         //  Post the semaphore
-        void signal (int index);
+        void signal (int signal_);
+
     protected:
 
         sem_t sem;

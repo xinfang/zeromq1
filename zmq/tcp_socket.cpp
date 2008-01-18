@@ -19,18 +19,18 @@
 
 #include "tcp_socket.hpp"
 
-zmq::tcp_socket_t::tcp_socket_t (bool listen, const char *address,
-    unsigned short port)
+zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
+    unsigned short port_)
 {
     //  Create IP addess
     sockaddr_in ip_address;
     memset (&ip_address, 0, sizeof (ip_address));
     ip_address.sin_family = AF_INET;
-    int rc = inet_pton (AF_INET, address, &ip_address.sin_addr);
+    int rc = inet_pton (AF_INET, address_, &ip_address.sin_addr);
     errno_assert (rc > 0);
-    ip_address.sin_port = htons (port);
+    ip_address.sin_port = htons (port_);
 
-    if (listen) {
+    if (listen_) {
 
         //  Create a listening socket
         listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);

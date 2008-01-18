@@ -73,7 +73,7 @@ namespace zmq
         //  requirement is that setting of the bit is performed first and
         //  resetting afterwards. Getting the original value of the reseted
         //  bit and actual reset, however, have to be done atomically.
-        inline bool btsr (int set_index, int reset_index)
+        inline bool btsr (int set_index_, int reset_index_)
         {
 #if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
             uint32_t oldval;
@@ -83,26 +83,27 @@ namespace zmq
                 "setc %%al\n\t"
                 "movzb %%al, %0\n\t"
                 : "=r" (oldval)
-                : "r" (set_index), "r" (reset_index), "r" (&value)
+                : "r" (set_index_), "r" (reset_index_), "r" (&value)
                 : "memory", "cc", "%eax");
             return (bool) oldval;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
             uint32_t oldval = value;
-            value = oldval | (1 << set_index) | ~(1 << reset_index);
+            value = oldval | (uint32_t (1) << set_index_) |
+                ~(uint32_t (1) << reset_index_);
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
-            return (bool) (oldval & (1 << reset_index));
+            return (bool) (oldval & (uint32_t (1) << reset_index_));
 #endif
         }
 
         //  Sets value to newval. Returns the original value.
-        inline uint32_t xchg (uint32_t newval)
+        inline uint32_t xchg (uint32_t newval_)
         {
             uint32_t oldval;
 #if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
-            oldval = newval;
+            oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
                 : "=r" (oldval)
@@ -112,7 +113,7 @@ namespace zmq
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
             oldval = value;
-            value = newval;
+            value = newval_;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
 #endif
@@ -131,7 +132,7 @@ namespace zmq
         //  bits of the value (btr, xchg, izte)."
         //  If the code using atomic_uint32 doesn't adhere to this assumption
         //  the behaviour of izte is undefined.
-        inline uint32_t izte (uint32_t thenval, uint32_t elseval)
+        inline uint32_t izte (uint32_t thenval_, uint32_t elseval_)
         {
             uint32_t oldval;
 #if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
@@ -142,13 +143,13 @@ namespace zmq
                 "lock; xchgl %%eax, %3\n\t"
                 "1:\n\t"
                 : "=a" (oldval)
-                : "r" (thenval), "r" (elseval), "m" (value), "0" (0)
+                : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
                 : "memory", "cc");
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
             oldval = value;
-            value = oldval ? elseval : thenval;
+            value = oldval ? elseval_ : thenval_;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
 #endif

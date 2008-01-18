@@ -19,10 +19,10 @@
 
 #include "ysocketpair.hpp"
 
-void zmq::ysocketpair_t::signal (int index)
+void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (index >= 0 && index < 256);
-    unsigned char c = (unsigned char) index;
+    assert (signal_ >= 0 && signal_ < 256);
+    unsigned char c = (unsigned char) signal_;
     ssize_t nbytes = send (w, &c, 1, 0);
     errno_assert (nbytes == 1);
 }

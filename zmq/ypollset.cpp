@@ -19,9 +19,9 @@
 
 #include "ypollset.hpp"
 
-void zmq::ypollset_t::signal (int index)
+void zmq::ypollset_t::signal (int signal_)
 {
-    assert (index >= 0 && index < 31);
-    if (bits.btsr (index, wait_index))
+    assert (signal_ >= 0 && signal_ < 31);
+    if (bits.btsr (signal_, wait_signal))
         sem.signal (0); 
 }

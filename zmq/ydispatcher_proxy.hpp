@@ -68,14 +68,14 @@ namespace zmq
             delete [] readbufs;
         }
 
-        void write (int destination_id, T &value)
+        void write (int destination_thread_id_, T &value_)
         {
              item_t *n = new item_t;
              assert (n);
-             n->value = value;
+             n->value = value_;
              n->next = NULL;
 
-             writebuf_t &buf = writebufs [destination_id];
+             writebuf_t &buf = writebufs [destination_thread_id_];
              if (buf.last)
                  buf.last->next = n;
              buf.last = n;
@@ -87,8 +87,10 @@ namespace zmq
         {
             for (int thread_nbr = 0; thread_nbr != thread_count;
                   thread_nbr ++)
-                dispatcher->write (thread_id, thread_nbr,
-                    writebufs [thread_nbr].first, writebufs [thread_nbr].last);
+                if (writebufs [thread_nbr].first)
+                    dispatcher->write (thread_id, thread_nbr,
+                        writebufs [thread_nbr].first,
+                        writebufs [thread_nbr].last);
         }
 
         //  The result is composed of bool that's true when reading was
@@ -99,44 +101,40 @@ namespace zmq
         //  immediately as there are no messages to be retrieved. If the
         //  value is in-between these two values, it's up to scheduler to
         //  determine optimal frequency of polling.
-        std::pair <bool, int> read (int source_id, T *value)
+        std::pair <bool, int> read (int source_thread_id_, T *value_)
         {
-            readbuf_t &buf = readbufs [source_id];
+            readbuf_t &buf = readbufs [source_thread_id_];
 
             if (!buf.alive)
                 return std::pair <bool, int> (false, threads_alive);
 
-            if (buf.first) {
-                *value = buf.first->value;
+            if (buf.first != buf.last) {
+                *value_ = buf.first->value;
                 item_t *o = buf.first;
                 buf.first = buf.first->next;
-                if (!buf.first)
-                    buf.last = NULL;
                 delete o;
                 return std::pair <bool, int> (true, threads_alive);
             }
 
-            if (!dispatcher->read (source_id, thread_id, &buf.first,
+            if (!dispatcher->read (source_thread_id_, thread_id, &buf.first,
                   &buf.last)) {
                 buf.alive = false;
                 threads_alive --;
                 return std::pair <bool, int> (false, threads_alive);
             }
 
-            assert (buf.first);
-            *value = buf.first->value;
+            assert (buf.first != buf.last);
+            *value_ = buf.first->value;
             item_t *o = buf.first;
             buf.first = buf.first->next;
-            if (!buf.first)
-                buf.last = NULL;
             delete o;
             return std::pair <bool, int> (true, threads_alive);
         }
 
-        inline void revive (int source_id)
+        inline void revive (int source_thread_id_)
         {
-            assert (!readbufs [source_id].alive);
-            readbufs [source_id].alive = true;
+            assert (!readbufs [source_thread_id_].alive);
+            readbufs [source_thread_id_].alive = true;
             threads_alive ++;
         }
 

@@ -42,7 +42,7 @@ namespace zmq
     //  each produced by a different thread.
     class ypollset_t : public i_signaler
     {
-        enum {wait_index = 31};
+        enum {wait_signal = 31};
 
     public:
 
@@ -52,14 +52,14 @@ namespace zmq
         }
 
         //  Send a signal to the pollset
-        void signal (int index);
+        void signal (int signal_);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
         inline uint32_t poll ()
         {
-            uint32_t result = bits.izte (1 << wait_index, 0);
+            uint32_t result = bits.izte (1 << wait_signal, 0);
             if (!result) {
                 sem.wait ();
                 result = bits.xchg (0);
