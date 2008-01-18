@@ -74,7 +74,7 @@ void zmq::io_thread_t::loop ()
                 MSG_DONTWAIT);
             errno_assert (nbytes != -1);
             for (int event = 0; event != nbytes; event ++) {
-                if (event == stop_event)
+                if (events [event] == stop_event)
                     return;
                 proxy.revive (events [event]);
                 pfd [1].events |= POLLOUT;
