@@ -86,7 +86,12 @@ namespace zmq
             delete [] readbufs;
         }
 
-        void write (int destination_thread_id_, T &value_)
+        inline int get_threads_alive ()
+        {
+            return threads_alive;
+        }
+
+        void write (int destination_thread_id_, const T &value_)
         {
              item_t *n = new item_t;
              assert (n);
@@ -99,6 +104,11 @@ namespace zmq
              buf.last = n;
              if (!buf.first)
                  buf.first = n;
+        }
+
+        inline void instant_write (int destination_thread_id_, const T &value_)
+        {
+            dispatcher->write (thread_id, destination_thread_id_, value_);
         }
 
         void flush ()
@@ -114,34 +124,26 @@ namespace zmq
                 }
         }
 
-        //  The result is composed of bool that's true when reading was
-        //  successfull and int saying how many threads are 'alive' at the
-        //  moment. This value is to be used by scheduler to schedule polling.
-        //  If it is equal to thread count, no need to poll, as all the
-        //  message sources are alive. If it is zero, poll should be done
-        //  immediately as there are no messages to be retrieved. If the
-        //  value is in-between these two values, it's up to scheduler to
-        //  determine optimal frequency of polling.
-        std::pair <bool, int> read (int source_thread_id_, T *value_)
+        bool read (int source_thread_id_, T *value_)
         {
             readbuf_t &buf = readbufs [source_thread_id_];
 
             if (!buf.alive)
-                return std::pair <bool, int> (false, threads_alive);
+                return false;
 
             if (buf.first != buf.last) {
                 *value_ = buf.first->value;
                 item_t *o = buf.first;
                 buf.first = buf.first->next;
                 delete o;
-                return std::pair <bool, int> (true, threads_alive);
+                return true;
             }
 
             if (!dispatcher->read (source_thread_id_, thread_id, &buf.first,
                   &buf.last)) {
                 buf.alive = false;
                 threads_alive --;
-                return std::pair <bool, int> (false, threads_alive);
+                return false;
             }
 
             assert (buf.first != buf.last);
@@ -149,7 +151,7 @@ namespace zmq
             item_t *o = buf.first;
             buf.first = buf.first->next;
             delete o;
-            return std::pair <bool, int> (true, threads_alive);
+            return true;
         }
 
         inline void revive (int source_thread_id_)

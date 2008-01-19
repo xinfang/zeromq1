@@ -20,84 +20,46 @@
 #include "api_thread.hpp"
 
 zmq::api_thread_t::api_thread_t (int thread_id_, dispatcher_t *dispatcher_) :
-    thread_id (thread_id_),
-    dispatcher (dispatcher_)
+    poll_frequency (100),
+    ticks_to_poll (0),
+    proxy (dispatcher_, thread_id_, &pollset)
 {
-    thread_count = dispatcher->get_thread_count ();
-    threads_alive = thread_count;
+    thread_count = dispatcher_->get_thread_count ();
     current_thread = thread_count - 1;
-    assert (thread_id < thread_count);
-
-    recvbufs = new recvbuf_t [thread_count];
-    assert (recvbufs);
-    for (int buf_nbr = 0; buf_nbr != thread_count; buf_nbr ++) {
-        recvbufs [buf_nbr].alive = true;
-        recvbufs [buf_nbr].first = NULL;
-        recvbufs [buf_nbr].last = NULL;
-    }
-
-    dispatcher->set_signaler (thread_id, &pollset);
-}
-
-zmq::api_thread_t::~api_thread_t ()
-{
-    for (int thread_nbr = 0; thread_nbr != thread_count; thread_nbr ++)
-        while (recvbufs [thread_nbr].first !=
-              recvbufs [thread_nbr].last) {
-            dispatcher_t::item_t *o = recvbufs [thread_nbr].first;
-            recvbufs [thread_nbr].first = o->next;
-            delete o;
-        }
-    delete [] recvbufs;
 }
 
 void zmq::api_thread_t::send (int destination_thread_id_, const cmsg_t &value_)
 {
-    dispatcher->write (thread_id, destination_thread_id_, value_);
+    proxy.instant_write (destination_thread_id_, value_);
 }
 
 void zmq::api_thread_t::receive (cmsg_t *value_)
 {
     while (true) {
 
-        current_thread = (current_thread + 1) % thread_count;
+        int threads_alive = proxy.get_threads_alive ();
 
-        if (current_thread == 0) {
+        if (!threads_alive || (threads_alive != thread_count &&
+              ticks_to_poll == poll_frequency)) {
+
             uint32_t signals;
-            if (threads_alive)
-                signals = pollset.check ();
-            else
-                signals = pollset.poll ();
+            signals = threads_alive ? pollset.check () : pollset.poll ();
+            
             for (int thread_nbr = 0; thread_nbr != thread_count;
                   thread_nbr ++) {
-                if (signals & 0x0001) {
-                    if (!recvbufs [thread_nbr].alive)
-                        threads_alive ++;
-                    recvbufs [thread_nbr].alive = true;
-                }
+                if (signals & 0x0001)
+                    proxy.revive (thread_nbr);
                 signals >>= 1;
             }
         }
 
-        if (recvbufs [current_thread].first ==
-              recvbufs [current_thread].last &&
-              recvbufs [current_thread].alive) {
-            recvbufs [current_thread].alive = dispatcher->read (
-                current_thread, thread_id,
-                &recvbufs [current_thread].first,
-                &recvbufs [current_thread].last);
-            if (!recvbufs [current_thread].alive)
-                threads_alive --;
-        }
-
-        if (recvbufs [current_thread].first !=
-              recvbufs [current_thread].last) {
-            dispatcher_t::item_t *o = recvbufs [current_thread].first;
-            *value_ = o->value;
-            recvbufs [current_thread].first = o->next;
-            delete o;
+        current_thread = (current_thread + 1) % thread_count;
+        if (proxy.read (current_thread, value_)) {
+            ticks_to_poll --;
+            if (!ticks_to_poll)
+                ticks_to_poll = poll_frequency;
             return;
-        }       
+        }
     }
 }
 

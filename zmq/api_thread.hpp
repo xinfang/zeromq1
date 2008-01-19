@@ -17,14 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_NATIVE_API_HPP_INCLUDED__
-#define __ZMQ_NATIVE_API_HPP_INCLUDED__
+#ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
+#define __ZMQ_API_THREAD_HPP_INCLUDED__
 
 #include <stddef.h>
 #include <assert.h>
 
 #include "cmsg.hpp"
 #include "dispatcher.hpp"
+#include "dispatcher_proxy.hpp"
 #include "ypollset.hpp"
 
 namespace zmq
@@ -34,27 +35,18 @@ namespace zmq
     {
     public:
         api_thread_t (int thread_id_, dispatcher_t *dispatcher_);
-        ~api_thread_t ();
 
         void send (int destination_thread_id_, const cmsg_t &value_);
         void receive (cmsg_t *value_);
 
     protected:
 
-        struct recvbuf_t
-        {
-            bool alive;
-            dispatcher_t::item_t *first;
-            dispatcher_t::item_t *last;
-        };
-
         int thread_count;
-        int thread_id;
         int current_thread;
-        int threads_alive;
-        dispatcher_t *dispatcher;
+        int poll_frequency;
+        int ticks_to_poll;
+        dispatcher_proxy_t proxy;
         ypollset_t pollset;
-        recvbuf_t *recvbufs;
     };
 
 }
