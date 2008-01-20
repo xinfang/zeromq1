@@ -20,14 +20,13 @@
 #include "io_thread.hpp"
 #include "err.hpp"
 
-zmq::io_thread_t::io_thread_t (bool listen_, const char *address_,
-      uint16_t port_, dispatcher_t *dispatcher_, int thread_id_,
-      int source_thread_id_, int destination_thread_id_,
+zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
+      int source_thread_id_, int destination_thread_id_, i_socket *socket_,
       size_t write_buffer_size_, size_t read_buffer_size_) :
     proxy (dispatcher_, thread_id_, &signaler),
     encoder (&proxy, source_thread_id_, write_buffer_size),
     decoder (&proxy, destination_thread_id_),
-    socket (listen_, address_, port_),
+    socket (socket_),
     write_buffer_size (write_buffer_size_),
     read_buffer_size (read_buffer_size_),
     out_buf (NULL),
@@ -61,7 +60,7 @@ void zmq::io_thread_t::loop ()
     pollfd pfd [2];
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
-    pfd [1].fd = socket.get_fd ();
+    pfd [1].fd = socket->get_fd ();
     pfd [1].events = POLLIN | POLLOUT;
 
     while (true)
@@ -95,7 +94,7 @@ void zmq::io_thread_t::loop ()
                 out_buf_pos = 0;
             }
             if (out_buf_pos < out_buf_size) {
-                size_t nbytes = socket.write (out_buf + out_buf_pos,
+                size_t nbytes = socket->write (out_buf + out_buf_pos,
                     out_buf_size - out_buf_pos);
                 out_buf_pos += nbytes;
             }
@@ -105,7 +104,7 @@ void zmq::io_thread_t::loop ()
 
             unsigned char *buf = (unsigned char*) malloc (read_buffer_size);
             assert (buf);
-            size_t nbytes = socket.read (buf, read_buffer_size);
+            size_t nbytes = socket->read (buf, read_buffer_size);
             if (nbytes == 0) {
                 free (buf);
                 return;

@@ -27,7 +27,7 @@
 
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
-#include "tcp_socket.hpp"
+#include "i_socket.hpp"
 #include "ysocketpair.hpp"
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
@@ -39,9 +39,9 @@ namespace zmq
     {
     public:
 
-        io_thread_t (bool listen_, const char *address_, uint16_t port_,
-            dispatcher_t *dispatcher_, int thread_id_, int source_thread_id_,
-            int destination_thread_id_, size_t write_buffer_size_,
+        io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
+            int source_thread_id_, int destination_thread_id_,
+            i_socket *socket_, size_t write_buffer_size_,
             size_t read_buffer_size_);
         ~io_thread_t ();
 
@@ -63,7 +63,7 @@ namespace zmq
         bp_decoder_t decoder;
         dispatcher_proxy_t proxy;
         ysocketpair_t signaler;
-        tcp_socket_t socket;
+        i_socket *socket;
         pthread_t worker;
     };
 
