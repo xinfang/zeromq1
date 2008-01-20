@@ -33,11 +33,11 @@ namespace zmq
     {
     public:
 
-        encoder_t (dispatcher_proxy_t *proxy_, size_t chunk_size_,
-              int source_thread_id_) :
+        encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
+              size_t chunk_size_) :
             proxy (proxy_),
-            chunk_size (chunk_size_),
-            source_thread_id (source_thread_id_)
+            source_thread_id (source_thread_id_),
+            chunk_size (chunk_size_)
         {
             init_cmsg (msg);
         }
@@ -104,8 +104,8 @@ namespace zmq
 
     private:
         dispatcher_proxy_t *proxy;
-        size_t chunk_size;
         int source_thread_id;
+        size_t chunk_size;
         unsigned char *write_pos;
         size_t to_write;
         parse_step_t next;

@@ -25,7 +25,7 @@ zmq::io_thread_t::io_thread_t (bool listen_, const char *address_,
       int source_thread_id_, int destination_thread_id_,
       size_t write_buffer_size_, size_t read_buffer_size_) :
     proxy (dispatcher_, thread_id_, &signaler),
-    encoder (&proxy, write_buffer_size, source_thread_id_),
+    encoder (&proxy, source_thread_id_, write_buffer_size),
     decoder (&proxy, destination_thread_id_),
     socket (listen_, address_, port_),
     write_buffer_size (write_buffer_size_),

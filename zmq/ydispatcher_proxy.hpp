@@ -22,7 +22,6 @@
 
 #include <stddef.h>
 #include <assert.h>
-#include <utility>
 
 #include "ydispatcher.hpp"
 
@@ -108,22 +107,29 @@ namespace zmq
 
         inline void instant_write (int destination_thread_id_, const T &value_)
         {
-            dispatcher->write (thread_id, destination_thread_id_, value_);
+            if (destination_thread_id_ == thread_id)
+                write (destination_thread_id_, value_);
+            else
+                dispatcher->write (thread_id, destination_thread_id_, value_);
         }
 
         void flush ()
         {
             for (int thread_nbr = 0; thread_nbr != thread_count;
-                  thread_nbr ++)
-                if (writebufs [thread_nbr].first) {
+                  thread_nbr ++) {
+                writebuf_t &writebuf = writebufs [thread_nbr];
+                if (writebuf.first && thread_nbr != thread_id) {
                     dispatcher->write (thread_id, thread_nbr,
-                        writebufs [thread_nbr].first,
-                        writebufs [thread_nbr].last);
-                    writebufs [thread_nbr].first = NULL;
-                    writebufs [thread_nbr].last = NULL;
+                        writebuf.first, writebuf.last);
+                    writebuf.first = NULL;
+                    writebuf.last = NULL;
                 }
+            }
         }
 
+        //  The result says whether value was fetched (true) or not (false).
+        //  It says *nothing* about whether source of the messages went asleep.
+        //  For info about awake/sleeping sources use get_threads_alive method.
         bool read (int source_thread_id_, T *value_)
         {
             readbuf_t &buf = readbufs [source_thread_id_];
@@ -139,11 +145,22 @@ namespace zmq
                 return true;
             }
 
-            if (!dispatcher->read (source_thread_id_, thread_id, &buf.first,
-                  &buf.last)) {
-                buf.alive = false;
-                threads_alive --;
-                return false;
+            if (source_thread_id_ == thread_id) {
+                writebuf_t &writebuf = writebufs [source_thread_id_];
+                if (!writebuf.first)
+                    return false;
+                buf.first = writebuf.first;
+                buf.last = NULL;
+                writebuf.first = NULL;
+                writebuf.last = NULL;
+            }
+            else {
+                if (!dispatcher->read (source_thread_id_, thread_id,
+                      &buf.first, &buf.last)) {
+                    buf.alive = false;
+                    threads_alive --;
+                    return false;
+                }
             }
 
             assert (buf.first != buf.last);

@@ -20,9 +20,6 @@
 #ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
 #define __ZMQ_API_THREAD_HPP_INCLUDED__
 
-#include <stddef.h>
-#include <assert.h>
-
 #include "cmsg.hpp"
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
@@ -43,8 +40,8 @@ namespace zmq
 
         int thread_count;
         int current_thread;
-        int poll_frequency;
-        int ticks_to_poll;
+        int ticks_max;
+        int ticks;
         dispatcher_proxy_t proxy;
         ypollset_t pollset;
     };

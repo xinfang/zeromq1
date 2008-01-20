@@ -20,6 +20,9 @@
 #ifndef __ZMQ_DECODER_HPP_INCLUDED__
 #define __ZMQ_DECODER_HPP_INCLUDED__
 
+#include <stddef.h>
+#include <algorithm>
+
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
 
@@ -34,14 +37,14 @@ namespace zmq
               int destination_thread_id_) :
             proxy (proxy_),
             destination_thread_id (destination_thread_id_),
-            read_pos (NULL),
+            read_ptr (NULL),
             to_read (0),
             next (NULL)
         {
         }
 
         //  The data pointed to by 'data' parameter are to be managed
-        //  by the decoder engine. Decoder engine manages data lifetime
+        //  by the decoder engine. Decoder engine may manage data lifetime
         //  by setting appropriate deallocation functions to the outgoing
         //  canonical messages. The data should be deallocated using
         //  function pointer to by 'ffn' parameter.
@@ -50,8 +53,8 @@ namespace zmq
             size_t pos = 0;
             while (true) {
                 size_t to_copy = std::min (to_read, size_ - pos);
-                memcpy (read_pos, data_ + pos, to_copy);
-                read_pos += to_copy;
+                memcpy (read_ptr, data_ + pos, to_copy);
+                read_ptr += to_copy;
                 pos += to_copy;
                 to_read -= to_copy;
                 if (!to_read)
@@ -68,10 +71,10 @@ namespace zmq
 
         typedef void (T::*parse_step_t) ();
 
-        inline void next_step (void *read_pos_, size_t to_read_,
+        inline void next_step (void *read_ptr_, size_t to_read_,
             parse_step_t next_)
         {
-            read_pos = (unsigned char*) read_pos_;
+            read_ptr = (unsigned char*) read_ptr_;
             to_read = to_read_;
             next = next_;
         }
@@ -86,7 +89,7 @@ namespace zmq
         dispatcher_proxy_t *proxy;
         int destination_thread_id;
         size_t to_read;
-        unsigned char *read_pos;
+        unsigned char *read_ptr;
         parse_step_t next;
     };
 

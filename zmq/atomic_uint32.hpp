@@ -20,7 +20,6 @@
 #ifndef __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
 
-#include <assert.h>
 #include <pthread.h>
 
 #include "err.hpp"

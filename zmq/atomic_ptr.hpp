@@ -34,6 +34,7 @@ namespace zmq
     //  full memory barrier associated with atomic operations (lock prefix).
     //  On different platforms memory fencing may be required to be implemented
     //  explicitly.
+
     template <typename T> class atomic_ptr
     {
     public:

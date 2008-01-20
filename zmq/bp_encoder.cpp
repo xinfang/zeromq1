@@ -20,9 +20,9 @@
 #include "bp_encoder.hpp"
 #include "wire.hpp"
 
-zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_, size_t chunk_size_,
-      int source_thread_id_) :
-    encoder_t <bp_encoder_t> (proxy_, chunk_size_, source_thread_id_)
+zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_, 
+      int source_thread_id_, size_t chunk_size_) :
+    encoder_t <bp_encoder_t> (proxy_, source_thread_id_, chunk_size_)
 {
     next_step (NULL, 0, &bp_encoder_t::message_ready);
 }

@@ -20,8 +20,8 @@
 #include "api_thread.hpp"
 
 zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
-    poll_frequency (100),
-    ticks_to_poll (0),
+    ticks_max (100),
+    ticks (0),
     proxy (dispatcher_, thread_id_, &pollset)
 {
     thread_count = dispatcher_->get_thread_count ();
@@ -39,8 +39,8 @@ void zmq::api_thread_t::receive (cmsg_t *value_)
 
         int threads_alive = proxy.get_threads_alive ();
 
-        if (!threads_alive || (threads_alive != thread_count &&
-              ticks_to_poll == poll_frequency)) {
+        if (threads_alive == 1 || (threads_alive != thread_count &&
+              ticks == ticks_max)) {
 
             uint32_t signals;
             signals = threads_alive ? pollset.check () : pollset.poll ();
@@ -55,9 +55,9 @@ void zmq::api_thread_t::receive (cmsg_t *value_)
 
         current_thread = (current_thread + 1) % thread_count;
         if (proxy.read (current_thread, value_)) {
-            ticks_to_poll --;
-            if (!ticks_to_poll)
-                ticks_to_poll = poll_frequency;
+            ticks --;
+            if (!ticks)
+                ticks = ticks_max;
             return;
         }
     }

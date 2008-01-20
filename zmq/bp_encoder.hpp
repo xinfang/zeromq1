@@ -32,8 +32,8 @@ namespace zmq
     {
     public:
 
-        bp_encoder_t (dispatcher_proxy_t *proxy_, size_t chunk_size_,
-            int source_thread_id_);
+        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
+            size_t chunk_size_);
 
     protected:
 

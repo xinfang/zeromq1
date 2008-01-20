@@ -20,9 +20,6 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
-#include <stddef.h>
-#include <algorithm>
-
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
 #include "decoder.hpp"
