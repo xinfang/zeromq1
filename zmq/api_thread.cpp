@@ -19,7 +19,7 @@
 
 #include "api_thread.hpp"
 
-zmq::api_thread_t::api_thread_t (int thread_id_, dispatcher_t *dispatcher_) :
+zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
     poll_frequency (100),
     ticks_to_poll (0),
     proxy (dispatcher_, thread_id_, &pollset)

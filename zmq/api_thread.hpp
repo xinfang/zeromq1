@@ -34,7 +34,7 @@ namespace zmq
     class api_thread_t
     {
     public:
-        api_thread_t (int thread_id_, dispatcher_t *dispatcher_);
+        api_thread_t (dispatcher_t *dispatcher_, int thread_id_);
 
         void send (int destination_thread_id_, const cmsg_t &value_);
         void receive (cmsg_t *value_);
