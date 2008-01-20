@@ -28,13 +28,14 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "i_socket.hpp"
 #include "err.hpp"
 
 namespace zmq
 {
 
     //  Encapsulates simple TCP socket
-    class tcp_socket_t
+    class tcp_socket_t : public i_socket
     {
     public:
 
@@ -48,10 +49,16 @@ namespace zmq
         ~tcp_socket_t ();
 
         //  Returns the underlying raw socket
-        inline int get_fd ()
-        {
-            return s;
-        }
+        int get_fd ();
+
+        //  Writes as much data as possible to the socket. Returns the number
+        //  of bytes actually written.
+        size_t write (unsigned char *data, size_t size);
+
+        //  Reads data from the socket (up to 'size' bytes). Returns the number
+        //  of bytes actually read.
+        size_t read (unsigned char *data, size_t size);
+
     protected:
         int listening_socket;
         int s;

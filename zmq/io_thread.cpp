@@ -72,6 +72,7 @@ void zmq::io_thread_t::loop ()
         assert (!(pfd [1].revents & (POLLERR | POLLHUP | POLLNVAL)));
 
         if (pfd [0].revents & POLLIN) {
+
             unsigned char events [256];
             ssize_t nbytes = recv (pfd [0].fd, events, 256,
                 MSG_DONTWAIT);
@@ -85,6 +86,7 @@ void zmq::io_thread_t::loop ()
         }
 
         if (pfd [1].revents & POLLOUT) {
+
             if (out_buf_pos == out_buf_size) {
                 if (out_buf)
                     free (out_buf);
@@ -93,9 +95,8 @@ void zmq::io_thread_t::loop ()
                 out_buf_pos = 0;
             }
             if (out_buf_pos < out_buf_size) {
-                ssize_t nbytes = send (pfd [1].fd,
-                    out_buf + out_buf_pos, out_buf_size - out_buf_pos,
-                    MSG_DONTWAIT);
+                size_t nbytes = socket.write (out_buf + out_buf_pos,
+                    out_buf_size - out_buf_pos);
                 out_buf_pos += nbytes;
             }
         }
@@ -104,9 +105,7 @@ void zmq::io_thread_t::loop ()
 
             unsigned char *buf = (unsigned char*) malloc (read_buffer_size);
             assert (buf);
-            ssize_t nbytes = recv (pfd [1].fd, buf, read_buffer_size,
-                MSG_DONTWAIT);
-            errno_assert (nbytes != -1);
+            size_t nbytes = socket.read (buf, read_buffer_size);
             if (nbytes == 0) {
                 free (buf);
                 return;

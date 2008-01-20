@@ -75,7 +75,6 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     errno_assert (rc == 0);
 }
 
-//  Closes the socket
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = close (s);
@@ -87,3 +86,21 @@ zmq::tcp_socket_t::~tcp_socket_t ()
     }
 }
 
+int zmq::tcp_socket_t::get_fd ()
+{
+    return s;
+}
+
+size_t zmq::tcp_socket_t::write (unsigned char *data, size_t size)
+{
+    ssize_t nbytes = send (s, data, size, MSG_DONTWAIT);
+    errno_assert (nbytes != -1);
+    return (size_t) nbytes;
+}
+
+size_t zmq::tcp_socket_t::read (unsigned char *data, size_t size)
+{
+    ssize_t nbytes = recv (s, data, size, MSG_DONTWAIT);
+    errno_assert (nbytes != -1);
+    return (size_t) nbytes;
+}
