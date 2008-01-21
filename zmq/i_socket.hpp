@@ -20,6 +20,8 @@
 #ifndef __ZMQ_I_SOCKET_HPP_INCLUDED__
 #define __ZMQ_I_SOCKET_HPP_INCLUDED__
 
+#include <stddef.h>
+
 namespace zmq
 {
 

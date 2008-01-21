@@ -19,6 +19,16 @@
 
 #include "tcp_socket.hpp"
 
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <stdint.h>
+
+#include "err.hpp"
+
 zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     uint16_t port_)
 {

@@ -17,19 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SOCKET_HPP_INCLUDED__
-#define __ZMQ_SOCKET_HPP_INCLUDED__
-
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <stdint.h>
+#ifndef __ZMQ_TCP_SOCKET_HPP_INCLUDED__
+#define __ZMQ_TCP_SOCKET_HPP_INCLUDED__
 
 #include "i_socket.hpp"
-#include "err.hpp"
+#include "stdint.hpp"
 
 namespace zmq
 {
