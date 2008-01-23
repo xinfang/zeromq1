@@ -1,4 +1,3 @@
-/* zmq/kernel.hpp.  Generated from kernel.hpp.in by configure.  */
 /*
     Copyright (c) 2007 FastMQ Inc.
 

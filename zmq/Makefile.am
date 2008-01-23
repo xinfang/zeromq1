@@ -66,3 +66,9 @@ libzmq_la_SOURCES = \
     platform.hpp \
     stdint.hpp
 libzmq_la_LDFLAGS = -version-info 0:0:0
+
+dist-hook:
+		-rm $(distdir)/stdint.hpp
+		-rm $(distdir)/platform.hpp
+
+

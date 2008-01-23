@@ -1,11 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-AC_INIT([zmq],[0.2-dev])
+AC_INIT([zmq],[dev])
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(zmq/config.h)
 AM_CONFIG_HEADER(zmq/platform.hpp)
-AM_CONFIG_HEADER(zmq/stdint.hpp)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
 
@@ -43,7 +42,9 @@ esac
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
+AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
+AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
+AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -55,10 +56,23 @@ AC_HEADER_TIME
 AC_TYPE_UINT32_T
 AC_C_VOLATILE
 
+# Substs
+stdint="0"
+if test "x$HAVE_STDINT_H" = "xyes"; then
+    stdint="1"
+fi
+
+inttypes="0"
+if test "x$HAVE_INTTYPES_H" = "xyes"; then
+    inttypes="1"
+fi
+
+AC_SUBST(stdint)
+AC_SUBST(inttypes)
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket)
 
-#AC_CONFIG_FILES([test/Makefile])
-AC_OUTPUT(Makefile zmq/Makefile test/Makefile)
+AC_OUTPUT(Makefile zmq/Makefile test/Makefile zmq/stdint.hpp)

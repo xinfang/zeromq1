@@ -25,7 +25,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <stdint.h>
+#include <stdint.hpp>
 
 #include "err.hpp"
 
