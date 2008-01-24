@@ -109,7 +109,7 @@ bool zmq::kernel_t::send (void *data, size_t size, free_fn *ffn)
     }
     else {
         sizebuf [0] = 0xff;         
-        put_size_64 (sizebuf + 1, msg.size);
+        put_uint64 (sizebuf + 1, msg.size);
         iovs [0].iov_base = (char*) &sizebuf;
         iovs [0].iov_len = 9;
     }
@@ -163,7 +163,7 @@ bool zmq::kernel_t::receive (void **data, size_t *size, free_fn **ffn)
         msg_t hdr2 = {header_buf + 1, 8, 0, NULL};
         if (!fill_msg (hdr2))
             assert (0);
-        msg.size = get_size_64 (hdr2.data);
+        msg.size = get_uint64 (hdr2.data);
     }
 
     //  Allocate the memory to store message body.
@@ -240,7 +240,7 @@ bool zmq::kernel_t::flush_sendbuf ()
                 }
                 else {
                     sizes [sizes_pos] = 0xff;
-                    put_size_64 (sizes + sizes_pos + 1, msg.size);
+                    put_uint64 (sizes + sizes_pos + 1, msg.size);
                     iovs [pos].iov_base = (char*) (sizes + sizes_pos + msg.offset);
                     iovs [pos].iov_len = 9 - msg.offset;
                     sizes_pos += 9;
