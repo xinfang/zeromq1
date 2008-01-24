@@ -44,7 +44,7 @@ bool zmq::bp_encoder_t::message_ready ()
     }
     else {
         tmpbuf [0] = 0xff;
-        put_size_64 (tmpbuf + 1, msg.size);
+        put_uint64 (tmpbuf + 1, msg.size);
         next_step (tmpbuf, 9, &bp_encoder_t::size_ready);
     }
     return true;

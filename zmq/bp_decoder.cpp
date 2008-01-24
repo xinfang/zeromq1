@@ -43,7 +43,7 @@ void zmq::bp_decoder_t::one_byte_size_ready ()
 
 void zmq::bp_decoder_t::eight_byte_size_ready ()
 {
-    msg.size = get_size_64 (tmpbuf);
+    msg.size = get_uint64 (tmpbuf);
     msg.data = malloc (msg.size);
     assert (msg.data);
     msg.ffn = free;
