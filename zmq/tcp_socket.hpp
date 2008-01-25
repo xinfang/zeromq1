@@ -51,6 +51,12 @@ namespace zmq
         //  of bytes actually read.
         size_t read (unsigned char *data, size_t size);
 
+        //  Writes all the data to the socket
+        void blocking_write (unsigned char *data, size_t size);
+
+        //  Reads 'size' bytes from the socket
+        void blocking_read (unsigned char *data, size_t size);
+
     protected:
         int listening_socket;
         int s;

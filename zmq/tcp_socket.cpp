@@ -114,3 +114,16 @@ size_t zmq::tcp_socket_t::read (unsigned char *data, size_t size)
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
+
+void zmq::tcp_socket_t::blocking_write (unsigned char *data, size_t size)
+{
+    ssize_t nbytes = send (s, data, size, 0);
+    errno_assert (nbytes == size);
+}
+
+void zmq::tcp_socket_t::blocking_read (unsigned char *data, size_t size)
+{
+    ssize_t nbytes = recv (s, data, size, MSG_WAITALL);
+    errno_assert (nbytes == size);
+}
+
