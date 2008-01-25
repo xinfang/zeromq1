@@ -53,8 +53,10 @@ namespace zmq
             size_t pos = 0;
             while (true) {
                 size_t to_copy = std::min (to_read, size_ - pos);
-                memcpy (read_ptr, data_ + pos, to_copy);
-                read_ptr += to_copy;
+                if (read_ptr) {
+                    memcpy (read_ptr, data_ + pos, to_copy);
+                    read_ptr += to_copy;
+                }
                 pos += to_copy;
                 to_read -= to_copy;
                 if (!to_read)
