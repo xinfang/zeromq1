@@ -6,7 +6,7 @@ pkginclude_HEADERS = \
     atomic_ptr.hpp \
     atomic_uint32.hpp \
     bp_decoder.hpp \
-	amqp_decoder.hpp \
+    amqp09_decoder.hpp \
     cmsg.hpp \
     decoder.hpp \
     dispatcher.hpp \
@@ -59,8 +59,8 @@ libzmq_la_SOURCES = \
     decoder.hpp \
     bp_decoder.hpp \
     bp_decoder.cpp \
-    amqp_decoder.hpp \
-    amqp_decoder.cpp \
+    amqp09_decoder.hpp \
+    amqp09_decoder.cpp \
     encoder.hpp \
     bp_encoder.hpp \
     bp_encoder.cpp \
