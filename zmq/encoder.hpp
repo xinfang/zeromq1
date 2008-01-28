@@ -20,11 +20,9 @@
 #ifndef __ZMQ_ENCODER_HPP_INCLUDED__
 #define __ZMQ_ENCODER_HPP_INCLUDED__
 
+#include <stddef.h>
 #include <assert.h>
 #include <algorithm>
-
-#include "dispatcher_proxy.hpp"
-#include "cmsg.hpp"
 
 namespace zmq
 {
@@ -33,82 +31,47 @@ namespace zmq
     {
     public:
 
-        encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
-              size_t chunk_size_) :
-            proxy (proxy_),
-            source_thread_id (source_thread_id_),
-            chunk_size (chunk_size_)
+        inline encoder_t ()
         {
-            init_cmsg (msg);
-        }
-
-        ~encoder_t ()
-        {
-            free_cmsg (msg);
         }
 
         //  The chunk after being used should be deallocated
         //  using standard 'free' function
-        bool read (unsigned char **data_, size_t *size_)
+        size_t read (unsigned char *data_, size_t size_)
         {
-            unsigned char *chunk = (unsigned char*) malloc (chunk_size);
-            assert (chunk);
             size_t pos = 0;
 
             while (true) {
                 if (to_write) {
-                    size_t to_copy = std::min (to_write, chunk_size - pos);
-                    memcpy (chunk + pos, write_pos, to_copy);
+                    size_t to_copy = std::min (to_write, size_ - pos);
+                    memcpy (data_ + pos, write_pos, to_copy);
                     pos += to_copy;
                     write_pos += to_copy;
                     to_write -= to_copy;
                 }
-                else {
-                    if (!((static_cast <T*> (this)->*next) ()))
-                    {
-                        *data_ = chunk;
-                        *size_ = pos;
-                        return false;
-                    }
-                    continue;
-                }
-                if (pos == chunk_size)
-                    break;
+                else if (!((static_cast <T*> (this)->*next) ()))
+                    return pos;
+                if (pos == size_)
+                    return pos;
             }
-            *data_ = chunk;
-            *size_ = pos;
-            return true;
         }
 
     protected:
 
-        typedef bool (T::*parse_step_t) ();
+        typedef bool (T::*step_t) ();
 
         inline void next_step (void *write_pos_, size_t to_write_,
-            parse_step_t next_)
+            step_t next_)
         {
             write_pos = (unsigned char*) write_pos_;
             to_write = to_write_;
             next = next_;
         }
 
-        inline bool fetch ()
-        {
-            //  TODO: review the deallocation of msg (w.r.t. zero copy)
-            free_cmsg (msg);
-            init_cmsg (msg);
-            return proxy->read (source_thread_id, &msg);
-        }
-
-        cmsg_t msg;
-
     private:
-        dispatcher_proxy_t *proxy;
-        int source_thread_id;
-        size_t chunk_size;
         unsigned char *write_pos;
         size_t to_write;
-        parse_step_t next;
+        step_t next;
     };
 
 }

@@ -20,11 +20,18 @@
 #include "bp_encoder.hpp"
 #include "wire.hpp"
 
-zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_, 
-      int source_thread_id_, size_t chunk_size_) :
-    encoder_t <bp_encoder_t> (proxy_, source_thread_id_, chunk_size_)
+zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_,
+      int source_thread_id_) :
+    proxy (proxy_),
+    source_thread_id (source_thread_id_)
 {
+    init_cmsg (msg);
     next_step (NULL, 0, &bp_encoder_t::message_ready);
+}
+
+zmq::bp_encoder_t::~bp_encoder_t ()
+{
+    free_cmsg (msg);
 }
 
 bool zmq::bp_encoder_t::size_ready ()
@@ -35,7 +42,9 @@ bool zmq::bp_encoder_t::size_ready ()
 
 bool zmq::bp_encoder_t::message_ready ()
 {
-    if (!fetch ())
+    free_cmsg (msg);
+    init_cmsg (msg);
+    if (!proxy->read (source_thread_id, &msg))
         return false;
 
     if (msg.size < 255) {

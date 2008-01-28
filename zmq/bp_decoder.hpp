@@ -31,8 +31,7 @@ namespace zmq
     {
     public:
 
-        bp_decoder_t (dispatcher_proxy_t *dispatcher_proxy_,
-            int destination_thread_id_);
+        bp_decoder_t (dispatcher_proxy_t *proxy_, int destination_thread_id_);
 
     protected:
 
@@ -40,6 +39,8 @@ namespace zmq
         void eight_byte_size_ready ();
         void message_ready ();
 
+        dispatcher_proxy_t *proxy;
+        int destination_thread_id;
         unsigned char tmpbuf [8];
         cmsg_t msg;
     };

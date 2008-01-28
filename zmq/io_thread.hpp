@@ -41,8 +41,7 @@ namespace zmq
 
         io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
             int source_thread_id_, int destination_thread_id_,
-            i_socket *socket_, size_t write_buffer_size_,
-            size_t read_buffer_size_);
+            i_socket *socket_, size_t writebuf_size_, size_t readbuf_size_);
         ~io_thread_t ();
 
     protected:
@@ -52,15 +51,18 @@ namespace zmq
         static void *worker_routine (void *arg_);
         void loop ();
 
-        size_t write_buffer_size;
-        size_t read_buffer_size;
+        unsigned char *writebuf;
+        size_t writebuf_size;
 
-        unsigned char *out_buf;
-        size_t out_buf_size;
-        size_t out_buf_pos;
+        unsigned char *readbuf;
+        size_t readbuf_size;
+
+        size_t write_size;
+        size_t write_pos;
 
         bp_encoder_t encoder;
         bp_decoder_t decoder;
+
         dispatcher_proxy_t proxy;
         ysocketpair_t signaler;
         i_socket *socket;

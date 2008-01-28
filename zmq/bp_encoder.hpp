@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "encoder.hpp"
+#include "dispatcher_proxy.hpp"
 
 namespace zmq
 {
@@ -32,14 +33,17 @@ namespace zmq
     {
     public:
 
-        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
-            size_t chunk_size_);
+        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_);
+        ~bp_encoder_t ();
 
     protected:
 
         bool size_ready ();
         bool message_ready ();
 
+        dispatcher_proxy_t *proxy;
+        int source_thread_id;
+        cmsg_t msg;
         unsigned char tmpbuf [9];
     };
 

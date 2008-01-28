@@ -27,8 +27,7 @@ pkginclude_HEADERS = \
     encoder.hpp \
     platform.hpp \
     stdint.hpp \
-    amqp09_base.hpp \
-    amqp09_server_socket.hpp
+    free_fn.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -59,8 +58,6 @@ libzmq_la_SOURCES = \
     decoder.hpp \
     bp_decoder.hpp \
     bp_decoder.cpp \
-    amqp09_decoder.hpp \
-    amqp09_decoder.cpp \
     encoder.hpp \
     bp_encoder.hpp \
     bp_encoder.cpp \
@@ -70,10 +67,7 @@ libzmq_la_SOURCES = \
     io_thread.cpp \
     platform.hpp \
     stdint.hpp \
-    amqp09_base.hpp \
-    amqp09_base.cpp \
-    amqp09_server_socket.hpp \
-    amqp09_server_socket.cpp
+    free_fn.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

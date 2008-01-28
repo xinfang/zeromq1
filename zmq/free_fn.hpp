@@ -17,36 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_CMSG_HPP_INCLUDED__
-#define __ZMQ_CMSG_HPP_INCLUDED__
-
-#include <stddef.h>
-
-#include "free_fn.hpp"
+#ifndef __ZMQ_FREE_FN_HPP_INCLUDED__
+#define __ZMQ_FREE_FN_HPP_INCLUDED__
 
 namespace zmq
 {
 
-    struct cmsg_t
-    {
-        void *data;
-        size_t size;
-        free_fn *ffn;
-    };
+    //  Prototype for the message body deallocation functions.
+    //  It is deliberately defined in the way to comply with standard C free.
+    typedef void (free_fn) (void *data_);
 
-    inline void init_cmsg (cmsg_t &msg_)
-    {
-        msg_.data = NULL;
-        msg_.size = 0;
-        msg_.ffn = NULL;
-    }
-
-    inline void free_cmsg (cmsg_t &msg_)
-    {
-        if (msg_.ffn && msg_.data)
-            msg_.ffn (msg_.data);
-    }
-
-}
+};
 
 #endif

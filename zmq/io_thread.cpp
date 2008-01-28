@@ -22,17 +22,21 @@
 
 zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
       int source_thread_id_, int destination_thread_id_, i_socket *socket_,
-      size_t write_buffer_size_, size_t read_buffer_size_) :
+      size_t writebuf_size_, size_t readbuf_size_) :
     proxy (dispatcher_, thread_id_, &signaler),
-    encoder (&proxy, source_thread_id_, write_buffer_size),
+    encoder (&proxy, source_thread_id_),
     decoder (&proxy, destination_thread_id_),
     socket (socket_),
-    write_buffer_size (write_buffer_size_),
-    read_buffer_size (read_buffer_size_),
-    out_buf (NULL),
-    out_buf_size (0),
-    out_buf_pos (0)
+    writebuf_size (writebuf_size_),
+    readbuf_size (readbuf_size_),
+    write_size (0),
+    write_pos (0)
 {
+    writebuf = (unsigned char*) malloc (writebuf_size);
+    assert (writebuf);
+    readbuf = (unsigned char*) malloc (readbuf_size);
+    assert (readbuf);
+
     int rc = pthread_create (&worker, NULL, worker_routine, this);
     errno_assert (rc == 0);
 }
@@ -44,8 +48,8 @@ zmq::io_thread_t::~io_thread_t ()
     int rc = pthread_join (worker, NULL);
     errno_assert (rc == 0);
 
-    if (out_buf)
-        free (out_buf);
+    free (readbuf);
+    free (writebuf);
 }
 
 void *zmq::io_thread_t::worker_routine (void *arg_)
@@ -86,30 +90,26 @@ void zmq::io_thread_t::loop ()
 
         if (pfd [1].revents & POLLOUT) {
 
-            if (out_buf_pos == out_buf_size) {
-                if (out_buf)
-                    free (out_buf);
-                if (!encoder.read (&out_buf, &out_buf_size))
+            if (write_pos == write_size) {
+                write_size = encoder.read (writebuf, writebuf_size);
+                if (write_size < writebuf_size)
                     pfd [1].events ^= POLLOUT;
-                out_buf_pos = 0;
+                write_pos = 0;
             }
-            if (out_buf_pos < out_buf_size) {
-                size_t nbytes = socket->write (out_buf + out_buf_pos,
-                    out_buf_size - out_buf_pos);
-                out_buf_pos += nbytes;
+            if (write_pos < write_size) {
+                size_t nbytes = socket->write (writebuf + write_pos,
+                    write_size - write_pos);
+                write_pos += nbytes;
             }
         }
 
         if (pfd [1].revents & POLLIN) {
 
-            unsigned char *buf = (unsigned char*) malloc (read_buffer_size);
-            assert (buf);
-            size_t nbytes = socket->read (buf, read_buffer_size);
-            if (nbytes == 0) {
-                free (buf);
+            size_t nbytes = socket->read (readbuf, readbuf_size);
+            if (!nbytes)
                 return;
-            }
-            decoder.write (buf, nbytes, free);
+            decoder.write (readbuf, nbytes);
+            proxy.flush ();
         }
     }
 }
