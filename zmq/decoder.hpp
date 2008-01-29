@@ -23,10 +23,12 @@
 #include <stddef.h>
 #include <algorithm>
 
+#include "i_decoder.hpp"
+
 namespace zmq
 {
 
-    template <typename T> class decoder_t
+    template <typename T> class decoder_t : public i_decoder
     {
     public:
 
@@ -37,7 +39,7 @@ namespace zmq
         {
         }
 
-        inline void write (unsigned char *data_, size_t size_)
+        void write (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
             while (true) {
