@@ -24,12 +24,10 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "i_encoder.hpp"
-
 namespace zmq
 {
 
-    template <typename T> class encoder_t : public i_encoder
+    template <typename T> class encoder_t
     {
     public:
 

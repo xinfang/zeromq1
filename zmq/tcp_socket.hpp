@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -20,14 +20,15 @@
 #ifndef __ZMQ_TCP_SOCKET_HPP_INCLUDED__
 #define __ZMQ_TCP_SOCKET_HPP_INCLUDED__
 
-#include "i_socket.hpp"
+#include <stddef.h>
+
 #include "stdint.hpp"
 
 namespace zmq
 {
 
     //  Encapsulates simple TCP socket
-    class tcp_socket_t : public i_socket
+    class tcp_socket_t
     {
     public:
 

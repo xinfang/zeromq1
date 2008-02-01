@@ -6,14 +6,12 @@ pkginclude_HEADERS = \
     atomic_ptr.hpp \
     atomic_uint32.hpp \
     bp_decoder.hpp \
-    amqp09_decoder.hpp \
     cmsg.hpp \
     decoder.hpp \
     dispatcher.hpp \
     dispatcher_proxy.hpp \
     err.hpp \
     i_signaler.hpp \
-    i_socket.hpp \
     tcp_socket.hpp \
     wire.hpp \
     ydispatcher.hpp \
@@ -28,8 +26,7 @@ pkginclude_HEADERS = \
     platform.hpp \
     stdint.hpp \
     free_fn.hpp \
-    i_encoder.hpp \
-    i_decoder.hpp
+    bp_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -49,7 +46,6 @@ libzmq_la_SOURCES = \
     ysemaphore.hpp \
     ysocketpair.hpp \
     i_signaler.hpp \
-    i_socket.hpp \
     ysemaphore.hpp \
     ysemaphore.cpp \
     ydispatcher.hpp \
@@ -70,8 +66,7 @@ libzmq_la_SOURCES = \
     platform.hpp \
     stdint.hpp \
     free_fn.hpp \
-    i_encoder.hpp \
-    i_decoder.hpp
+    bp_engine.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

@@ -23,12 +23,10 @@
 #include <stddef.h>
 #include <algorithm>
 
-#include "i_decoder.hpp"
-
 namespace zmq
 {
 
-    template <typename T> class decoder_t : public i_decoder
+    template <typename T> class decoder_t
     {
     public:
 

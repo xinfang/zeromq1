@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -27,10 +27,10 @@
 
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
-#include "i_socket.hpp"
 #include "ysocketpair.hpp"
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
+#include "tcp_socket.hpp"
 
 namespace zmq
 {
@@ -41,7 +41,8 @@ namespace zmq
 
         io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
             int source_thread_id_, int destination_thread_id_,
-            i_socket *socket_, size_t writebuf_size_, size_t readbuf_size_);
+            bool listen_, const char *address_, uint16_t port_,
+            size_t writebuf_size_, size_t readbuf_size_);
         ~io_thread_t ();
 
     protected:
@@ -65,7 +66,7 @@ namespace zmq
 
         dispatcher_proxy_t proxy;
         ysocketpair_t signaler;
-        i_socket *socket;
+        tcp_socket_t socket;
         pthread_t worker;
     };
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -21,12 +21,13 @@
 #include "err.hpp"
 
 zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
-      int source_thread_id_, int destination_thread_id_, i_socket *socket_,
-      size_t writebuf_size_, size_t readbuf_size_) :
+      int source_thread_id_, int destination_thread_id_, bool listen_,
+      const char *address_, uint16_t port_, size_t writebuf_size_,
+      size_t readbuf_size_) :
     proxy (dispatcher_, thread_id_, &signaler),
     encoder (&proxy, source_thread_id_),
     decoder (&proxy, destination_thread_id_),
-    socket (socket_),
+    socket (listen_, address_, port_),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
@@ -64,7 +65,7 @@ void zmq::io_thread_t::loop ()
     pollfd pfd [2];
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
-    pfd [1].fd = socket->get_fd ();
+    pfd [1].fd = socket.get_fd ();
     pfd [1].events = POLLIN | POLLOUT;
 
     while (true)
@@ -97,7 +98,7 @@ void zmq::io_thread_t::loop ()
                 write_pos = 0;
             }
             if (write_pos < write_size) {
-                size_t nbytes = socket->write (writebuf + write_pos,
+                size_t nbytes = socket.write (writebuf + write_pos,
                     write_size - write_pos);
                 write_pos += nbytes;
             }
@@ -105,7 +106,7 @@ void zmq::io_thread_t::loop ()
 
         if (pfd [1].revents & POLLIN) {
 
-            size_t nbytes = socket->read (readbuf, readbuf_size);
+            size_t nbytes = socket.read (readbuf, readbuf_size);
             if (!nbytes)
                 return;
             decoder.write (readbuf, nbytes);
