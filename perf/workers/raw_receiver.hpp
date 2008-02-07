@@ -31,13 +31,13 @@ namespace perf
     class raw_receiver_t : public i_worker
     {
     public:
-        inline raw_receiver_t (int message_count) :
-            message_count (message_count)
+        inline raw_receiver_t (int message_count_) :
+            message_count (message_count_)
         {
         }
 
-        inline virtual void run (i_transport &transport,
-            const char *prefix = NULL)
+        inline virtual void run (i_transport &transport_,
+            const char *prefix_ = NULL)
         {
 
             time_instant_t start_time = 0;
@@ -45,7 +45,7 @@ namespace perf
             //  Receive the messages as quickly as possible
             for (int message_nbr = 0; message_nbr != message_count;
                   message_nbr++){
-                transport.receive ();
+                transport_.receive ();
                  if (message_nbr == 0)
                     start_time = now();
             }
@@ -54,10 +54,10 @@ namespace perf
 
             //  Save the results
             char filename [256];
-            if (!prefix)
-                prefix = "";
+            if (!prefix_)
+                prefix_ = "";
             ::snprintf (filename, 256,
-                "%sin.dat", prefix);
+                "%sin.dat", prefix_);
             FILE *output = ::fopen (filename, "w");
             assert (output);
             ::fprintf (output, "%llu\n", start_time);
