@@ -1,10 +1,13 @@
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 10
+#define TEST_MSG_SIZE_STEPS 15
 //#define TEST_MSG_COUNT_THRPUT 73350
 #define TEST_TIME 5000
 
 // MT test
 #define TEST_THREADS 1
+
+// latency test msg count denominator
+#define SYS_LAT_DEN 100
 
 // slope for messages smaller than SYS_BREAK
 // 100 000 msgs
