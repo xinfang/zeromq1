@@ -1,1 +1,1 @@
-SUBDIRS = zmq test perf/tests/tcp
+SUBDIRS = zmq perf/tests
