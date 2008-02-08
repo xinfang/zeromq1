@@ -1,7 +1,6 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
 pkginclude_HEADERS = \
-    kernel.hpp \
     api_thread.hpp \
     atomic_ptr.hpp \
     atomic_uint32.hpp \
@@ -33,8 +32,6 @@ lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
     tcp_socket.hpp \
     tcp_socket.cpp \
-    kernel.hpp \
-    kernel.cpp \
     ysocketpair.hpp \
     ysocketpair.cpp \
     atomic_ptr.hpp \
