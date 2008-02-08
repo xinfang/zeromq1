@@ -20,6 +20,8 @@
 
 autoreconf -fvi -I config
 
-echo
-echo "Run './configure ; make'"
-echo
+if [ $? -eq 0 ]; then
+    echo
+    echo "Run './configure ; make'"
+    echo
+fi
