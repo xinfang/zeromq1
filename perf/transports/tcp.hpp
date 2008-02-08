@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -37,18 +37,18 @@ namespace perf
     class tcp_t : public i_transport
     {
     public:
-        tcp_t (bool listen, const char *ip_address, unsigned short port,
-            bool nagle)
+        tcp_t (bool listen_, const char *ip_address_, unsigned short port_,
+            bool nagle_)
         {
             //  Parse the IP address
             sockaddr_in addr;
             memset (&addr, 0, sizeof (addr));
             addr.sin_family = AF_INET;
-            int rc = inet_pton (AF_INET, ip_address, &addr.sin_addr);
+            int rc = inet_pton (AF_INET, ip_address_, &addr.sin_addr);
             assert (rc > 0);
-            addr.sin_port = htons (port);
+            addr.sin_port = htons (port_);
 
-            if (listen) {
+            if (listen_) {
 
                 //  If 'listen' flag is set, object waits for connection
                 //  initiated by the other party. 'ip_address' is interpreted
@@ -97,7 +97,7 @@ namespace perf
             }
 
             //  Disable Nagle aglorithm if reuqired
-            if (!nagle) {
+            if (!nagle_) {
                 int flag = 1;
                 rc = ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag,
                     sizeof (int));
@@ -118,16 +118,16 @@ namespace perf
             }
         }
 
-        inline virtual void send (size_t size)
+        inline virtual void send (size_t size_)
         {
             //  Create the message
-            void *buffer = malloc (sizeof (uint32_t) + size);
+            void *buffer = malloc (sizeof (uint32_t) + size_);
             assert (buffer);
-            *((uint32_t*) buffer) = htonl (size);
+            *((uint32_t*) buffer) = htonl (size_);
 
             //  Send the data over the wire
-            ssize_t bytes = ::send (s, buffer, sizeof (uint32_t) + size, 0);
-            assert (bytes == (ssize_t) (sizeof (uint32_t) + size));
+            ssize_t bytes = ::send (s, buffer, sizeof (uint32_t) + size_, 0);
+            assert (bytes == (ssize_t) (sizeof (uint32_t) + size_));
 
             //  Cleanup
             free (buffer);

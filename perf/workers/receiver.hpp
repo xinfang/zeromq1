@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -31,13 +31,13 @@ namespace perf
     class receiver_t : public i_worker
     {
     public:
-        inline receiver_t (int message_count) :
-            message_count (message_count)
+        inline receiver_t (int message_count_) :
+            message_count (message_count_)
         {
         }
 
-        inline virtual void run (i_transport &transport,
-            const char *prefix = NULL)
+        inline virtual void run (i_transport &transport_,
+            const char *prefix_ = NULL)
         {
             //  Allocate the array for performance results
             time_instant_t *in_times = (time_instant_t*) ::malloc (
@@ -50,16 +50,16 @@ namespace perf
                 //  The time is measured *after* we get the message
                 //  That way we avoid the peak for first message (waiting
                 //  while sender application is started)
-                transport.receive ();
+                transport_.receive ();
                 in_times [message_nbr] = now ();
             }
 
             //  Save the receiver throughputs
             char filename [256];
-            if (!prefix)
-                prefix = "";
+            if (!prefix_)
+                prefix_ = "";
             ::snprintf (filename, 256,
-                "%sin.dat", prefix);
+                "%sin.dat", prefix_);
             FILE *output = ::fopen (filename, "w");
             assert (output);
             for (int message_nbr = 0; message_nbr != message_count;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -28,7 +28,7 @@ namespace perf
     struct i_worker
     {
         virtual ~i_worker () {}
-        virtual void run (i_transport &transport, const char *prefix) = 0;
+        virtual void run (i_transport &transport_, const char *prefix_) = 0;
     };
 
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -33,10 +33,10 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool listen, const char *ip_address, unsigned short port) :
+        zmq_t (bool listen_, const char *ip_address_, unsigned short port_) :
             dispatcher (2),
             api (&dispatcher, 0),
-            engine (listen, ip_address, port, 0, 0, 8192, 8192),
+            engine (listen_, ip_address_, port_, 0, 0, 8192, 8192),
             io (&dispatcher, 1, &engine)
         {
         }
@@ -45,10 +45,10 @@ namespace perf
         {
         }
 
-        inline virtual void send (size_t size)
+        inline virtual void send (size_t size_)
         {
-            assert (size <= 65536);
-            zmq::cmsg_t msg = {buffer, size, NULL};
+            assert (size_ <= 65536);
+            zmq::cmsg_t msg = {buffer, size_, NULL};
             api.send (1, msg);
         }
 

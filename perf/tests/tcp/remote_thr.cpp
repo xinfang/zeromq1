@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -52,10 +52,12 @@ int main (int argc, char *argv [])
         msg_size = TEST_MSG_SIZE_START * (0x1 << i);
 
         if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE * msg_size + SYS_OFF));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE * msg_size + SYS_OFF));
             msg_count /= TEST_THREADS;
         } else {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
             msg_count /= TEST_THREADS;
         }
 
@@ -65,7 +67,8 @@ int main (int argc, char *argv [])
             w_args->msg_size = msg_size;
             w_args->msg_count = msg_count;
            
-            int rc = pthread_create (&workers [j], NULL, worker_function, (void*)w_args);
+            int rc = pthread_create (&workers [j], NULL, worker_function,
+                (void*)w_args);
             assert (rc == 0);
         }
 
@@ -92,10 +95,8 @@ void *worker_function (void *args_)
     memset (prefix, '\0', sizeof (prefix));
     snprintf (prefix, sizeof (prefix) - 1, "%i", w_args->id);
 
-//    printf ("port %i, prefix %s\n", PORT_NUMBER + w_args->id, prefix);
-//    fflush (stdout);
-
-    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, false);
+    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, 
+        false);
     perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
     worker.run (transport, prefix);
 

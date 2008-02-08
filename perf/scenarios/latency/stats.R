@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2007 FastMQ Inc.
+#    Copyright (c) 2007-2008 FastMQ Inc.
 #
 #    This file is part of 0MQ.
 #

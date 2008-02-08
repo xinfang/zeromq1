@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -30,19 +30,19 @@ namespace perf
     class raw_sender_t : public i_worker
     {
     public:
-        inline raw_sender_t (int message_count, size_t message_size) :
-            message_count (message_count), message_size (message_size)
+        inline raw_sender_t (int message_count_, size_t message_size_) :
+            message_count (message_count_), message_size (message_size_)
         {
         }
 
-        inline virtual void run (i_transport &transport,
-            const char *prefix = NULL)
+        inline virtual void run (i_transport &transport_,
+            const char *prefix_ = NULL)
         {
             
             //  Send the messages as quickly as possible
             for (int message_nbr = 0; message_nbr != message_count;
                   message_nbr++) {
-                transport.send (message_size);
+                transport_.send (message_size);
             }
 
         }

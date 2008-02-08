@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2007 FastMQ Inc.
+#    Copyright (c) 2007-2008 FastMQ Inc.
 #
 #    This file is part of 0MQ.
 #
@@ -20,7 +20,6 @@
 test_msg_size_start <- 1
 test_msg_size_steps <- 15
 
-
 #---------------------  do not edit below this line  --------------------------
 test_threads <- 1
 results <- data.frame ()
@@ -28,12 +27,11 @@ results <- data.frame ()
 
 for (i in 0:(test_msg_size_steps - 1)) {
     msg_size <- 2^i
+
     file_out <- file.path (paste (msg_size, "_", test_threads - 1, "_", "out.dat", sep = ""));
-#    print (file_out)
     outtimes <- scan (file_out, list (0), quiet = T) [[1]]
 
     file_in <- file.path (paste (msg_size, "_", test_threads - 1, "_", "in.dat", sep = ""));
-#    print (file_in)
     intimes <- scan (file_in, list (0), quiet = T) [[1]]
     
     latencies <- (intimes - outtimes) / 2

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -28,16 +28,16 @@ namespace perf
     class echo_t : public i_worker
     {
     public:
-        inline echo_t (int message_count) : message_count (message_count)
+        inline echo_t (int message_count_) : message_count (message_count_)
         {
         }
 
-        inline virtual void run (i_transport &transport, const char* = NULL)
+        inline virtual void run (i_transport &transport_, const char* = NULL)
         {
             for (int message_nbr = 0; message_nbr != message_count;
                 message_nbr++){
-                size_t size = transport.receive ();
-                transport.send (size);
+                size_t size = transport_.receive ();
+                transport_.send (size);
             }
         }
     protected:

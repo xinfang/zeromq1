@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -28,7 +28,7 @@ namespace perf
     struct i_transport
     {
         virtual ~i_transport () {}
-        virtual void send (size_t size) = 0;
+        virtual void send (size_t size_) = 0;
         virtual size_t receive () = 0;
     };
 

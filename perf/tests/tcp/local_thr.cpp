@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -24,6 +24,7 @@
 
 #include "../../transports/tcp.hpp"
 #include "../../helpers/time.hpp"
+#include "../../helpers/files.hpp"
 #include "../../workers/raw_receiver.hpp"
 
 #include "./test.hpp"
@@ -31,8 +32,6 @@
 using namespace std;
 
 void *worker_function (void *);
-void read_times_1f (perf::time_instant_t *, perf::time_instant_t *, 
-    const char *);
 
 int main (int argc, char *argv [])
 {
@@ -65,15 +64,16 @@ int main (int argc, char *argv [])
 
         min_start_time = numeric_limits<unsigned long long>::max();
         max_stop_time = 0;
-//        printf ("%llu\n", max_stop_time);
 
         msg_size = TEST_MSG_SIZE_START * (0x1 << i);
 
         if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE * msg_size + SYS_OFF));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE * msg_size + SYS_OFF));
             msg_count /= TEST_THREADS;
         } else {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
             msg_count /= TEST_THREADS;
         }
 
@@ -87,7 +87,8 @@ int main (int argc, char *argv [])
             w_args->msg_size = msg_size;
             w_args->msg_count = msg_count;
 
-            int rc = pthread_create (&workers [j], NULL, worker_function, (void*)w_args);
+            int rc = pthread_create (&workers [j], NULL, worker_function, 
+                (void*)w_args);
             assert (rc == 0);
         }
 
@@ -95,12 +96,15 @@ int main (int argc, char *argv [])
             int rc = pthread_join (workers [j], NULL);
             assert (rc == 0);
 
+            // read results from finished worker thread file
             perf::time_instant_t start_time;
             perf::time_instant_t stop_time;
-            char prefix [255];
-            memset (prefix, '\0', sizeof (prefix));
-            snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", msg_size, j);
-            read_times_1f (&start_time, &stop_time, prefix);
+
+            char file_name [255];
+            memset (file_name, '\0', sizeof (file_name));
+            snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
+                msg_size, j);
+            perf::read_times_1f (&start_time, &stop_time, file_name);
 
             if (start_time < min_start_time)
                 min_start_time = start_time;
@@ -109,16 +113,18 @@ int main (int argc, char *argv [])
                 max_stop_time = stop_time;
 
             // delete file
-            snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", msg_size, j);
-            rc = remove (prefix);
+            snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
+                msg_size, j);
+            rc = remove (file_name);
             assert (rc == 0);
         }
 
-        printf ("Test time: %llu [ms]\n", (max_stop_time - min_start_time) / (long long)1000);
+        printf ("Test time: %llu [ms]\n", (max_stop_time - min_start_time) / 
+            (long long)1000);
 
         // throughput [msgs/s]
-        msg_thput = ((long long) 1000000 * (long long) msg_count * (long long)TEST_THREADS) /
-            (max_stop_time - min_start_time);
+        msg_thput = ((long long) 1000000 * (long long) msg_count * 
+            (long long)TEST_THREADS) / (max_stop_time - min_start_time);
 
         // throughput [Mb/s]
         tcp_thput = (msg_thput * msg_size * 8) /(long long) 1000000;
@@ -126,26 +132,14 @@ int main (int argc, char *argv [])
         printf ("Your average throughput is %llu msgs/s\n", msg_thput);
         printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
 
-        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count * TEST_THREADS, min_start_time, max_stop_time);
+        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count * 
+            TEST_THREADS, min_start_time, max_stop_time);
 
     }
   
     fclose (output);
 
     return 0;
-}
-
-void read_times_1f (perf::time_instant_t *start_time_,
-    perf::time_instant_t *stop_time_, const char *prefix_)
-{
-    //  Load the results
-    char filename [256];
-    snprintf (filename, 256, "%sin.dat", prefix_);
-    FILE *input = ::fopen (filename, "r");
-    assert (input);
-    fscanf (input, "%llu", start_time_);
-    fscanf (input, "%llu", stop_time_);
-    fclose (input);
 }
 
 void *worker_function (void *args_)
@@ -156,7 +150,8 @@ void *worker_function (void *args_)
     // file prefix
     char prefix [20];
     memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size, w_args->id);
+    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size, 
+        w_args->id);
 
     perf::tcp_t transport (true, "0.0.0.0", PORT_NUMBER + w_args->id, false);
     perf::raw_receiver_t worker (w_args->msg_count);

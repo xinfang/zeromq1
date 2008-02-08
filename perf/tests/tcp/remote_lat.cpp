@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -98,9 +98,6 @@ void *worker_function (void *args_)
     char prefix [20];
     memset (prefix, '\0', sizeof (prefix));
     snprintf (prefix, sizeof (prefix) - 1, "%i", w_args->id);
-
-//    printf ("port %i, prefix %s\n", PORT_NUMBER + w_args->id, prefix);
-//    fflush (stdout);
 
     perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, false);
     perf::echo_t worker (w_args->msg_count);

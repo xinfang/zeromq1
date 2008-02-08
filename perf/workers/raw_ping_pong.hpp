@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -31,13 +31,13 @@ namespace perf
     class raw_ping_pong_t : public i_worker
     {
     public:
-        inline raw_ping_pong_t (int roundtrip_count, size_t message_size) :
-            roundtrip_count (roundtrip_count), message_size (message_size)
+        inline raw_ping_pong_t (int roundtrip_count_, size_t message_size_) :
+            roundtrip_count (roundtrip_count_), message_size (message_size_)
         {
         }
 
-        inline virtual void run (i_transport &transport,
-            const char *prefix = NULL)
+        inline virtual void run (i_transport &transport_,
+            const char *prefix_ = NULL)
         {
 
             time_instant_t start_time = now();
@@ -46,23 +46,23 @@ namespace perf
             //  message arrival
             for (int roundtrip_nbr = 0; roundtrip_nbr != roundtrip_count;
                   roundtrip_nbr++) {
-                transport.send (message_size);
-                transport.receive ();
+                transport_.send (message_size);
+                transport_.receive ();
             }
 
             time_instant_t stop_time = now();
 
             //  Save the latencies for further processing
             char filename [256];
-            if (!prefix)
-                prefix = "";
-            ::snprintf (filename, 256, "%sin.dat", prefix);
+            if (!prefix_)
+                prefix_ = "";
+            ::snprintf (filename, 256, "%sin.dat", prefix_);
             FILE *output_in = ::fopen (filename, "w");
             assert (output_in);
 
             ::fprintf (output_in, "%llu\n", stop_time);
 
-            ::snprintf (filename, 256, "%sout.dat", prefix);
+            ::snprintf (filename, 256, "%sout.dat", prefix_);
             FILE *output_out = ::fopen (filename, "w");
             assert (output_out);
             

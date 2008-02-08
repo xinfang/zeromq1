@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -44,13 +44,13 @@ namespace perf
     class ysuite_t : public i_transport
     {
     public:
-        ysuite_t (active_sync_type_t sync_type) :
+        ysuite_t (active_sync_type_t sync_type_) :
             first (NULL),
             last (NULL),
-            sync_type (sync_type),
+            sync_type (sync_type_),
             ypipe (false)
         {
-            pollset.fd = ysocketpair;
+            pollset.fd = ysocketpair.get_fd ();
             pollset.events = POLLIN;
         }
 
