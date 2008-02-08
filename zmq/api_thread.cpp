@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007 FastMQ Inc.
+    Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -21,7 +21,7 @@
 
 zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
     ticks_max (100),
-    ticks (0),
+    ticks (1),
     proxy (dispatcher_, thread_id_, &pollset)
 {
     thread_count = dispatcher_->get_thread_count ();
@@ -43,7 +43,7 @@ void zmq::api_thread_t::receive (cmsg_t *value_)
               ticks == ticks_max)) {
 
             uint32_t signals;
-            signals = threads_alive ? pollset.check () : pollset.poll ();
+            signals = threads_alive != 1 ? pollset.check () : pollset.poll ();
             
             for (int thread_nbr = 0; thread_nbr != thread_count;
                   thread_nbr ++) {

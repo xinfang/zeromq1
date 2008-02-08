@@ -119,7 +119,7 @@ int main (int argc, char *argv [])
         double (latency) / 1000);
 
     {
-        perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, true);
+        perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER);
         perf::raw_ping_pong_t worker (TEST_MSG_COUNT_LATENCY, TEST_MSG_SIZE);
         worker.run (transport, PREFIX);
     }

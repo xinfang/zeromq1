@@ -60,7 +60,7 @@ int main (int argc, char *argv [])
 
     sleep (2);  // Wait till new listener is started by the 'local'
     {
-        perf::zmq_t transport (false, argv [1], PORT_NUMBER, true);
+        perf::zmq_t transport (false, argv [1], PORT_NUMBER);
         perf::echo_t worker (TEST_MSG_COUNT_LATENCY);
         worker.run (transport, PREFIX);
     }

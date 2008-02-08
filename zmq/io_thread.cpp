@@ -21,23 +21,11 @@
 #include "err.hpp"
 
 zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
-      int source_thread_id_, int destination_thread_id_, bool listen_,
-      const char *address_, uint16_t port_, size_t writebuf_size_,
-      size_t readbuf_size_) :
-    proxy (dispatcher_, thread_id_, &signaler),
-    encoder (&proxy, source_thread_id_),
-    decoder (&proxy, destination_thread_id_),
-    socket (listen_, address_, port_),
-    writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
-    write_size (0),
-    write_pos (0)
+      i_engine *engine_) :
+    engine (engine_),
+    proxy (dispatcher_, thread_id_, &signaler)
 {
-    writebuf = (unsigned char*) malloc (writebuf_size);
-    assert (writebuf);
-    readbuf = (unsigned char*) malloc (readbuf_size);
-    assert (readbuf);
-
+    engine->set_dispatcher_proxy (&proxy);
     int rc = pthread_create (&worker, NULL, worker_routine, this);
     errno_assert (rc == 0);
 }
@@ -48,9 +36,6 @@ zmq::io_thread_t::~io_thread_t ()
 
     int rc = pthread_join (worker, NULL);
     errno_assert (rc == 0);
-
-    free (readbuf);
-    free (writebuf);
 }
 
 void *zmq::io_thread_t::worker_routine (void *arg_)
@@ -62,11 +47,14 @@ void *zmq::io_thread_t::worker_routine (void *arg_)
 
 void zmq::io_thread_t::loop ()
 {
+    bool stop = false;
+
     pollfd pfd [2];
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
-    pfd [1].fd = socket.get_fd ();
-    pfd [1].events = POLLIN | POLLOUT;
+    pfd [1].fd = engine->get_fd ();
+    pfd [1].events = (engine->get_in () ? POLLIN : 0) |
+        (engine->get_out () ? POLLOUT : 0);
 
     while (true)
     {
@@ -82,35 +70,28 @@ void zmq::io_thread_t::loop ()
                 MSG_DONTWAIT);
             errno_assert (nbytes != -1);
             for (int event = 0; event != nbytes; event ++) {
-                if (events [event] == stop_event)
+                if (events [event] == stop_event) {
+                    if (!(pfd [1].events & POLLOUT)) //  if there are no messages to send, quit immediately
+                        return;
+                    stop = true;
+                }
+                else {
+                    proxy.revive (events [event]);
+                    if (engine->get_out())
+                        pfd [1].events |= POLLOUT;
+                }
+            }
+        }
+
+        if (pfd [1].revents & POLLOUT)
+            if (!engine->out_event ()) {
+                pfd [1].events ^= POLLOUT;
+                if (stop)
                     return;
-                proxy.revive (events [event]);
-                pfd [1].events |= POLLOUT;
             }
-        }
 
-        if (pfd [1].revents & POLLOUT) {
-
-            if (write_pos == write_size) {
-                write_size = encoder.read (writebuf, writebuf_size);
-                if (write_size < writebuf_size)
-                    pfd [1].events ^= POLLOUT;
-                write_pos = 0;
-            }
-            if (write_pos < write_size) {
-                size_t nbytes = socket.write (writebuf + write_pos,
-                    write_size - write_pos);
-                write_pos += nbytes;
-            }
-        }
-
-        if (pfd [1].revents & POLLIN) {
-
-            size_t nbytes = socket.read (readbuf, readbuf_size);
-            if (!nbytes)
-                return;
-            decoder.write (readbuf, nbytes);
-            proxy.flush ();
-        }
+        if (pfd [1].revents & POLLIN)
+            if (!engine->in_event ())
+                pfd [1].events ^= POLLIN;
     }
 }

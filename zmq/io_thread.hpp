@@ -28,9 +28,7 @@
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
 #include "ysocketpair.hpp"
-#include "bp_encoder.hpp"
-#include "bp_decoder.hpp"
-#include "tcp_socket.hpp"
+#include "i_engine.hpp"
 
 namespace zmq
 {
@@ -40,9 +38,7 @@ namespace zmq
     public:
 
         io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
-            int source_thread_id_, int destination_thread_id_,
-            bool listen_, const char *address_, uint16_t port_,
-            size_t writebuf_size_, size_t readbuf_size_);
+            i_engine *engine_);
         ~io_thread_t ();
 
     protected:
@@ -52,21 +48,9 @@ namespace zmq
         static void *worker_routine (void *arg_);
         void loop ();
 
-        unsigned char *writebuf;
-        size_t writebuf_size;
-
-        unsigned char *readbuf;
-        size_t readbuf_size;
-
-        size_t write_size;
-        size_t write_pos;
-
-        bp_encoder_t encoder;
-        bp_decoder_t decoder;
-
+        i_engine *engine;
         dispatcher_proxy_t proxy;
         ysocketpair_t signaler;
-        tcp_socket_t socket;
         pthread_t worker;
     };
 

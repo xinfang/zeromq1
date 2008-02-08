@@ -25,7 +25,9 @@ pkginclude_HEADERS = \
     encoder.hpp \
     platform.hpp \
     stdint.hpp \
-    free_fn.hpp
+    free_fn.hpp \
+    bp_engine.hpp \
+    i_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -65,7 +67,9 @@ libzmq_la_SOURCES = \
     platform.hpp \
     stdint.hpp \
     free_fn.hpp \
-    bp_engine.hpp
+    bp_engine.hpp \
+    bp_engine.cpp \
+    i_engine.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

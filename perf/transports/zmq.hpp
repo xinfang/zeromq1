@@ -22,7 +22,10 @@
 
 #include "../interfaces/i_transport.hpp"
 
-#include "../../zmq/kernel.hpp"
+#include "../../zmq/dispatcher.hpp"
+#include "../../zmq/api_thread.hpp"
+#include "../../zmq/bp_engine.hpp"
+#include "../../zmq/io_thread.hpp"
 
 namespace perf
 {
@@ -30,9 +33,11 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool listen, const char *ip_address, unsigned short port,
-              bool xmode = false) :
-            kernel (listen, ip_address, port, xmode)
+        zmq_t (bool listen, const char *ip_address, unsigned short port) :
+            dispatcher (2),
+            api (&dispatcher, 0),
+            engine (listen, ip_address, port, 0, 0, 8192, 8192),
+            io (&dispatcher, 1, &engine)
         {
         }
 
@@ -43,27 +48,25 @@ namespace perf
         inline virtual void send (size_t size)
         {
             assert (size <= 65536);
-
-            //  Send the message
-            bool ok = kernel.send (buffer, size, NULL);
-	    assert (ok);
+            zmq::cmsg_t msg = {buffer, size, NULL};
+            api.send (1, msg);
         }
 
         inline virtual size_t receive ()
         {
-            void *data;
-            size_t size;
-	    zmq::free_fn *ffn;
-            bool ok = kernel.receive (&data, &size, &ffn);
-	    assert (ok);
-            if (ffn && data)
-                ffn (data);
-            return size;
+            zmq::cmsg_t msg;
+            api.receive (&msg);
+            size_t res = msg.size;
+            zmq::free_cmsg (msg);
+            return res;
         }
 
     protected:
-        zmq::kernel_t kernel;
-	unsigned char buffer [65536];
+        zmq::dispatcher_t dispatcher;
+        zmq::api_thread_t api;
+        zmq::bp_engine_t engine;
+        zmq::io_thread_t io;
+        unsigned char buffer [65536];
     };
 
 }
