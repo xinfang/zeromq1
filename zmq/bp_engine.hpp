@@ -32,21 +32,24 @@ namespace zmq
     {
     public:
 
-        bp_engine_t (bool listen_, const char *address_, uint16_t port_,
+        bp_engine_t (dispatcher_t *dispatcher_, int thread_id_,
+            bool listen_, const char *address_, uint16_t port_,
             int source_thread_id_, int destination_thread_id_,
             size_t writebuf_size_, size_t readbuf_size_);
         ~bp_engine_t ();
 
-        void set_dispatcher_proxy (dispatcher_proxy_t *proxy_);
+        void set_signaler (i_signaler *signaler_);
+        void revive (int thread_id_);
+
         int get_fd ();
-        bool get_in ();
-        bool get_out ();
-        bool in_event ();
-        bool out_event ();
+        short get_events ();
+
+        void in_event ();
+        void out_event ();
 
     private:
 
-        dispatcher_proxy_t *proxy;
+        dispatcher_proxy_t proxy;   
 
         unsigned char *writebuf;
         size_t writebuf_size;
@@ -57,9 +60,11 @@ namespace zmq
         size_t write_size;
         size_t write_pos;
 
-        bp_encoder_t *encoder;
-        bp_decoder_t *decoder;
+        bp_encoder_t encoder;
+        bp_decoder_t decoder;
         tcp_socket_t socket;
+
+        short events;
 
         int source_thread_id;
         int destination_thread_id;

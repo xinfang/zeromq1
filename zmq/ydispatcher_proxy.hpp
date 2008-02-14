@@ -34,15 +34,13 @@ namespace zmq
 
         typedef typename ydispatcher_t <T>::item_t item_t;
 
-        ydispatcher_proxy_t (ydispatcher_t <T> *dispatcher_, int thread_id_,
-              i_signaler *signaler_) :
+        ydispatcher_proxy_t (ydispatcher_t <T> *dispatcher_, int thread_id_) :
             dispatcher (dispatcher_),
             thread_id (thread_id_)
         {
             thread_count = dispatcher->get_thread_count ();
             assert (thread_id < thread_count);
             threads_alive = thread_count;
-            dispatcher->set_signaler (thread_id, signaler_);
 
             writebufs = new writebuf_t [thread_count];
             assert (writebufs);
@@ -83,6 +81,11 @@ namespace zmq
                 }
             }
             delete [] readbufs;
+        }
+
+        inline void set_signaler (i_signaler *signaler_)
+        {
+            dispatcher->set_signaler (thread_id, signaler_);
         }
 
         inline int get_threads_alive ()

@@ -37,8 +37,7 @@ namespace zmq
     {
     public:
 
-        io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
-            i_engine *engine_);
+        io_thread_t (i_engine *engine_);
         ~io_thread_t ();
 
     protected:
@@ -49,7 +48,6 @@ namespace zmq
         void loop ();
 
         i_engine *engine;
-        dispatcher_proxy_t proxy;
         ysocketpair_t signaler;
         pthread_t worker;
     };

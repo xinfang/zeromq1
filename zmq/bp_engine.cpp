@@ -17,19 +17,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <poll.h>
+
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
-      uint16_t port_, int source_thread_id_, int destination_thread_id_,
+zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_, int thread_id_,
+      bool listen_, const char *address_, uint16_t port_,
+      int source_thread_id_, int destination_thread_id_,
       size_t writebuf_size_, size_t readbuf_size_) :
-    encoder (NULL),
-    decoder (NULL),
+    proxy (dispatcher_, thread_id_),
+    encoder (&proxy, source_thread_id_),
+    decoder (&proxy, destination_thread_id_),
     socket (listen_, address_, port_),
+    events (POLLIN | POLLOUT),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
-    proxy (NULL),
     source_thread_id (source_thread_id_),
     destination_thread_id (destination_thread_id_)
 {
@@ -41,22 +45,13 @@ zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
 
 zmq::bp_engine_t::~bp_engine_t ()
 {
-    if (encoder)
-        delete encoder;
-    if (decoder)
-        delete decoder;
-
     free (readbuf);
     free (writebuf);
 }
 
-void zmq::bp_engine_t::set_dispatcher_proxy (dispatcher_proxy_t *proxy_)
+void zmq::bp_engine_t::set_signaler (i_signaler *signaler_)
 {
-    proxy = proxy_;
-    encoder = new bp_encoder_t (proxy, source_thread_id);
-    assert (encoder);
-    decoder = new bp_decoder_t (proxy, destination_thread_id);
-    assert (decoder);
+    proxy.set_signaler (signaler_);
 }
 
 int zmq::bp_engine_t::get_fd ()
@@ -64,33 +59,34 @@ int zmq::bp_engine_t::get_fd ()
     return socket.get_fd ();
 }
 
-bool zmq::bp_engine_t::get_in ()
+short zmq::bp_engine_t::get_events ()
 {
-    return true;
+    return events;
 }
 
-bool zmq::bp_engine_t::get_out ()
+void zmq::bp_engine_t::revive (int thread_id_)
 {
-    return true;
+    proxy.revive (thread_id_);
+    events |= POLLOUT;
 }
 
-bool zmq::bp_engine_t::in_event ()
+void zmq::bp_engine_t::in_event ()
 {
     size_t nbytes = socket.read (readbuf, readbuf_size);
-    if (!nbytes)
-        return false;
-    decoder->write (readbuf, nbytes);
-    proxy->flush ();
-    return true;
+    if (!nbytes) {
+        events ^= POLLIN;
+        return;
+    }
+    decoder.write (readbuf, nbytes);
+    proxy.flush ();
 }
 
-bool zmq::bp_engine_t::out_event ()
+void zmq::bp_engine_t::out_event ()
 {
-    bool res = true;
     if (write_pos == write_size) {
-    write_size = encoder->read (writebuf, writebuf_size);
+    write_size = encoder.read (writebuf, writebuf_size);
     if (write_size < writebuf_size)
-        res = false;
+        events ^= POLLOUT;
         write_pos = 0;
     }
     if (write_pos < write_size) {
@@ -98,5 +94,4 @@ bool zmq::bp_engine_t::out_event ()
             write_size - write_pos);
         write_pos += nbytes;
     }
-    return res;
 }

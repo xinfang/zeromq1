@@ -20,7 +20,7 @@
 #ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
 #define __ZMQ_I_ENGINE_HPP_INCLUDED__
 
-#include "dispatcher_proxy.hpp"
+#include "i_signaler.hpp"
 
 namespace zmq
 {
@@ -30,12 +30,15 @@ namespace zmq
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
         virtual ~i_engine () {};
-        virtual void set_dispatcher_proxy (dispatcher_proxy_t *proxy_) = 0;
+
+        virtual void set_signaler (i_signaler *signaler_) = 0;
+        virtual void revive (int thread_id_) = 0;
+
         virtual int get_fd () = 0;
-        virtual bool get_in () = 0;
-        virtual bool get_out () = 0;
-        virtual bool in_event () = 0;
-        virtual bool out_event () = 0;
+        virtual short get_events () = 0;
+
+        virtual void in_event () = 0;
+        virtual void out_event () = 0;
     };
 
 }

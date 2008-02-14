@@ -20,12 +20,10 @@
 #include "io_thread.hpp"
 #include "err.hpp"
 
-zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_, int thread_id_,
-      i_engine *engine_) :
-    engine (engine_),
-    proxy (dispatcher_, thread_id_, &signaler)
+zmq::io_thread_t::io_thread_t (i_engine *engine_) :
+    engine (engine_)
 {
-    engine->set_dispatcher_proxy (&proxy);
+    engine->set_signaler (&signaler);
     int rc = pthread_create (&worker, NULL, worker_routine, this);
     errno_assert (rc == 0);
 }
@@ -53,11 +51,10 @@ void zmq::io_thread_t::loop ()
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
     pfd [1].fd = engine->get_fd ();
-    pfd [1].events = (engine->get_in () ? POLLIN : 0) |
-        (engine->get_out () ? POLLOUT : 0);
 
     while (true)
     {
+        pfd [1].events = engine->get_events ();
         int rc = poll (pfd, 2, -1);
         errno_assert (rc != -1);
         assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
@@ -71,27 +68,26 @@ void zmq::io_thread_t::loop ()
             errno_assert (nbytes != -1);
             for (int event = 0; event != nbytes; event ++) {
                 if (events [event] == stop_event) {
-                    if (!(pfd [1].events & POLLOUT)) //  if there are no messages to send, quit immediately
+
+                    //  If there are no messages to send, quit immediately
+                    //  Otherwise wait till all the messages are sent
+                    if (!(engine->get_events () & POLLOUT))
                         return;
-                    stop = true;
+                    else
+                        stop = true;
                 }
-                else {
-                    proxy.revive (events [event]);
-                    if (engine->get_out())
-                        pfd [1].events |= POLLOUT;
-                }
+                else
+                    engine->revive (events [event]);
             }
         }
 
-        if (pfd [1].revents & POLLOUT)
-            if (!engine->out_event ()) {
-                pfd [1].events ^= POLLOUT;
-                if (stop)
-                    return;
-            }
+        if (pfd [1].revents & POLLOUT) {
+            engine->out_event ();
+            if (stop && !(engine->get_events () & POLLOUT))
+                return;
+        }
 
         if (pfd [1].revents & POLLIN)
-            if (!engine->in_event ())
-                pfd [1].events ^= POLLIN;
+            engine->in_event ();
     }
 }

@@ -22,8 +22,9 @@
 zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
     ticks_max (100),
     ticks (1),
-    proxy (dispatcher_, thread_id_, &pollset)
+    proxy (dispatcher_, thread_id_)
 {
+    proxy.set_signaler (&pollset);
     thread_count = dispatcher_->get_thread_count ();
     current_thread = thread_count - 1;
 }
