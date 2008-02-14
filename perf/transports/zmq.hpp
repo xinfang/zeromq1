@@ -36,6 +36,8 @@ namespace perf
         zmq_t (bool listen_, const char *ip_address_, unsigned short port_) :
             dispatcher (2),
             api (&dispatcher, 0),
+            engine (&dispatcher, 1, listen, ip_address, port, 0, 0, 8192, 8192),
+            io (&engine)
             engine (listen_, ip_address_, port_, 0, 0, 8192, 8192),
             io (&dispatcher, 1, &engine)
         {
