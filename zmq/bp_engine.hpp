@@ -65,9 +65,6 @@ namespace zmq
         tcp_socket_t socket;
 
         short events;
-
-        int source_thread_id;
-        int destination_thread_id;
     };
 
 }

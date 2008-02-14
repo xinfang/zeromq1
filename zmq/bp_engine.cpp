@@ -33,9 +33,7 @@ zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_, int thread_id_,
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
-    write_pos (0),
-    source_thread_id (source_thread_id_),
-    destination_thread_id (destination_thread_id_)
+    write_pos (0)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
