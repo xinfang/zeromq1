@@ -17,33 +17,5 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 20
-#define TEST_TIME 5000
-
-// MT test
-#define TEST_THREADS 1
-
-// latency test msg count denominator
-#define SYS_LAT_DEN 100
-
-// slope for messages smaller than SYS_BREAK
-// 100 000 msgs
-#define SYS_SLOPE 0.55
-#define SYS_OFF 110
-
-#define SYS_BREAK 1024
-
-// slope for messages bigger than SYS_BREAK
-// 100 000 msgs
-#define SYS_SLOPE_BIG 0.89
-#define SYS_OFF_BIG 0
-
-#define PORT_NUMBER 5555
-//#define TEST_MSG_COUNT_THRPUT 50000000
-
-//#define READ_BUFFER_SIZE 8192
-//#define WRITE_BUFFER_SIZE 8192
-
-
+#define TEST_MSG_COUNT_THRPUT 10000000
 
