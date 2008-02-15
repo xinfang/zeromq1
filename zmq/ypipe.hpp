@@ -125,7 +125,7 @@ namespace zmq
 
         item_t *r;
         item_t *w;
-        atomic_ptr <item_t> c;
+        atomic_ptr_t <item_t> c;
     };
 
 }

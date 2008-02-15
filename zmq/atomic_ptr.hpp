@@ -35,12 +35,12 @@ namespace zmq
     //  On different platforms memory fencing may be required to be implemented
     //  explicitly.
 
-    template <typename T> class atomic_ptr
+    template <typename T> class atomic_ptr_t
     {
     public:
 
         //  Initialise atomic pointer
-        atomic_ptr ()
+        atomic_ptr_t ()
         {
             ptr = NULL;
 #if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
@@ -50,7 +50,7 @@ namespace zmq
         }
 
         //  Destroy atomic pointer
-        ~atomic_ptr ()
+        ~atomic_ptr_t ()
         {
 #if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);

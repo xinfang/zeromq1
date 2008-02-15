@@ -36,11 +36,11 @@ namespace zmq
     //  full memory barrier associated with atomic operations (lock prefix).
     //  On different platforms memory fencing may be required to be implemented
     //  explicitly.
-    class atomic_uint32
+    class atomic_uint32_t
     {
     public:
 
-        inline atomic_uint32 ()
+        inline atomic_uint32_t ()
         {
             value = 0;
 #if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
@@ -49,7 +49,7 @@ namespace zmq
 #endif
         }
 
-        inline ~atomic_uint32 ()
+        inline ~atomic_uint32_t ()
         {
 #if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);
@@ -123,29 +123,10 @@ namespace zmq
         //  bits of the value (btr, xchg, izte)."
         //  If the code using atomic_uint32 doesn't adhere to this assumption
         //  the behaviour of izte is undefined.
-        inline uint32_t izte (uint32_t thenval_, uint32_t elseval_)
-        {
-            uint32_t oldval;
-#if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
-            __asm__ volatile (
-                "lock; cmpxchgl %1, %3\n\t"
-                "jz 1f\n\t"
-                "mov %2, %%eax\n\t"
-                "lock; xchgl %%eax, %3\n\t"
-                "1:\n\t"
-                : "=a" (oldval)
-                : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
-                : "memory", "cc");
-#else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
-            oldval = value;
-            value = oldval ? elseval_ : thenval_;
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
-#endif
-            return oldval;
-        }
+        //
+        //  This function is deliberately not inline as that triggers a bug
+        //  in GCC resulting in faulty behaviour of the function
+        uint32_t izte (uint32_t thenval_, uint32_t elseval_);
 
     protected:
 

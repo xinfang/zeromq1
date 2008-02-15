@@ -71,7 +71,7 @@ namespace zmq
         }
 
     protected:
-        atomic_uint32 bits;
+        atomic_uint32_t bits;
         ysemaphore_t sem;
     };
 

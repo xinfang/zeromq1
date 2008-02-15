@@ -44,6 +44,7 @@ libzmq_la_SOURCES = \
     ysocketpair.cpp \
     atomic_ptr.hpp \
     atomic_uint32.hpp \
+    atomic_uint32.cpp \
     err.hpp \
     wire.hpp \
     ypipe.hpp \
