@@ -25,7 +25,7 @@
 #define TEST_THREADS 1
 
 // latency test msg count denominator
-//#define SYS_LAT_DEN 100
+#define SYS_LAT_DEN 100
 
 // slope for messages smaller than SYS_BREAK
 // 100 000 msgs

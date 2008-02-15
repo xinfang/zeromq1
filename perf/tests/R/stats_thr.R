@@ -18,7 +18,7 @@
 #
 
 #  Read the input files
-data <- read.table("in.dat")
+data <- read.table ("in.dat")
 
 thrput_msg <- (1000000 * data$V2) / (data$V4 - data$V3)
 thrput_bit <- (thrput_msg * 8 * data$V1) / 1000000
@@ -27,6 +27,6 @@ thrput_msg <- round (thrput_msg, digits = 1)
 thrput_bit <- round (thrput_bit, digits = 1)
 
 #  Save the results
-data_frame <- data.frame(data$V1, thrput_msg, thrput_bit)
+data_frame <- data.frame (data$V1, data$V2, thrput_msg, thrput_bit)
 write.table (data_frame, file = "thrput.dat", col.names = FALSE, row.names = FALSE)
 
