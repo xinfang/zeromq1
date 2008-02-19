@@ -32,7 +32,8 @@ namespace zmq
     public:
 
         amqp09_decoder_t (dispatcher_proxy_t *proxy_,
-            int destination_thread_id, amqp09_unmarshaller_t *unmarshaller_);
+            int destination_thread_id, amqp09_unmarshaller_t *unmarshaller_,
+            bool server_);
         ~amqp09_decoder_t ();
 
         void flow (bool on_);
@@ -60,6 +61,7 @@ namespace zmq
         cmsg_t msg;
 
         bool flow_on;
+        bool server;
     };
 
 }

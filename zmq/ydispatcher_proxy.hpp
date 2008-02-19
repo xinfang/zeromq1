@@ -93,6 +93,13 @@ namespace zmq
             return threads_alive;
         }
 
+        //  This function signals that there are messages sent
+        //  to the thread by itself
+        inline bool get_self_signal ()
+        {
+            return writebufs [thread_id].first;
+        }
+
         void write (int destination_thread_id_, const T &value_)
         {
              item_t *n = new item_t;

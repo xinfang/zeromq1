@@ -43,14 +43,18 @@ namespace zmq
         amqp09_engine_t (dispatcher_t *dispatcher_, int thread_id_,
               bool listen_, const char *address_, uint16_t port_,
               int source_thread_id_, int destination_thread_id_,
-              size_t writebuf_size_, size_t readbuf_size_) :
+              size_t writebuf_size_, size_t readbuf_size_,
+              const char *out_exchange_, const char *out_routing_key_,
+              const char *in_exchange_, const char *in_routing_key_) :
             socket (listen_, address_, port_),
             proxy (dispatcher_, thread_id_),
-            fsm (&socket, &marshaller, this),
             marshaller (this),
+            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
-            encoder (&proxy, source_thread_id_, &marshaller),
-            decoder (&proxy, destination_thread_id_, &unmarshaller),
+            encoder (&proxy, source_thread_id_, &marshaller, fsm.server (),
+                out_exchange_, out_routing_key_),
+            decoder (&proxy, destination_thread_id_, &unmarshaller,
+                fsm.server ()),
             writebuf_size (writebuf_size_),
             readbuf_size (readbuf_size_),
             write_size (0),
@@ -89,7 +93,7 @@ namespace zmq
 
         inline short get_events ()
         {
-            return events;
+            return events | (proxy.get_self_signal () ? POLLOUT : 0);
         }
 
         void in_event ()
@@ -141,8 +145,8 @@ namespace zmq
 
         tcp_socket_t socket;
         dispatcher_proxy_t proxy;
-        fsm_t fsm;
         amqp09_marshaller_t marshaller;
+        fsm_t fsm;
         amqp09_unmarshaller_t unmarshaller;
         amqp09_encoder_t encoder;
         amqp09_decoder_t decoder;

@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <algorithm>
 
 #include "amqp09_encoder.hpp"
@@ -24,12 +25,19 @@
 #include "wire.hpp"
 
 zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
-    int source_thread_id_, amqp09_marshaller_t *marshaller_) :
+    int source_thread_id_, amqp09_marshaller_t *marshaller_, bool server_,
+    const char *out_exchange_, const char *out_routing_key_) :
+    server (server_),
     proxy (proxy_),
     source_thread_id (source_thread_id_),
     marshaller (marshaller_),
-    flow_on (false)
+    flow_on (false),
+    out_exchange (out_exchange_),
+    out_routing_key (out_routing_key_)
 {
+    assert (out_exchange.size () <= 0xff);
+    assert (out_routing_key.size () <= 0xff);
+
     tmpbuf_size = amqp09::frame_min_size;
     tmpbuf = (unsigned char*) malloc (tmpbuf_size);
     assert (tmpbuf);
@@ -79,20 +87,47 @@ bool zmq::amqp09_encoder_t::message_ready ()
     offset += sizeof (uint16_t);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
-    put_uint16 (tmpbuf + offset, amqp09::basic);
-    offset += sizeof (uint16_t);
-    put_uint16 (tmpbuf + offset, amqp09::basic_deliver);
-    offset += sizeof (uint16_t);
-    put_uint8 (tmpbuf + offset, 0);
-    offset += sizeof (uint8_t);
-    put_uint64 (tmpbuf + offset, 0);
-    offset += sizeof (uint64_t);
-    put_uint8 (tmpbuf + offset, 0);
-    offset += sizeof (uint8_t);
-    put_uint8 (tmpbuf + offset, 0);
-    offset += sizeof (uint8_t);
-    put_uint8 (tmpbuf + offset, 0);
-    offset += sizeof (uint8_t);
+
+    if (server) {
+        put_uint16 (tmpbuf + offset, amqp09::basic);
+        offset += sizeof (uint16_t);
+        put_uint16 (tmpbuf + offset, amqp09::basic_deliver);
+        offset += sizeof (uint16_t);
+        put_uint8 (tmpbuf + offset, 0);
+        offset += sizeof (uint8_t);
+        put_uint64 (tmpbuf + offset, 0);
+        offset += sizeof (uint64_t);
+        put_uint8 (tmpbuf + offset, 0);
+        offset += sizeof (uint8_t);
+        put_uint8 (tmpbuf + offset, (uint8_t) out_exchange.size ());
+        offset += sizeof (uint8_t);
+        memcpy (tmpbuf + offset, out_exchange.c_str (), out_exchange.size ());
+        offset += out_exchange.size ();
+        put_uint8 (tmpbuf + offset, (uint8_t) out_routing_key.size ());
+        offset += sizeof (uint8_t);
+        memcpy (tmpbuf + offset, out_routing_key.c_str (),
+            out_routing_key.size ());
+        offset += out_routing_key.size ();
+    }
+    else {
+        put_uint16 (tmpbuf + offset, amqp09::basic);
+        offset += sizeof (uint16_t);
+        put_uint16 (tmpbuf + offset, amqp09::basic_publish);
+        offset += sizeof (uint16_t);
+        put_uint16 (tmpbuf + offset, 0);
+        offset += sizeof (uint16_t);
+        put_uint8 (tmpbuf + offset, (uint8_t) out_exchange.size ());
+        offset += sizeof (uint8_t);
+        memcpy (tmpbuf + offset, out_exchange.c_str (), out_exchange.size ());
+        offset += out_exchange.size ();
+        put_uint8 (tmpbuf + offset, (uint8_t) out_routing_key.size ());
+        offset += sizeof (uint8_t);
+        memcpy (tmpbuf + offset, out_routing_key.c_str (),
+            out_routing_key.size ());
+        offset += out_routing_key.size ();
+        tmpbuf [offset] = 0;
+        offset += sizeof (uint8_t);
+    }
     put_uint8 (tmpbuf + offset, amqp09::frame_end);
     offset += sizeof (uint8_t);
     put_uint32 (tmpbuf + size_offset, offset - 8); 

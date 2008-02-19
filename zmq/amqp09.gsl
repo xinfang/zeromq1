@@ -113,7 +113,7 @@
 .           bit_offset = 0
 .       endif
 .       if bit_offset = 0
-    args [offset] |= (
+    args [offset] = (
 .       else
  |
 .       endif
@@ -409,6 +409,7 @@ void zmq::amqp09_unmarshaller_t::write (uint16_t class_id,
 
                 return;
             }
+.   bit_offset = 0
 .   endfor
         }
 .endfor
@@ -597,6 +598,7 @@ $(field.name:c)_$(last ()??''?',')\
     signaler->signal (0);
 }
 
+.   bit_offset = 0
 .   endfor
 .endfor
 bool zmq::amqp09_marshaller_t::read (command_t *command)

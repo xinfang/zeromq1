@@ -82,9 +82,9 @@ void zmq::bp_engine_t::in_event ()
 void zmq::bp_engine_t::out_event ()
 {
     if (write_pos == write_size) {
-    write_size = encoder.read (writebuf, writebuf_size);
-    if (write_size < writebuf_size)
-        events ^= POLLOUT;
+        write_size = encoder.read (writebuf, writebuf_size);
+        if (write_size < writebuf_size)
+            events ^= POLLOUT;
         write_pos = 0;
     }
     if (write_pos < write_size) {

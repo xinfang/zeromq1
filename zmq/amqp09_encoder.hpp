@@ -20,6 +20,8 @@
 #ifndef __ZMQ_AMQP09_ENCODER_HPP_INCLUDED__
 #define __ZMQ_AMQP09_ENCODER_HPP_INCLUDED__
 
+#include <string>
+
 #include "encoder.hpp"
 #include "dispatcher_proxy.hpp"
 #include "amqp09_marshaller.hpp"
@@ -32,7 +34,8 @@ namespace zmq
     public:
 
         amqp09_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
-            amqp09_marshaller_t *marshaller_);
+            amqp09_marshaller_t *marshaller_, bool server_,
+            const char *out_exchange_, const char *out_routing_key_);
         ~amqp09_encoder_t ();
 
         void flow (bool on_);
@@ -47,6 +50,8 @@ namespace zmq
         bool content_body ();
         bool frame_end ();
 
+        bool server;
+
         unsigned char *tmpbuf;
         size_t tmpbuf_size;
 
@@ -59,6 +64,9 @@ namespace zmq
         amqp09_marshaller_t *marshaller;
 
         bool flow_on;
+
+        std::string out_exchange;
+        std::string out_routing_key;
     };
 
 }

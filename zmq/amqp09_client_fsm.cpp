@@ -24,9 +24,12 @@
 
 zmq::amqp09_client_fsm_t::amqp09_client_fsm_t (tcp_socket_t *socket_,
       amqp09_marshaller_t *marshaller_,
-      amqp09_engine_t <amqp09_client_fsm_t> *engine_) :
+      amqp09_engine_t <amqp09_client_fsm_t> *engine_,
+      const char *in_exchange_, const char *in_routing_key_) :
     marshaller (marshaller_),
-    engine (engine_)
+    engine (engine_),
+    in_exchange (in_exchange_),
+    in_routing_key (in_routing_key_)
 {
     unsigned char protocol_header [] = {'A', 'M', 'Q', 'P', 1, 1, 0, 9};
     socket_->blocking_write (protocol_header, sizeof (protocol_header));
@@ -86,11 +89,27 @@ void zmq::amqp09_client_fsm_t::channel_open_ok (
         return;
     }
 
+    marshaller->queue_declare (0, "", false, false, true, true, true,
+        i_amqp09::field_table_t ());
+    marshaller->queue_bind (0, "", in_exchange.c_str (),
+        in_routing_key.c_str (), true, i_amqp09::field_table_t ());
+    marshaller->basic_consume (0, "", "", false, true, false, false, 
+        i_amqp09::field_table_t ());
+
+    state = expect_basic_consume_ok;
+}
+
+void zmq::amqp09_client_fsm_t::basic_consume_ok (
+    const i_amqp09::shortstr_t consumer_tag_)
+{
+    if (state != expect_basic_consume_ok) {
+        unexpected ();
+        return;
+    }
+    
     state = active;
     engine->flow (true);
 }
-
-
 
 void zmq::amqp09_client_fsm_t::unexpected ()
 {

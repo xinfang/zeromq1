@@ -22,11 +22,13 @@
 #include "wire.hpp"
 
 zmq::amqp09_decoder_t::amqp09_decoder_t (dispatcher_proxy_t *proxy_,
-      int destination_thread_id_, amqp09_unmarshaller_t *unmarshaller_) :
+      int destination_thread_id_, amqp09_unmarshaller_t *unmarshaller_,
+      bool server_) :
     proxy (proxy_),
     destination_thread_id (destination_thread_id_),
     unmarshaller (unmarshaller_),
-    flow_on (false)
+    flow_on (false),
+    server (server_)
 {
     framebuf_size = amqp09::frame_min_size;
     framebuf = (unsigned char*) malloc (framebuf_size);
@@ -62,7 +64,9 @@ void zmq::amqp09_decoder_t::method_payload_ready ()
     uint16_t class_id = get_uint16 (framebuf);
     uint16_t method_id = get_uint16 (framebuf + 2);
 
-    if (class_id == amqp09::basic && method_id == amqp09::basic_publish) {
+    if ((server && class_id == amqp09::basic && method_id ==
+         amqp09::basic_publish) || (!server && class_id == amqp09::basic &&
+         method_id == amqp09::basic_deliver)) {
        assert (flow_on);
        next_step (tmpbuf, 7,
            &amqp09_decoder_t::content_header_frame_header_ready);

@@ -21,6 +21,7 @@
 #define __ZMQ_AMQP09_CLIENT_FSM_HPP_INCLUDED__
 
 #include <assert.h>
+#include <string>
 
 #include "stdint.hpp"
 #include "i_amqp09.hpp"
@@ -38,10 +39,16 @@ namespace zmq
 
         amqp09_client_fsm_t (tcp_socket_t *socket_,
               amqp09_marshaller_t *marshaller_,
-              amqp09_engine_t <amqp09_client_fsm_t> *engine_);
+              amqp09_engine_t <amqp09_client_fsm_t> *engine_,
+              const char *in_exchange_, const char *in_routing_key_);
 
         inline ~amqp09_client_fsm_t ()
         {
+        }
+
+        inline bool server ()
+        {
+            return false;
         }
 
         void connection_start (
@@ -62,6 +69,9 @@ namespace zmq
         void channel_open_ok (
             const i_amqp09::longstr_t channel_id_);
 
+        void basic_consume_ok (
+            const i_amqp09::shortstr_t consumer_tag_);
+
     private:
 
         enum state_t
@@ -70,6 +80,7 @@ namespace zmq
             expect_connection_tune,
             expect_connection_open_ok,
             expect_channel_open_ok,
+            expect_basic_consume_ok,
             active,
         };
 
@@ -79,6 +90,9 @@ namespace zmq
 
         amqp09_marshaller_t *marshaller;
         amqp09_engine_t <amqp09_client_fsm_t> *engine;
+
+        std::string in_exchange;
+        std::string in_routing_key;
     };
 
 }
