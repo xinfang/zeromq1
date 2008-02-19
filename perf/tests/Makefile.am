@@ -1,1 +1,1 @@
-SUBDIRS = tcp zmq_vs_tcp
+SUBDIRS = zmq_vs_tcp

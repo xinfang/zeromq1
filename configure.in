@@ -76,4 +76,4 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket)
 
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp 
-    perf/tests/Makefile perf/tests/tcp/Makefile perf/tests/zmq_vs_tcp/Makefile)
+    perf/tests/Makefile perf/tests/zmq_vs_tcp/Makefile)
