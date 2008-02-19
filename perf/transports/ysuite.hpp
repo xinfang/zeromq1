@@ -33,7 +33,6 @@
 
 namespace perf
 {
-
     enum active_sync_type_t
     {
         active_sync_semaphore,
@@ -41,20 +40,38 @@ namespace perf
         active_sync_pollset
     };
 
-    class ysuite_t : public i_transport
+    class ysuite_ypipe_t : public i_transport
     {
     public:
-        ysuite_t (active_sync_type_t sync_type_) :
+        ysuite_ypipe_t (active_sync_type_t sync_type_, 
+              zmq::ypipe_t<void*> *ypipe_1_,
+              zmq::ypipe_t<void*> *ypipe_2_,
+              zmq::ysemaphore_t *ysemaphore_1_,
+              zmq::ysemaphore_t *ysemaphore_2_,
+              zmq::ysocketpair_t *ysocketpair_1_,
+              zmq::ysocketpair_t *ysocketpair_2_,
+              pollfd *pollset_1_,
+              pollfd *pollset_2_,
+              zmq::ypollset_t *ypollset_1_,
+              zmq::ypollset_t *ypollset_2_) :
+            sync_type (sync_type_),
             first (NULL),
             last (NULL),
-            sync_type (sync_type_),
-            ypipe (false)
+            ypipe_1 (ypipe_1_),
+            ypipe_2 (ypipe_2_),
+            ysemaphore_1 (ysemaphore_1_),
+            ysemaphore_2 (ysemaphore_2_),
+            ysocketpair_1 (ysocketpair_1_),
+            ysocketpair_2 (ysocketpair_2_),
+            pollset_1 (pollset_1_),
+            pollset_2 (pollset_2_),
+            ypollset_1 (ypollset_1_),
+            ypollset_2 (ypollset_2_)
         {
-            pollset.fd = ysocketpair.get_fd ();
-            pollset.events = POLLIN;
+
         }
 
-        inline ~ysuite_t ()
+        inline ~ysuite_ypipe_t ()
         {
             while (first != last) {
                 zmq::ypipe_t <void*>::item_t *o = first;
@@ -62,22 +79,22 @@ namespace perf
                 delete o;
             }
         }
-
+ 
         inline virtual void send (size_t)
         {
             //  In ysuite, pointers are passed instead of actual data as both
             //  sender and receiver reside in the same memory space.
-            if (!ypipe.write (NULL)) {
+            if (!ypipe_1->write (NULL)) {
                 switch (sync_type)
                 {
                 case active_sync_semaphore:
-                    ysemaphore.signal (0);
+                    ysemaphore_1->signal (0);
                     break;
                 case active_sync_socketpair:
-                    ysocketpair.signal (0);
+                    ysocketpair_1->signal (0);
                     break;
                 case active_sync_pollset:
-                    ypollset.signal (0);
+                    ypollset_1->signal (0);
                     break;
                 default:
                     assert (0);
@@ -91,49 +108,107 @@ namespace perf
                 switch (sync_type)
                 {
                 case active_sync_semaphore:
-                    if (!ypipe.read (&first, &last)) {
-                        ysemaphore.wait ();
-                        ypipe.read (&first, &last);
+                    if (!ypipe_2->read (&first, &last)) {
+                        ysemaphore_2->wait ();
+                        ypipe_2->read (&first, &last);
                     }
                     break;
                 case active_sync_socketpair:
                     {
-                        if (!ypipe.read (&first, &last)) {
-                            int rc = poll (&pollset, 1, -1);
+                        if (!ypipe_2->read (&first, &last)) {
+                            int rc = poll (pollset_2, 1, -1);
                             errno_assert (rc > 0);
-                            assert (pollset.revents == POLLIN);
-                            ysocketpair.get_signal ();
-                            ypipe.read (&first, &last);
+                            assert (pollset_2->revents == POLLIN);
+                            ysocketpair_2->get_signal ();
+                            ypipe_2->read (&first, &last);
                         }
                     }
                     break;
                 case active_sync_pollset:
-                    if (!ypipe.read (&first, &last)) {
-                        ypollset.poll ();
-                        ypipe.read (&first, &last);
+                    if (!ypipe_2->read (&first, &last)) {
+                        ypollset_2->poll ();
+                        ypipe_2->read (&first, &last);
                     }
                     break;
                 default:
                     assert (0);
                 }
+
             }
 
-            zmq::ypipe_t <void*>::item_t *o = first;
+//            zmq::ypipe_t <void*>::item_t *o = first;
             first = first->next;
             return 0;
         }
-
     protected:
-        zmq::ypipe_t <void*> ypipe;
+        active_sync_type_t sync_type;
         zmq::ypipe_t <void*>::item_t *first;
         zmq::ypipe_t <void*>::item_t *last;
-        active_sync_type_t sync_type;
-        zmq::ysemaphore_t ysemaphore;
-        zmq::ysocketpair_t ysocketpair;
-        pollfd pollset;
-        zmq::ypollset_t ypollset;
+
+        zmq::ypipe_t <void*> *ypipe_1;
+        zmq::ypipe_t <void*> *ypipe_2;
+
+        zmq::ysemaphore_t *ysemaphore_1;
+        zmq::ysemaphore_t *ysemaphore_2;
+
+        zmq::ysocketpair_t *ysocketpair_1;
+        zmq::ysocketpair_t *ysocketpair_2;
+        pollfd *pollset_1;
+        pollfd *pollset_2;
+
+        zmq::ypollset_t *ypollset_1;
+        zmq::ypollset_t *ypollset_2;
     };
 
+    class ysuite_t
+    {
+    public:
+        ysuite_t (active_sync_type_t sync_type_) :
+            ypipe_1 (false),
+            ypipe_2 (false),
+            y_ypipe_1 (sync_type_, &ypipe_1, &ypipe_2, &ysemaphore_1, &ysemaphore_2, 
+                &ysocketpair_1, &ysocketpair_2, &pollset_1, &pollset_2, 
+                &ypollset_1, &ypollset_2),
+            y_ypipe_2 (sync_type_, &ypipe_2, &ypipe_1, &ysemaphore_2, &ysemaphore_1, 
+                &ysocketpair_2, &ysocketpair_1, &pollset_2, &pollset_1,
+                &ypollset_2, &ypollset_1)
+        {
+            pollset_1.fd = ysocketpair_1.get_fd ();
+            pollset_1.events = POLLIN;
+ 
+            pollset_2.fd = ysocketpair_2.get_fd ();
+            pollset_2.events = POLLIN;
+        }
+
+        i_transport* get_transport_1 ()
+        {
+            return &y_ypipe_1;
+        }
+
+        i_transport* get_transport_2 ()
+        {
+            return &y_ypipe_2;
+        }
+
+    protected:
+        zmq::ysemaphore_t ysemaphore_1;
+        zmq::ysemaphore_t ysemaphore_2;
+
+        zmq::ysocketpair_t ysocketpair_1;
+        zmq::ysocketpair_t ysocketpair_2;
+        pollfd pollset_1;
+        pollfd pollset_2;
+
+        zmq::ypollset_t ypollset_1;
+        zmq::ypollset_t ypollset_2;
+
+        zmq::ypipe_t <void*> ypipe_1;
+        zmq::ypipe_t <void*> ypipe_2;
+
+        ysuite_ypipe_t y_ypipe_1;
+        ysuite_ypipe_t y_ypipe_2;
+        
+    };
 }
 
 #endif

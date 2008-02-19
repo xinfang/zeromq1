@@ -18,7 +18,7 @@
 #
 
 test_msg_size_start <- 1
-test_msg_size_steps <- 14
+test_msg_size_steps <- 1
 
 #---------------------  do not edit below this line  --------------------------
 test_threads <- 1

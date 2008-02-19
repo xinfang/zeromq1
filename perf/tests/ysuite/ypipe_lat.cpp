@@ -38,6 +38,9 @@ struct worker_args_t
 int main (void) {
 
     perf::ysuite_t transport (perf::active_sync_semaphore);
+//    perf::ysuite_t transport (perf::active_sync_socketpair);
+//    perf::ysuite_t transport (perf::active_sync_pollset);
+
     perf::echo_t receiver (TEST_MSG_COUNT_LAT);
 
     worker_args_t w_args;
