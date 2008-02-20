@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "api_thread.hpp"
+#include "api_engine.hpp"
 
-zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, int thread_id_) :
     ticks_max (100),
     ticks (1),
     proxy (dispatcher_, thread_id_)
@@ -29,12 +29,12 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_, int thread_id_) :
     current_thread = thread_count - 1;
 }
 
-void zmq::api_thread_t::send (int destination_thread_id_, const cmsg_t &value_)
+void zmq::api_engine_t::send (int destination_thread_id_, const cmsg_t &value_)
 {
     proxy.instant_write (destination_thread_id_, value_);
 }
 
-void zmq::api_thread_t::receive (cmsg_t *value_)
+void zmq::api_engine_t::receive (cmsg_t *value_)
 {
     while (true) {
 

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
-#define __ZMQ_API_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
+#define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
 #include "cmsg.hpp"
 #include "dispatcher.hpp"
@@ -28,10 +28,10 @@
 namespace zmq
 {
 
-    class api_thread_t
+    class api_engine_t
     {
     public:
-        api_thread_t (dispatcher_t *dispatcher_, int thread_id_);
+        api_engine_t (dispatcher_t *dispatcher_, int thread_id_);
 
         void send (int destination_thread_id_, const cmsg_t &value_);
         void receive (cmsg_t *value_);
