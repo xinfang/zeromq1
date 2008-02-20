@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "io_thread.hpp"
+#include "poll_thread.hpp"
 #include "err.hpp"
 
-zmq::io_thread_t::io_thread_t (i_engine *engine_) :
+zmq::poll_thread_t::poll_thread_t (i_engine *engine_) :
     engine (engine_)
 {
     engine->set_signaler (&signaler);
@@ -28,7 +28,7 @@ zmq::io_thread_t::io_thread_t (i_engine *engine_) :
     errno_assert (rc == 0);
 }
 
-zmq::io_thread_t::~io_thread_t ()
+zmq::poll_thread_t::~poll_thread_t ()
 {
     signaler.signal (stop_event);
 
@@ -36,14 +36,14 @@ zmq::io_thread_t::~io_thread_t ()
     errno_assert (rc == 0);
 }
 
-void *zmq::io_thread_t::worker_routine (void *arg_)
+void *zmq::poll_thread_t::worker_routine (void *arg_)
 {
-    io_thread_t *self = (io_thread_t*) arg_;
+    poll_thread_t *self = (poll_thread_t*) arg_;
     self->loop ();
     return 0;
 }
 
-void zmq::io_thread_t::loop ()
+void zmq::poll_thread_t::loop ()
 {
     bool stop = false;
 

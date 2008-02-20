@@ -25,7 +25,7 @@
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/api_thread.hpp"
 #include "../../zmq/bp_engine.hpp"
-#include "../../zmq/io_thread.hpp"
+#include "../../zmq/poll_thread.hpp"
 
 namespace perf
 {
@@ -33,25 +33,25 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool listen_, const char *ip_address_, unsigned short port_, int count_io_thread_ = 1) :
-            dispatcher (1 + count_io_thread_), count_io_thread (count_io_thread_), active_io_thread (0), 
+        zmq_t (bool listen_, const char *ip_address_, unsigned short port_, int count_poll_thread_ = 1) :
+            dispatcher (1 + count_poll_thread_), count_poll_thread (count_poll_thread_), active_poll_thread (0), 
             api (&dispatcher, 0)
         {
-            engine = new zmq::bp_engine_t* [count_io_thread_];
+            engine = new zmq::bp_engine_t* [count_poll_thread_];
             assert (engine);
 
-            io = new zmq::io_thread_t* [count_io_thread_];
+            io = new zmq::poll_thread_t* [count_poll_thread_];
             assert (io);
 
-            for (int i = 0; i < count_io_thread_; i++) {
+            for (int i = 0; i < count_poll_thread_; i++) {
 //                engine [i] = new zmq::bp_engine_t (listen_, ip_address_, port_ + i, 0, 0, WRITE_BUFFER_SIZE, READ_BUFFER_SIZE);
                 engine [i] = new zmq::bp_engine_t (&dispatcher, 1 + i, listen_, ip_address_, port_ + i, 0, 0, 8192, 8192);
                 assert (engine [i]);
 
-                io [i] = new zmq::io_thread_t (engine [i]);
+                io [i] = new zmq::poll_thread_t (engine [i]);
                 assert (io [i]);
 
-                if (!listen_ && count_io_thread > 1) {
+                if (!listen_ && count_poll_thread > 1) {
                     usleep (1000);  // wait for 'local' 
                 }
             }
@@ -60,7 +60,7 @@ namespace perf
 
         inline ~zmq_t ()
         {
-            for (int i = 0; i < count_io_thread; i++) {
+            for (int i = 0; i < count_poll_thread; i++) {
                 delete io [i];
                 delete engine [i];
             }
@@ -72,9 +72,9 @@ namespace perf
         {
             assert (size_ <= 65536);
             zmq::cmsg_t msg = {buffer, size_, NULL};
-            api.send (1 + active_io_thread, msg);
-            active_io_thread++;
-            active_io_thread %= count_io_thread;
+            api.send (1 + active_poll_thread, msg);
+            active_poll_thread++;
+            active_poll_thread %= count_poll_thread;
         }
 
         inline virtual size_t receive ()
@@ -90,10 +90,10 @@ namespace perf
         zmq::dispatcher_t dispatcher;
         zmq::api_thread_t api;
         zmq::bp_engine_t **engine;
-        zmq::io_thread_t **io;
+        zmq::poll_thread_t **io;
         unsigned char buffer [65536];
-        unsigned int count_io_thread;
-        unsigned int active_io_thread;
+        unsigned int count_poll_thread;
+        unsigned int active_poll_thread;
     };
 
 }

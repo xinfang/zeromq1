@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_IO_THREAD_HPP_INCLUDED__
-#define __ZMQ_IO_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
+#define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
 #include <stddef.h>
 #include <assert.h>
@@ -33,12 +33,12 @@
 namespace zmq
 {
 
-    class io_thread_t 
+    class poll_thread_t 
     {
     public:
 
-        io_thread_t (i_engine *engine_);
-        ~io_thread_t ();
+        poll_thread_t (i_engine *engine_);
+        ~poll_thread_t ();
 
     protected:
 
