@@ -40,27 +40,27 @@ namespace zmq
 
         typedef F fsm_t;
 
-        amqp09_engine_t (dispatcher_t *dispatcher_, int thread_id_,
+        amqp09_engine_t (dispatcher_t *dispatcher_, int engine_id_,
               bool listen_, const char *address_, uint16_t port_,
-              int source_thread_id_, int destination_thread_id_,
+              int source_engine_id_, int destination_engine_id_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             socket (listen_, address_, port_),
-            proxy (dispatcher_, thread_id_),
+            proxy (dispatcher_, engine_id_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
-            encoder (&proxy, source_thread_id_, &marshaller, fsm.server (),
+            encoder (&proxy, source_engine_id_, &marshaller, fsm.server (),
                 out_exchange_, out_routing_key_),
-            decoder (&proxy, destination_thread_id_, &unmarshaller,
+            decoder (&proxy, destination_engine_id_, &unmarshaller,
                 fsm.server ()),
             writebuf_size (writebuf_size_),
             readbuf_size (readbuf_size_),
             write_size (0),
             write_pos (0),
-            source_thread_id (source_thread_id_),
-            destination_thread_id (destination_thread_id_),
+            source_engine_id (source_engine_id_),
+            destination_engine_id (destination_engine_id_),
             events (POLLIN | POLLOUT)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
@@ -80,9 +80,9 @@ namespace zmq
             proxy.set_signaler (signaler_);
         }
 
-        inline void revive (int thread_id_)
+        inline void revive (int engine_id_)
         {
-            proxy.revive (thread_id_);
+            proxy.revive (engine_id_);
             events |= POLLOUT;
         }
 
@@ -162,8 +162,8 @@ namespace zmq
         size_t write_size;
         size_t write_pos;
 
-        int source_thread_id;
-        int destination_thread_id;
+        int source_engine_id;
+        int destination_engine_id;
     };
 
 }

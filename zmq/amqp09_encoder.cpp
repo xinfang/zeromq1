@@ -25,11 +25,11 @@
 #include "wire.hpp"
 
 zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
-    int source_thread_id_, amqp09_marshaller_t *marshaller_, bool server_,
+    int source_engine_id_, amqp09_marshaller_t *marshaller_, bool server_,
     const char *out_exchange_, const char *out_routing_key_) :
     server (server_),
     proxy (proxy_),
-    source_thread_id (source_thread_id_),
+    source_engine_id (source_engine_id_),
     marshaller (marshaller_),
     flow_on (false),
     out_exchange (out_exchange_),
@@ -77,7 +77,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
     if (!flow_on)
         return false;
 
-    if (!proxy->read (source_thread_id, &message))
+    if (!proxy->read (source_engine_id, &message))
         return false;
 
     size_t offset = 0;

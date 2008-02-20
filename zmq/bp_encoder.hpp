@@ -33,7 +33,7 @@ namespace zmq
     {
     public:
 
-        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_);
+        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_engine_id_);
         ~bp_encoder_t ();
 
     protected:
@@ -42,7 +42,7 @@ namespace zmq
         bool message_ready ();
 
         dispatcher_proxy_t *proxy;
-        int source_thread_id;
+        int source_engine_id;
         cmsg_t msg;
         unsigned char tmpbuf [9];
     };

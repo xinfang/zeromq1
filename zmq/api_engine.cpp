@@ -19,43 +19,43 @@
 
 #include "api_engine.hpp"
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, int thread_id_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, int engine_id_) :
     ticks_max (100),
     ticks (1),
-    proxy (dispatcher_, thread_id_)
+    proxy (dispatcher_, engine_id_)
 {
     proxy.set_signaler (&pollset);
-    thread_count = dispatcher_->get_thread_count ();
-    current_thread = thread_count - 1;
+    engine_count = dispatcher_->get_engine_count ();
+    current_engine = engine_count - 1;
 }
 
-void zmq::api_engine_t::send (int destination_thread_id_, const cmsg_t &value_)
+void zmq::api_engine_t::send (int destination_engine_id_, const cmsg_t &value_)
 {
-    proxy.instant_write (destination_thread_id_, value_);
+    proxy.instant_write (destination_engine_id_, value_);
 }
 
 void zmq::api_engine_t::receive (cmsg_t *value_)
 {
     while (true) {
 
-        int threads_alive = proxy.get_threads_alive ();
+        int engines_alive = proxy.get_engines_alive ();
 
-        if (threads_alive == 1 || (threads_alive != thread_count &&
+        if (engines_alive == 1 || (engines_alive != engine_count &&
               ticks == ticks_max)) {
 
             uint32_t signals;
-            signals = threads_alive != 1 ? pollset.check () : pollset.poll ();
+            signals = engines_alive != 1 ? pollset.check () : pollset.poll ();
             
-            for (int thread_nbr = 0; thread_nbr != thread_count;
-                  thread_nbr ++) {
+            for (int engine_nbr = 0; engine_nbr != engine_count;
+                  engine_nbr ++) {
                 if (signals & 0x0001)
-                    proxy.revive (thread_nbr);
+                    proxy.revive (engine_nbr);
                 signals >>= 1;
             }
         }
 
-        current_thread = (current_thread + 1) % thread_count;
-        if (proxy.read (current_thread, value_)) {
+        current_engine = (current_engine + 1) % engine_count;
+        if (proxy.read (current_engine, value_)) {
             ticks --;
             if (!ticks)
                 ticks = ticks_max;

@@ -48,12 +48,12 @@ namespace zmq
 
         typedef typename ypipe_t <T>::item_t item_t;
 
-        ydispatcher_t (int thread_count_) :
-            thread_count (thread_count_)
+        ydispatcher_t (int engine_count_) :
+            engine_count (engine_count_)
         {
-            cells = new cell_t [thread_count * thread_count];
+            cells = new cell_t [engine_count * engine_count];
             assert (cells);
-            for (int cell_nbr = 0; cell_nbr != thread_count * thread_count;
+            for (int cell_nbr = 0; cell_nbr != engine_count * engine_count;
                   cell_nbr ++)
                 cells [cell_nbr].signaler = NULL;
         }
@@ -63,45 +63,45 @@ namespace zmq
             delete [] cells;
         }
 
-        inline int get_thread_count ()
+        inline int get_engine_count ()
         {
-            return thread_count;
+            return engine_count;
         }
 
-        //  Registers receiver thread with the dispatcher. In the future
-        //  versions thread-id should be assigned by dispatcher, however,
-        //  at the moment routing is done on thread-ids rather than on
-        //  business criteria, therefore thread-id should be user-assigned.
-        void set_signaler (int thread_id_, i_signaler *signaler_)
+        //  Registers receiver engine with the dispatcher. In the future
+        //  versions engine-id should be assigned by dispatcher, however,
+        //  at the moment routing is done on engine-ids rather than on
+        //  business criteria, therefore engine-id should be user-assigned.
+        void set_signaler (int engine_id_, i_signaler *signaler_)
         {
-            for (int thread_nbr = 0; thread_nbr != thread_count; thread_nbr ++)
-                cells [thread_nbr * thread_count + thread_id_].signaler =
+            for (int engine_nbr = 0; engine_nbr != engine_count; engine_nbr ++)
+                cells [engine_nbr * engine_count + engine_id_].signaler =
                     signaler_; 
         }
 
-        inline void write (int source_thread_id_, int destination_thread_id_,
+        inline void write (int source_engine_id_, int destination_engine_id_,
             const T &value_)
         {
-            cell_t &cell = cells [source_thread_id_ * thread_count +
-                destination_thread_id_];
+            cell_t &cell = cells [source_engine_id_ * engine_count +
+                destination_engine_id_];
             if (!cell.pipe.write (value_))
-                cell.signaler->signal (source_thread_id_);
+                cell.signaler->signal (source_engine_id_);
         }
 
-        inline void write (int source_thread_id_, int destination_thread_id_,
+        inline void write (int source_engine_id_, int destination_engine_id_,
             item_t *first_, item_t *last_)
         {
-            cell_t &cell = cells [source_thread_id_ * thread_count +
-                destination_thread_id_];
+            cell_t &cell = cells [source_engine_id_ * engine_count +
+                destination_engine_id_];
             if (!cell.pipe.write (first_, last_))
-                cell.signaler->signal (source_thread_id_);
+                cell.signaler->signal (source_engine_id_);
         }
 
-        inline bool read (int source_thread_id_, int destination_thread_id_,
+        inline bool read (int source_engine_id_, int destination_engine_id_,
             item_t **first_, item_t **last_)
         {
-            return cells [source_thread_id_ * thread_count +
-                destination_thread_id_].pipe.read (first_, last_);
+            return cells [source_engine_id_ * engine_count +
+                destination_engine_id_].pipe.read (first_, last_);
         }
 
     protected:
@@ -112,7 +112,7 @@ namespace zmq
             i_signaler *signaler;
         };
 
-        int thread_count;
+        int engine_count;
         cell_t *cells;
     };
 

@@ -32,14 +32,14 @@ namespace zmq
     {
     public:
 
-        bp_engine_t (dispatcher_t *dispatcher_, int thread_id_,
+        bp_engine_t (dispatcher_t *dispatcher_, int engine_id_,
             bool listen_, const char *address_, uint16_t port_,
-            int source_thread_id_, int destination_thread_id_,
+            int source_engine_id_, int destination_engine_id_,
             size_t writebuf_size_, size_t readbuf_size_);
         ~bp_engine_t ();
 
         void set_signaler (i_signaler *signaler_);
-        void revive (int thread_id_);
+        void revive (int engine_id_);
 
         int get_fd ();
         short get_events ();

@@ -22,10 +22,10 @@
 #include "wire.hpp"
 
 zmq::amqp09_decoder_t::amqp09_decoder_t (dispatcher_proxy_t *proxy_,
-      int destination_thread_id_, amqp09_unmarshaller_t *unmarshaller_,
+      int destination_engine_id_, amqp09_unmarshaller_t *unmarshaller_,
       bool server_) :
     proxy (proxy_),
-    destination_thread_id (destination_thread_id_),
+    destination_engine_id (destination_engine_id_),
     unmarshaller (unmarshaller_),
     flow_on (false),
     server (server_)
@@ -129,7 +129,7 @@ void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
     assert (tmpbuf [0] == amqp09::frame_end);
 
     if (msg_data_off == msg.size) {
-        proxy->write (destination_thread_id, msg);
+        proxy->write (destination_engine_id, msg);
         next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
     }
     else

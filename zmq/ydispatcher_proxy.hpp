@@ -34,24 +34,24 @@ namespace zmq
 
         typedef typename ydispatcher_t <T>::item_t item_t;
 
-        ydispatcher_proxy_t (ydispatcher_t <T> *dispatcher_, int thread_id_) :
+        ydispatcher_proxy_t (ydispatcher_t <T> *dispatcher_, int engine_id_) :
             dispatcher (dispatcher_),
-            thread_id (thread_id_)
+            engine_id (engine_id_)
         {
-            thread_count = dispatcher->get_thread_count ();
-            assert (thread_id < thread_count);
-            threads_alive = thread_count;
+            engine_count = dispatcher->get_engine_count ();
+            assert (engine_id < engine_count);
+            engines_alive = engine_count;
 
-            writebufs = new writebuf_t [thread_count];
+            writebufs = new writebuf_t [engine_count];
             assert (writebufs);
-            for (int buf_nbr = 0; buf_nbr != thread_count; buf_nbr ++) {
+            for (int buf_nbr = 0; buf_nbr != engine_count; buf_nbr ++) {
                 writebufs [buf_nbr].first = NULL;
                 writebufs [buf_nbr].last = NULL;
             }
 
-            readbufs = new readbuf_t [thread_count];
+            readbufs = new readbuf_t [engine_count];
             assert (readbufs);
-            for (int buf_nbr = 0; buf_nbr != thread_count; buf_nbr ++) {
+            for (int buf_nbr = 0; buf_nbr != engine_count; buf_nbr ++) {
                 readbufs [buf_nbr].first = NULL;
                 readbufs [buf_nbr].last = NULL;
                 readbufs [buf_nbr].alive = true;
@@ -60,7 +60,7 @@ namespace zmq
 
         ~ydispatcher_proxy_t ()
         {
-            for (int writebuf_nbr = 0; writebuf_nbr != thread_count;
+            for (int writebuf_nbr = 0; writebuf_nbr != engine_count;
                   writebuf_nbr ++) {
                 writebuf_t &writebuf = writebufs [writebuf_nbr];
                 while (writebuf.first) {
@@ -71,7 +71,7 @@ namespace zmq
             }
             delete [] writebufs;
 
-            for (int readbuf_nbr = 0; readbuf_nbr != thread_count;
+            for (int readbuf_nbr = 0; readbuf_nbr != engine_count;
                   readbuf_nbr ++) {
                 readbuf_t &readbuf = readbufs [readbuf_nbr];
                 while (readbuf.first != readbuf.last) {
@@ -85,29 +85,29 @@ namespace zmq
 
         inline void set_signaler (i_signaler *signaler_)
         {
-            dispatcher->set_signaler (thread_id, signaler_);
+            dispatcher->set_signaler (engine_id, signaler_);
         }
 
-        inline int get_threads_alive ()
+        inline int get_engines_alive ()
         {
-            return threads_alive;
+            return engines_alive;
         }
 
         //  This function signals that there are messages sent
-        //  to the thread by itself
+        //  to the engine by itself
         inline bool get_self_signal ()
         {
-            return writebufs [thread_id].first;
+            return writebufs [engine_id].first;
         }
 
-        void write (int destination_thread_id_, const T &value_)
+        void write (int destination_engine_id_, const T &value_)
         {
              item_t *n = new item_t;
              assert (n);
              n->value = value_;
              n->next = NULL;
 
-             writebuf_t &buf = writebufs [destination_thread_id_];
+             writebuf_t &buf = writebufs [destination_engine_id_];
              if (buf.last)
                  buf.last->next = n;
              buf.last = n;
@@ -115,21 +115,21 @@ namespace zmq
                  buf.first = n;
         }
 
-        inline void instant_write (int destination_thread_id_, const T &value_)
+        inline void instant_write (int destination_engine_id_, const T &value_)
         {
-            if (destination_thread_id_ == thread_id)
-                write (destination_thread_id_, value_);
+            if (destination_engine_id_ == engine_id)
+                write (destination_engine_id_, value_);
             else
-                dispatcher->write (thread_id, destination_thread_id_, value_);
+                dispatcher->write (engine_id, destination_engine_id_, value_);
         }
 
         void flush ()
         {
-            for (int thread_nbr = 0; thread_nbr != thread_count;
-                  thread_nbr ++) {
-                writebuf_t &writebuf = writebufs [thread_nbr];
-                if (writebuf.first && thread_nbr != thread_id) {
-                    dispatcher->write (thread_id, thread_nbr,
+            for (int engine_nbr = 0; engine_nbr != engine_count;
+                  engine_nbr ++) {
+                writebuf_t &writebuf = writebufs [engine_nbr];
+                if (writebuf.first && engine_nbr != engine_id) {
+                    dispatcher->write (engine_id, engine_nbr,
                         writebuf.first, writebuf.last);
                     writebuf.first = NULL;
                     writebuf.last = NULL;
@@ -139,10 +139,10 @@ namespace zmq
 
         //  The result says whether value was fetched (true) or not (false).
         //  It says *nothing* about whether source of the messages went asleep.
-        //  For info about awake/sleeping sources use get_threads_alive method.
-        bool read (int source_thread_id_, T *value_)
+        //  For info about awake/sleeping sources use get_engines_alive method.
+        bool read (int source_engine_id_, T *value_)
         {
-            readbuf_t &buf = readbufs [source_thread_id_];
+            readbuf_t &buf = readbufs [source_engine_id_];
 
             if (!buf.alive)
                 return false;
@@ -155,8 +155,8 @@ namespace zmq
                 return true;
             }
 
-            if (source_thread_id_ == thread_id) {
-                writebuf_t &writebuf = writebufs [source_thread_id_];
+            if (source_engine_id_ == engine_id) {
+                writebuf_t &writebuf = writebufs [source_engine_id_];
                 if (!writebuf.first)
                     return false;
                 buf.first = writebuf.first;
@@ -165,10 +165,10 @@ namespace zmq
                 writebuf.last = NULL;
             }
             else {
-                if (!dispatcher->read (source_thread_id_, thread_id,
+                if (!dispatcher->read (source_engine_id_, engine_id,
                       &buf.first, &buf.last)) {
                     buf.alive = false;
-                    threads_alive --;
+                    engines_alive --;
                     return false;
                 }
             }
@@ -181,11 +181,11 @@ namespace zmq
             return true;
         }
 
-        inline void revive (int source_thread_id_)
+        inline void revive (int source_engine_id_)
         {
-            assert (!readbufs [source_thread_id_].alive);
-            readbufs [source_thread_id_].alive = true;
-            threads_alive ++;
+            assert (!readbufs [source_engine_id_].alive);
+            readbufs [source_engine_id_].alive = true;
+            engines_alive ++;
         }
 
     protected:
@@ -203,10 +203,10 @@ namespace zmq
             bool alive;
         };
 
-        int thread_count;
-        int thread_id;
+        int engine_count;
+        int engine_id;
         ydispatcher_t <T> *dispatcher;
-        int threads_alive;
+        int engines_alive;
 
         writebuf_t *writebufs;
         readbuf_t *readbufs;

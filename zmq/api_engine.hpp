@@ -31,15 +31,15 @@ namespace zmq
     class api_engine_t
     {
     public:
-        api_engine_t (dispatcher_t *dispatcher_, int thread_id_);
+        api_engine_t (dispatcher_t *dispatcher_, int engine_id_);
 
-        void send (int destination_thread_id_, const cmsg_t &value_);
+        void send (int destination_engine_id_, const cmsg_t &value_);
         void receive (cmsg_t *value_);
 
     protected:
 
-        int thread_count;
-        int current_thread;
+        int engine_count;
+        int current_engine;
         int ticks_max;
         int ticks;
         dispatcher_proxy_t proxy;

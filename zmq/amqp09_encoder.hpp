@@ -33,7 +33,7 @@ namespace zmq
     {
     public:
 
-        amqp09_encoder_t (dispatcher_proxy_t *proxy_, int source_thread_id_,
+        amqp09_encoder_t (dispatcher_proxy_t *proxy_, int source_engine_id_,
             amqp09_marshaller_t *marshaller_, bool server_,
             const char *out_exchange_, const char *out_routing_key_);
         ~amqp09_encoder_t ();
@@ -60,7 +60,7 @@ namespace zmq
         size_t body_offset;
 
         dispatcher_proxy_t *proxy;
-        int source_thread_id;
+        int source_engine_id;
         amqp09_marshaller_t *marshaller;
 
         bool flow_on;

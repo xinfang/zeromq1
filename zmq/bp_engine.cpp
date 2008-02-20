@@ -21,13 +21,13 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_, int thread_id_,
+zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_, int engine_id_,
       bool listen_, const char *address_, uint16_t port_,
-      int source_thread_id_, int destination_thread_id_,
+      int source_engine_id_, int destination_engine_id_,
       size_t writebuf_size_, size_t readbuf_size_) :
-    proxy (dispatcher_, thread_id_),
-    encoder (&proxy, source_thread_id_),
-    decoder (&proxy, destination_thread_id_),
+    proxy (dispatcher_, engine_id_),
+    encoder (&proxy, source_engine_id_),
+    decoder (&proxy, destination_engine_id_),
     socket (listen_, address_, port_),
     events (POLLIN | POLLOUT),
     writebuf_size (writebuf_size_),
@@ -62,9 +62,9 @@ short zmq::bp_engine_t::get_events ()
     return events;
 }
 
-void zmq::bp_engine_t::revive (int thread_id_)
+void zmq::bp_engine_t::revive (int engine_id_)
 {
-    proxy.revive (thread_id_);
+    proxy.revive (engine_id_);
     events |= POLLOUT;
 }
 

@@ -21,9 +21,9 @@
 #include "wire.hpp"
 
 zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_,
-      int source_thread_id_) :
+      int source_engine_id_) :
     proxy (proxy_),
-    source_thread_id (source_thread_id_)
+    source_engine_id (source_engine_id_)
 {
     init_cmsg (msg);
     next_step (NULL, 0, &bp_encoder_t::message_ready);
@@ -44,7 +44,7 @@ bool zmq::bp_encoder_t::message_ready ()
 {
     free_cmsg (msg);
     init_cmsg (msg);
-    if (!proxy->read (source_thread_id, &msg))
+    if (!proxy->read (source_engine_id, &msg))
         return false;
 
     if (msg.size < 255) {

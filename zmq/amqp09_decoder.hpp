@@ -32,7 +32,7 @@ namespace zmq
     public:
 
         amqp09_decoder_t (dispatcher_proxy_t *proxy_,
-            int destination_thread_id, amqp09_unmarshaller_t *unmarshaller_,
+            int destination_engine_id, amqp09_unmarshaller_t *unmarshaller_,
             bool server_);
         ~amqp09_decoder_t ();
 
@@ -41,7 +41,7 @@ namespace zmq
     private:
 
         dispatcher_proxy_t *proxy;
-        int destination_thread_id;
+        int destination_engine_id;
         amqp09_unmarshaller_t *unmarshaller;
 
         void method_frame_header_ready ();

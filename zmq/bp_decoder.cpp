@@ -21,9 +21,9 @@
 #include "wire.hpp"
 
 zmq::bp_decoder_t::bp_decoder_t (dispatcher_proxy_t *proxy_,
-      int destination_thread_id_) :
+      int destination_engine_id_) :
     proxy (proxy_),
-    destination_thread_id (destination_thread_id_)
+    destination_engine_id (destination_engine_id_)
 {
      next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
@@ -54,7 +54,7 @@ void zmq::bp_decoder_t::eight_byte_size_ready ()
 
 void zmq::bp_decoder_t::message_ready ()
 {
-    proxy->write (destination_thread_id, msg);
+    proxy->write (destination_engine_id, msg);
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 
