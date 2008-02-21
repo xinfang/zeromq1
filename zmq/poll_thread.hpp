@@ -28,7 +28,7 @@
 #include "dispatcher.hpp"
 #include "dispatcher_proxy.hpp"
 #include "ysocketpair.hpp"
-#include "i_engine.hpp"
+#include "i_pollable.hpp"
 
 namespace zmq
 {
@@ -37,7 +37,7 @@ namespace zmq
     {
     public:
 
-        poll_thread_t (i_engine *engine_);
+        poll_thread_t (i_pollable *engine_);
         ~poll_thread_t ();
 
     protected:
@@ -47,7 +47,7 @@ namespace zmq
         static void *worker_routine (void *arg_);
         void loop ();
 
-        i_engine *engine;
+        i_pollable *engine;
         ysocketpair_t signaler;
         pthread_t worker;
     };

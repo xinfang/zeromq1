@@ -20,7 +20,7 @@
 #include "poll_thread.hpp"
 #include "err.hpp"
 
-zmq::poll_thread_t::poll_thread_t (i_engine *engine_) :
+zmq::poll_thread_t::poll_thread_t (i_pollable *engine_) :
     engine (engine_)
 {
     engine->set_signaler (&signaler);

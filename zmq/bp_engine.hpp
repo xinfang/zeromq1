@@ -20,7 +20,7 @@
 #ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
 
-#include "i_engine.hpp"
+#include "i_pollable.hpp"
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
@@ -28,7 +28,7 @@
 namespace zmq
 {
 
-    class bp_engine_t : public i_engine
+    class bp_engine_t : public i_pollable
     {
     public:
 

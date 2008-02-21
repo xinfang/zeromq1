@@ -17,19 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
-#define __ZMQ_I_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
+#define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
 #include "i_signaler.hpp"
 
 namespace zmq
 {
 
-    struct i_engine
+    struct i_pollable
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_engine () {};
+        virtual ~i_pollable () {};
 
         virtual void set_signaler (i_signaler *signaler_) = 0;
         virtual void revive (int thread_id_) = 0;

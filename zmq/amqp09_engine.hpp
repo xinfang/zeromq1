@@ -20,7 +20,7 @@
 #ifndef __ZMQ_AMQP09_ENGINE_HPP_INCLUDED__
 #define __ZMQ_AMQP09_ENGINE_HPP_INCLUDED__
 
-#include "i_engine.hpp"
+#include "i_pollable.hpp"
 #include "i_signaler.hpp"
 #include "dispatcher.hpp"
 #include "amqp09_encoder.hpp"
@@ -34,7 +34,7 @@ namespace zmq
 {
 
     template <typename F> class amqp09_engine_t :
-        public i_engine, private i_signaler
+        public i_pollable, private i_signaler
     {
     public:
 

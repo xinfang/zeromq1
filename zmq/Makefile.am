@@ -26,7 +26,7 @@ pkginclude_HEADERS = \
     stdint.hpp \
     free_fn.hpp \
     bp_engine.hpp \
-    i_engine.hpp \
+    i_pollable.hpp \
     amqp09_encoder.hpp \
     amqp09_decoder.hpp \
     amqp09_engine.hpp \
@@ -75,7 +75,7 @@ libzmq_la_SOURCES = \
     free_fn.hpp \
     bp_engine.hpp \
     bp_engine.cpp \
-    i_engine.hpp \
+    i_pollable.hpp \
     amqp09_encoder.hpp \
     amqp09_encoder.cpp \
     amqp09_decoder.hpp \
