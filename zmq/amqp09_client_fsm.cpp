@@ -20,7 +20,6 @@
 #include <assert.h>
 
 #include "amqp09_client_fsm.hpp"
-#include "amqp09_constants.hpp"
 
 zmq::amqp09_client_fsm_t::amqp09_client_fsm_t (tcp_socket_t *socket_,
       amqp09_marshaller_t *marshaller_,
@@ -69,7 +68,7 @@ void zmq::amqp09_client_fsm_t::connection_tune (
         return;
     }
 
-    marshaller->connection_tune_ok (1, amqp09::frame_min_size, 0);
+    marshaller->connection_tune_ok (1, i_amqp09::frame_min_size, 0);
     marshaller->connection_open ("/", "", true);
     state = expect_connection_open_ok;
 }

@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #include "amqp09_encoder.hpp"
-#include "amqp09_constants.hpp"
+#include "i_amqp09.hpp"
 #include "wire.hpp"
 
 zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
@@ -38,7 +38,7 @@ zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
     assert (out_exchange.size () <= 0xff);
     assert (out_routing_key.size () <= 0xff);
 
-    tmpbuf_size = amqp09::frame_min_size;
+    tmpbuf_size = i_amqp09::frame_min_size;
     tmpbuf = (unsigned char*) malloc (tmpbuf_size);
     assert (tmpbuf);
 
@@ -60,7 +60,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
     if (marshaller->read (&command))
     {
         size_t offset = 0;
-        put_uint8 (tmpbuf + offset, amqp09::frame_method);
+        put_uint8 (tmpbuf + offset, i_amqp09::frame_method);
         offset += sizeof (uint8_t);
         put_uint16 (tmpbuf + offset, 0);
         offset += sizeof (uint16_t);
@@ -81,7 +81,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
         return false;
 
     size_t offset = 0;
-    put_uint8 (tmpbuf + offset, amqp09::frame_method);
+    put_uint8 (tmpbuf + offset, i_amqp09::frame_method);
     offset += sizeof (uint8_t);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
@@ -89,9 +89,9 @@ bool zmq::amqp09_encoder_t::message_ready ()
     offset += sizeof (uint32_t);
 
     if (server) {
-        put_uint16 (tmpbuf + offset, amqp09::basic);
+        put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
         offset += sizeof (uint16_t);
-        put_uint16 (tmpbuf + offset, amqp09::basic_deliver);
+        put_uint16 (tmpbuf + offset, i_amqp09::basic_deliver_id);
         offset += sizeof (uint16_t);
         put_uint8 (tmpbuf + offset, 0);
         offset += sizeof (uint8_t);
@@ -110,9 +110,9 @@ bool zmq::amqp09_encoder_t::message_ready ()
         offset += out_routing_key.size ();
     }
     else {
-        put_uint16 (tmpbuf + offset, amqp09::basic);
+        put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
         offset += sizeof (uint16_t);
-        put_uint16 (tmpbuf + offset, amqp09::basic_publish);
+        put_uint16 (tmpbuf + offset, i_amqp09::basic_publish_id);
         offset += sizeof (uint16_t);
         put_uint16 (tmpbuf + offset, 0);
         offset += sizeof (uint16_t);
@@ -128,7 +128,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
         tmpbuf [offset] = 0;
         offset += sizeof (uint8_t);
     }
-    put_uint8 (tmpbuf + offset, amqp09::frame_end);
+    put_uint8 (tmpbuf + offset, i_amqp09::frame_end);
     offset += sizeof (uint8_t);
     put_uint32 (tmpbuf + size_offset, offset - 8); 
 
@@ -146,7 +146,7 @@ bool zmq::amqp09_encoder_t::command_header ()
 bool zmq::amqp09_encoder_t::command_arguments ()
 {
     free (command.args);
-    tmpbuf [0] = amqp09::frame_end;
+    tmpbuf [0] = i_amqp09::frame_end;
     next_step (tmpbuf, 1, &amqp09_encoder_t::message_ready);
     return true;
 }
@@ -154,13 +154,13 @@ bool zmq::amqp09_encoder_t::command_arguments ()
 bool zmq::amqp09_encoder_t::content_header ()
 {
     size_t offset = 0;
-    put_uint8 (tmpbuf + offset, amqp09::frame_header);
+    put_uint8 (tmpbuf + offset, i_amqp09::frame_header);
     offset += sizeof (uint8_t);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
-    put_uint16 (tmpbuf + offset, amqp09::basic);
+    put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
     offset += sizeof (uint16_t);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
@@ -168,7 +168,7 @@ bool zmq::amqp09_encoder_t::content_header ()
     offset += sizeof (uint64_t);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
-    put_uint8 (tmpbuf + offset, amqp09::frame_end);
+    put_uint8 (tmpbuf + offset, i_amqp09::frame_end);
     offset += sizeof (uint8_t);
     put_uint32 (tmpbuf + size_offset, offset - 8);
     
@@ -180,10 +180,10 @@ bool zmq::amqp09_encoder_t::content_header ()
 bool zmq::amqp09_encoder_t::content_body_frame_header ()
 {
     size_t body_size = std::min (message.size - body_offset,
-        (size_t) (amqp09::frame_min_size - 8));
+        (size_t) (i_amqp09::frame_min_size - 8));
  
     size_t offset = 0;
-    put_uint8 (tmpbuf + offset, amqp09::frame_body);
+    put_uint8 (tmpbuf + offset, i_amqp09::frame_body);
     offset += sizeof (uint8_t);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
@@ -197,7 +197,7 @@ bool zmq::amqp09_encoder_t::content_body_frame_header ()
 bool zmq::amqp09_encoder_t::content_body ()
 {
     size_t body_size = std::min (message.size - body_offset,
-        (size_t) (amqp09::frame_min_size - 8));
+        (size_t) (i_amqp09::frame_min_size - 8));
 
     next_step ((unsigned char*) message.data + body_offset,
         body_size, &amqp09_encoder_t::frame_end);
@@ -207,7 +207,7 @@ bool zmq::amqp09_encoder_t::content_body ()
 
 bool zmq::amqp09_encoder_t::frame_end ()
 {
-    put_uint8 (tmpbuf, amqp09::frame_end);
+    put_uint8 (tmpbuf, i_amqp09::frame_end);
 
     if (message.size == body_offset)
         next_step (tmpbuf, sizeof (uint8_t),

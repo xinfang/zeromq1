@@ -145,61 +145,12 @@
     memcpy (args + offset, $(field.name:c)_.data, $(field.name:c)_.size);
     offset += $(field.name:c)_.size;
 .   elsif type = "table"
-    put_field_table (args, amqp09::frame_min_size, offset, $(field.name:c)_);
+    put_field_table (args, i_amqp09::frame_min_size, offset, $(field.name:c)_);
 .   else
     assert (0);
 .   endif
 .endmacro
 .
-.output "amqp09_constants.hpp"
-/*
-    Copyright (c) 2007-2008 FastMQ Inc.
-
-    This file is part of 0MQ.
-
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    This file is generated from $(arg?filename) by $(script) using GSL/4.
-*/
-
-#ifndef __ZMQ_AMQP09_CONSTANTS_HPP_INCLUDED__
-#define __ZMQ_AMQP09_CONSTANTS_HPP_INCLUDED__
-
-namespace zmq
-{
-
-    namespace amqp09
-    {
-        enum {
-.for constant
-            $(constant.name:c) = $(constant.value),
-.endfor
-.for class where name <> "message"
-            $(class.name:c) = $(class.index),
-.endfor
-.for class where name <> "message"
-.   for method
-            $(class.name:c)_$(method.name:c) = $(method.index),
-.   endfor
-.endfor
-        };
-    }
-
-}
-
-#endif
-.close
 .output "i_amqp09.hpp"
 /*
     Copyright (c) 2007-2008 FastMQ Inc.
@@ -234,6 +185,20 @@ namespace zmq
 
     struct i_amqp09
     {
+        enum {
+.for constant
+            $(constant.name:c) = $(constant.value),
+.endfor
+.for class where name <> "message"
+            $(class.name:c)_id = $(class.index),
+.endfor
+.for class where name <> "message"
+.   for method
+            $(class.name:c)_$(method.name:c)_id = $(method.index),
+.   endfor
+.endfor
+        };
+
         struct shortstr_t
         {
             inline shortstr_t () :
@@ -327,7 +292,6 @@ $(field.name:c)_$(last ()??''?',')\
 #define __ZMQ_AMQP09_UNMARSHALLER_HPP_INCLUDED__
 
 #include "i_amqp09.hpp"
-#include "amqp09_constants.hpp"
 
 namespace zmq
 {
@@ -391,10 +355,10 @@ void zmq::amqp09_unmarshaller_t::write (uint16_t class_id,
 
     switch (class_id) {
 .for class where name <> "message"
-    case amqp09::$(class.name:c):
+    case i_amqp09::$(class.name:c)_id:
         switch (method_id) {
 .   for method
-        case amqp09::$(class.name:c)_$(method.name:c):
+        case i_amqp09::$(class.name:c)_$(method.name:c)_id:
             {
 .       for field
 .           get_field ()
@@ -551,7 +515,6 @@ $(field.name:c)_$(last ()??''?',')\
 */
 
 #include "amqp09_marshaller.hpp"
-#include "amqp09_constants.hpp"
 #include "wire.hpp"
 
 zmq::amqp09_marshaller_t::amqp09_marshaller_t (i_signaler *signaler_) :
@@ -578,7 +541,7 @@ $(field.name:c)_$(last ()??''?',')\
 .       endfor
 )
 {
-    unsigned char *args = (unsigned char*) malloc (amqp09::frame_min_size);
+    unsigned char *args = (unsigned char*) malloc (i_amqp09::frame_min_size);
     assert (args);
 
     size_t offset = 0;
@@ -589,8 +552,8 @@ $(field.name:c)_$(last ()??''?',')\
 .           put_padding ()
 
     command_t cmd = {
-        amqp09::$(class.name:c),
-        amqp09::$(class.name:c)_$(method.name:c),
+        i_amqp09::$(class.name:c)_id,
+        i_amqp09::$(class.name:c)_$(method.name:c)_id,
         args,
         offset
     };

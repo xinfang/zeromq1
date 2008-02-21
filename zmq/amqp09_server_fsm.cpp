@@ -58,7 +58,7 @@ void zmq::amqp09_server_fsm_t::connection_start_ok (
 
     //  Challenge handshaking may happen here
 
-    marshaller->connection_tune (1, amqp09::frame_min_size, 0);
+    marshaller->connection_tune (1, i_amqp09::frame_min_size, 0);
     state = expect_connection_tune_ok;
 }
 
@@ -73,7 +73,7 @@ void zmq::amqp09_server_fsm_t::connection_tune_ok (
     }
 
     assert (channel_max_ == 1);
-    assert (frame_max_ == amqp09::frame_min_size);
+    assert (frame_max_ == i_amqp09::frame_min_size);
     assert (heartbeat_ == 0);
 
     state = expect_connection_open;

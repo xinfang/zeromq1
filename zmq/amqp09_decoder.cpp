@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "amqp09_constants.hpp"
 #include "amqp09_decoder.hpp"
+#include "i_amqp09.hpp"
 #include "wire.hpp"
 
 zmq::amqp09_decoder_t::amqp09_decoder_t (dispatcher_proxy_t *proxy_,
@@ -30,7 +30,7 @@ zmq::amqp09_decoder_t::amqp09_decoder_t (dispatcher_proxy_t *proxy_,
     flow_on (false),
     server (server_)
 {
-    framebuf_size = amqp09::frame_min_size;
+    framebuf_size = i_amqp09::frame_min_size;
     framebuf = (unsigned char*) malloc (framebuf_size);
     assert (framebuf);
     init_cmsg (msg);
@@ -53,7 +53,7 @@ void zmq::amqp09_decoder_t::method_frame_header_ready ()
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
-    assert (type == amqp09::frame_method);
+    assert (type == i_amqp09::frame_method);
     assert (size + 1 <= framebuf_size); 
     payload_size = size;
     next_step (framebuf, size + 1, &amqp09_decoder_t::method_payload_ready);
@@ -64,9 +64,9 @@ void zmq::amqp09_decoder_t::method_payload_ready ()
     uint16_t class_id = get_uint16 (framebuf);
     uint16_t method_id = get_uint16 (framebuf + 2);
 
-    if ((server && class_id == amqp09::basic && method_id ==
-         amqp09::basic_publish) || (!server && class_id == amqp09::basic &&
-         method_id == amqp09::basic_deliver)) {
+    if ((server && class_id == i_amqp09::basic_id && method_id ==
+         i_amqp09::basic_publish_id) || (!server && class_id ==
+         i_amqp09::basic_id && method_id == i_amqp09::basic_deliver_id)) {
        assert (flow_on);
        next_step (tmpbuf, 7,
            &amqp09_decoder_t::content_header_frame_header_ready);
@@ -82,7 +82,7 @@ void zmq::amqp09_decoder_t::content_header_frame_header_ready ()
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
-    assert (type == amqp09::frame_header);
+    assert (type == i_amqp09::frame_header);
     assert (size + 1 <= framebuf_size); 
     next_step (framebuf, size + 1,
         &amqp09_decoder_t::content_header_payload_ready);
@@ -92,7 +92,7 @@ void zmq::amqp09_decoder_t::content_header_payload_ready ()
 {
     uint16_t class_id = get_uint16 (framebuf);
     uint64_t body_size = get_uint64 (framebuf + 4);
-    assert (class_id == amqp09::basic);
+    assert (class_id == i_amqp09::basic_id);
 
     msg.size = body_size;
     msg.data = malloc (body_size);
@@ -109,7 +109,7 @@ void zmq::amqp09_decoder_t::content_body_frame_header_ready ()
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
-    assert (type == amqp09::frame_body);
+    assert (type == i_amqp09::frame_body);
 
     curr_body_size = size;
     assert (msg_data_off + size <= msg.size);
@@ -126,7 +126,7 @@ void zmq::amqp09_decoder_t::content_body_payload_ready ()
 
 void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
 {
-    assert (tmpbuf [0] == amqp09::frame_end);
+    assert (tmpbuf [0] == i_amqp09::frame_end);
 
     if (msg_data_off == msg.size) {
         proxy->write (destination_engine_id, msg);

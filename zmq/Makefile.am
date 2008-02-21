@@ -33,7 +33,6 @@ pkginclude_HEADERS = \
     amqp09_client_fsm.hpp \
     amqp09_server_fsm.hpp \
     i_amqp09.hpp \
-    amqp09_constants.hpp \
     amqp09_marshaller.hpp \
     amqp09_unmarshaller.hpp 
 
@@ -86,7 +85,6 @@ libzmq_la_SOURCES = \
     amqp09_server_fsm.hpp \
     amqp09_server_fsm.cpp \
     i_amqp09.hpp \
-    amqp09_constants.hpp \
     amqp09_marshaller.hpp \
     amqp09_marshaller.cpp \
     amqp09_unmarshaller.hpp \
