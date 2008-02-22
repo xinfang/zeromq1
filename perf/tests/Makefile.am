@@ -1,4 +1,4 @@
-EXTRA_DIST = ./R/stats_lat.R ./R/stats_thr.R \
+EXTRA_DIST = ./R/stats_lat.R ./R/stats_thr.R ../helpers/files.hpp\
 	./tcp/local_thr.cpp ./tcp/remote_thr.cpp ./tcp/local_lat.cpp \
 	./tcp/remote_lat.cpp ./tcp/test.hpp \
 	./ysuite/ypipe_lat.cpp ./ysuite/ypipe_thr.cpp ./ysuite/test.hpp \
