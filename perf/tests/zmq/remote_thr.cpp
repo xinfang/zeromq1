@@ -26,6 +26,8 @@
 
 #include "./test.hpp"
 
+void *worker_function (void *);
+
 int main (int argc, char *argv [])
 {
 
@@ -33,6 +35,9 @@ int main (int argc, char *argv [])
         printf ("Usage: remote <ip address where \'local\' runs>\n");
         return 1;
     }
+
+    pthread_t workers [TEST_THREADS];
+    worker_args_t *w_args;
 
     size_t msg_size;
     int msg_count;
@@ -49,12 +54,29 @@ int main (int argc, char *argv [])
                 (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
         }
 
+        msg_count /= TEST_THREADS;
+
 //        msg_count = TEST_MSG_COUNT_THRPUT;
 
         {
             perf::zmq_t transport (false, argv [1], PORT_NUMBER, TEST_THREADS);
-            perf::raw_sender_t worker (msg_count, msg_size);
-            worker.run (transport, "");
+            
+            for (int j = 0; j < TEST_THREADS; j++) {
+                w_args = new worker_args_t;
+                w_args->id = j;
+                w_args->msg_size = msg_size;
+                w_args->msg_count = msg_count;
+                w_args->transport = &transport;
+
+                int rc = pthread_create (&workers [j], NULL, worker_function,
+                    (void*)w_args);
+                assert (rc == 0);
+            }
+            
+            for (int j = 0; j < TEST_THREADS; j++) {
+                int rc = pthread_join (workers [j], NULL);
+                assert (rc == 0);
+            }
         }
 
         sleep (2); // Wait till new listeners are started by the 'local'
@@ -62,4 +84,20 @@ int main (int argc, char *argv [])
     }
 
     return 0;
+}
+
+void *worker_function (void *args_)
+{
+    // args struct
+    worker_args_t *w_args = (worker_args_t*)args_;
+
+    char prefix [20];
+    memset (prefix, '\0', sizeof (prefix));
+    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size,
+        w_args->id);
+
+    perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
+    worker.run (*w_args->transport, prefix, w_args->id);
+
+    return NULL;
 }

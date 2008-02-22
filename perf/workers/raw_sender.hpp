@@ -36,13 +36,13 @@ namespace perf
         }
 
         inline virtual void run (i_transport &transport_,
-            const char *prefix_ = NULL)
+            const char *prefix_ = NULL, unsigned int thread_id_ = 0)
         {
             
             //  Send the messages as quickly as possible
             for (int message_nbr = 0; message_nbr != message_count;
                   message_nbr++) {
-                transport_.send (message_size);
+                transport_.send (message_size, thread_id_);
             }
 
         }

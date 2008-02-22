@@ -37,7 +37,7 @@ namespace perf
         }
 
         inline virtual void run (i_transport &transport_,
-            const char *prefix_ = NULL)
+            const char *prefix_ = NULL, unsigned int thread_id_ = 0)
         {
 
             time_instant_t start_time = 0;
@@ -45,7 +45,7 @@ namespace perf
             //  Receive the messages as quickly as possible
             for (int message_nbr = 0; message_nbr != message_count;
                   message_nbr++){
-                transport_.receive ();
+                transport_.receive (thread_id_);
                  if (message_nbr == 0)
                     start_time = now();
             }

@@ -28,8 +28,8 @@ namespace perf
     struct i_transport
     {
         virtual ~i_transport () {}
-        virtual void send (size_t size_) = 0;
-        virtual size_t receive () = 0;
+        virtual void send (size_t size_, unsigned int thread_id_ = 0) = 0;
+        virtual size_t receive (unsigned int thread_id_ = 0 ) = 0;
     };
 
 }

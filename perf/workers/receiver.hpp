@@ -37,7 +37,7 @@ namespace perf
         }
 
         inline virtual void run (i_transport &transport_,
-            const char *prefix_ = NULL)
+            const char *prefix_ = NULL, unsigned int thread_id_ = 0)
         {
             //  Allocate the array for performance results
             time_instant_t *in_times = (time_instant_t*) ::malloc (
@@ -50,7 +50,7 @@ namespace perf
                 //  The time is measured *after* we get the message
                 //  That way we avoid the peak for first message (waiting
                 //  while sender application is started)
-                transport_.receive ();
+                transport_.receive (thread_id_);
                 in_times [message_nbr] = now ();
             }
 

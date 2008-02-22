@@ -37,7 +37,7 @@ namespace perf
         }
 
         inline virtual void run (i_transport &transport_,
-            const char *prefix_ = NULL)
+            const char *prefix_ = NULL, unsigned int thread_id_ = 0)
         {
             //  Allocate the array for performance results
             time_instant_t *out_times = (time_instant_t*) ::malloc (
@@ -53,8 +53,8 @@ namespace perf
             for (int roundtrip_nbr = 0; roundtrip_nbr != roundtrip_count;
                   roundtrip_nbr++) {
                 out_times [roundtrip_nbr] = now ();
-                transport_.send (message_size);
-                transport_.receive ();
+                transport_.send (message_size, thread_id_);
+                transport_.receive (thread_id_);
                 in_times [roundtrip_nbr] = now();
             }
 

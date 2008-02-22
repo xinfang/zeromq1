@@ -18,11 +18,11 @@
 */
 
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 20
+#define TEST_MSG_SIZE_STEPS 3
 #define TEST_TIME 5000
 
 // MT test
-#define TEST_THREADS 1
+#define TEST_THREADS 2
 
 // latency test msg count denominator
 #define SYS_LAT_DEN 100
@@ -46,4 +46,10 @@
 //#define WRITE_BUFFER_SIZE 8192
 
 
-
+struct worker_args_t
+{
+    int id;
+    int msg_size;
+    int msg_count;
+    perf::i_transport *transport;
+};

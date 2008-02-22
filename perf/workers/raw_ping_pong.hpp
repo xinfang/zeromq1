@@ -37,7 +37,7 @@ namespace perf
         }
 
         inline virtual void run (i_transport &transport_,
-            const char *prefix_ = NULL)
+            const char *prefix_ = NULL, unsigned int thread_id_ = 0)
         {
 
             time_instant_t start_time = now();
@@ -46,8 +46,8 @@ namespace perf
             //  message arrival
             for (int roundtrip_nbr = 0; roundtrip_nbr != roundtrip_count;
                   roundtrip_nbr++) {
-                transport_.send (message_size);
-                transport_.receive ();
+                transport_.send (message_size, thread_id_);
+                transport_.receive (thread_id_);
             }
 
             time_instant_t stop_time = now();

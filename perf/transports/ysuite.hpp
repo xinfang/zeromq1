@@ -80,7 +80,7 @@ namespace perf
             }
         }
  
-        inline virtual void send (size_t)
+        inline virtual void send (size_t, unsigned int)
         {
             //  In ysuite, pointers are passed instead of actual data as both
             //  sender and receiver reside in the same memory space.
@@ -102,7 +102,7 @@ namespace perf
             }
         }
 
-        inline virtual size_t receive ()
+        inline virtual size_t receive (unsigned int)
         {
             if (first == last) {
                 switch (sync_type)

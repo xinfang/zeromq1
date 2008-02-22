@@ -131,7 +131,7 @@ namespace perf
             }
         }
 
-        inline virtual void send (size_t size_)
+        inline virtual void send (size_t size_, unsigned int)
         {
             //  Create the message
             void *buffer = malloc (size_);
@@ -146,7 +146,7 @@ namespace perf
             free (buffer);
         }
 
-        inline virtual size_t receive ()
+        inline virtual size_t receive (unsigned int)
         {
             unsigned char buffer [4096]; 
             ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
