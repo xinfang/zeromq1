@@ -23,9 +23,9 @@
 #include "../interfaces/i_transport.hpp"
 
 #include "../../zmq/dispatcher.hpp"
-#include "../../zmq/api_thread.hpp"
+#include "../../zmq/api_engine.hpp"
 #include "../../zmq/bp_engine.hpp"
-#include "../../zmq/io_thread.hpp"
+#include "../../zmq/poll_thread.hpp"
 
 namespace perf
 {
@@ -41,16 +41,16 @@ namespace perf
             engine = new zmq::bp_engine_t* [count_io_thread_];
             assert (engine);
 
-            io = new zmq::io_thread_t* [count_io_thread_];
+            io = new zmq::poll_thread_t* [count_io_thread_];
             assert (io);
 
-            api = new zmq::api_thread_t* [count_io_thread_];
+            api = new zmq::api_engine_t* [count_io_thread_];
             assert (api);
 
             for (int i = 0; i < count_io_thread_; i++) {
                 
                 // api IDs are from 0 to count_io_thread_
-                api [i] = new zmq::api_thread_t (&dispatcher, i); 
+                api [i] = new zmq::api_engine_t (&dispatcher, i); 
                 assert (api [i]);
 
                 // engine IDs are from count_io_thread_ to 2 * count_io_thread_
@@ -59,7 +59,7 @@ namespace perf
                     8192, 8192);
                 assert (engine [i]);
 
-                io [i] = new zmq::io_thread_t (engine [i]);
+                io [i] = new zmq::poll_thread_t (engine [i]);
                 assert (io [i]);
 
                 if (!listen_ && count_io_thread > 1) {
@@ -104,9 +104,9 @@ namespace perf
 
     protected:
         zmq::dispatcher_t dispatcher;
-        zmq::api_thread_t **api;
+        zmq::api_engine_t **api;
         zmq::bp_engine_t **engine;
-        zmq::io_thread_t **io;
+        zmq::poll_thread_t **io;
         unsigned char buffer [65536];
         unsigned int count_io_thread;
     };
