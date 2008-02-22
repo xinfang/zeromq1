@@ -40,6 +40,9 @@ struct worker_args_t
 int main (void) {
 
     perf::ysuite_t transport (perf::active_sync_semaphore);
+//    perf::ysuite_t transport (perf::active_sync_socketpair);
+//    perf::ysuite_t transport (perf::active_sync_pollset);
+
     perf::raw_receiver_t receiver (TEST_MSG_COUNT_THRPUT);
 
     worker_args_t w_args;
@@ -69,8 +72,8 @@ int main (void) {
             (long long)1000);
 
     // throughput [msgs/s]
-    unsigned long long msg_thput = ((long long) 1000000 * (long long) TEST_MSG_COUNT_THRPUT ) / 
-            (stop_time - start_time);
+    unsigned long long msg_thput = ((long long) 1000000 * 
+        (long long) TEST_MSG_COUNT_THRPUT ) / (stop_time - start_time);
 
     printf ("Your average throughput is %llu msgs/s\n", msg_thput);
 

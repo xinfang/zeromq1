@@ -83,7 +83,8 @@ int main (int argc, char *argv [])
 //        msg_count = TEST_MSG_COUNT_THRPUT;
         printf ("Threads: %i\n", TEST_THREADS);
         printf ("Message size: %i\n", msg_size);
-        printf ("Number of messages in the throughput test: %i (per thread)\n", msg_count);
+        printf ("Number of messages in the throughput test: %i (per thread)\n", 
+            msg_count);
 
         {
             perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
@@ -130,8 +131,8 @@ int main (int argc, char *argv [])
             (long long)1000);
 
         // throughput [msgs/s]
-        msg_thput = ((long long) 1000000 * (long long) msg_count * (long long)TEST_THREADS 
-            ) / (max_stop_time - min_start_time);
+        msg_thput = ((long long) 1000000 * (long long) msg_count * 
+            (long long)TEST_THREADS ) / (max_stop_time - min_start_time);
 
         // throughput [Mb/s]
         tcp_thput = (msg_thput * msg_size * 8) /(long long) 1000000;
@@ -139,8 +140,8 @@ int main (int argc, char *argv [])
         printf ("Your average throughput is %llu msgs/s\n", msg_thput);
         printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
 
-        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count * TEST_THREADS,
-            min_start_time, max_stop_time);
+        fprintf (output, "%i %i %llu %llu\n", msg_size, 
+            msg_count * TEST_THREADS, min_start_time, max_stop_time);
     }
     
     fclose (output);
@@ -160,6 +161,8 @@ void *worker_function (void *args_)
 
     perf::raw_receiver_t worker (w_args->msg_count);
     worker.run (*w_args->transport, prefix, w_args->id);
+
+    delete w_args;
 
     return NULL;
 }

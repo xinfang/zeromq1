@@ -57,11 +57,13 @@ int main (int argc, char *argv [])
         msg_size = TEST_MSG_SIZE_START * (0x1 << i);
 
         if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE * msg_size + SYS_OFF));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE * msg_size + SYS_OFF));
             msg_count /= TEST_THREADS;
             msg_count /= SYS_LAT_DEN;
         } else {
-            msg_count = (int)((TEST_TIME * 100000) / (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
+            msg_count = (int)((TEST_TIME * 100000) / 
+                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
             msg_count /= TEST_THREADS;
             msg_count /= SYS_LAT_DEN;
         }
@@ -72,7 +74,8 @@ int main (int argc, char *argv [])
             w_args->msg_size = msg_size;
             w_args->msg_count = msg_count;
            
-            int rc = pthread_create (&workers [j], NULL, worker_function, (void*)w_args);
+            int rc = pthread_create (&workers [j], NULL, worker_function, 
+                (void*)w_args);
             assert (rc == 0);
         }
 
@@ -99,7 +102,8 @@ void *worker_function (void *args_)
     memset (prefix, '\0', sizeof (prefix));
     snprintf (prefix, sizeof (prefix) - 1, "%i", w_args->id);
 
-    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, false);
+    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, 
+        false);
     perf::echo_t worker (w_args->msg_count);
     worker.run (transport);
 

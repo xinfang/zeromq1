@@ -33,8 +33,10 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool listen_, const char *ip_address_, unsigned short port_, int count_io_thread_ = 1) :
-            dispatcher (2 * count_io_thread_), count_io_thread (count_io_thread_) 
+        zmq_t (bool listen_, const char *ip_address_, unsigned short port_, 
+                int count_io_thread_ = 1) :
+            dispatcher (2 * count_io_thread_), 
+            count_io_thread (count_io_thread_) 
         {
             engine = new zmq::bp_engine_t* [count_io_thread_];
             assert (engine);
@@ -52,7 +54,9 @@ namespace perf
                 assert (api [i]);
 
                 // engine IDs are from count_io_thread_ to 2 * count_io_thread_
-                engine [i] = new zmq::bp_engine_t (&dispatcher, count_io_thread_ + i, listen_, ip_address_, port_ + i, i, i, 8192, 8192);
+                engine [i] = new zmq::bp_engine_t (&dispatcher, 
+                    count_io_thread_ + i, listen_, ip_address_, port_ + i, i, i, 
+                    8192, 8192);
                 assert (engine [i]);
 
                 io [i] = new zmq::io_thread_t (engine [i]);

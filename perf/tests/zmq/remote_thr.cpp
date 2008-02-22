@@ -99,5 +99,7 @@ void *worker_function (void *args_)
     perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
     worker.run (*w_args->transport, prefix, w_args->id);
 
+    delete w_args;
+
     return NULL;
 }

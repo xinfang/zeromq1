@@ -136,7 +136,6 @@ namespace perf
 
             }
 
-//            zmq::ypipe_t <void*>::item_t *o = first;
             first = first->next;
             return 0;
         }
@@ -166,12 +165,12 @@ namespace perf
         ysuite_t (active_sync_type_t sync_type_) :
             ypipe_1 (false),
             ypipe_2 (false),
-            y_ypipe_1 (sync_type_, &ypipe_1, &ypipe_2, &ysemaphore_1, &ysemaphore_2, 
-                &ysocketpair_1, &ysocketpair_2, &pollset_1, &pollset_2, 
-                &ypollset_1, &ypollset_2),
-            y_ypipe_2 (sync_type_, &ypipe_2, &ypipe_1, &ysemaphore_2, &ysemaphore_1, 
-                &ysocketpair_2, &ysocketpair_1, &pollset_2, &pollset_1,
-                &ypollset_2, &ypollset_1)
+            y_ypipe_1 (sync_type_, &ypipe_1, &ypipe_2, &ysemaphore_1, 
+                &ysemaphore_2, &ysocketpair_1, &ysocketpair_2, &pollset_1,
+                &pollset_2, &ypollset_1, &ypollset_2),
+            y_ypipe_2 (sync_type_, &ypipe_2, &ypipe_1, &ysemaphore_2, 
+                &ysemaphore_1, &ysocketpair_2, &ysocketpair_1, &pollset_2, 
+                &pollset_1, &ypollset_2, &ypollset_1)
         {
             pollset_1.fd = ysocketpair_1.get_fd ();
             pollset_1.events = POLLIN;
