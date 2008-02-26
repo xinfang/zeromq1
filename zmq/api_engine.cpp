@@ -47,17 +47,19 @@ void zmq::api_engine_t::receive (cmsg_t *value_)
     while (true) {
 
         int engines_alive = proxy.get_engines_alive ();
+        if (!proxy.get_self_signal ())
+            engines_alive--;
 
-        //  If I am the only engine alive or if there are at least some 'dead'
+        //  If all engines are dead or if there are at least some 'dead'
         //  engines and N messages were received withou polling already...
-        if (engines_alive == 1 || (engines_alive != engine_count &&
+        if (engines_alive == 0 || (engines_alive != engine_count &&
               ticks == ticks_max)) {
 
             //  Poll for events - either in non-blocking fashion (if there
             //  are still messages to receive available) or in blocking
             //  fashion (if there are no messages to receive).
             uint32_t signals;
-            signals = engines_alive != 1 ? pollset.check () : pollset.poll ();
+            signals = engines_alive ? pollset.check () : pollset.poll ();
 
             //  Check the events received and start treating the specified
             //  engines as alive.
