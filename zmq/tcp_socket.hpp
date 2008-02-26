@@ -58,7 +58,7 @@ namespace zmq
         //  Reads 'size' bytes from the socket
         void blocking_read (unsigned char *data, size_t size);
 
-    protected:
+    private:
         int listening_socket;
         int s;
     };

@@ -27,13 +27,19 @@
 
 namespace zmq
 {
+    //  Engine to be used from client application thread. NB it is not
+    //  thread-safe. In case you want to use 0MQ from several client threads
+    //  create api_engine for each of them.
 
     class api_engine_t
     {
     public:
         api_engine_t (dispatcher_t *dispatcher_, int engine_id_);
 
+        //  Send the message to the engine specified
         void send (int destination_engine_id_, const cmsg_t &value_);
+
+        //  Receive a message (whatever engine it may come from)
         void receive (cmsg_t *value_);
 
     protected:

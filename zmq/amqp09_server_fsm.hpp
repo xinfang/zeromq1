@@ -33,10 +33,15 @@
 namespace zmq
 {
 
+    //  State machine implementation for AMQP server (broker)
+
     class amqp09_server_fsm_t : public i_amqp09
     {
     public:
 
+        //  Create the state machine over the supplied TCP socket. Interconnect
+        //  it with AMQP marshaller and AMQP engine. in-exchange and
+        //  in-routing-key are not used.
         amqp09_server_fsm_t (tcp_socket_t *socket_,
               amqp09_marshaller_t *marshaller_,
               amqp09_engine_t <amqp09_server_fsm_t> *engine_,

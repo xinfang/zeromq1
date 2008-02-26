@@ -27,15 +27,21 @@
 namespace zmq
 {
 
+    //  Decoder for AMQP version 0-9
     class amqp09_decoder_t : public decoder_t <amqp09_decoder_t>
     {
     public:
 
+        //  Create the decoder. Specifies dispatcher proxy and unmarshaller
+        //  to use and id of engine to send messages to. 'sever' parameter
+        //  specifies whether messages are expected to be carried by
+        //  'basic.publish' command (server) or 'basic.deliver' command (client)
         amqp09_decoder_t (dispatcher_proxy_t *proxy_,
             int destination_engine_id, amqp09_unmarshaller_t *unmarshaller_,
             bool server_);
         ~amqp09_decoder_t ();
 
+        //  Turns message flow on/off
         void flow (bool on_);
 
     private:

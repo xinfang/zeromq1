@@ -72,7 +72,8 @@ namespace zmq
             return r;
         }
 
-    protected:
+    private:
+
         int w;
         int r;
     };

@@ -33,6 +33,14 @@
 namespace zmq
 {
 
+    //  amqp09_engine uses TCP to transport messages using AMQP version 0-9.
+    //  Event handling is done via poll - i.e. the engine should be used with
+    //  poll_thread.
+    //
+    //  As AMQP defines two different state machines (server & client)
+    //  amqp09_engine is a template parameterised by the state machine
+    //  implementation (either amqp09_server_fsm or amqp09_client_fsm).
+
     template <typename F> class amqp09_engine_t :
         public i_pollable, private i_signaler
     {
@@ -40,6 +48,15 @@ namespace zmq
 
         typedef F fsm_t;
 
+        //  Creates amqp09_engine. Attaches it to dispatcher using engine_id
+        //  supplied. Underlying TCP is initialised using listen, address
+        //  and port parameters. source_engine_id specifies which engine
+        //  to get messages from to be send to the socket, destination_engine_id
+        //  specified which engine to send incoming messages to. writebuf_size
+        //  and readbuf_size determine the amount of batching to use.
+        //  out_exchange and out_routing_key are used to set exchange and
+        //  routing key on outgoing messages. in_exchange and on in_routing_key
+        //  are used to subscribe for incoming messages.
         amqp09_engine_t (dispatcher_t *dispatcher_, int engine_id_,
               bool listen_, const char *address_, uint16_t port_,
               int source_engine_id_, int destination_engine_id_,
@@ -75,6 +92,8 @@ namespace zmq
             free (writebuf);
         }
 
+        // i_pollable interface implementation
+
         inline void set_signaler (i_signaler *signaler_)
         {
             proxy.set_signaler (signaler_);
@@ -98,23 +117,36 @@ namespace zmq
 
         void in_event ()
         {
+            //  Get as much data from the socket as possible
             size_t nbytes = socket.read (readbuf, readbuf_size);
+
+            //  If the socket was closed by the other party, stop polling for in
             if (!nbytes) {
                 events ^= POLLIN;
                 return;
             }
+
+            //  Push the data to the encoder
             decoder.write (readbuf, nbytes);
+
+            //  Flush any messages decoder may have produced to the dispatcher
             proxy.flush ();
         }
 
         void out_event ()
         {
+            //  If there are no more data to write, try to get more from
+            //  the encoder. If none are available, stop polling for out.
             if (write_pos == write_size) {
-            write_size = encoder.read (writebuf, writebuf_size);
-            if (write_size < writebuf_size)
-                events ^= POLLOUT;
+
+                write_size = encoder.read (writebuf, writebuf_size);
                 write_pos = 0;
+
+                if (!write_size)
+                     events ^= POLLOUT;
             }
+
+            //  Write as much of the data to the socket as possible
             if (write_pos < write_size) {
                 size_t nbytes = socket.write (writebuf + write_pos,
                     write_size - write_pos);
@@ -124,21 +156,24 @@ namespace zmq
 
         //  Interface to communicate with embedded marshaller object
         //  TODO: the interface should be the engine class itself rather
-        //  than i_signaler
+        //  than i_signaler... give it a thought.
 
         inline void signal (int signal_)
         {
             events |= POLLOUT;
         }
 
-        //  Interface to communicate with embedded FSM object
+        //  Interface to communicate with embedded state machine object
 
         inline void flow (bool on_)
         {
             encoder.flow (on_);
             decoder.flow (on_);
-            events |= POLLIN;
-            events |= POLLOUT;
+
+            if (on_) {
+                events |= POLLIN;
+                events |= POLLOUT;
+            }
         }
 
     private:

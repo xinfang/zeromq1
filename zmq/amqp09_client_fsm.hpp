@@ -33,10 +33,15 @@
 namespace zmq
 {
 
+    //  This class implements state machine for AMQP clients.
+
     class amqp09_client_fsm_t : public i_amqp09
     {
     public:
 
+        //  Create the state machine over the supplied TCP socket. Interconnect
+        //  it with AMQP marshaller and AMQP engine. Store in-exchange and
+        //  in-routing-key so that you can subscribe for messages later on.
         amqp09_client_fsm_t (tcp_socket_t *socket_,
               amqp09_marshaller_t *marshaller_,
               amqp09_engine_t <amqp09_client_fsm_t> *engine_,
@@ -74,6 +79,7 @@ namespace zmq
 
     private:
 
+        //  AMQP client states
         enum state_t
         {
             expect_connection_start,

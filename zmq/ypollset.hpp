@@ -34,12 +34,10 @@
 namespace zmq
 {
 
-    //  ypollset_t class allows for rapid polling for up to 31 different signals
+    //  ypollset allows for rapid polling for up to 31 different signals
     //  each produced by a different thread.
     class ypollset_t : public i_signaler
     {
-        enum {wait_signal = 31};
-
     public:
 
         //  Create the pollset
@@ -70,7 +68,10 @@ namespace zmq
             return bits.xchg (0);
         }
 
-    protected:
+    private:
+
+        enum {wait_signal = 31};
+
         atomic_uint32_t bits;
         ysemaphore_t sem;
     };

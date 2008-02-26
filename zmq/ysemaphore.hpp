@@ -38,15 +38,16 @@ namespace zmq
     //  was matched by corresponding wait and the waiting thread was
     //  released.
     //
-    //  Take into account that ysemaphore is designed for platforms where
-    //  both mutex locking and unlocking provides full memory fence.
+    //  ysemaphore is designed for platforms where both mutex locking
+    //  and unlocking provides full memory fence.
     //  On the platforms where lock is implemented using one-way acquire-only
     //  memory barrier and/or unlock uses release-only memory barrier,
     //  real semaphore should be used instead (or a lock extended by release
     //  barrier and unlock extended by acquire barrier).
     //
     //  Implementation notes:
-    //  - on BSD platform mutex cannot be locked twice from the same thread
+    //
+    //  - on FreeBSD platform mutex cannot be locked twice from the same thread;
     //    therefore real semaphore should be used
     //  - on OS X unnamed semaphores are not supported, therefore mutex-based
     //    substitute should be used
@@ -85,7 +86,7 @@ namespace zmq
         //  Post the semaphore
         void signal (int signal_);
 
-    protected:
+    private:
 
         //  Simple semaphore is implemented by mutex, as it is more efficient
         //  on Linux platform.
@@ -122,7 +123,7 @@ namespace zmq
         //  Post the semaphore
         void signal (int signal_);
 
-    protected:
+    private:
 
         sem_t sem;
     };

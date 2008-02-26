@@ -24,6 +24,10 @@
 
 namespace zmq
 {
+
+    //  Helper functions to convert different integer types to/from network
+    //  byte order.
+
     inline void put_uint8 (unsigned char *buffer_, uint8_t value)
     {
         *buffer_ = value;

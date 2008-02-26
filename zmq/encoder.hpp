@@ -27,6 +27,9 @@
 namespace zmq
 {
 
+    //  Helper base class for encoders. It implements the state machine that
+    //  fills the outgoing buffer. Derived class should implement individual
+    //  state machine actions.
     template <typename T> class encoder_t
     {
     public:
@@ -35,9 +38,9 @@ namespace zmq
         {
         }
 
-        //  The chunk after being used should be deallocated
-        //  using standard 'free' function
-        size_t read (unsigned char *data_, size_t size_)
+        //  The function tries to fill the supplied chunk by binary data.
+        //  Returns the size of data actually filled in.
+        inline size_t read (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
 
@@ -60,6 +63,8 @@ namespace zmq
 
         typedef bool (T::*step_t) ();
 
+        //  This function should be called from derived class to write the data
+        //  to the buffer and schedule next state machine action
         inline void next_step (void *write_pos_, size_t to_write_,
             step_t next_)
         {

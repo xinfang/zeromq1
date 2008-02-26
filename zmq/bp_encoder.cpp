@@ -36,22 +36,28 @@ zmq::bp_encoder_t::~bp_encoder_t ()
 
 bool zmq::bp_encoder_t::size_ready ()
 {
+    //  Write message content
     next_step (msg.data, msg.size, &bp_encoder_t::message_ready);
     return true;
 }
 
 bool zmq::bp_encoder_t::message_ready ()
 {
+    //  Read new message from the dispatcher, if there is none, return false.
     free_cmsg (msg);
     init_cmsg (msg);
     if (!proxy->read (source_engine_id, &msg))
         return false;
 
     if (msg.size < 255) {
+
+        //  Write one-byte length
         tmpbuf [0] = (unsigned char) msg.size;
         next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
     }
     else {
+
+        //  Write 0xff escape character & 8-byte length
         tmpbuf [0] = 0xff;
         put_uint64 (tmpbuf + 1, msg.size);
         next_step (tmpbuf, 9, &bp_encoder_t::size_ready);

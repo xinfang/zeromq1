@@ -25,19 +25,30 @@
 namespace zmq
 {
 
+    //  Virtual interface to be exposed by engines for communication with
+    //  poll thread.
     struct i_pollable
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
+        //  Attach the engine with the dispatcher
         virtual void set_signaler (i_signaler *signaler_) = 0;
-        virtual void revive (int thread_id_) = 0;
 
+        //  Notifies the engine that another engine sent it messages
+        virtual void revive (int engine_id_) = 0;
+
+        //  Returns file descriptor to be used by poll thread to poll on
         virtual int get_fd () = 0;
+
+        //  Returns events poll thread should poll for
         virtual short get_events () = 0;
 
+        //  Called by poll thread when in event occurs
         virtual void in_event () = 0;
+
+        //  Called by poll thread when out event occurs
         virtual void out_event () = 0;
     };
 

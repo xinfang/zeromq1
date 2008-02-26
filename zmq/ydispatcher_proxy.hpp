@@ -28,12 +28,22 @@
 namespace zmq
 {
 
+    //  ydispther_proxy can be used to shield the engine from peculiarities
+    //  of the communication with ydispatcher. Specifically, ydispatcher_proxy
+    //  handles message batching so that messages are read from/written to
+    //  dispatcher in batches rather than one by one, thus making it more
+    //  efficient. Moreover, ydispatcher_proxy optimises sending messages to
+    //  yourself. If the messages is sent to yourself (source engine =
+    //  destination engine) the messages is not passed to ydispatcher at all.
+    //  Instead it is handled locally in ydispacher_proxy with no
+    //  synchronisation involved.
     template <typename T> class ydispatcher_proxy_t
     {
     public:
 
         typedef typename ydispatcher_t <T>::item_t item_t;
 
+        //  Constucts a dispatcher_proxy for specific engine
         ydispatcher_proxy_t (ydispatcher_t <T> *dispatcher_, int engine_id_) :
             dispatcher (dispatcher_),
             engine_id (engine_id_)
@@ -58,6 +68,7 @@ namespace zmq
             }
         }
 
+        //  Destroys the dispatcher proxy
         ~ydispatcher_proxy_t ()
         {
             for (int writebuf_nbr = 0; writebuf_nbr != engine_count;
@@ -83,11 +94,15 @@ namespace zmq
             delete [] readbufs;
         }
 
+        //  Registers engine with the dispatcher.
         inline void set_signaler (i_signaler *signaler_)
         {
             dispatcher->set_signaler (engine_id, signaler_);
         }
 
+        //  Returns number of engines that we consider 'alive', i.e. we haven't
+        //  run into situation where we've tried to read a message from it and
+        //  haven't got any
         inline int get_engines_alive ()
         {
             return engines_alive;
@@ -100,6 +115,8 @@ namespace zmq
             return writebufs [engine_id].first;
         }
 
+        //  Write a message. The message will be batched within the proxy
+        //  and forwarded to the dispatcher only when 'flush' is called
         void write (int destination_engine_id_, const T &value_)
         {
              item_t *n = new item_t;
@@ -115,6 +132,8 @@ namespace zmq
                  buf.first = n;
         }
 
+        //  Writes message to the dispatcher immediately (no batching, no need
+        //  to call 'flush' method)
         inline void instant_write (int destination_engine_id_, const T &value_)
         {
             if (destination_engine_id_ == engine_id)
@@ -123,6 +142,7 @@ namespace zmq
                 dispatcher->write (engine_id, destination_engine_id_, value_);
         }
 
+        //  Flushes all outgoing messages to the dispatcher
         void flush ()
         {
             for (int engine_nbr = 0; engine_nbr != engine_count;
@@ -137,6 +157,9 @@ namespace zmq
             }
         }
 
+        //  Read a message. Message may be retrieved either from proxy's cache
+        //  or directly from the dispatcher if the cache is empty.
+        //
         //  The result says whether value was fetched (true) or not (false).
         //  It says *nothing* about whether source of the messages went asleep.
         //  For info about awake/sleeping sources use get_engines_alive method.
@@ -181,6 +204,9 @@ namespace zmq
             return true;
         }
 
+        //  Consider the engine identified by the ID to be alive - call this
+        //  method when you've been notified by the engine that there are
+        //  messages available for reading
         inline void revive (int source_engine_id_)
         {
             assert (!readbufs [source_engine_id_].alive);
@@ -188,7 +214,7 @@ namespace zmq
             engines_alive ++;
         }
 
-    protected:
+    private:
 
         struct writebuf_t
         {

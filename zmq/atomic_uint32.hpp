@@ -69,7 +69,7 @@ namespace zmq
 #if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
             uint32_t oldval;
             __asm__ volatile (
-                "lock; btsl %1, (%3)\n\t"
+                "lock; btsl %1, (%3)\n\t"  //  Does bts have to be atomic?
                 "lock; btrl %2, (%3)\n\t"
                 "setc %%al\n\t"
                 "movzb %%al, %0\n\t"

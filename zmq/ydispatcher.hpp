@@ -33,8 +33,9 @@ namespace zmq
     //  passing of objects between N threads.
     //
     //  It's designed to encapsulate all the cross-cutting functionality
-    //  between two different threads. Namely, it's the pipe to pass messages
-    //  and signaler to wake up receiver thread from sender thread.
+    //  between two different threads. Namely, it consists of a pipe to pass
+    //  messages and signaler to wake up receiver thread from sender thread
+    //  when new messages are available.
     //
     //  Note that dispatcher is inefficient for passing messages within a thread
     //  (sender thread = receiver thread) as it performs unneccessary atomic
@@ -51,6 +52,7 @@ namespace zmq
         ydispatcher_t (int engine_count_) :
             engine_count (engine_count_)
         {
+            //  Alocate N * N matrix of dispatching pipes
             cells = new cell_t [engine_count * engine_count];
             assert (cells);
             for (int cell_nbr = 0; cell_nbr != engine_count * engine_count;
@@ -63,6 +65,7 @@ namespace zmq
             delete [] cells;
         }
 
+        //  Returns number of engines dispatcher is preconfigured for
         inline int get_engine_count ()
         {
             return engine_count;
@@ -79,6 +82,7 @@ namespace zmq
                     signaler_; 
         }
 
+        //  Write a sinfle message to diaptcher
         inline void write (int source_engine_id_, int destination_engine_id_,
             const T &value_)
         {
@@ -88,6 +92,9 @@ namespace zmq
                 cell.signaler->signal (source_engine_id_);
         }
 
+        //  Write a message sequenct to dispatcher. 'first' parameter points
+        //  to the first message in the sequence, 'last' parameter points to
+        //  the last message in the sequence.
         inline void write (int source_engine_id_, int destination_engine_id_,
             item_t *first_, item_t *last_)
         {
@@ -97,6 +104,9 @@ namespace zmq
                 cell.signaler->signal (source_engine_id_);
         }
 
+        //  Read message sequence from the dispatcher. 'first' parameter points
+        //  to the first message in the sequence, 'last' parameter points to 
+        //  one past the last message in the sequence.
         inline bool read (int source_engine_id_, int destination_engine_id_,
             item_t **first_, item_t **last_)
         {
@@ -104,7 +114,7 @@ namespace zmq
                 destination_engine_id_].pipe.read (first_, last_);
         }
 
-    protected:
+    private:
 
         struct cell_t
         {

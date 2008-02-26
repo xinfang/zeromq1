@@ -22,12 +22,15 @@
 
 namespace zmq
 {
-
+    //  Virtual interface used to send signals. Individual implementations
+    //  may restrict the number of possible signal types to send.
     struct i_signaler
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
         virtual ~i_signaler () {};
+
+        //  Send a signal
         virtual void signal (int signal_) = 0;
     };
 

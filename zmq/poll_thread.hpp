@@ -33,14 +33,22 @@
 namespace zmq
 {
 
+    //  Poll thread is a worker thread that wait for events from engines
+    //  using POSIX poll function and schedules handling of the signals
+    //  by individual engines. Engine compatible with poll thread should
+    //  expose i_pollable interface.
+
     class poll_thread_t 
     {
     public:
 
+        //  Create a poll thread to serve specified engine. At the moment only
+        //  a single engine can be attached to the poll thread. In the future
+        //  poll thread should be able to handle multiple engines.
         poll_thread_t (i_pollable *engine_);
         ~poll_thread_t ();
 
-    protected:
+    private:
 
         enum {stop_event = 0xff};
 

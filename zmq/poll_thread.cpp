@@ -23,15 +23,20 @@
 zmq::poll_thread_t::poll_thread_t (i_pollable *engine_) :
     engine (engine_)
 {
+    //  Attach the engine to the dispatcher
     engine->set_signaler (&signaler);
+
+    //  Create the worker thread
     int rc = pthread_create (&worker, NULL, worker_routine, this);
     errno_assert (rc == 0);
 }
 
 zmq::poll_thread_t::~poll_thread_t ()
 {
+    //  Ask worker thread to stop
     signaler.signal (stop_event);
 
+    //  Wait till worker thread terminates
     int rc = pthread_join (worker, NULL);
     errno_assert (rc == 0);
 }
@@ -48,13 +53,20 @@ void zmq::poll_thread_t::loop ()
     bool stop = false;
 
     pollfd pfd [2];
+
+    //  Poll for administrative commands (revive & stop commands)
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
+
+    //  Poll for events from the engine
     pfd [1].fd = engine->get_fd ();
 
     while (true)
     {
+        //  Adjust the events to wait - the engine chooses the events
         pfd [1].events = engine->get_events ();
+
+        //  Wait for events
         int rc = poll (pfd, 2, -1);
         errno_assert (rc != -1);
         assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
@@ -62,13 +74,17 @@ void zmq::poll_thread_t::loop ()
 
         if (pfd [0].revents & POLLIN) {
 
+            //  Process for administrative commands. Commands are read in
+            //  batches to speed the processing up.
             unsigned char events [256];
             ssize_t nbytes = recv (pfd [0].fd, events, 256,
                 MSG_DONTWAIT);
             errno_assert (nbytes != -1);
             for (int event = 0; event != nbytes; event ++) {
+
                 if (events [event] == stop_event) {
 
+                    //  Stop command :
                     //  If there are no messages to send, quit immediately
                     //  Otherwise wait till all the messages are sent
                     if (!(engine->get_events () & POLLOUT))
@@ -77,17 +93,23 @@ void zmq::poll_thread_t::loop ()
                         stop = true;
                 }
                 else
+                    //  Revive command
                     engine->revive (events [event]);
             }
         }
 
         if (pfd [1].revents & POLLOUT) {
+
+            //  Process out event from the engine
             engine->out_event ();
             if (stop && !(engine->get_events () & POLLOUT))
                 return;
         }
 
-        if (pfd [1].revents & POLLIN)
+        if (pfd [1].revents & POLLIN) {
+
+            //  Process in event from the engine
             engine->in_event ();
+        }
     }
 }

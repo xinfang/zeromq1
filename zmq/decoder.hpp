@@ -26,6 +26,17 @@
 namespace zmq
 {
 
+    //  Helper base class for decoders that know the amount of data to read
+    //  in advance at any moment. Knowing the amount in advance is a property
+    //  of the protocol used. Both AMQP and backend protocol are based on
+    //  size-prefixed paradigm, therefore they are using decoder_t to parse
+    //  the messages. On the other hand, XML-based transports (like XMPP or
+    //  SOAP) don't allow for knowing the size of data to read in advance and
+    //  should use different decoding algorithms.
+    //
+    //  Decoder implements the state machine that parses the incoming buffer.
+    //  Derived class should implement individual state machine actions.
+
     template <typename T> class decoder_t
     {
     public:
@@ -37,6 +48,7 @@ namespace zmq
         {
         }
 
+        //  Push the binary data to the decoder.
         void write (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
@@ -59,6 +71,8 @@ namespace zmq
 
         typedef void (T::*step_t) ();
 
+        //  This function should be called from derived class to read data
+        //  from the buffer and schedule next state machine action
         inline void next_step (void *read_ptr_, size_t to_read_,
             step_t next_)
         {

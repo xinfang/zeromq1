@@ -28,7 +28,7 @@
 
 namespace zmq
 {
-
+    //  Encoder for 0MQ backend protocol
     class bp_encoder_t : public encoder_t <bp_encoder_t>
     {
     public:

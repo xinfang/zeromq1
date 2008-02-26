@@ -30,10 +30,13 @@ zmq::amqp09_decoder_t::amqp09_decoder_t (dispatcher_proxy_t *proxy_,
     flow_on (false),
     server (server_)
 {
+    //  Alocate buffer for the frames
     framebuf_size = i_amqp09::frame_min_size;
     framebuf = (unsigned char*) malloc (framebuf_size);
     assert (framebuf);
     init_cmsg (msg);
+
+    //  Wait for frame header to arrive
     next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
 }
 
@@ -50,6 +53,7 @@ void zmq::amqp09_decoder_t::flow (bool on_)
 
 void zmq::amqp09_decoder_t::method_frame_header_ready ()
 {
+    //  Method frame header arrived - parse it read method payload
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
@@ -60,10 +64,14 @@ void zmq::amqp09_decoder_t::method_frame_header_ready ()
 }
 
 void zmq::amqp09_decoder_t::method_payload_ready ()
-{  
+{
+    //  Method payload is read. Retrieve class and method id. 
     uint16_t class_id = get_uint16 (framebuf);
     uint16_t method_id = get_uint16 (framebuf + 2);
 
+    //  Determine whether frame is a command or beggining of a message
+    //  If the former, forward it to the protocol state machine
+    //  (via unmarshaller). If the latter, start reading message content header.
     if ((server && class_id == i_amqp09::basic_id && method_id ==
          i_amqp09::basic_publish_id) || (!server && class_id ==
          i_amqp09::basic_id && method_id == i_amqp09::basic_deliver_id)) {
@@ -79,6 +87,7 @@ void zmq::amqp09_decoder_t::method_payload_ready ()
 
 void zmq::amqp09_decoder_t::content_header_frame_header_ready ()
 {
+    //  Frame header of content header is read. Read the content header payload.
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
@@ -90,6 +99,8 @@ void zmq::amqp09_decoder_t::content_header_frame_header_ready ()
 
 void zmq::amqp09_decoder_t::content_header_payload_ready ()
 {
+    //  Content header frame read. Check it, allocate a buffer for the message
+    //  and start reading message body.
     uint16_t class_id = get_uint16 (framebuf);
     uint64_t body_size = get_uint64 (framebuf + 4);
     assert (class_id == i_amqp09::basic_id);
@@ -106,6 +117,8 @@ void zmq::amqp09_decoder_t::content_header_payload_ready ()
 
 void zmq::amqp09_decoder_t::content_body_frame_header_ready ()
 {
+    //  Frame header of message body frame is read. Start reading it's payload.
+    //  Note that the data are read directly to the message buffer.
     uint8_t type = get_uint8 (tmpbuf);
     uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
@@ -119,6 +132,7 @@ void zmq::amqp09_decoder_t::content_body_frame_header_ready ()
 
 void zmq::amqp09_decoder_t::content_body_payload_ready ()
 {
+    //  Payload of message body frame is read. Read the frame-end octet.
     msg_data_off += curr_body_size;
     next_step (tmpbuf, 1, &amqp09_decoder_t::content_body_frame_end_ready);
 }
@@ -126,6 +140,8 @@ void zmq::amqp09_decoder_t::content_body_payload_ready ()
 
 void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
 {
+    //  Message body frame read. If the message is complete. Wait for new
+    //  command. Otherwise wait for next message body frame.
     assert (tmpbuf [0] == i_amqp09::frame_end);
 
     if (msg_data_off == msg.size) {

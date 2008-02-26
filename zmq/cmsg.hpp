@@ -27,6 +27,17 @@
 namespace zmq
 {
 
+    //  Canonical message. All messages, no matter what kind of protocol
+    //  they are trasferred by are transformed to canonical messages
+    //  inside 0MQ.
+    //
+    //  Canonical message is deliberately designed as POD structure.
+    //  That way no unexpected implicit copying of message data may occur.
+    //
+    //  Each canonical message contains a pointer to function to be used
+    //  to deallocate message data. If the pointer in NULL, no deallocation
+    //  is done (message body is a static buffer).
+
     struct cmsg_t
     {
         void *data;
@@ -34,6 +45,7 @@ namespace zmq
         free_fn *ffn;
     };
 
+    //  Initialise canonical message
     inline void init_cmsg (cmsg_t &msg_)
     {
         msg_.data = NULL;
@@ -41,6 +53,7 @@ namespace zmq
         msg_.ffn = NULL;
     }
 
+    //  Cleat canonical message
     inline void free_cmsg (cmsg_t &msg_)
     {
         if (msg_.ffn && msg_.data)

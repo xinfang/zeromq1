@@ -57,6 +57,8 @@ void zmq::amqp09_encoder_t::flow (bool on_)
 
 bool zmq::amqp09_encoder_t::message_ready ()
 {
+    //  Start encoding a command. Firstly, try to retrieve one command
+    //  from the marshaller. If available, write its header.
     if (marshaller->read (&command))
     {
         size_t offset = 0;
@@ -74,12 +76,16 @@ bool zmq::amqp09_encoder_t::message_ready ()
         return true;
     }
 
+    //  If flow is off, don't even continue to the message encoding section.
+    //  Return false to denote that there is nothing to encode.
     if (!flow_on)
         return false;
 
+    //  Get one message from the dispatcher (via proxy).
     if (!proxy->read (source_engine_id, &message))
         return false;
 
+    //  Encode method frame frame header
     size_t offset = 0;
     put_uint8 (tmpbuf + offset, i_amqp09::frame_method);
     offset += sizeof (uint8_t);
@@ -88,6 +94,8 @@ bool zmq::amqp09_encoder_t::message_ready ()
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
+    //  Encode method frame payload (basic.deliver on AMQP broker, basic.publish
+    //  on AMQP client).
     if (server) {
         put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
         offset += sizeof (uint16_t);
@@ -128,6 +136,8 @@ bool zmq::amqp09_encoder_t::message_ready ()
         tmpbuf [offset] = 0;
         offset += sizeof (uint8_t);
     }
+
+    //  Encode frame-end octet
     put_uint8 (tmpbuf + offset, i_amqp09::frame_end);
     offset += sizeof (uint8_t);
     put_uint32 (tmpbuf + size_offset, offset - 8); 
@@ -138,6 +148,8 @@ bool zmq::amqp09_encoder_t::message_ready ()
 
 bool zmq::amqp09_encoder_t::command_header ()
 {
+    //  Encode command arguments. No processing is necessary as arguments are
+    //  already converted into binary format by AMQP marshaller.
     next_step (command.args, command.args_size,
         &amqp09_encoder_t::command_arguments);
     return true;
@@ -145,6 +157,9 @@ bool zmq::amqp09_encoder_t::command_header ()
 
 bool zmq::amqp09_encoder_t::command_arguments ()
 {
+    //  Encode frame-end octet for the command. We can deallocate command
+    //  arguments in command_t structure at this point as we won't need it
+    //  any more.
     free (command.args);
     tmpbuf [0] = i_amqp09::frame_end;
     next_step (tmpbuf, 1, &amqp09_encoder_t::message_ready);
@@ -153,6 +168,7 @@ bool zmq::amqp09_encoder_t::command_arguments ()
 
 bool zmq::amqp09_encoder_t::content_header ()
 {
+    //  Encode complete message header frame.
     size_t offset = 0;
     put_uint8 (tmpbuf + offset, i_amqp09::frame_header);
     offset += sizeof (uint8_t);
@@ -179,9 +195,11 @@ bool zmq::amqp09_encoder_t::content_header ()
 
 bool zmq::amqp09_encoder_t::content_body_frame_header ()
 {
+    //  Determine the size of data to transfer in the message body frame
     size_t body_size = std::min (message.size - body_offset,
         (size_t) (i_amqp09::frame_min_size - 8));
  
+    //  Encode header of message body frame
     size_t offset = 0;
     put_uint8 (tmpbuf + offset, i_amqp09::frame_body);
     offset += sizeof (uint8_t);
@@ -196,9 +214,11 @@ bool zmq::amqp09_encoder_t::content_body_frame_header ()
 
 bool zmq::amqp09_encoder_t::content_body ()
 {
+    //  Determine the size of data to transfer in the message body frame
     size_t body_size = std::min (message.size - body_offset,
         (size_t) (i_amqp09::frame_min_size - 8));
 
+    //  Encode appropriate fragment of the message body fraction
     next_step ((unsigned char*) message.data + body_offset,
         body_size, &amqp09_encoder_t::frame_end);
     body_offset += body_size;
@@ -207,8 +227,12 @@ bool zmq::amqp09_encoder_t::content_body ()
 
 bool zmq::amqp09_encoder_t::frame_end ()
 {
+    //  Encode frame-end octet for message body frame
     put_uint8 (tmpbuf, i_amqp09::frame_end);
 
+    //  If the message is transferred completely, start encoding new message,
+    //  else start encoding the rest of the message into the next
+    //  message body frame.
     if (message.size == body_offset)
         next_step (tmpbuf, sizeof (uint8_t),
             &amqp09_encoder_t::message_ready);

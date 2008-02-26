@@ -36,16 +36,31 @@ void zmq::api_engine_t::send (int destination_engine_id_, const cmsg_t &value_)
 
 void zmq::api_engine_t::receive (cmsg_t *value_)
 {
+    //  What follows is the implementation of a "fair scheduler" (RFC970)
+    //  Receive function returns messages sent by several engines.
+    //  The distribution is done in round-robin manner.
+
+    //  To save time, actual polling (time-consuming operation) is done only
+    //  after each N-th message - if there are messages to process available.
+    //  If there are no messages, polling is done immediately.
+
     while (true) {
 
         int engines_alive = proxy.get_engines_alive ();
 
+        //  If I am the only engine alive or if there are at least some 'dead'
+        //  engines and N messages were received withou polling already...
         if (engines_alive == 1 || (engines_alive != engine_count &&
               ticks == ticks_max)) {
 
+            //  Poll for events - either in non-blocking fashion (if there
+            //  are still messages to receive available) or in blocking
+            //  fashion (if there are no messages to receive).
             uint32_t signals;
             signals = engines_alive != 1 ? pollset.check () : pollset.poll ();
-            
+
+            //  Check the events received and start treating the specified
+            //  engines as alive.
             for (int engine_nbr = 0; engine_nbr != engine_count;
                   engine_nbr ++) {
                 if (signals & 0x0001)
@@ -54,7 +69,10 @@ void zmq::api_engine_t::receive (cmsg_t *value_)
             }
         }
 
+        //  Move to the next engine in a round-robin
         current_engine = (current_engine + 1) % engine_count;
+
+        //  Try to read a message. If successfull, abjust the ticks and return.
         if (proxy.read (current_engine, value_)) {
             ticks --;
             if (!ticks)

@@ -30,6 +30,9 @@ zmq::amqp09_client_fsm_t::amqp09_client_fsm_t (tcp_socket_t *socket_,
     in_exchange (in_exchange_),
     in_routing_key (in_routing_key_)
 {
+    //  Send AMQP protocol header to the broker. This is done in blocking
+    //  manner. All the rest of I/O communication is done in non-blocking
+    //  manner.
     unsigned char protocol_header [] = {'A', 'M', 'Q', 'P', 1, 1, 0, 9};
     socket_->blocking_write (protocol_header, sizeof (protocol_header));
     state = expect_connection_start;
@@ -47,9 +50,12 @@ void zmq::amqp09_client_fsm_t::connection_start (
         return;
     }
 
+    //  Check the version info
     assert (version_major_ == 0);
     assert (version_minor_ == 9);
 
+    //  TODO: Security mechanisms and locales should be checked. Client should
+    //  use user-supplied login/password rather than hard-wired guest/guest.
     unsigned char auth_data [] = {0, 'g', 'u', 'e', 's', 't',
         0, 'g', 'u', 'e', 's', 't'};
     marshaller->connection_start_ok (i_amqp09::field_table_t (),
@@ -62,13 +68,19 @@ void zmq::amqp09_client_fsm_t::connection_tune (
     uint32_t frame_max_,
     uint16_t heartbeat_)
 {
-    //  TODO: challenge handshaking may happen at this place
+    //  TODO: SASL challenge/response handshaking may happen at this place
+
     if (state != expect_connection_tune) {
         unexpected ();
         return;
     }
 
+    //  TODO: Frame size should be adjusted to match server's min size
+    //  TODO: Heartbeats are not implemented at the moment
     marshaller->connection_tune_ok (1, i_amqp09::frame_min_size, 0);
+
+    //  TODO: Virtual host name should be suplied by client application 
+    //  rather than hardwired
     marshaller->connection_open ("/", "", true);
     state = expect_connection_open_ok;
 }
@@ -88,6 +100,9 @@ void zmq::amqp09_client_fsm_t::channel_open_ok (
         return;
     }
 
+    //  Subscribe for incoming messages. This is done explicitly at the
+    //  connection establishment time as there is no dynamic routing
+    //  management infrastructure in 0MQ v0.2
     marshaller->queue_declare (0, "", false, false, true, true, true,
         i_amqp09::field_table_t ());
     marshaller->queue_bind (0, "", in_exchange.c_str (),

@@ -26,6 +26,9 @@ zmq::amqp09_server_fsm_t::amqp09_server_fsm_t (tcp_socket_t *socket_,
     marshaller (marshaller_),
     engine (engine_)
 {
+    //  Read AMQP protocol header from the supplied socket. This is done in
+    //  a blocking manner. The rest of AMQP communication is done in
+    //  non-blocking fashion.
     unsigned char buf [8];
     socket_->blocking_read (buf, 8);
     assert (buf [0] == 'A');
@@ -55,8 +58,7 @@ void zmq::amqp09_server_fsm_t::connection_start_ok (
     }
 
     //  TODO:  Check the mechanism, the locale and credentials
-
-    //  Challenge handshaking may happen here
+    //  TODO: SASL challenge/response handshaking may happen here
 
     marshaller->connection_tune (1, i_amqp09::frame_min_size, 0);
     state = expect_connection_tune_ok;
@@ -72,6 +74,8 @@ void zmq::amqp09_server_fsm_t::connection_tune_ok (
         return;
     }
 
+    //  TODO: multiple channels, different frame sizes and heartbeats
+    //  should be supported
     assert (channel_max_ == 1);
     assert (frame_max_ == i_amqp09::frame_min_size);
     assert (heartbeat_ == 0);
@@ -89,6 +93,7 @@ void zmq::amqp09_server_fsm_t::connection_open (
         return;
     }
 
+    //  TODO: allow different virtual hosts
     assert (virtual_host_.size == 1 && virtual_host_.data [0] == '/');
 
     marshaller->connection_open_ok ("");

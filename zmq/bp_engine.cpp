@@ -64,29 +64,46 @@ short zmq::bp_engine_t::get_events ()
 
 void zmq::bp_engine_t::revive (int engine_id_)
 {
+    //  There is at least one engine that has messages ready - start polling
+    //  the socket for writing.
     proxy.revive (engine_id_);
     events |= POLLOUT;
 }
 
 void zmq::bp_engine_t::in_event ()
 {
+    //  Read as much data as possible to the read buffer
     size_t nbytes = socket.read (readbuf, readbuf_size);
+
     if (!nbytes) {
+
+        //  If the other party closed the connection, stop polling
         events ^= POLLIN;
         return;
     }
+
+    //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
+
+    //  Flush any messages decoder may have produced to the dispatcher
     proxy.flush ();
 }
 
 void zmq::bp_engine_t::out_event ()
 {
+    //  If write buffer is empty, try to read new data from the encoder
     if (write_pos == write_size) {
+
         write_size = encoder.read (writebuf, writebuf_size);
-        if (write_size < writebuf_size)
-            events ^= POLLOUT;
         write_pos = 0;
+
+        //  If there are no data to write stop polling for output
+        if (!write_size)
+            events ^= POLLOUT;
     }
+
+    //  If there are any data to write in write buffer, write as much as
+    //  possible to the socket.
     if (write_pos < write_size) {
         size_t nbytes = socket.write (writebuf + write_pos,
             write_size - write_pos);
