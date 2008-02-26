@@ -28,7 +28,7 @@ namespace perf
     struct i_worker
     {
         virtual ~i_worker () {}
-        virtual void run (i_transport &transport_, const char *prefix_, unsigned int thread_id = 0) = 0;
+        virtual void run (i_transport &transport_, const char *prefix_, unsigned int thread_id_ = 0) = 0;
     };
 
 }

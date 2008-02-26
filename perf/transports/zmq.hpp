@@ -34,7 +34,7 @@ namespace perf
     {
     public:
         zmq_t (bool listen_, const char *ip_address_, unsigned short port_, 
-                int count_io_thread_ = 1) :
+                unsigned int count_io_thread_ = 1) :
             dispatcher (2 * count_io_thread_), 
             count_io_thread (count_io_thread_) 
         {
@@ -47,7 +47,7 @@ namespace perf
             api = new zmq::api_engine_t* [count_io_thread_];
             assert (api);
 
-            for (int i = 0; i < count_io_thread_; i++) {
+            for (unsigned int i = 0; i < count_io_thread_; i++) {
                 
                 // api IDs are from 0 to count_io_thread_
                 api [i] = new zmq::api_engine_t (&dispatcher, i); 
@@ -71,7 +71,7 @@ namespace perf
 
         inline ~zmq_t ()
         {
-            for (int i = 0; i < count_io_thread; i++) {
+            for (unsigned int i = 0; i < count_io_thread; i++) {
                 delete io [i];
                 delete engine [i];
                 delete api [i];
@@ -81,7 +81,7 @@ namespace perf
             delete [] api;
         }
 
-        inline virtual void send (size_t size_, unsigned int thread_id_)
+        inline virtual void send (size_t size_, unsigned int thread_id_ = 0)
         {
             assert (thread_id_ < count_io_thread);
             assert (size_ <= 65536);
@@ -90,7 +90,7 @@ namespace perf
             api [thread_id_]->send (count_io_thread + thread_id_, msg);
         }
 
-        inline virtual size_t receive (unsigned int thread_id_)
+        inline virtual size_t receive (unsigned int thread_id_ = 0)
         {
             assert (thread_id_ < count_io_thread);
 

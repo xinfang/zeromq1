@@ -118,7 +118,7 @@ namespace perf
             }
         }
 
-        inline virtual void send (size_t size_, unsigned int)
+        inline virtual void send (size_t size_, unsigned int = 0)
         {
             //  Create the message
             void *buffer = malloc (sizeof (uint32_t) + size_);
@@ -133,7 +133,7 @@ namespace perf
             free (buffer);
         }
 
-        inline virtual size_t receive (unsigned int)
+        inline virtual size_t receive (unsigned int = 0)
         {
             //  Read the message size
             uint32_t sz;
