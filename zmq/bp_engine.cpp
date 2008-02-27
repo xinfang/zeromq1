@@ -59,7 +59,7 @@ int zmq::bp_engine_t::get_fd ()
 
 short zmq::bp_engine_t::get_events ()
 {
-    return events;
+    return events | (proxy.has_messages () ? POLLOUT : 0);
 }
 
 void zmq::bp_engine_t::revive (int engine_id_)

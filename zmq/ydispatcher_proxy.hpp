@@ -37,6 +37,7 @@ namespace zmq
     //  destination engine) the messages is not passed to ydispatcher at all.
     //  Instead it is handled locally in ydispacher_proxy with no
     //  synchronisation involved.
+
     template <typename T> class ydispatcher_proxy_t
     {
     public:
@@ -50,7 +51,7 @@ namespace zmq
         {
             engine_count = dispatcher->get_engine_count ();
             assert (engine_id < engine_count);
-            engines_alive = engine_count;
+            pollable_count = 0;
 
             writebufs = new writebuf_t [engine_count];
             assert (writebufs);
@@ -64,7 +65,7 @@ namespace zmq
             for (int buf_nbr = 0; buf_nbr != engine_count; buf_nbr ++) {
                 readbufs [buf_nbr].first = NULL;
                 readbufs [buf_nbr].last = NULL;
-                readbufs [buf_nbr].alive = true;
+                readbufs [buf_nbr].pollable = false;
             }
         }
 
@@ -100,19 +101,20 @@ namespace zmq
             dispatcher->set_signaler (engine_id, signaler_);
         }
 
-        //  Returns number of engines that we consider 'alive', i.e. we haven't
-        //  run into situation where we've tried to read a message from it and
-        //  haven't got any
-        inline int get_engines_alive ()
+        //  Returns true if there is at least single engine that can be polled
+        //  to (potentially) provide new messages
+        inline bool is_pollable ()
         {
-            return engines_alive;
+            return (bool) pollable_count;
         }
 
-        //  This function signals that there are messages sent
-        //  to the engine by itself
-        inline bool get_self_signal ()
+        //  Returns true if there is at least one engine that can be asked to
+        //  provide new messages without previous polling
+        inline bool has_messages ()
         {
-            return writebufs [engine_id].first;
+            return pollable_count < engine_count - 1 ||
+                writebufs [engine_id].first ||
+                readbufs [engine_id].first != readbufs [engine_id].last;
         }
 
         //  Write a message. The message will be batched within the proxy
@@ -162,12 +164,12 @@ namespace zmq
         //
         //  The result says whether value was fetched (true) or not (false).
         //  It says *nothing* about whether source of the messages went asleep.
-        //  For info about awake/sleeping sources use get_engines_alive method.
+        //  For info about awake/sleeping sources use is_pollable method.
         bool read (int source_engine_id_, T *value_)
         {
             readbuf_t &buf = readbufs [source_engine_id_];
 
-            if (!buf.alive)
+            if (buf.pollable)
                 return false;
 
             if (buf.first != buf.last) {
@@ -190,8 +192,8 @@ namespace zmq
             else {
                 if (!dispatcher->read (source_engine_id_, engine_id,
                       &buf.first, &buf.last)) {
-                    buf.alive = false;
-                    engines_alive --;
+                    buf.pollable = true;
+                    pollable_count ++;
                     return false;
                 }
             }
@@ -204,14 +206,14 @@ namespace zmq
             return true;
         }
 
-        //  Consider the engine identified by the ID to be alive - call this
+        //  Marks the engine identified by the ID as being alive - call this
         //  method when you've been notified by the engine that there are
         //  messages available for reading
         inline void revive (int source_engine_id_)
         {
-            assert (!readbufs [source_engine_id_].alive);
-            readbufs [source_engine_id_].alive = true;
-            engines_alive ++;
+            assert (readbufs [source_engine_id_].pollable);
+            readbufs [source_engine_id_].pollable = false;
+            pollable_count --;
         }
 
     private:
@@ -226,13 +228,13 @@ namespace zmq
         {
             item_t *first;
             item_t *last;
-            bool alive;
+            bool pollable;
         };
 
         int engine_count;
         int engine_id;
         ydispatcher_t <T> *dispatcher;
-        int engines_alive;
+        int pollable_count;
 
         writebuf_t *writebufs;
         readbuf_t *readbufs;

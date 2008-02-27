@@ -112,7 +112,7 @@ namespace zmq
 
         inline short get_events ()
         {
-            return events | (proxy.get_self_signal () ? POLLOUT : 0);
+            return events | (proxy.has_messages () ? POLLOUT : 0);
         }
 
         void in_event ()
