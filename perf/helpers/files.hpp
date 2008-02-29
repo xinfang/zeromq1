@@ -34,6 +34,24 @@ namespace perf
         fclose (input);
     }
 
+    // reads one line from two files
+    void read_times_2f (perf::time_instant_t *start_time_,
+        perf::time_instant_t *stop_time_, const char *prefix_)
+    {
+        //  Load the results
+        char filename [256];
+        snprintf (filename, 256, "%sout.dat", prefix_);
+        FILE *input = ::fopen (filename, "r");
+        assert (input);
+        fscanf (input, "%llu", start_time_);
+        fclose (input);
+        
+        snprintf (filename, 256, "%sin.dat", prefix_);
+        input = ::fopen (filename, "r");
+        assert (input);
+        fscanf (input, "%llu", stop_time_);
+        fclose (input);
+    }                                              
 }
 
 #endif
