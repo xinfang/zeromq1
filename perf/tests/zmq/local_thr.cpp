@@ -39,7 +39,7 @@ int main (int argc, char *argv [])
     }
 
     //  Main results results
-    std::string filename ("in.dat");
+    std::string filename ("timing.dat");
     pthread_t workers [TEST_THREADS];
     worker_args_t *w_args;
 

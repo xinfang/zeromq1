@@ -18,11 +18,11 @@
 */
 
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 3
+#define TEST_MSG_SIZE_STEPS 15
 #define TEST_TIME 5000
 
 // MT test
-#define TEST_THREADS 2
+#define TEST_THREADS 1
 
 // latency test msg count denominator
 #define SYS_LAT_DEN 100
@@ -40,11 +40,6 @@
 #define SYS_OFF_BIG 0
 
 #define PORT_NUMBER 5555
-//#define TEST_MSG_COUNT_THRPUT 50000000
-
-//#define READ_BUFFER_SIZE 8192
-//#define WRITE_BUFFER_SIZE 8192
-
 
 struct worker_args_t
 {

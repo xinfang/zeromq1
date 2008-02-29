@@ -22,7 +22,9 @@
 #include <string>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/ping_pong.hpp"
+#include "../../workers/raw_ping_pong.hpp"
+#include "../../helpers/time.hpp"
+#include "../../helpers/files.hpp"
 
 #include "./test.hpp"
 
@@ -38,10 +40,19 @@ int main (int argc, char *argv [])
         assert (0);
     }
 
+    //  Main results results
+    std::string filename ("timing.dat");
+
+    FILE *output = ::fopen (filename.c_str (), "w");
+    assert (output);
+
     int msg_count;
     size_t msg_size;
     char prefix [20];
     memset (prefix, '\0', sizeof (prefix));
+
+    perf::time_instant_t start_time;
+    perf::time_instant_t stop_time;
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
     
@@ -57,7 +68,6 @@ int main (int argc, char *argv [])
             msg_count /= SYS_LAT_DEN;
         }
 
-//        msg_count = TEST_MSG_COUNT_THRPUT;
         printf ("Threads: %i\n", TEST_THREADS);
         printf ("Message size: %i\n", msg_size);
         printf ("Number of messages in the latency test: %i\n", msg_count);
@@ -67,13 +77,31 @@ int main (int argc, char *argv [])
 
         {
             perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
-            perf::ping_pong_t worker (msg_count, msg_size);
+            perf::raw_ping_pong_t worker (msg_count, msg_size);
             worker.run (transport, prefix);
         }
 
         printf ("Test end\n");
         fflush (stdout);
+
+        perf::read_times_2f (&start_time, &stop_time, prefix);
+
+        // write results to the main file
+        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count, start_time, stop_time);
+
+        // delete files
+        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", 
+            msg_size, 0);
+        int rc = remove (prefix);
+        assert (rc == 0);
+
+        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_out.dat", 
+            msg_size, 0);
+        rc = remove (prefix);
+        assert (rc == 0);
     }
-    
+
+    fclose (output);
+
     return 0;
 }
