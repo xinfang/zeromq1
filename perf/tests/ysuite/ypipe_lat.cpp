@@ -21,7 +21,9 @@
 
 #include "../../transports/ysuite.hpp"
 #include "../../workers/echo.hpp"
-#include "../../workers/ping_pong.hpp"
+#include "../../workers/raw_ping_pong.hpp"
+#include "../../helpers/files.hpp"
+#include "../../helpers/time.hpp"
 
 #include "test.hpp"
 
@@ -36,6 +38,9 @@ struct worker_args_t
 };
 
 int main (void) {
+
+    perf::time_instant_t start_time;
+    perf::time_instant_t stop_time;
 
     perf::ysuite_t transport (perf::active_sync_semaphore);
 //    perf::ysuite_t transport (perf::active_sync_socketpair);
@@ -62,6 +67,12 @@ int main (void) {
     rc = pthread_join (worker, NULL);
     assert (rc == 0);
 
+    perf::read_times_2f (&start_time, &stop_time, "1_0_");
+
+    printf ("Number of messages in the latency test: %i\n", TEST_MSG_COUNT_LAT);
+    printf ("Test time: %llu [ms]\n", (stop_time - start_time) / (long long) 1000); 
+    printf ("Your average latency is: %llu [us]\n", (((stop_time - start_time) / 2) / (long long)TEST_MSG_COUNT_LAT)); 
+
     return 0;
 }
 
@@ -71,7 +82,7 @@ void *worker_function (void *args_)
     // args struct
     worker_args_t *w_args = (worker_args_t*)args_;
     
-    perf::ping_pong_t sender (w_args->msg_count, w_args->msg_size);
+    perf::raw_ping_pong_t sender (w_args->msg_count, w_args->msg_size);
 
     sender.run (*w_args->transport, "1_0_");
 

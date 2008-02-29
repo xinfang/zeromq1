@@ -68,6 +68,7 @@ int main (void) {
 
     perf::read_times_1f (&start_time, &stop_time, "in.dat");
 
+    printf ("Number of messages in the throughput test: %i\n", TEST_MSG_COUNT_THRPUT);
     printf ("Test time: %llu [ms]\n", (stop_time - start_time) / 
             (long long)1000);
 
@@ -75,6 +76,7 @@ int main (void) {
     unsigned long long msg_thput = ((long long) 1000000 * 
         (long long) TEST_MSG_COUNT_THRPUT ) / (stop_time - start_time);
 
+    printf ("Your average density is %.3f us/msg\n", (float)(stop_time - start_time) / TEST_MSG_COUNT_THRPUT);
     printf ("Your average throughput is %llu msgs/s\n", msg_thput);
 
     return 0;
