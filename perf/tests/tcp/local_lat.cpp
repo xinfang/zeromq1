@@ -25,7 +25,7 @@
 #include "../../transports/tcp.hpp"
 #include "../../helpers/time.hpp"
 #include "../../helpers/files.hpp"
-#include "../../workers/ping_pong.hpp"
+#include "../../workers/raw_ping_pong.hpp"
 
 #include "./test.hpp"
 
@@ -50,6 +50,15 @@ int main (int argc, char *argv [])
 
     int msg_size;
     int msg_count;
+
+    perf::time_instant_t start_time;
+    perf::time_instant_t stop_time;
+    
+    //  Main results results
+    string filename ("timing.dat");
+
+    FILE *output = ::fopen (filename.c_str (), "w");
+    assert (output);
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 
@@ -86,9 +95,29 @@ int main (int argc, char *argv [])
             int rc = pthread_join (workers [j], NULL);
             assert (rc == 0);
 
+            char file_prefix [255];
+            memset (file_prefix, '\0', sizeof (file_prefix));
+            snprintf (file_prefix, sizeof (file_prefix) - 1, "%i_%i_", msg_size, j);
+            perf::read_times_2f (&start_time, &stop_time, file_prefix);
+
+            // write results to the main file
+            fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count, start_time, stop_time);
+
+            // delete files
+            snprintf (file_prefix, sizeof (file_prefix) - 1, "%i_%i_in.dat", 
+                msg_size, j);
+            rc = remove (file_prefix);
+            assert (rc == 0);
+
+            snprintf (file_prefix, sizeof (file_prefix) - 1, "%i_%i_out.dat", 
+                msg_size, j);
+            rc = remove (file_prefix);
+            assert (rc == 0);
         }
     }
-  
+
+    fclose (output);
+
     return 0;
 }
 
@@ -104,7 +133,7 @@ void *worker_function (void *args_)
         w_args->id);
 
     perf::tcp_t transport (true, "0.0.0.0", PORT_NUMBER + w_args->id, false);
-    perf::ping_pong_t worker (w_args->msg_count, w_args->msg_size);
+    perf::raw_ping_pong_t worker (w_args->msg_count, w_args->msg_size);
     worker.run (transport, prefix);
 
     delete w_args;

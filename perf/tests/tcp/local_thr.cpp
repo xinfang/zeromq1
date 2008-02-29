@@ -50,7 +50,7 @@ int main (int argc, char *argv [])
     perf::time_instant_t max_stop_time;
     
     //  Main results results
-    string filename ("in.dat");
+    string filename ("timing.dat");
 
     FILE *output = ::fopen (filename.c_str (), "w");
     assert (output);
