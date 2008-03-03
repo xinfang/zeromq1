@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//  Test whether a message batch can be passed between two threads
+//  Test whether a messages can be passed between two threads
 
 #include <assert.h>
 #include <pthread.h>

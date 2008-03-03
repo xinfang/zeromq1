@@ -81,7 +81,7 @@ namespace zmq
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
             uint32_t oldval = value;
-            value = oldval | (uint32_t (1) << set_index_) |
+            value = (oldval | (uint32_t (1) << set_index_)) &
                 ~(uint32_t (1) << reset_index_);
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
