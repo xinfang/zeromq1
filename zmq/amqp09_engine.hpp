@@ -78,7 +78,7 @@ namespace zmq
             write_pos (0),
             source_engine_id (source_engine_id_),
             destination_engine_id (destination_engine_id_),
-            events (POLLIN | POLLOUT)
+            events (POLLIN)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
             assert (writebuf);
