@@ -24,7 +24,6 @@
 
 #include "../perf/transports/tcp.hpp"
 #include "../perf/transports/zmq.hpp"
-#include "../perf/helpers/time.hpp"
 #include "../perf/workers/raw_receiver.hpp"
 #include "../perf/workers/raw_ping_pong.hpp"
 

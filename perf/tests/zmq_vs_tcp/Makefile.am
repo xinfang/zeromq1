@@ -8,17 +8,13 @@ PORT_NUMBER = 5555
 INCLUDES        = -I$(top_builddir) -I$(top_builddir)/zmq \
                 -I$(top_srcdir) -I$(top_srcdir)/zmq
 
-EXTRA_DIST = ../../workers/receiver.hpp ../../workers/sender.hpp \
-../../workers/ping_pong.hpp ../../transports/sctp.hpp \
-../../transports/ysuite.hpp
-
 noinst_PROGRAMS = local remote
 
 local_SOURCES = local.cpp ../../transports/tcp.hpp ../../transports/zmq.hpp \
 ../../helpers/time.hpp ../../workers/raw_receiver.hpp ../../workers/raw_ping_pong.hpp \
 ../../interfaces/i_transport.hpp ../../interfaces/i_worker.hpp
 remote_SOURCES = remote.cpp ../../transports/tcp.hpp ../../transports/zmq.hpp \
-../../helpers/time.hpp ../../workers/raw_sender.hpp ../../workers/echo.hpp \
+../../workers/raw_sender.hpp ../../workers/echo.hpp \
 ../../interfaces/i_transport.hpp ../../interfaces/i_worker.hpp 
 
 local_CPPFLAGS = -D'TEST_MSG_COUNT_LATENCY=${TEST_MSG_COUNT_LATENCY}' \

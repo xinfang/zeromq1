@@ -22,7 +22,6 @@
 #include <pthread.h>
 
 #include "../../transports/tcp.hpp"
-#include "../../helpers/time.hpp"
 #include "../../workers/raw_sender.hpp"
 
 #include "./test.hpp"

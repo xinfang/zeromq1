@@ -29,8 +29,6 @@
 
 #include "./test.hpp"
 
-using namespace std;
-
 void *worker_function (void *);
 
 int main (int argc, char *argv [])
@@ -55,7 +53,7 @@ int main (int argc, char *argv [])
     perf::time_instant_t stop_time;
     
     //  Main results results
-    string filename ("timing.dat");
+    std::string filename ("timing.dat");
 
     FILE *output = ::fopen (filename.c_str (), "w");
     assert (output);

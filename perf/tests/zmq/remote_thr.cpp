@@ -21,7 +21,6 @@
 #include <cstdio>
 
 #include "../../transports/zmq.hpp"
-#include "../../helpers/time.hpp"
 #include "../../workers/raw_sender.hpp"
 
 #include "./test.hpp"
