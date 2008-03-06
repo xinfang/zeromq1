@@ -70,7 +70,7 @@ void zmq::poll_thread_t::loop ()
         int rc = poll (pfd, 2, -1);
         errno_assert (rc != -1);
         assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
-        assert (!(pfd [1].revents & (POLLERR | POLLHUP | POLLNVAL)));
+        assert (!(pfd [1].revents & (POLLERR | POLLNVAL)));
 
         if (pfd [0].revents & POLLIN) {
 
@@ -106,7 +106,7 @@ void zmq::poll_thread_t::loop ()
                 return;
         }
 
-        if (pfd [1].revents & POLLIN) {
+        if (pfd [1].revents & (POLLIN | POLLHUP)) {
 
             //  Process in event from the engine
             engine->in_event ();
