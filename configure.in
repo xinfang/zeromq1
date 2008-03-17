@@ -21,18 +21,23 @@ AC_CANONICAL_HOST
 case "${host_os}" in
     *linux*)
         AC_DEFINE(ZMQ_HAVE_LINUX, 1, [Have Linux OS])
+        CPPFLAGS="-D_REENTRANT $CPPFLAGS"
         ;;
     *solaris*)
         AC_DEFINE(ZMQ_HAVE_SOLARIS, 1, [Have Solaris OS])
         AC_CHECK_LIB(socket, main)
         AC_CHECK_LIB(nsl, main)
         AC_CHECK_LIB(rt, main)
+        CPPFLAGS="-D_REENTRANT -D_PTHREADS $CPPFLAGS"
         ;;
     *freebsd*)
         AC_DEFINE(ZMQ_HAVE_FREEBSD, 1, [Have FreeBSD OS])
+        CPPFLAGS="-D_THREAD_SAFE $CPPFLAGS"
+        LIBS="-pthread"
         ;;
     *darwin*)
         AC_DEFINE(ZMQ_HAVE_OSX, 1, [Have DarwinOSX OS])
+        LIBS="-pthread"
         ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
