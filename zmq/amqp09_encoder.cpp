@@ -62,14 +62,19 @@ bool zmq::amqp09_encoder_t::message_ready ()
     if (marshaller->read (&command))
     {
         size_t offset = 0;
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, i_amqp09::frame_method);
         offset += sizeof (uint8_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, 0);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint32_t) <= tmpbuf_size);
         put_uint32 (tmpbuf + offset, command.args_size + 4);
         offset += sizeof (uint32_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, command.class_id);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, command.method_id);
         offset += sizeof (uint16_t);
         next_step (tmpbuf, offset, &amqp09_encoder_t::command_header);
@@ -87,59 +92,82 @@ bool zmq::amqp09_encoder_t::message_ready ()
 
     //  Encode method frame frame header
     size_t offset = 0;
+    assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp09::frame_method);
     offset += sizeof (uint8_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint32_t) <= tmpbuf_size);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
     //  Encode method frame payload (basic.deliver on AMQP broker, basic.publish
     //  on AMQP client).
     if (server) {
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp09::basic_deliver_id);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, 0);
         offset += sizeof (uint8_t);
+        assert (offset + sizeof (uint64_t) <= tmpbuf_size);
         put_uint64 (tmpbuf + offset, 0);
         offset += sizeof (uint64_t);
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, 0);
         offset += sizeof (uint8_t);
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, (uint8_t) out_exchange.size ());
         offset += sizeof (uint8_t);
+        assert (offset + out_exchange.size () <= tmpbuf_size);
         memcpy (tmpbuf + offset, out_exchange.c_str (), out_exchange.size ());
         offset += out_exchange.size ();
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, (uint8_t) out_routing_key.size ());
         offset += sizeof (uint8_t);
+        assert (offset + out_routing_key.size () <= tmpbuf_size);
         memcpy (tmpbuf + offset, out_routing_key.c_str (),
             out_routing_key.size ());
         offset += out_routing_key.size ();
     }
     else {
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp09::basic_publish_id);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, 0);
         offset += sizeof (uint16_t);
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, (uint8_t) out_exchange.size ());
         offset += sizeof (uint8_t);
+        assert (offset + out_exchange.size () <= tmpbuf_size);
         memcpy (tmpbuf + offset, out_exchange.c_str (), out_exchange.size ());
         offset += out_exchange.size ();
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, (uint8_t) out_routing_key.size ());
         offset += sizeof (uint8_t);
+        assert (offset + out_routing_key.size () <= tmpbuf_size);
         memcpy (tmpbuf + offset, out_routing_key.c_str (),
             out_routing_key.size ());
         offset += out_routing_key.size ();
-        tmpbuf [offset] = 0;
+        assert (offset + sizeof (uint8_t) <= tmpbuf_size);
+        put_uint8 (tmpbuf + offset, 0);
         offset += sizeof (uint8_t);
     }
 
     //  Encode frame-end octet
+    assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp09::frame_end);
     offset += sizeof (uint8_t);
+
+    //  Fill in the size
     put_uint32 (tmpbuf + size_offset, offset - 8); 
 
     next_step (tmpbuf, offset, &amqp09_encoder_t::content_header);
@@ -170,22 +198,32 @@ bool zmq::amqp09_encoder_t::content_header ()
 {
     //  Encode complete message header frame.
     size_t offset = 0;
+    assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp09::frame_header);
     offset += sizeof (uint8_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint32_t) <= tmpbuf_size);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, i_amqp09::basic_id);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint64_t) <= tmpbuf_size);
     put_uint64 (tmpbuf + offset, message.size);
     offset += sizeof (uint64_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp09::frame_end);
     offset += sizeof (uint8_t);
+
+    //  Fill in the size
     put_uint32 (tmpbuf + size_offset, offset - 8);
     
     body_offset = 0;
@@ -201,10 +239,13 @@ bool zmq::amqp09_encoder_t::content_body_frame_header ()
  
     //  Encode header of message body frame
     size_t offset = 0;
+    assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp09::frame_body);
     offset += sizeof (uint8_t);
+    assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+    assert (offset + sizeof (uint32_t) <= tmpbuf_size);
     put_uint32 (tmpbuf + offset, body_size);
     offset += sizeof (uint32_t);
 
@@ -228,6 +269,7 @@ bool zmq::amqp09_encoder_t::content_body ()
 bool zmq::amqp09_encoder_t::frame_end ()
 {
     //  Encode frame-end octet for message body frame
+    assert (sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf, i_amqp09::frame_end);
 
     //  If the message is transferred completely, start encoding new message,
