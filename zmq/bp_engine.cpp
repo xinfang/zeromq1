@@ -21,11 +21,11 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_, int engine_id_,
+zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_,
       bool listen_, const char *address_, uint16_t port_,
       int source_engine_id_, int destination_engine_id_,
       size_t writebuf_size_, size_t readbuf_size_) :
-    proxy (dispatcher_, engine_id_),
+    proxy (dispatcher_),
     encoder (&proxy, source_engine_id_),
     decoder (&proxy, destination_engine_id_),
     socket (listen_, address_, port_),

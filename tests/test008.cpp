@@ -33,8 +33,8 @@ using namespace zmq;
 void *ping_pong_routine (void*)
 {
     dispatcher_t dispatcher (2);
-    api_engine_t api (&dispatcher, 0);
-    bp_engine_t bp (&dispatcher, 1, false, "127.0.0.1", 5555, 0, 0, 8192, 8192);
+    api_engine_t api (&dispatcher);
+    bp_engine_t bp (&dispatcher, false, "127.0.0.1", 5555, 0, 0, 8192, 8192);
     poll_thread_t poll_thread (&bp);
 
     //  Do ping-pong in a loop
@@ -54,8 +54,8 @@ void *ping_pong_routine (void*)
 void *echo_routine (void*)
 {
     dispatcher_t dispatcher (2);
-    api_engine_t api (&dispatcher, 0);
-    bp_engine_t bp (&dispatcher, 1, true, "0.0.0.0", 5555, 0, 0, 8192, 8192);
+    api_engine_t api (&dispatcher);
+    bp_engine_t bp (&dispatcher, true, "0.0.0.0", 5555, 0, 0, 8192, 8192);
     poll_thread_t poll_thread (&bp);
 
     //  Echo messages in a loop

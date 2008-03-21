@@ -19,10 +19,10 @@
 
 #include "api_engine.hpp"
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, int engine_id_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks_max (100),
     ticks (1),
-    proxy (dispatcher_, engine_id_)
+    proxy (dispatcher_)
 {
     proxy.set_signaler (&pollset);
     engine_count = dispatcher_->get_engine_count ();

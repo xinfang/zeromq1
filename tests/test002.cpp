@@ -29,7 +29,7 @@ int main ()
 {
     //  Create a dispatcher with a single engine plugged-in
     dispatcher_t dispatcher (1);
-    api_engine_t engine (&dispatcher, 0);
+    api_engine_t engine (&dispatcher);
 
     //  Send a message batch to yourself
     cmsg_t msg_out = {(void*) "ABCDEF", 6, NULL};

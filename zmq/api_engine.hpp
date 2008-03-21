@@ -34,7 +34,8 @@ namespace zmq
     class api_engine_t
     {
     public:
-        api_engine_t (dispatcher_t *dispatcher_, int engine_id_);
+        //  Creates API engine and attaches it to the dispatcher
+        api_engine_t (dispatcher_t *dispatcher_);
 
         //  Send the message to the engine specified
         void send (int destination_engine_id_, const cmsg_t &value_);

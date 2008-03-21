@@ -36,13 +36,13 @@ namespace zmq
     {
     public:
 
-        //  Creates bp_engine. Attaches it to dispatcher using engine_id
-        //  supplied. Underlying TCP is initialised using listen, address
+        //  Creates bp_engine. Attaches it to dispatcher. Underlying TCP 
+        //  connection is initialised using listen, address
         //  and port parameters. source_engine_id specifies which engine
         //  to get messages from to be send to the socket, destination_engine_id
         //  specified which engine to send incoming messages to. writebuf_size
         //  and readbuf_size determine the amount of batching to use.
-        bp_engine_t (dispatcher_t *dispatcher_, int engine_id_,
+        bp_engine_t (dispatcher_t *dispatcher_,
             bool listen_, const char *address_, uint16_t port_,
             int source_engine_id_, int destination_engine_id_,
             size_t writebuf_size_, size_t readbuf_size_);

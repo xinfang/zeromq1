@@ -50,15 +50,19 @@ namespace perf
             for (unsigned int i = 0; i < count_io_thread_; i++) {
                 
                 // api IDs are from 0 to count_io_thread_
-                api [i] = new zmq::api_engine_t (&dispatcher, i); 
+                api [i] = new zmq::api_engine_t (&dispatcher); 
                 assert (api [i]);
+           }
+
+           for (unsigned int i = 0; i < count_io_thread_; i++) {
 
                 // engine IDs are from count_io_thread_ to 2 * count_io_thread_
                 engine [i] = new zmq::bp_engine_t (&dispatcher, 
-                    count_io_thread_ + i, listen_, ip_address_, port_ + i, i, i, 
-                    8192, 8192);
+                    listen_, ip_address_, port_ + i, i, i, 8192, 8192);
                 assert (engine [i]);
+            }
 
+           for (unsigned int i = 0; i < count_io_thread_; i++) {
                 io [i] = new zmq::poll_thread_t (engine [i]);
                 assert (io [i]);
 

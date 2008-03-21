@@ -29,7 +29,7 @@ int main ()
 {
     //  Create a dispatcher with a single engine plugged-in
     dispatcher_t dispatcher (1);
-    api_engine_t engine (&dispatcher, 0);
+    api_engine_t engine (&dispatcher);
 
     for (int msg_nbr = 0; msg_nbr != 10000; msg_nbr++) {
 

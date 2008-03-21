@@ -48,8 +48,8 @@ namespace zmq
 
         typedef F fsm_t;
 
-        //  Creates amqp09_engine. Attaches it to dispatcher using engine_id
-        //  supplied. Underlying TCP is initialised using listen, address
+        //  Creates amqp09_engine and attaches it to dispatcher.
+        //  Underlying TCP connection is initialised using listen, address
         //  and port parameters. source_engine_id specifies which engine
         //  to get messages from to be send to the socket, destination_engine_id
         //  specified which engine to send incoming messages to. writebuf_size
@@ -57,14 +57,14 @@ namespace zmq
         //  out_exchange and out_routing_key are used to set exchange and
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
-        amqp09_engine_t (dispatcher_t *dispatcher_, int engine_id_,
+        amqp09_engine_t (dispatcher_t *dispatcher_,
               bool listen_, const char *address_, uint16_t port_,
               int source_engine_id_, int destination_engine_id_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             socket (listen_, address_, port_),
-            proxy (dispatcher_, engine_id_),
+            proxy (dispatcher_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),

@@ -47,9 +47,9 @@ int main ()
 {
     //  Create a dispatcher with three API engines plugged-in
     dispatcher_t dispatcher (3);
-    api_engine_t engine0 (&dispatcher, 0);
-    api_engine_t engine1 (&dispatcher, 1);
-    api_engine_t engine2 (&dispatcher, 2);
+    api_engine_t engine0 (&dispatcher);
+    api_engine_t engine1 (&dispatcher);
+    api_engine_t engine2 (&dispatcher);
 
     //  Start the sender threads
     pthread_t worker1;

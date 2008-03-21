@@ -13,8 +13,6 @@ pkginclude_HEADERS = \
     i_signaler.hpp \
     tcp_socket.hpp \
     wire.hpp \
-    ydispatcher.hpp \
-    ydispatcher_proxy.hpp \
     ypipe.hpp \
     ypollset.hpp \
     ysemaphore.hpp \
@@ -54,10 +52,10 @@ libzmq_la_SOURCES = \
     i_signaler.hpp \
     ysemaphore.hpp \
     ysemaphore.cpp \
-    ydispatcher.hpp \
     dispatcher.hpp \
-    ydispatcher_proxy.hpp \
+    dispatcher.cpp \
     dispatcher_proxy.hpp \
+    dispatcher_proxy.cpp \
     cmsg.hpp \
     decoder.hpp \
     bp_decoder.hpp \
