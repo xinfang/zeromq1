@@ -43,7 +43,8 @@ namespace zmq
         inline atomic_uint32_t ()
         {
             value = 0;
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+    && !defined (__x86_64__)))
             int rc = pthread_mutex_init (&mutex, NULL);
             errno_assert (rc == 0);
 #endif
@@ -51,7 +52,8 @@ namespace zmq
 
         inline ~atomic_uint32_t ()
         {
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+    && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
 #endif
@@ -66,7 +68,8 @@ namespace zmq
         //  bit and actual reset, however, have to be done atomically.
         inline bool btsr (int set_index_, int reset_index_)
         {
-#if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__))
             uint32_t oldval;
             __asm__ volatile (
                 "lock; btsl %1, (%3)\n\t"  //  Does bts have to be atomic?
@@ -93,7 +96,8 @@ namespace zmq
         inline uint32_t xchg (uint32_t newval_)
         {
             uint32_t oldval;
-#if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
@@ -126,7 +130,8 @@ namespace zmq
         inline uint32_t izte (uint32_t thenval_, uint32_t elseval_)
         {
             uint32_t oldval;
-#if ((defined (__i386__) || defined (__x86_64__)) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__))
             __asm__ volatile (
                 "lock; cmpxchgl %1, %3\n\t"
                 "jz 1f\n\t"
@@ -150,7 +155,8 @@ namespace zmq
     protected:
 
         volatile uint32_t value;
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
+    (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;
 #endif
     };

@@ -43,7 +43,8 @@ namespace zmq
         atomic_ptr_t ()
         {
             ptr = NULL;
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+    && !defined (__x86_64__)))
             int rc = pthread_mutex_init (&mutex, NULL);
             errno_assert (rc == 0);
 #endif
@@ -52,7 +53,8 @@ namespace zmq
         //  Destroy atomic pointer
         ~atomic_ptr_t ()
         {
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+    && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
 #endif
@@ -72,14 +74,16 @@ namespace zmq
         //  is returned in any case.
         T *cas (T *cmp_, T *val_)
         {
-#if (defined (__i386__) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+    defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgl %1, %2"             
                 : "=a" (old)               
                 : "r" (val_), "m" (ptr), "0" (cmp_) 
                 : "memory", "cc");
             return old;
-#elif (defined (__x86_64__) && defined (__GNUC__))
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgq %1, %2"             
                 : "=a" (old)               
@@ -100,7 +104,8 @@ namespace zmq
     protected:
         
         volatile T *ptr;
-#if (!defined (__GNUC__) || (!defined (__i386__) && !defined (__x86_64__)))
+#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+    && !defined (__x86_64__)))
         pthread_mutex_t mutex;
 #endif
 
