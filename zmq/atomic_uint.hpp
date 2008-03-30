@@ -97,7 +97,7 @@ namespace zmq
         //  Sets value to newval. Returns the original value.
         inline integer_t xchg (integer_t newval_)
         {
-            uint32_t oldval;
+            integer_t oldval;
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
@@ -154,8 +154,8 @@ namespace zmq
             __asm__ volatile (
                 "lock; cmpxchgq %1, %3\n\t"
                 "jz 1f\n\t"
-                "mov %2, %%eax\n\t"
-                "lock; xchgq %%eax, %3\n\t"
+                "mov %2, %%rax\n\t"
+                "lock; xchgq %%rax, %3\n\t"
                 "1:\n\t"
                 : "=&a" (oldval)
                 : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)

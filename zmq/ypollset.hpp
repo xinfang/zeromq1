@@ -57,7 +57,7 @@ namespace zmq
         //  index 2 to value 4 etc.
         inline integer_t poll ()
         {
-            integer_t result = bits.izte (1 << wait_signal, 0);
+            integer_t result = bits.izte (integer_t (1) << wait_signal, 0);
             if (!result) {
                 sem.wait ();
                 result = bits.xchg (0);
