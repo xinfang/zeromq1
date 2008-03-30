@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
-#define __ZMQ_ATOMIC_UINT32_HPP_INCLUDED__
+#ifndef __ZMQ_ATOMIC_UINT_HPP_INCLUDED__
+#define __ZMQ_ATOMIC_UINT_HPP_INCLUDED__
 
 #include <pthread.h>
 
@@ -28,19 +28,21 @@
 namespace zmq
 {
 
-    //  This class encapuslates several atomic operations on unsigned 32-bit
+    //  This class encapuslates several atomic operations on unsigned
     //  integer. Selection of the provided instructions is driven specifically
     //  by the needs of ypollset implementation.
-    //
-    //  Note that i386 and x86_64 implementations are dependend on processors'
-    //  full memory barrier associated with atomic operations (lock prefix).
-    //  On different platforms memory fencing may be required to be implemented
-    //  explicitly.
-    class atomic_uint32_t
+
+    class atomic_uint_t
     {
     public:
 
-        inline atomic_uint32_t ()
+#if defined (__x86_64__)
+        typedef uint64_t integer_t;
+#else
+        typedef uint32_t integer_t;
+#endif
+
+        inline atomic_uint_t ()
         {
             value = 0;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
@@ -50,7 +52,7 @@ namespace zmq
 #endif
         }
 
-        inline ~atomic_uint32_t ()
+        inline ~atomic_uint_t ()
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
     && !defined (__x86_64__)))
@@ -83,24 +85,31 @@ namespace zmq
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
-            uint32_t oldval = value;
-            value = (oldval | (uint32_t (1) << set_index_)) &
-                ~(uint32_t (1) << reset_index_);
+            integer_t oldval = value;
+            value = (oldval | (integer_t (1) << set_index_)) &
+                ~(integer_t (1) << reset_index_);
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
-            return (bool) (oldval & (uint32_t (1) << reset_index_));
+            return (bool) (oldval & (integer_t (1) << reset_index_));
 #endif
         }
 
         //  Sets value to newval. Returns the original value.
-        inline uint32_t xchg (uint32_t newval_)
+        inline integer_t xchg (integer_t newval_)
         {
             uint32_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
+                : "=r" (oldval)
+                : "m" (value), "0"(oldval)
+                : "memory");
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
+            oldval = newval_;
+            __asm__ volatile (
+                "lock; xchgq %0, %1"
                 : "=r" (oldval)
                 : "m" (value), "0"(oldval)
                 : "memory");
@@ -125,18 +134,28 @@ namespace zmq
         //  "While izte is being called from one thread no other thread is
         //  allowed to perform any operation that would result in clearing
         //  bits of the value (btr, xchg, izte)."
-        //  If the code using atomic_uint32 doesn't adhere to this assumption
+        //  If the code using atomic_uint doesn't adhere to this assumption
         //  the behaviour of izte is undefined.
-        inline uint32_t izte (uint32_t thenval_, uint32_t elseval_)
+        inline integer_t izte (integer_t thenval_, integer_t elseval_)
         {
             uint32_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             __asm__ volatile (
                 "lock; cmpxchgl %1, %3\n\t"
                 "jz 1f\n\t"
                 "mov %2, %%eax\n\t"
                 "lock; xchgl %%eax, %3\n\t"
+                "1:\n\t"
+                : "=&a" (oldval)
+                : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
+                : "memory", "cc");
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
+            __asm__ volatile (
+                "lock; cmpxchgq %1, %3\n\t"
+                "jz 1f\n\t"
+                "mov %2, %%eax\n\t"
+                "lock; xchgq %%eax, %3\n\t"
                 "1:\n\t"
                 : "=&a" (oldval)
                 : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
@@ -154,7 +173,7 @@ namespace zmq
 
     protected:
 
-        volatile uint32_t value;
+        volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;

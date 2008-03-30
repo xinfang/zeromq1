@@ -27,18 +27,22 @@
 #include <assert.h>
 
 #include "i_signaler.hpp"
-#include "atomic_uint32.hpp"
+#include "atomic_uint.hpp"
 #include "ysemaphore.hpp"
 #include "stdint.hpp"
 
 namespace zmq
 {
 
-    //  ypollset allows for rapid polling for up to 31 different signals
-    //  each produced by a different thread.
+    //  ypollset allows for rapid polling for up to constant number of  
+    //  different signals each produced by a different thread. The number of
+    //  possible signals is dependent of the platform.
+
     class ypollset_t : public i_signaler
     {
     public:
+
+        typedef atomic_uint_t::integer_t integer_t;
 
         //  Create the pollset
         inline ypollset_t ()
@@ -51,9 +55,9 @@ namespace zmq
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
-        inline uint32_t poll ()
+        inline integer_t poll ()
         {
-            uint32_t result = bits.izte (1 << wait_signal, 0);
+            integer_t result = bits.izte (1 << wait_signal, 0);
             if (!result) {
                 sem.wait ();
                 result = bits.xchg (0);
@@ -63,16 +67,17 @@ namespace zmq
 
         //  Same as poll, however, if there is no signal available,
         //  function returns zero immediately instead of waiting for a signal.
-        inline uint32_t check ()
+        inline integer_t check ()
         {
             return bits.xchg (0);
         }
 
     private:
 
-        enum {wait_signal = 31};
+        //  Wait signal is carried in the last bit of the integer
+        enum {wait_signal = sizeof (integer_t) * 8 - 1};
 
-        atomic_uint32_t bits;
+        atomic_uint_t bits;
         ysemaphore_t sem;
     };
 

@@ -3,7 +3,7 @@ INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 pkginclude_HEADERS = \
     api_engine.hpp \
     atomic_ptr.hpp \
-    atomic_uint32.hpp \
+    atomic_uint.hpp \
     bp_decoder.hpp \
     cmsg.hpp \
     decoder.hpp \
@@ -41,7 +41,7 @@ libzmq_la_SOURCES = \
     ysocketpair.hpp \
     ysocketpair.cpp \
     atomic_ptr.hpp \
-    atomic_uint32.hpp \
+    atomic_uint.hpp \
     err.hpp \
     wire.hpp \
     ypipe.hpp \
