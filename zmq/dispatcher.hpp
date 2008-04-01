@@ -72,10 +72,9 @@ namespace zmq
         inline void write (int source_engine_id_, int destination_engine_id_,
             const cmsg_t &value_)
         {
-            cell_t &cell = cells [source_engine_id_ * engine_count +
-                destination_engine_id_];
-            if (!cell.pipe.write (value_))
-                cell.signaler->signal (source_engine_id_);
+            if (!pipes [source_engine_id_ * engine_count +
+                destination_engine_id_].write (value_))
+                signalers [destination_engine_id_]->signal (source_engine_id_);
         }
 
         //  Write a message sequenct to dispatcher. 'first' parameter points
@@ -84,10 +83,9 @@ namespace zmq
         inline void write (int source_engine_id_, int destination_engine_id_,
             item_t *first_, item_t *last_)
         {
-            cell_t &cell = cells [source_engine_id_ * engine_count +
-                destination_engine_id_];
-            if (!cell.pipe.write (first_, last_))
-                cell.signaler->signal (source_engine_id_);
+            if (!pipes [source_engine_id_ * engine_count +
+                destination_engine_id_].write (first_, last_))
+                signalers [destination_engine_id_]->signal (source_engine_id_);
         }
 
         //  Read message sequence from the dispatcher. 'first' parameter points
@@ -96,8 +94,8 @@ namespace zmq
         inline bool read (int source_engine_id_, int destination_engine_id_,
             item_t **first_, item_t **last_)
         {
-            return cells [source_engine_id_ * engine_count +
-                destination_engine_id_].pipe.read (first_, last_);
+            return pipes [source_engine_id_ * engine_count +
+                destination_engine_id_].read (first_, last_);
         }
 
         //  Assign an engine ID to the caller
@@ -108,14 +106,9 @@ namespace zmq
 
     private:
 
-        struct cell_t
-        {
-            ypipe_t <cmsg_t, false> pipe;
-            i_signaler *signaler;
-        };
-
         int engine_count;
-        cell_t *cells;
+        ypipe_t <cmsg_t, false> *pipes;
+        std::vector <i_signaler*> signalers;
 
         //  Vector specifying which engine IDs are used and which are not.
         //  The access to the vector is synchronised using mutex - this is OK

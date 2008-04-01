@@ -26,13 +26,12 @@
 
 zmq::dispatcher_t::dispatcher_t (int engine_count_) :
     engine_count (engine_count_),
+    signalers (engine_count_, (i_signaler*) NULL),
     used (engine_count_)
 {
     //  Alocate N * N matrix of dispatching pipes
-    cells = new cell_t [engine_count * engine_count];
-    assert (cells);
-    for (int cell_nbr = 0; cell_nbr != engine_count * engine_count; cell_nbr ++)
-        cells [cell_nbr].signaler = NULL;
+    pipes = new ypipe_t <cmsg_t, false> [engine_count * engine_count];
+    assert (pipes);
 
     //  Initialise the mutex
     int rc = pthread_mutex_init (&mutex, NULL);
@@ -49,13 +48,12 @@ zmq::dispatcher_t::~dispatcher_t ()
     errno_assert (rc == 0);
 
     //  Deallocate the pipe matrix
-    delete [] cells;
+    delete [] pipes;
 }
 
 void zmq::dispatcher_t::set_signaler (int engine_id_, i_signaler *signaler_)
 {
-    for (int engine_nbr = 0; engine_nbr != engine_count; engine_nbr ++)
-        cells [engine_nbr * engine_count + engine_id_].signaler = signaler_; 
+    signalers [engine_id_] = signaler_; 
 }
 
 int zmq::dispatcher_t::allocate_engine_id ()
