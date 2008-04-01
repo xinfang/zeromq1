@@ -27,11 +27,14 @@ namespace zmq
 
     //  Lock-free and wait free queue implementation.
     //  Additionally, ypipe allows to read items in batches to avoid
-    //  redundant atomic operations. It also signals to both sender
-    //  and receiver if read past the end of the queue was attempted.
+    //  redundant atomic operations.
     //  Only a single thread can read from the pipe at any specific moment.
     //  Only a single thread can write to the pipe at any specific moment.
-    template <typename T> class ypipe_t
+    //  If the templete parameter D (die-fast) is set to true, the pipe
+    //  'dies' immediately after each read. If it is set to false, it dies
+    //  only if read method returns no data.
+
+    template <typename T, bool D> class ypipe_t
     {
     public:
 
@@ -63,10 +66,8 @@ namespace zmq
 
         //  Write an item to the pipe. If pipe is in 'dead' state, function
         //  returns false. Otherwise it returns true. Writing an item to the
-        //  pipe revives it in case it is dead. Writing an item to a dead pipe
-        //  enqueues the item if 'write_always' is true. Otherwise it
-        //  leaves the pipe as is.
-        bool write (const T &value_, bool write_always_ = true)
+        //  pipe revives it in case it is dead.
+        bool write (const T &value_)
         {
             item_t *n = new item_t;
             w->value = value_;
@@ -76,20 +77,15 @@ namespace zmq
                 return true;
             }
             else {
-                if (write_always_) {
-                    w = n;
-                    c.set (n);
-                }
-                else
-                    delete n;
+                w = n;
+                c.set (n);
                 return false;
             }
         }
 
         //  Write multiple items to the pipe. If pipe is in dead state, function
         //  returns false. Otherwise it returns true. Writing an item to the
-        //  pipe revives it in case it is dead. Writing an item to a dead pipe
-        //  enqueues the item nontheless.
+        //  pipe revives it in case it is dead.
         bool write (item_t *first_, item_t *last_)
         {
             item_t *n = new item_t;
@@ -103,22 +99,34 @@ namespace zmq
                 return true;
             }
             else {
-                w = n;
                 c.set (n);
+                w = n;
                 return false;
             }
         }
 
-        //  Reads all the items from the pipe. If there is no item in the pipe,
-        //  function returns false and the pipe 'dies'. Otherwise, 'first_'
-        //  points to first retrieved item, 'last_' points one past the last
-        //  retrieved item. The caller is responsible for deallocation of
-        //  the retrieved items afterwards.
+        //  Reads all the items from the pipe.
+        //  After the call, 'first_' points to first retrieved item,
+        //  'last_' points one past the last retrieved item
+        //  (i.e. if first_==last_, no items were retrieved). The caller
+        //  is responsible for deallocation of the retrieved items afterwards.
+        //  The pipe 'dies' and function returns false:
+        //  1. if D==true
+        //  2. if D==false and there are no items in the pipe
         bool read (item_t **first_, item_t **last_)
         {
-            *first_ = r;
-            r = *last_ = c.cas (r, NULL);
-            return *first_ != *last_;
+            //  Note that as D is a template parameter, one of the branches
+            //  of the following conditional statement will be optimised out.
+            if (D) {
+                *first_ = r;
+                r = *last_ = c.xchg (NULL);
+                return false;
+            }
+            else {
+                *first_ = r;
+                r = *last_ = c.cas (r, NULL);
+                return *first_ != *last_;
+            }
         }
 
     protected:

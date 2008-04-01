@@ -51,7 +51,7 @@ namespace zmq
     {
     public:
 
-        typedef ypipe_t <cmsg_t>::item_t item_t;
+        typedef ypipe_t <cmsg_t, false>::item_t item_t;
 
         //  Create the dispatcher object
         dispatcher_t (int engine_count_);
@@ -110,7 +110,7 @@ namespace zmq
 
         struct cell_t
         {
-            ypipe_t <cmsg_t> pipe;
+            ypipe_t <cmsg_t, false> pipe;
             i_signaler *signaler;
         };
 

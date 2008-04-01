@@ -103,7 +103,7 @@ namespace zmq
             __asm__ volatile (
                 "lock; xchgl %0, %1"
                 : "=r" (oldval)
-                : "m" (value), "0"(oldval)
+                : "m" (value), "0" (oldval)
                 : "memory");
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
@@ -111,7 +111,7 @@ namespace zmq
             __asm__ volatile (
                 "lock; xchgq %0, %1"
                 : "=r" (oldval)
-                : "m" (value), "0"(oldval)
+                : "m" (value), "0" (oldval)
                 : "memory");
 #else
             int rc = pthread_mutex_lock (&mutex);

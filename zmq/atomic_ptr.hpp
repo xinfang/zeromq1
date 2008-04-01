@@ -68,6 +68,37 @@ namespace zmq
             this->ptr = ptr_;
         }
 
+        //  Perform atomic 'exchange pointers' operation. Pointer is set
+        //  to the 'val' value. Old value is returned.
+        T *xchg (T *val_)
+        {
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+    defined (__GNUC__))
+            T *old;
+            __asm__ volatile ("lock; xchgl %0, %1"
+                : "=r" (val_)
+                : "m" (ptr), "0" (old)
+                : "memory");
+            return old;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
+            T *old;
+            __asm__ volatile ("lock; xchgq %0, %1"
+                : "=r" (val_)
+                : "m" (ptr), "0" (old)
+                : "memory");
+            return old;
+#else
+            int rc = pthread_mutex_lock (&mutex);
+            errno_assert (rc == 0);
+            T *old = (T*) ptr;
+            ptr = val_;
+            rc = pthread_mutex_unlock (&mutex);
+            errno_assert (rc == 0);
+            return old;
+#endif
+        }
+
         //  Perform atomic 'compare and swap' operation on the pointer.
         //  The pointer is compared to 'cmp' argument and if they are
         //  equal, its value is set to 'val'. Old value of the pointer

@@ -44,8 +44,8 @@ namespace perf
     {
     public:
         ysuite_ypipe_t (active_sync_type_t sync_type_, 
-              zmq::ypipe_t<void*> *ypipe_1_,
-              zmq::ypipe_t<void*> *ypipe_2_,
+              zmq::ypipe_t<void*, false> *ypipe_1_,
+              zmq::ypipe_t<void*, false> *ypipe_2_,
               zmq::ysemaphore_t *ysemaphore_1_,
               zmq::ysemaphore_t *ysemaphore_2_,
               zmq::ysocketpair_t *ysocketpair_1_,
@@ -74,7 +74,7 @@ namespace perf
         inline ~ysuite_ypipe_t ()
         {
             while (first != last) {
-                zmq::ypipe_t <void*>::item_t *o = first;
+                zmq::ypipe_t <void*, false>::item_t *o = first;
                 first = first->next;
                 delete o;
             }
@@ -141,11 +141,11 @@ namespace perf
         }
     protected:
         active_sync_type_t sync_type;
-        zmq::ypipe_t <void*>::item_t *first;
-        zmq::ypipe_t <void*>::item_t *last;
+        zmq::ypipe_t <void*, false>::item_t *first;
+        zmq::ypipe_t <void*, false>::item_t *last;
 
-        zmq::ypipe_t <void*> *ypipe_1;
-        zmq::ypipe_t <void*> *ypipe_2;
+        zmq::ypipe_t <void*, false> *ypipe_1;
+        zmq::ypipe_t <void*, false> *ypipe_2;
 
         zmq::ysemaphore_t *ysemaphore_1;
         zmq::ysemaphore_t *ysemaphore_2;
@@ -201,8 +201,8 @@ namespace perf
         zmq::ypollset_t ypollset_1;
         zmq::ypollset_t ypollset_2;
 
-        zmq::ypipe_t <void*> ypipe_1;
-        zmq::ypipe_t <void*> ypipe_2;
+        zmq::ypipe_t <void*, false> ypipe_1;
+        zmq::ypipe_t <void*, false> ypipe_2;
 
         ysuite_ypipe_t y_ypipe_1;
         ysuite_ypipe_t y_ypipe_2;
