@@ -74,15 +74,17 @@ void zmq::poll_thread_t::loop ()
 
         if (pfd [0].revents & POLLIN) {
 
-            //  Process for administrative commands. Commands are read in
-            //  batches to speed the processing up.
-            unsigned char events [256];
-            ssize_t nbytes = recv (pfd [0].fd, events, 256,
-                MSG_DONTWAIT);
-            errno_assert (nbytes != -1);
-            for (int event = 0; event != nbytes; event ++) {
+            //  Process for administrative commands.
+            uint32_t signals = signaler.check ();
+            assert (signals);
 
-                if (events [event] == stop_event) {
+            //  Process revive commands
+            for (int signal = 0; signal < stop_event; signal ++)
+                if (signals & (1 << signal))
+                    engine->revive (signal);
+
+            //  Process stop command
+            if (signals & (1 << stop_event)) {
 
                     //  Stop command :
                     //  If there are no messages to send, quit immediately
@@ -91,10 +93,6 @@ void zmq::poll_thread_t::loop ()
                         return;
                     else
                         stop = true;
-                }
-                else
-                    //  Revive command
-                    engine->revive (events [event]);
             }
         }
 

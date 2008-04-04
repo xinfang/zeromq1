@@ -50,7 +50,7 @@ namespace zmq
 
     private:
 
-        enum {stop_event = 0xff};
+        enum {stop_event = 30};
 
         static void *worker_routine (void *arg_);
         void loop ();

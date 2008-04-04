@@ -119,7 +119,7 @@ namespace perf
                             int rc = poll (pollset_2, 1, -1);
                             errno_assert (rc > 0);
                             assert (pollset_2->revents == POLLIN);
-                            ysocketpair_2->get_signal ();
+                            ysocketpair_2->poll ();
                             ypipe_2->read (&first, &last);
                         }
                     }

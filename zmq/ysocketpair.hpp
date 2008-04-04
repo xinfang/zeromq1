@@ -23,7 +23,9 @@
 #include <assert.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <poll.h>
 
+#include "stdint.hpp"
 #include "i_signaler.hpp"
 #include "err.hpp"
 
@@ -57,13 +59,33 @@ namespace zmq
         //  Send specific signal to the pipe
         void signal (int signal_);
 
-        //  Get first available signal from the pipe
-        inline int get_signal ()
+        //  Waits for a signal. Returns a set of signals in form of a bitmap.
+        //  Signal with index 0 corresponds to value 1, index 1 to value 2,
+        //  index 2 to value 4 etc.
+        inline uint32_t poll ()
         {
-            unsigned char c;
-            ssize_t nbytes = recv (r, &c, 1, MSG_WAITALL);
-            errno_assert (nbytes == 1);
-            return c;
+            pollfd pfd = {r, POLLIN, 0};
+            int rc = ::poll (&pfd, 1, -1);
+            errno_assert (rc >= 0);
+            assert (pfd.revents & POLLIN);
+            return check ();
+        }
+
+        //  Retrieves signals. Returns a set of signals in form of a bitmap.
+        //  Signal with index 0 corresponds to value 1, index 1 to value 2,
+        //  index 2 to value 4 etc. If there is no signal available,
+        //  it returns zero immediately.
+        inline uint32_t check ()
+        {
+            unsigned char buffer [256];
+            ssize_t nbytes = recv (r, buffer, 256, MSG_DONTWAIT);
+            errno_assert (nbytes != -1);
+            uint32_t signals = 0;
+            for (int pos = 0; pos != nbytes; pos ++) {
+                assert (buffer [pos] < 31);
+                signals |= (1 << (buffer [pos]));
+            }
+            return signals;
         }
 
         //  Get the file descriptor associated with the pipe
