@@ -21,7 +21,7 @@
 #define __ZMQ_AMQP09_DECODER_HPP_INCLUDED__
 
 #include "decoder.hpp"
-#include "dispatcher_proxy.hpp"
+#include "demux.hpp"
 #include "amqp09_unmarshaller.hpp"
 
 namespace zmq
@@ -32,12 +32,11 @@ namespace zmq
     {
     public:
 
-        //  Create the decoder. Specifies dispatcher proxy and unmarshaller
-        //  to use and id of engine to send messages to. 'sever' parameter
-        //  specifies whether messages are expected to be carried by
-        //  'basic.publish' command (server) or 'basic.deliver' command (client)
-        amqp09_decoder_t (dispatcher_proxy_t *proxy_,
-            int destination_engine_id, amqp09_unmarshaller_t *unmarshaller_,
+        //  Create the decoder. Specifies demux and unmarshaller to use.
+        //  'sever' parameter specifies whether messages are expected to be
+        //  carried by 'basic.publish' command (server) or 'basic.deliver'
+        //  command (client)
+        amqp09_decoder_t (demux_t *demux_, amqp09_unmarshaller_t *unmarshaller_,
             bool server_);
         ~amqp09_decoder_t ();
 
@@ -46,8 +45,7 @@ namespace zmq
 
     private:
 
-        dispatcher_proxy_t *proxy;
-        int destination_engine_id;
+        demux_t *demux;
         amqp09_unmarshaller_t *unmarshaller;
 
         void method_frame_header_ready ();

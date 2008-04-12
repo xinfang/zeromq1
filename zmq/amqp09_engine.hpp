@@ -22,7 +22,8 @@
 
 #include "i_pollable.hpp"
 #include "i_signaler.hpp"
-#include "dispatcher.hpp"
+#include "mux.hpp"
+#include "demux.hpp"
 #include "amqp09_encoder.hpp"
 #include "amqp09_decoder.hpp"
 #include "amqp09_unmarshaller.hpp"
@@ -57,27 +58,21 @@ namespace zmq
         //  out_exchange and out_routing_key are used to set exchange and
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
-        amqp09_engine_t (dispatcher_t *dispatcher_,
-              bool listen_, const char *address_, uint16_t port_,
-              int source_engine_id_, int destination_engine_id_,
+        amqp09_engine_t (bool listen_, const char *address_, uint16_t port_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             socket (listen_, address_, port_),
-            proxy (dispatcher_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
-            encoder (&proxy, source_engine_id_, &marshaller, fsm.server (),
+            encoder (&mux, &marshaller, fsm.server (),
                 out_exchange_, out_routing_key_),
-            decoder (&proxy, destination_engine_id_, &unmarshaller,
-                fsm.server ()),
+            decoder (&demux, &unmarshaller, fsm.server ()),
             writebuf_size (writebuf_size_),
             readbuf_size (readbuf_size_),
             write_size (0),
             write_pos (0),
-            source_engine_id (source_engine_id_),
-            destination_engine_id (destination_engine_id_),
             events (POLLIN)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
@@ -94,14 +89,9 @@ namespace zmq
 
         // i_pollable interface implementation
 
-        inline void set_signaler (i_signaler *signaler_)
-        {
-            proxy.set_signaler (signaler_);
-        }
-
         inline void revive (int engine_id_)
         {
-            proxy.revive (engine_id_);
+            mux.revive (/*engine_id_*/);   //  TODO
             events |= POLLOUT;
         }
 
@@ -112,7 +102,9 @@ namespace zmq
 
         inline short get_events ()
         {
-            return events | (proxy.has_messages () ? POLLOUT : 0);
+            //  TODO
+            //return events | (proxy.has_messages () ? POLLOUT : 0);
+            assert (false);
         }
 
         void in_event ()
@@ -130,7 +122,7 @@ namespace zmq
             decoder.write (readbuf, nbytes);
 
             //  Flush any messages decoder may have produced to the dispatcher
-            proxy.flush ();
+            demux.flush ();
         }
 
         void out_event ()
@@ -179,7 +171,8 @@ namespace zmq
     private:
 
         tcp_socket_t socket;
-        dispatcher_proxy_t proxy;
+        mux_t mux;
+        demux_t demux;
         amqp09_marshaller_t marshaller;
         fsm_t fsm;
         amqp09_unmarshaller_t unmarshaller;
@@ -196,9 +189,6 @@ namespace zmq
 
         size_t write_size;
         size_t write_pos;
-
-        int source_engine_id;
-        int destination_engine_id;
     };
 
 }

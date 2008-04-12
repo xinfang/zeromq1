@@ -20,11 +20,13 @@
 #include "poll_thread.hpp"
 #include "err.hpp"
 
-zmq::poll_thread_t::poll_thread_t (i_pollable *engine_) :
+zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_,
+      i_pollable *engine_) :
+    dispatcher (dispatcher_),
     engine (engine_)
 {
-    //  Attach the engine to the dispatcher
-    engine->set_signaler (&signaler);
+    //  Register the thread with command dispatcher
+    thread_id = dispatcher->allocate_thread_id (&signaler);
 
     //  Create the worker thread
     int rc = pthread_create (&worker, NULL, worker_routine, this);

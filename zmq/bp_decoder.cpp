@@ -20,10 +20,8 @@
 #include "bp_decoder.hpp"
 #include "wire.hpp"
 
-zmq::bp_decoder_t::bp_decoder_t (dispatcher_proxy_t *proxy_,
-      int destination_engine_id_) :
-    proxy (proxy_),
-    destination_engine_id (destination_engine_id_)
+zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
+    demux (demux_)
 {
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
@@ -61,7 +59,7 @@ void zmq::bp_decoder_t::message_ready ()
 {
     //  Message is completely read. Push it to the dispatcher and start reading
     //  new message.
-    proxy->write (destination_engine_id, msg);
+    demux->write (msg);
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 

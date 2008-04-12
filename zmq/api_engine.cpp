@@ -20,63 +20,52 @@
 #include "api_engine.hpp"
 
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
-    ticks_max (100),
-    ticks (1),
-    proxy (dispatcher_)
+    ticks (0),
+    dispatcher (dispatcher_)
 {
-    proxy.set_signaler (&pollset);
-    engine_count = dispatcher_->get_engine_count ();
-    current_engine = engine_count - 1;
+    //  Register the thread with the command dispatcher
+    thread_id = dispatcher->allocate_thread_id (&pollset);
 }
 
-void zmq::api_engine_t::send (int destination_engine_id_, const cmsg_t &value_)
+zmq::api_engine_t::~api_engine_t ()
 {
-    proxy.instant_write (destination_engine_id_, value_);
+    //  Unregister the thread from the command dispatcher
+    dispatcher->deallocate_thread_id (thread_id);
+}
+
+void zmq::api_engine_t::send (const cmsg_t &value_)
+{
+    demux.instant_write (value_);
 }
 
 void zmq::api_engine_t::receive (cmsg_t *value_)
 {
-    //  What follows is the implementation of a "fair scheduler" (RFC970)
-    //  Receive function returns messages sent by several engines.
-    //  The distribution is done in round-robin manner.
+    //  Get message from mux
+    bool ok = mux.read (value_);
 
-    //  To save time, actual polling (time-consuming operation) is done only
-    //  after each N-th message - if there are messages to process available.
-    //  If there are no messages, polling is done immediately.
-
-    while (true) {
-
-        //  If there are no messages or if there are at least some 'dead'
-        //  engines and N messages were received without polling already...
-        if (!proxy.has_messages () || (proxy.is_pollable () &&
-              ticks == ticks_max)) {
-
-            //  Poll for events - either in non-blocking fashion (if there
-            //  are still messages to receive available) or in blocking
-            //  fashion (if there are no messages to receive).
-            uint32_t signals = proxy.has_messages () ?
-                pollset.check () : pollset.poll ();
-
-            //  Check the events received and start treating the specified
-            //  engines as alive.
-            for (int engine_nbr = 0; engine_nbr != engine_count;
-                  engine_nbr ++) {
-                if (signals & 0x0001)
-                    proxy.revive (engine_nbr);
-                signals >>= 1;
-            }
-        }
-
-        //  Move to the next engine in a round-robin
-        current_engine = (current_engine + 1) % engine_count;
-
-        //  Try to read a message. If successfull, abjust the ticks and return.
-        if (proxy.read (current_engine, value_)) {
-            ticks --;
-            if (!ticks)
-                ticks = ticks_max;
-            return;
-        }
+    //  If there is no message, wait for signals, process commands and
+    //  repeat the whole thing until there is a message.
+    while (!ok) {
+        ypollset_t::integer_t signals = pollset.poll ();
+        assert (signals);
+        process_commands (signals);
+        ticks = 0;
+        ok = mux.read (value_);
     }
+
+    //  Once every max_ticks messages check for signals and process incoming
+    //  commands.
+    if (++ ticks == max_ticks) {
+        ypollset_t::integer_t signals = pollset.check ();
+        if (signals)
+            process_commands (signals);
+        ticks = 0;
+    }
+}
+
+void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals)
+{
+    //  TODO
+    assert (false);
 }
 

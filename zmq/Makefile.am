@@ -8,7 +8,6 @@ pkginclude_HEADERS = \
     cmsg.hpp \
     decoder.hpp \
     dispatcher.hpp \
-    dispatcher_proxy.hpp \
     err.hpp \
     i_signaler.hpp \
     tcp_socket.hpp \
@@ -32,7 +31,10 @@ pkginclude_HEADERS = \
     amqp09_server_fsm.hpp \
     i_amqp09.hpp \
     amqp09_marshaller.hpp \
-    amqp09_unmarshaller.hpp 
+    amqp09_unmarshaller.hpp \
+    command.hpp \
+    mux.hpp \
+    demux.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -54,8 +56,6 @@ libzmq_la_SOURCES = \
     ysemaphore.cpp \
     dispatcher.hpp \
     dispatcher.cpp \
-    dispatcher_proxy.hpp \
-    dispatcher_proxy.cpp \
     cmsg.hpp \
     decoder.hpp \
     bp_decoder.hpp \
@@ -86,7 +86,12 @@ libzmq_la_SOURCES = \
     amqp09_marshaller.hpp \
     amqp09_marshaller.cpp \
     amqp09_unmarshaller.hpp \
-    amqp09_unmarshaller.cpp 
+    amqp09_unmarshaller.cpp \
+    command.hpp \
+    mux.hpp \
+    mux.cpp \
+    demux.hpp \
+    demux.cpp 
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

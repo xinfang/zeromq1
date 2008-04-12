@@ -53,7 +53,7 @@ namespace zmq
         msg_.ffn = NULL;
     }
 
-    //  Cleat canonical message
+    //  Clean canonical message
     inline void free_cmsg (cmsg_t &msg_)
     {
         if (msg_.ffn && msg_.data)

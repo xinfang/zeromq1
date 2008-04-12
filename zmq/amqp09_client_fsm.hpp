@@ -25,7 +25,6 @@
 
 #include "stdint.hpp"
 #include "i_amqp09.hpp"
-#include "dispatcher_proxy.hpp"
 #include "amqp09_marshaller.hpp"
 #include "amqp09_engine.hpp"
 #include "tcp_socket.hpp"

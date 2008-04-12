@@ -21,13 +21,10 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t::bp_engine_t (dispatcher_t *dispatcher_,
-      bool listen_, const char *address_, uint16_t port_,
-      int source_engine_id_, int destination_engine_id_,
-      size_t writebuf_size_, size_t readbuf_size_) :
-    proxy (dispatcher_),
-    encoder (&proxy, source_engine_id_),
-    decoder (&proxy, destination_engine_id_),
+zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
+      uint16_t port_, size_t writebuf_size_, size_t readbuf_size_) :
+    encoder (&mux),
+    decoder (&demux),
     socket (listen_, address_, port_),
     events (POLLIN),
     writebuf_size (writebuf_size_),
@@ -47,11 +44,6 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-void zmq::bp_engine_t::set_signaler (i_signaler *signaler_)
-{
-    proxy.set_signaler (signaler_);
-}
-
 int zmq::bp_engine_t::get_fd ()
 {
     return socket.get_fd ();
@@ -59,14 +51,16 @@ int zmq::bp_engine_t::get_fd ()
 
 short zmq::bp_engine_t::get_events ()
 {
-    return events | (proxy.has_messages () ? POLLOUT : 0);
+    //  TODO
+    assert (false);
+    //return events | (proxy.has_messages () ? POLLOUT : 0);
 }
 
 void zmq::bp_engine_t::revive (int engine_id_)
 {
     //  There is at least one engine that has messages ready - start polling
     //  the socket for writing.
-    proxy.revive (engine_id_);
+    mux.revive (/*engine_id_*/);  //  TODO
     events |= POLLOUT;
 }
 
@@ -78,6 +72,7 @@ void zmq::bp_engine_t::in_event ()
     if (!nbytes) {
 
         //  If the other party closed the connection, stop polling
+        //  TODO: handle the event more gracefully
         events ^= POLLIN;
         return;
     }
@@ -85,8 +80,8 @@ void zmq::bp_engine_t::in_event ()
     //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
 
-    //  Flush any messages decoder may have produced to the dispatcher
-    proxy.flush ();
+    //  Flush any messages decoder may have produced
+    demux.flush ();
 }
 
 void zmq::bp_engine_t::out_event ()

@@ -20,8 +20,7 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
-#include "dispatcher.hpp"
-#include "dispatcher_proxy.hpp"
+#include "demux.hpp"
 #include "decoder.hpp"
 
 namespace zmq
@@ -31,7 +30,7 @@ namespace zmq
     {
     public:
 
-        bp_decoder_t (dispatcher_proxy_t *proxy_, int destination_engine_id_);
+        bp_decoder_t (demux_t *demux_);
 
     protected:
 
@@ -39,8 +38,7 @@ namespace zmq
         void eight_byte_size_ready ();
         void message_ready ();
 
-        dispatcher_proxy_t *proxy;
-        int destination_engine_id;
+        demux_t *demux;
         unsigned char tmpbuf [8];
         cmsg_t msg;
     };

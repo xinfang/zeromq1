@@ -22,7 +22,8 @@
 
 #include "cmsg.hpp"
 #include "dispatcher.hpp"
-#include "dispatcher_proxy.hpp"
+#include "mux.hpp"
+#include "demux.hpp"
 #include "ypollset.hpp"
 
 namespace zmq
@@ -34,22 +35,29 @@ namespace zmq
     class api_engine_t
     {
     public:
-        //  Creates API engine and attaches it to the dispatcher
+        //  Creates API engine and attaches it to the command dispatcher
         api_engine_t (dispatcher_t *dispatcher_);
 
-        //  Send the message to the engine specified
-        void send (int destination_engine_id_, const cmsg_t &value_);
+        //  Destroys API engine
+        ~api_engine_t ();
 
-        //  Receive a message (whatever engine it may come from)
+        //  Send a message
+        void send (const cmsg_t &value_);
+
+        //  Receive a message
         void receive (cmsg_t *value_);
 
     protected:
 
-        int engine_count;
-        int current_engine;
-        int ticks_max;
+        void process_commands (ypollset_t::integer_t signals);
+
+        enum {max_ticks = 100};
+
         int ticks;
-        dispatcher_proxy_t proxy;
+        mux_t mux;
+        demux_t demux;
+        dispatcher_t *dispatcher;
+        int thread_id;
         ypollset_t pollset;
     };
 

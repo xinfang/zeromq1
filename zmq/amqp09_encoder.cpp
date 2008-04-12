@@ -24,12 +24,11 @@
 #include "i_amqp09.hpp"
 #include "wire.hpp"
 
-zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
-    int source_engine_id_, amqp09_marshaller_t *marshaller_, bool server_,
-    const char *out_exchange_, const char *out_routing_key_) :
+zmq::amqp09_encoder_t::amqp09_encoder_t (mux_t *mux_,
+      amqp09_marshaller_t *marshaller_, bool server_,
+      const char *out_exchange_, const char *out_routing_key_) :
     server (server_),
-    proxy (proxy_),
-    source_engine_id (source_engine_id_),
+    mux (mux_),
     marshaller (marshaller_),
     flow_on (false),
     out_exchange (out_exchange_),
@@ -87,7 +86,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
         return false;
 
     //  Get one message from the dispatcher (via proxy).
-    if (!proxy->read (source_engine_id, &message))
+    if (!mux->read (&message))
         return false;
 
     //  Encode method frame frame header

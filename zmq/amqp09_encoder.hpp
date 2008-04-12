@@ -23,7 +23,7 @@
 #include <string>
 
 #include "encoder.hpp"
-#include "dispatcher_proxy.hpp"
+#include "mux.hpp"
 #include "amqp09_marshaller.hpp"
 
 namespace zmq
@@ -34,13 +34,13 @@ namespace zmq
     {
     public:
 
-        //  Create the encoder. Specifies dispatcher proxy and marshaller
-        //  to use and id of engine to receive messages from. 'sever' parameter
-        //  specifies whether messages are sent using 'basic.deliver' command
-        //  (server) or 'basic.publish' command (client).
-        amqp09_encoder_t (dispatcher_proxy_t *proxy_, int source_engine_id_,
-            amqp09_marshaller_t *marshaller_, bool server_,
-            const char *out_exchange_, const char *out_routing_key_);
+        //  Create the encoder. Specifies mux and marshaller to use.
+        //  'server' parameter specifies whether messages are sent using
+        //  'basic.deliver' command (server) or 'basic.publish'
+        //  command (client).
+        amqp09_encoder_t (mux_t *mux_, amqp09_marshaller_t *marshaller_,
+            bool server_, const char *out_exchange_,
+            const char *out_routing_key_);
         ~amqp09_encoder_t ();
 
         //  Switches message flow on/off
@@ -65,8 +65,7 @@ namespace zmq
         cmsg_t message;
         size_t body_offset;
 
-        dispatcher_proxy_t *proxy;
-        int source_engine_id;
+        mux_t *mux;
         amqp09_marshaller_t *marshaller;
 
         bool flow_on;

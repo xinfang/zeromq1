@@ -26,7 +26,6 @@
 #include <poll.h>
 
 #include "dispatcher.hpp"
-#include "dispatcher_proxy.hpp"
 #include "ysocketpair.hpp"
 #include "i_pollable.hpp"
 
@@ -45,7 +44,7 @@ namespace zmq
         //  Create a poll thread to serve specified engine. At the moment only
         //  a single engine can be attached to the poll thread. In the future
         //  poll thread should be able to handle multiple engines.
-        poll_thread_t (i_pollable *engine_);
+        poll_thread_t (dispatcher_t *dispatcher_, i_pollable *engine_);
         ~poll_thread_t ();
 
     private:
@@ -54,6 +53,9 @@ namespace zmq
 
         static void *worker_routine (void *arg_);
         void loop ();
+
+        dispatcher_t *dispatcher;
+        int thread_id;
 
         i_pollable *engine;
         ysocketpair_t signaler;

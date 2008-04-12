@@ -17,33 +17,35 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_ENCODER_HPP_INCLUDED__
-#define __ZMQ_BP_ENCODER_HPP_INCLUDED__
+#ifndef __ZMQ_DEMUX_HPP_INCLUDED__
+#define __ZMQ_DEMUX_HPP_INCLUDED__
 
-#include <stddef.h>
 #include <assert.h>
+#include <vector>
 
-#include "mux.hpp"
-#include "encoder.hpp"
+#include "cmsg.hpp"
 
 namespace zmq
 {
-    //  Encoder for 0MQ backend protocol
-    class bp_encoder_t : public encoder_t <bp_encoder_t>
+
+    class demux_t
     {
     public:
 
-        bp_encoder_t (mux_t *mux_);
-        ~bp_encoder_t ();
+        void write (const cmsg_t &msg_)
+        {
+        }
 
-    protected:
 
-        bool size_ready ();
-        bool message_ready ();
+        void instant_write (const cmsg_t &msg_)
+        {
+        }
 
-        mux_t *mux;
-        cmsg_t msg;
-        unsigned char tmpbuf [9];
+        void flush ()
+        {
+        }
+
+    private:
     };
 
 }

@@ -21,6 +21,8 @@
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
 
 #include "i_pollable.hpp"
+#include "mux.hpp"
+#include "demux.hpp"
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
@@ -36,20 +38,14 @@ namespace zmq
     {
     public:
 
-        //  Creates bp_engine. Attaches it to dispatcher. Underlying TCP 
-        //  connection is initialised using listen, address
-        //  and port parameters. source_engine_id specifies which engine
-        //  to get messages from to be send to the socket, destination_engine_id
-        //  specified which engine to send incoming messages to. writebuf_size
+        //  Creates bp_engine. Underlying TCP connection is initialised using
+        //  listen, address and port parameters. writebuf_size
         //  and readbuf_size determine the amount of batching to use.
-        bp_engine_t (dispatcher_t *dispatcher_,
-            bool listen_, const char *address_, uint16_t port_,
-            int source_engine_id_, int destination_engine_id_,
+        bp_engine_t (bool listen_, const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_);
         ~bp_engine_t ();
 
         //  i_pollable interface implementation
-        void set_signaler (i_signaler *signaler_);
         void revive (int engine_id_);
         int get_fd ();
         short get_events ();
@@ -58,7 +54,8 @@ namespace zmq
 
     private:
 
-        dispatcher_proxy_t proxy;   
+        mux_t mux;
+        demux_t demux;  
 
         unsigned char *writebuf;
         size_t writebuf_size;

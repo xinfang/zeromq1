@@ -33,9 +33,6 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Attach the engine with the dispatcher
-        virtual void set_signaler (i_signaler *signaler_) = 0;
-
         //  Notifies the engine that another engine sent it messages
         virtual void revive (int engine_id_) = 0;
 
