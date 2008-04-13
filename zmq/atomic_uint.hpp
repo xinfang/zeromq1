@@ -29,8 +29,9 @@ namespace zmq
 {
 
     //  This class encapuslates several atomic operations on unsigned
-    //  integer. Selection of the provided instructions is driven specifically
-    //  by the needs of ypollset implementation.
+    //  integer. Aside of simple atomic operations, selection of the provided
+    //  instructions is driven specifically by the needs of ypollset
+    //  implementation.
 
     class atomic_uint_t
     {
@@ -42,9 +43,9 @@ namespace zmq
         typedef uint32_t integer_t;
 #endif
 
-        inline atomic_uint_t ()
+        inline atomic_uint_t (integer_t value_ = 0) :
+            value (value_)
         {
-            value = 0;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
     && !defined (__x86_64__)))
             int rc = pthread_mutex_init (&mutex, NULL);
@@ -58,6 +59,62 @@ namespace zmq
     && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
+#endif
+        }
+
+        //  Atomic increment. Function returns the old value.
+        inline integer_t inc ()
+        {
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+            integer_t oldval = 1;
+            __asm__ volatile ("lock; xaddl %0,%1"
+                : "=r" (oldval), "=m" (value)
+                : "0" (oldval), "m" (value)
+                : "memory", "cc");
+            return oldval;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
+            integer_t oldval = 1;
+            __asm__ volatile ("lock; xaddq %0,%1"
+                : "=r" (oldval), "=m" (value)
+                : "0" (oldval), "m" (value)
+                : "memory", "cc");
+            return oldval;
+#else
+            int rc = pthread_mutex_lock (&mutex);
+            errno_assert (rc == 0);
+            integer_t oldval = value ++;
+            rc = pthread_mutex_unlock (&mutex);
+            errno_assert (rc == 0);
+            return oldval;
+#endif
+        }
+
+        //  Atomic decrement. Function returns the old value.
+        inline integer_t dec ()
+        {
+#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+            integer_t oldval = -1;
+            __asm__ volatile ("lock; xaddl %0,%1"
+                : "=r" (oldval), "=m" (value)
+                : "0" (oldval), "m" (value)
+                : "memory", "cc");
+            return oldval;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+    defined (__GNUC__))
+            integer_t oldval = -1;
+            __asm__ volatile ("lock; xaddq %0,%1"
+                : "=r" (oldval), "=m" (value)
+                : "0" (oldval), "m" (value)
+                : "memory", "cc");
+            return oldval;
+#else
+            int rc = pthread_mutex_lock (&mutex);
+            errno_assert (rc == 0);
+            integer_t oldval = value --;
+            rc = pthread_mutex_unlock (&mutex);
+            errno_assert (rc == 0);
+            return oldval;
 #endif
         }
 
