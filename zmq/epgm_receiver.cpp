@@ -46,6 +46,10 @@ size_t zmq::epgm_receiver_t::read_msg (iovec **iov_)
     // Read data
     size_t nbytes = pgm_receiver_t::read_msg (iov_);
 
+    // It was not ODATA event
+    if (!nbytes)
+        return 0;
+
     // Read APDU offset
     apdu_offset = get_uint16 ((unsigned char*)(*iov_)->iov_base);
 

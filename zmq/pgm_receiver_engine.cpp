@@ -54,21 +54,20 @@ void zmq::pgm_receiver_engine_t::set_signaler (i_signaler *signaler_)
     proxy.set_signaler (signaler_);
 }
 
-int zmq::pgm_receiver_engine_t::get_fd_count ()//int *fds_, int nfds_)
+int zmq::pgm_receiver_engine_t::get_fd_count ()
 {
-    assert (0);
-    return 0;
-//    return pgm_receiver.get_fd (fds_, nfds_);
+    int nfds = pgm_receiver.get_fd_count ();
+    assert (nfds == pgm_receiver_fds);
+
+    return nfds;
 }
 
 int zmq::pgm_receiver_engine_t::get_pfds (pollfd *pfd_, int count_)
 {
-    assert (0);
-    return 0;
-//    return events;
+    return pgm_receiver.get_pfds (pfd_, count_);
 }
 
-void zmq::pgm_receiver_engine_t::revive (int engine_id_)
+void zmq::pgm_receiver_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
 {
     assert (0);
     //  There is at least one engine that has messages ready - start polling
@@ -79,30 +78,40 @@ void zmq::pgm_receiver_engine_t::revive (int engine_id_)
 
 void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
 {
-    assert (0);
-/*
-    iovec *iovs;
+    assert (count_ == pgm_receiver_fds);
+
+    switch (index_) {
+        case 0:
+            // POLLIN event from recv socket
+            {
+                iovec *iovs;
     
-    size_t nbytes = pgm_receiver.read_msg (&iovs);
+                size_t nbytes = pgm_receiver.read_msg (&iovs);
 
-    printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+                printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
-    if (!nbytes) {
-        return;
+                if (!nbytes) {
+                    return;
+                }
+
+                //  Push the data to the decoder
+                while (nbytes > 0) {
+                    printf ("writting %iB into decoder, %s(%i)\n", (int)iovs->iov_len, 
+                        __FILE__, __LINE__);
+                    decoder.write ((unsigned char*)iovs->iov_base, iovs->iov_len);
+                    nbytes -= iovs->iov_len;
+                    iovs++;
+                }
+
+                //  Flush any messages decoder may have produced to the dispatcher
+                proxy.flush ();
+            }
+            break;
+        case 1:
+            // POLLIN from waitting socket
+            assert (0);
+            break;
     }
-
-    //  Push the data to the decoder
-    while (nbytes > 0) {
-        printf ("writting %iB into decoder, %s(%i)\n", (int)iovs->iov_len, 
-            __FILE__, __LINE__);
-        decoder.write ((unsigned char*)iovs->iov_base, iovs->iov_len);
-        nbytes -= iovs->iov_len;
-        iovs++;
-    }
-
-    //  Flush any messages decoder may have produced to the dispatcher
-    proxy.flush ();
-*/
 }
 
 void zmq::pgm_receiver_engine_t::out_event (pollfd *pfd_, int count_, int index_)

@@ -29,8 +29,6 @@ namespace zmq
 
     enum {pgm_sender_fds = 3};
 
-    enum {pgm_receiver_fds = 3};
-
     class pgm_sender_engine_t : public i_pollable
     {
     public:
@@ -54,7 +52,6 @@ namespace zmq
         dispatcher_proxy_t proxy; 
         bp_encoder_t encoder;
         epgm_sender_t pgm_sender;
-//        short events;
 
         unsigned char *writebuf;
         size_t writebuf_size;

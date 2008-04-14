@@ -39,9 +39,12 @@ namespace zmq
         //  Closes the transport
         ~pgm_receiver_t ();
 
-        //  Returns file descriptors to be used in polls
-        int get_fd (int *fds_, int nfds_);
+        // Returns number of FDs used by the PGM transport
+        int get_fd_count ();
         
+        // Fills pollfd structure
+        int get_pfds (pollfd *fds_, int count_);
+
         //  
         size_t read (unsigned char *data_, size_t size_);
 

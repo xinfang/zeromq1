@@ -132,7 +132,7 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                 size_t nbytes = pgm_sender.write_pkt (writebuf + write_pos,
                     write_size - write_pos, 0);
 
-                printf ("wrote %iB/%iB, %s(%i)\n", write_size - write_pos, nbytes, __FILE__, __LINE__);
+                printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
                 assert (write_size - write_pos >= nbytes);
 
                 write_pos += nbytes;

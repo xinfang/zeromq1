@@ -62,7 +62,7 @@ zmq::pgm_receiver_t::pgm_receiver_t (const char *network_,
     pgm_transport_set_nak_ncf_retries (g_transport, 2);
 
     // Do not create transmit window and sdo not send SPM broadcast
-    pgm_transport_set_recv_only (g_transport, FALSE);
+    // pgm_transport_set_recv_only (g_transport, FALSE);
 
     rc = pgm_transport_bind (g_transport);
     errno_assert (rc == 0);
@@ -76,25 +76,24 @@ zmq::pgm_receiver_t::~pgm_receiver_t ()
     pgm_transport_destroy (g_transport, TRUE);
 }
 
-int zmq::pgm_receiver_t::get_fd (int *fds_, int nfds_)
+int zmq::pgm_receiver_t::get_fd_count ()
 {
     int nfds = IP_MAX_MEMBERSHIPS;
     pollfd fds [IP_MAX_MEMBERSHIPS];
     memset (fds, '\0', sizeof (fds));
+
     int rc = pgm_transport_poll_info (g_transport, (pollfd*)&fds, &nfds, EPOLLIN);
-
-    // has to return two fds
-    assert (rc == 2);
-
-    assert (rc <= nfds_);
-
-    printf ("pgm_transport_poll_info %i, %s(%i)\n", rc, __FILE__, __LINE__);
-
-    for (int i = 0; i < rc; i++) {
-        fds_[i] = fds[i].fd;
-    }
+    assert (rc <= nfds);
 
     return nfds;
+}
+
+int zmq::pgm_receiver_t::get_pfds (pollfd *fds_, int count_)
+{
+    int rc = pgm_transport_poll_info (g_transport, fds_, &count_, EPOLLIN);
+    assert (rc == count_);
+
+    return rc;
 }
 
 size_t zmq::pgm_receiver_t::read (unsigned char *data_, size_t size_)
@@ -106,12 +105,20 @@ size_t zmq::pgm_receiver_t::read (unsigned char *data_, size_t size_)
 
 size_t zmq::pgm_receiver_t::read_msg (iovec **iov_)
 {
-    printf ("%s(%i)\n", __FILE__, __LINE__);
-    ssize_t nbytes = pgm_transport_recvmsg (g_transport, &msgv, 0);
-    errno_assert (nbytes != -1);
-//    printf ("received %i bytes, ", (int)nbytes);
-//    printf ("in %i iovecs, %s(%i)\n", (int)msgv.msgv_iovlen, __FILE__, __LINE__);
-//    fflush (stdout);    
+//    printf ("%s(%i)\n", __FILE__, __LINE__);
+    ssize_t nbytes = pgm_transport_recvmsg (g_transport, &msgv, MSG_DONTWAIT);
+
+    // In a case when not ODATA fired POLLIN event
+    // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
+    if (nbytes == -1 && errno != EAGAIN) {
+        printf ("errno %i, ", errno);
+        errno_assert (nbytes != -1); 
+    }
+
+    nbytes = nbytes == -1 ? 0 : nbytes;
+    printf ("received %i bytes, ", (int)nbytes);
+    printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
+//    fflush (stdout); 
 
     // iov
     *iov_ = msgv.msgv_iov;

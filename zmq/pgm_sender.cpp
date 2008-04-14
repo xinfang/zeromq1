@@ -82,7 +82,7 @@ int zmq::pgm_sender_t::get_fd_count ()
 int zmq::pgm_sender_t::get_pfds (pollfd *fds_, int count_)
 {
     int rc = pgm_transport_poll_info (g_transport, fds_, &count_, EPOLLIN | EPOLLOUT);
-    assert (rc <= count_);
+    assert (rc == count_);
 
     return rc;
 }
