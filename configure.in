@@ -1,0 +1,85 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.61)
+AC_INIT([zmq],[dev])
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(zmq/config.h)
+AM_CONFIG_HEADER(zmq/platform.hpp)
+AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+
+
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_LIBTOOL
+
+# Checks for libraries.
+AC_CHECK_LIB(pthread, pthread_create)
+
+# Host speciffic checks
+AC_CANONICAL_HOST
+case "${host_os}" in
+    *linux*)
+        AC_DEFINE(ZMQ_HAVE_LINUX, 1, [Have Linux OS])
+        CPPFLAGS="-D_REENTRANT $CPPFLAGS"
+        ;;
+    *solaris*)
+        AC_DEFINE(ZMQ_HAVE_SOLARIS, 1, [Have Solaris OS])
+        AC_CHECK_LIB(socket, main)
+        AC_CHECK_LIB(nsl, main)
+        AC_CHECK_LIB(rt, main)
+        CPPFLAGS="-D_REENTRANT -D_PTHREADS $CPPFLAGS"
+        ;;
+    *freebsd*)
+        AC_DEFINE(ZMQ_HAVE_FREEBSD, 1, [Have FreeBSD OS])
+        CPPFLAGS="-D_THREAD_SAFE $CPPFLAGS"
+        LIBS="-pthread"
+        ;;
+    *darwin*)
+        AC_DEFINE(ZMQ_HAVE_OSX, 1, [Have DarwinOSX OS])
+        LIBS="-pthread"
+        ;;
+    *)
+        AC_MSG_ERROR([Not supported os: $host.])
+        ;;
+esac
+
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
+AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
+AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_HEADER_TIME
+AC_TYPE_UINT32_T
+AC_C_VOLATILE
+
+# Substs
+stdint="0"
+if test "x$HAVE_STDINT_H" = "xyes"; then
+    stdint="1"
+fi
+
+inttypes="0"
+if test "x$HAVE_INTTYPES_H" = "xyes"; then
+    inttypes="1"
+fi
+
+AC_SUBST(stdint)
+AC_SUBST(inttypes)
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(perror gettimeofday memset socket)
+
+AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile tests/Makefile \
+perf/tests/Makefile perf/tests/zmq_vs_tcp/Makefile perf/tests/tcp/Makefile \
+perf/tests/zmq/Makefile perf/tests/ysuite/Makefile)

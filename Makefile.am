@@ -1,0 +1,1 @@
+SUBDIRS = zmq perf tests
