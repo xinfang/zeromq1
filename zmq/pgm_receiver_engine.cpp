@@ -54,14 +54,18 @@ void zmq::pgm_receiver_engine_t::set_signaler (i_signaler *signaler_)
     proxy.set_signaler (signaler_);
 }
 
-int zmq::pgm_receiver_engine_t::get_fd (int *fds_, int nfds_)
+int zmq::pgm_receiver_engine_t::get_fd_count ()//int *fds_, int nfds_)
 {
-    return pgm_receiver.get_fd (fds_, nfds_);
+    assert (0);
+    return 0;
+//    return pgm_receiver.get_fd (fds_, nfds_);
 }
 
-short zmq::pgm_receiver_engine_t::get_events ()
+int zmq::pgm_receiver_engine_t::get_pfds (pollfd *pfd_, int count_)
 {
-    return events;
+    assert (0);
+    return 0;
+//    return events;
 }
 
 void zmq::pgm_receiver_engine_t::revive (int engine_id_)
@@ -73,8 +77,10 @@ void zmq::pgm_receiver_engine_t::revive (int engine_id_)
 //    events |= POLLOUT;
 }
 
-void zmq::pgm_receiver_engine_t::in_event ()
+void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
 {
+    assert (0);
+/*
     iovec *iovs;
     
     size_t nbytes = pgm_receiver.read_msg (&iovs);
@@ -96,10 +102,10 @@ void zmq::pgm_receiver_engine_t::in_event ()
 
     //  Flush any messages decoder may have produced to the dispatcher
     proxy.flush ();
-
+*/
 }
 
-void zmq::pgm_receiver_engine_t::out_event ()
+void zmq::pgm_receiver_engine_t::out_event (pollfd *pfd_, int count_, int index_)
 {
     assert (0);
 }

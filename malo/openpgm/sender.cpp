@@ -41,7 +41,7 @@ int main (int argc, char *argv [])
     for (int i = 0; i < nloops; i++) {
         api.send (1, msg);
 
-        sleep (1);
+//        sleep (1);
 
 //        assert (msg.size <= sizeof (buff));
         

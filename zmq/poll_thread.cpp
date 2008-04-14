@@ -41,6 +41,17 @@ zmq::poll_thread_t::~poll_thread_t ()
     errno_assert (rc == 0);
 }
 
+short zmq::poll_thread_t::extract_events (pollfd *pfd_, int count_)
+{
+    short events = 0;
+
+    for (int i = 0; i < count_; i++) {
+        events |= pfd_[i].events;
+    }
+
+    return events;
+}
+
 void *zmq::poll_thread_t::worker_routine (void *arg_)
 {
     poll_thread_t *self = (poll_thread_t*) arg_;
@@ -50,41 +61,29 @@ void *zmq::poll_thread_t::worker_routine (void *arg_)
 
 void zmq::poll_thread_t::loop ()
 {
+
     bool stop = false;
 
-//    pollfd pfd [4];
-//    int fds [3];
     int nfds = engine->get_fd_count ();
 
     // Need to add one pollfd structure for administrative commands
-    nfds++;
-
-    pollfd pfd; 
+    pollfd *pfd = new pollfd [1 + nfds]; 
 
     //  Poll for administrative commands (revive & stop commands)
     pfd [0].fd = signaler.get_fd ();
     pfd [0].events = POLLIN;
 
-    //  Poll for events from the engine
-    nfds = engine->get_fd (fds, 3);
-    for (int i = 0; i < nfds; i++) {
-        pfd [1 + i].fd = fds [i];
-    }
+    //  get events from the engine
+    int rc = engine->get_pfds (pfd + 1, nfds);
+    assert (rc == nfds);
 
     while (true)
     {
-        //  Adjust the events to wait - the engine chooses the events
-        pfd [1].events = engine->get_events ();
-//        pfd [2].events = POLLIN;
-
-/*        if (nfds == 3)
-            pfd [3].events = engine->get_events ();
-*/
         //  Wait for events
         int rc = poll (pfd, 1 + nfds, -1);
         errno_assert (rc != -1);
         assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
-        assert (!(pfd [1].revents & (POLLERR | POLLNVAL)));
+//        assert (!(pfd [1].revents & (POLLERR | POLLNVAL)));
 
         if (pfd [0].revents & POLLIN) {
 
@@ -101,45 +100,41 @@ void zmq::poll_thread_t::loop ()
                     //  Stop command :
                     //  If there are no messages to send, quit immediately
                     //  Otherwise wait till all the messages are sent
-                    if (!(engine->get_events () & POLLOUT))
+                    if (!(this->extract_events (pfd + 1, nfds) & POLLOUT)) {
+                        delete [] pfd;
                         return;
-                    else
+                    } else {
                         stop = true;
+                    }
                 }
                 else
                     //  Revive command
-                    engine->revive (events [event]);
+                    engine->revive (pfd + 1, nfds, events [event]);
             }
         }
 
-        if (pfd [1].revents & POLLOUT) {
+        if (rc == 1 && pfd [0].revents & POLLIN)
+            continue;
 
-            //  Process out event from the engine
-            engine->out_event ();
-            if (stop && !(engine->get_events () & POLLOUT))
-                return;
+        // Process engine events POLLOUT first
+        for (int i = 0; i < nfds; i++) {
+            if (pfd [1 + i].revents & POLLOUT) {
+                printf ("POLLOUT from index %i, %s(%i)\n", i, __FILE__, __LINE__);
+                engine->out_event (pfd + 1, nfds, i);
+            }
         }
 
-        if (pfd [1].revents & (POLLIN | POLLHUP)) {
-            printf ("POLLIN from network, %s(%i)\n", __FILE__, __LINE__);
-            //  Process in event from the engine
-            engine->in_event ();
+        // Process engine POLLIN events
+        for (int i = 0; i < nfds; i++) {
+            if (pfd [1 + i].revents & (POLLIN | POLLHUP)) {
+                printf ("POLLIN | POLLHUP from index %i, %s(%i)\n", i, __FILE__, __LINE__);
+                engine->in_event (pfd + 1, nfds, i);
+            }
         }
 
-        if (nfds == 2 && (pfd [2].revents & (POLLIN | POLLHUP))) {
-            printf ("POLLIN from network, %s(%i)\n", __FILE__, __LINE__);
-            assert (0);
+        if (stop && !(this->extract_events (pfd + 1, nfds) & POLLOUT)) {
+            delete [] pfd;
+            return;
         }
-
-        if (nfds == 3 && (pfd [3].revents & POLLOUT)) {
-            printf ("POLLOUT from network, %s(%i)\n", __FILE__, __LINE__);
-            engine->out_event ();
-
-            if (stop && !(engine->get_events () & POLLOUT))
-                return;
-
-        }
-
-
     }
 }

@@ -40,10 +40,10 @@ namespace zmq
         //  i_pollable interface implementation
         void set_signaler (i_signaler *signaler_);
         void revive (int engine_id_);
-        int get_fd (int *fds, int nfds_);
-        short get_events ();
-        void in_event ();
-        void out_event ();
+        int get_fd_count ();//int *fds, int nfds_);
+        int get_pfds (pollfd *pfd_, int count_);
+        void in_event (pollfd *pfd_, int count_, int index_);
+        void out_event (pollfd *pfd_, int count_, int index_);
 
     private:
 

@@ -54,6 +54,8 @@ namespace zmq
 
         static void *worker_routine (void *arg_);
         void loop ();
+        // Serach in all FDs and returns all events
+        short extract_events (pollfd *pfd_, int count_);
 
         i_pollable *engine;
         ysocketpair_t signaler;

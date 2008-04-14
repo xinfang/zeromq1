@@ -67,28 +67,24 @@ zmq::pgm_sender_t::~pgm_sender_t ()
 }
 
 
-int zmq::pgm_sender_t::get_fd (int *fds_, int nfds_)
+int zmq::pgm_sender_t::get_fd_count ()
 {
-
-    printf ("IP_MAX_MEMBERSHIPS %i, %s(%i)\n", IP_MAX_MEMBERSHIPS, __FILE__, __LINE__);
-
     int nfds = IP_MAX_MEMBERSHIPS;
     pollfd fds [IP_MAX_MEMBERSHIPS];
     memset (fds, '\0', sizeof (fds));
+
     int rc = pgm_transport_poll_info (g_transport, (pollfd*)&fds, &nfds, EPOLLIN | EPOLLOUT);
-
-    // has to return three fds
-    assert (rc == 3);
-
-    assert (rc <= nfds_);
-
-    printf ("pgm_transport_poll_info %i, %s(%i)\n", rc, __FILE__, __LINE__);
-
-    for (int i = 0; i < rc; i++) {
-        fds_[i] = fds[i].fd;
-    }
+    assert (rc <= nfds);
 
     return nfds;
+}
+
+int zmq::pgm_sender_t::get_pfds (pollfd *fds_, int count_)
+{
+    int rc = pgm_transport_poll_info (g_transport, fds_, &count_, EPOLLIN | EPOLLOUT);
+    assert (rc <= count_);
+
+    return rc;
 }
 
 

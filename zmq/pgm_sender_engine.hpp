@@ -27,6 +27,10 @@
 namespace zmq
 {
 
+    enum {pgm_sender_fds = 3};
+
+    enum {pgm_receiver_fds = 3};
+
     class pgm_sender_engine_t : public i_pollable
     {
     public:
@@ -39,18 +43,18 @@ namespace zmq
 
         //  i_pollable interface implementation
         void set_signaler (i_signaler *signaler_);
-        void revive (int engine_id_);
-        int get_fd (int *fds, int nfds_);
-        short get_events ();
-        void in_event ();
-        void out_event ();
+        void revive (pollfd *pfd_, int count_, int engine_id_);
+        int get_fd_count ();
+        int get_pfds (pollfd *fds_, int count_);
+        void in_event (pollfd *pfd_, int count_, int index_);
+        void out_event (pollfd *pfd_, int count_, int index_);
 
     private:
 
         dispatcher_proxy_t proxy; 
         bp_encoder_t encoder;
         epgm_sender_t pgm_sender;
-        short events;
+//        short events;
 
         unsigned char *writebuf;
         size_t writebuf_size;

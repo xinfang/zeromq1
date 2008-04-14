@@ -28,7 +28,7 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
     proxy (dispatcher_, engine_id_),
     encoder (&proxy, source_engine_id_),
     pgm_sender (network_, port_),
-    events (POLLOUT),
+//    events (POLLOUT),
     writebuf_size (8192),
     write_size (0),
     write_pos (0)
@@ -48,25 +48,31 @@ void zmq::pgm_sender_engine_t::set_signaler (i_signaler *signaler_)
     proxy.set_signaler (signaler_);
 }
 
-int zmq::pgm_sender_engine_t::get_fd (int *fds_, int nfds_)
+int zmq::pgm_sender_engine_t::get_fd_count ()
 {
-    return pgm_sender.get_fd (fds_, nfds_);
+    int nfds = pgm_sender.get_fd_count ();
+    assert (nfds == pgm_sender_fds);
+
+    return nfds;
 }
 
-short zmq::pgm_sender_engine_t::get_events ()
+int zmq::pgm_sender_engine_t::get_pfds (pollfd *pfd_, int count_)
 {
-    return events;
+    return pgm_sender.get_pfds (pfd_, count_);
 }
 
-void zmq::pgm_sender_engine_t::revive (int engine_id_)
+void zmq::pgm_sender_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
 {
     //  There is at least one engine that has messages ready - start polling
     //  the socket for writing.
     proxy.revive (engine_id_);
-    events |= POLLOUT;
+
+    assert (count_ == pgm_sender_fds);
+
+    pfd_[2].events |= POLLOUT;
 }
 
-void zmq::pgm_sender_engine_t::in_event ()
+void zmq::pgm_sender_engine_t::in_event (pollfd *pfd_, int count_, int index_)
 {
     assert (0);
 /*
@@ -94,33 +100,45 @@ void zmq::pgm_sender_engine_t::in_event ()
 */
 }
 
-void zmq::pgm_sender_engine_t::out_event (int fd)
+void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
 {
-    //  If write buffer is empty, try to read new data from the encoder
-    if (write_pos == write_size) {
+    assert (count_ == pgm_sender_fds);
 
-        write_size = encoder.read (writebuf, writebuf_size);
-        write_pos = 0;
+    switch (index_) {
+        case 0:
+            assert (0);
+            break;
+        case 2:
+            // POLLOUT event from send socket
 
-        printf ("read %iB from encoder, %s(%i)\n", (int)write_size, __FILE__, __LINE__);
+            //  If write buffer is empty, try to read new data from the encoder
+            if (write_pos == write_size) {
 
-        //  If there are no data to write stop polling for output
-        if (!write_size) {
-            events ^= POLLOUT;
-            printf ("POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
-        }
+                write_size = encoder.read (writebuf, writebuf_size);
+                write_pos = 0;
+
+                printf ("read %iB from encoder, %s(%i)\n", (int)write_size, __FILE__, __LINE__);
+
+                //  If there are no data to write stop polling for output
+                if (!write_size) {
+                    pfd_ [index_].events ^= POLLOUT;
+                    printf ("POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
+                }
+            }
+
+            //  If there are any data to write in write buffer, write as much as
+            //  possible to the socket.
+            if (write_pos < write_size) {
+                size_t nbytes = pgm_sender.write_pkt (writebuf + write_pos,
+                    write_size - write_pos, 0);
+
+                printf ("wrote %iB/%iB, %s(%i)\n", write_size - write_pos, nbytes, __FILE__, __LINE__);
+                assert (write_size - write_pos >= nbytes);
+
+                write_pos += nbytes;
+            }
+            break;
+        default:
+            assert (0);
     }
-
-    //  If there are any data to write in write buffer, write as much as
-    //  possible to the socket.
-    if (write_pos < write_size) {
-        size_t nbytes = pgm_sender.write_pkt (writebuf + write_pos,
-            write_size - write_pos, 0);
-
-        printf ("wrote %iB/%iB, %s(%i)\n", write_size - write_pos, nbytes, __FILE__, __LINE__);
-        assert (write_size - write_pos >= nbytes);
-
-        write_pos += nbytes;
-    }
-
 }

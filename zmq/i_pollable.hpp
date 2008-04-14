@@ -37,7 +37,7 @@ namespace zmq
         virtual void set_signaler (i_signaler *signaler_) = 0;
 
         //  Notifies the engine that another engine sent it messages
-        virtual void revive (int engine_id_) = 0;
+        virtual void revive (pollfd *pfd_, int count_, int engine_id_) = 0;
 
         //  Fills file descriptors array to be used by poll thread to poll on
         //  Returns number of filled fds

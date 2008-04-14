@@ -28,13 +28,9 @@ pkginclude_HEADERS = \
     platform.hpp \
     stdint.hpp \
     free_fn.hpp \
-    bp_engine.hpp \
     i_pollable.hpp \
     amqp09_encoder.hpp \
     amqp09_decoder.hpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
-    amqp09_server_fsm.hpp \
     i_amqp09.hpp \
     amqp09_marshaller.hpp \
     amqp09_unmarshaller.hpp \
@@ -81,18 +77,11 @@ libzmq_la_SOURCES = \
     platform.hpp \
     stdint.hpp \
     free_fn.hpp \
-    bp_engine.hpp \
-    bp_engine.cpp \
     i_pollable.hpp \
     amqp09_encoder.hpp \
     amqp09_encoder.cpp \
     amqp09_decoder.hpp \
     amqp09_decoder.cpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
-    amqp09_client_fsm.cpp \
-    amqp09_server_fsm.hpp \
-    amqp09_server_fsm.cpp \
     i_amqp09.hpp \
     amqp09_marshaller.hpp \
     amqp09_marshaller.cpp \
