@@ -17,34 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "epgm_receiver.hpp"
-#include "err.hpp"
+#include "./epgm_socket.hpp"
 
-zmq::epgm_receiver_t::epgm_receiver_t (const char *network_,
-    uint16_t port_): pgm_receiver_t (network_, port_), apdu_offset (0), 
-    joined (false)
+zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_) :
+    pgm_socket_t (receiver_, pasive_, network_, port_), apdu_offset (0), joined (false)
+{
+    iov [0].iov_base = offset_buff;
+    iov [0].iov_len = sizeof (uint16_t);
+}
+
+zmq::epgm_socket_t::~epgm_socket_t ()
 {
 
 }
 
-zmq::epgm_receiver_t::~epgm_receiver_t ()
-{
-
-}
-
-size_t zmq::epgm_receiver_t::read (unsigned char *data_, size_t size_)
-{ 
-    ssize_t nbytes = pgm_receiver_t::read (data_, size_);
-    errno_assert (nbytes != -1);
-    return nbytes;
-
-}
-
-size_t zmq::epgm_receiver_t::read_msg (iovec **iov_)
+size_t zmq::epgm_socket_t::read_msg (iovec **iov_)
 {
 
     // Read data
-    size_t nbytes = pgm_receiver_t::read_msg (iov_);
+    size_t nbytes = pgm_socket_t::read_msg (iov_);
 
     // It was not ODATA event
     if (!nbytes)
@@ -104,3 +95,24 @@ size_t zmq::epgm_receiver_t::read_msg (iovec **iov_)
 
     return nbytes;
 }
+
+size_t zmq::epgm_socket_t::write_pkt (unsigned char *data_, size_t size_, uint16_t offset_)
+{
+    printf ("going to write %iB + %iB, offset %i, %s(%i)\n", (int)size_, 
+        (int)sizeof (uint16_t), offset_, __FILE__, __LINE__);
+    
+    put_uint16 (offset_buff, offset_);
+    
+    iov [1].iov_base = data_;
+    iov [1].iov_len = size_;
+
+    size_t nbytes = pgm_socket_t::write_pkt (iov, 2);
+
+    // returning original size, without added offset 
+    nbytes = nbytes > 0 ? nbytes - sizeof (uint16_t) : 0;
+
+    printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+
+    return nbytes;
+}
+

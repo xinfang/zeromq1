@@ -22,7 +22,7 @@
 
 #include "i_pollable.hpp"
 #include "bp_encoder.hpp"
-#include "epgm_sender.hpp"
+#include "epgm_socket.hpp"
 
 namespace zmq
 {
@@ -35,8 +35,7 @@ namespace zmq
 
         pgm_sender_engine_t (dispatcher_t *dispatcher_, int engine_id_,
             const char *network_, uint16_t port_,
-            int source_engine_id_ /*, int destination_engine_id_,*/
-            /*size_t writebuf_size_, size_t readbuf_size_*/);
+            int source_engine_id_);
         ~pgm_sender_engine_t ();
 
         //  i_pollable interface implementation
@@ -51,7 +50,7 @@ namespace zmq
 
         dispatcher_proxy_t proxy; 
         bp_encoder_t encoder;
-        epgm_sender_t pgm_sender;
+        epgm_socket_t epgm_socket;
 
         unsigned char *writebuf;
         size_t writebuf_size;

@@ -22,19 +22,10 @@
 #include "pgm_receiver_engine.hpp"
 
 zmq::pgm_receiver_engine_t::pgm_receiver_engine_t (dispatcher_t *dispatcher_, int engine_id_,
-      const char *network_, uint16_t port_,
-      /*int source_engine_id_,*/ int destination_engine_id_//,
-      /*size_t writebuf_size_, size_t readbuf_size_*/) :
+      const char *network_, uint16_t port_, int destination_engine_id_):
     proxy (dispatcher_, engine_id_),
-//    encoder (&proxy, source_engine_id_),
     decoder (&proxy, destination_engine_id_),
-    pgm_receiver (network_, port_),
-    events (POLLIN)
-/*    writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
-    write_size (0),
-    write_pos (0)
-*/
+    epgm_socket (true, false, network_, port_)
 {
 /*    writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -56,7 +47,7 @@ void zmq::pgm_receiver_engine_t::set_signaler (i_signaler *signaler_)
 
 int zmq::pgm_receiver_engine_t::get_fd_count ()
 {
-    int nfds = pgm_receiver.get_fd_count ();
+    int nfds = epgm_socket.get_fd_count (EPOLLIN);
     assert (nfds == pgm_receiver_fds);
 
     return nfds;
@@ -64,7 +55,7 @@ int zmq::pgm_receiver_engine_t::get_fd_count ()
 
 int zmq::pgm_receiver_engine_t::get_pfds (pollfd *pfd_, int count_)
 {
-    return pgm_receiver.get_pfds (pfd_, count_);
+    return epgm_socket.get_pfds (pfd_, count_, EPOLLIN);
 }
 
 void zmq::pgm_receiver_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
@@ -86,7 +77,7 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
             {
                 iovec *iovs;
     
-                size_t nbytes = pgm_receiver.read_msg (&iovs);
+                size_t nbytes = epgm_socket.read_msg (&iovs);
 
                 printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 

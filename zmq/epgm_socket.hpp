@@ -17,37 +17,48 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __EPGM_RECEIVER_HPP_INCLUDED__
-#define __EPGM_RECEIVER_HPP_INCLUDED__
+#ifndef __EPGM_SOCKET_HPP_INCLUDED__
+#define __EPGM_SOCKET_HPP_INCLUDED__
 
 #include <cstdio>
 
 #include "./wire.hpp"
-#include "./pgm_receiver.hpp"
+#include "./pgm_socket.hpp"
 
 namespace zmq
 {
-    class epgm_receiver_t : public pgm_receiver_t
+    class epgm_socket_t : public pgm_socket_t
     {
     public:
-        epgm_receiver_t (const char *network_, uint16_t port_);
+        // .
+        epgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_);    
 
-        //  Closes the transport
-        ~epgm_receiver_t ();
-        
-        //  
-        size_t read (unsigned char *data_, size_t size_);
-        
+        // .
+        ~epgm_socket_t ();
+
+        // 
+        size_t write_pkt (unsigned char *data_, size_t size_, uint16_t offset_);
+
         //
         size_t read_msg (iovec **iov_);
 
     private:
+        
+        // Used in sender
+
+        // We are always sending two iovecs, apdu_offset & payload
+        struct iovec iov [2];
+
+        // Buffer to store first message offset
+        unsigned char offset_buff [sizeof (uint16_t)];
+
+        // Used in receiver
+
         // Offset in received apdu
         uint16_t apdu_offset;
 
         // Joined in to the messages stream
         bool joined;
     };
-
 }
 #endif

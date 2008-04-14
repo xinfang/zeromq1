@@ -34,12 +34,10 @@ pkginclude_HEADERS = \
     i_amqp09.hpp \
     amqp09_marshaller.hpp \
     amqp09_unmarshaller.hpp \
-	pgm_sender.hpp \
-	epgm_sender.hpp \
-	pgm_receiver.hpp \
-	epgm_receiver.hpp \
-	pgm_receiver_engine.hpp \
-	pgm_sender_engine.hpp
+	pgm_socket.hpp \
+	epgm_socket.hpp \
+	pgm_sender_engine.hpp \
+	pgm_receiver_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -87,18 +85,14 @@ libzmq_la_SOURCES = \
     amqp09_marshaller.cpp \
     amqp09_unmarshaller.hpp \
     amqp09_unmarshaller.cpp \
-	pgm_sender.hpp \
-	pgm_sender.cpp \
-	epgm_sender.hpp \
-	epgm_sender.cpp \
-	pgm_receiver.hpp \
-	pgm_receiver.cpp \
-	epgm_receiver.hpp \
-	epgm_receiver.cpp \
-	pgm_receiver_engine.hpp \
-	pgm_receiver_engine.cpp \
+	pgm_socket.cpp \
+	pgm_socket.hpp \
+	epgm_socket.hpp \
+	epgm_socket.cpp \
 	pgm_sender_engine.hpp \
-	pgm_sender_engine.cpp
+	pgm_sender_engine.cpp \
+	pgm_receiver_engine.hpp \
+	pgm_receiver_engine.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

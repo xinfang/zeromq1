@@ -22,13 +22,10 @@
 #include "pgm_sender_engine.hpp"
 
 zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int engine_id_,
-      const char *network_, uint16_t port_,
-      int source_engine_id_/*, int destination_engine_id_,*/
-      /*size_t writebuf_size_, size_t readbuf_size_*/) :
+      const char *network_, uint16_t port_, int source_engine_id_) :
     proxy (dispatcher_, engine_id_),
     encoder (&proxy, source_engine_id_),
-    pgm_sender (network_, port_),
-//    events (POLLOUT),
+    epgm_socket (false, false, network_, port_),
     writebuf_size (8192),
     write_size (0),
     write_pos (0)
@@ -50,7 +47,7 @@ void zmq::pgm_sender_engine_t::set_signaler (i_signaler *signaler_)
 
 int zmq::pgm_sender_engine_t::get_fd_count ()
 {
-    int nfds = pgm_sender.get_fd_count ();
+    int nfds = epgm_socket.get_fd_count (EPOLLIN | EPOLLOUT);
     assert (nfds == pgm_sender_fds);
 
     return nfds;
@@ -58,7 +55,7 @@ int zmq::pgm_sender_engine_t::get_fd_count ()
 
 int zmq::pgm_sender_engine_t::get_pfds (pollfd *pfd_, int count_)
 {
-    return pgm_sender.get_pfds (pfd_, count_);
+    return epgm_socket.get_pfds (pfd_, count_, EPOLLIN | EPOLLOUT);
 }
 
 void zmq::pgm_sender_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
@@ -75,29 +72,6 @@ void zmq::pgm_sender_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
 void zmq::pgm_sender_engine_t::in_event (pollfd *pfd_, int count_, int index_)
 {
     assert (0);
-/*
-    iovec *iovs;
-    
-    size_t nbytes = pgm_receiver.read_msg (&iovs);
-
-    printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
-
-    if (!nbytes) {
-        return;
-    }
-
-    //  Push the data to the decoder
-    while (nbytes > 0) {
-        printf ("writting %iB into decoder, %s(%i)\n", (int)iovs->iov_len, 
-            __FILE__, __LINE__);
-        decoder.write ((unsigned char*)iovs->iov_base, iovs->iov_len);
-        nbytes -= iovs->iov_len;
-        iovs++;
-    }
-
-    //  Flush any messages decoder may have produced to the dispatcher
-    proxy.flush ();
-*/
 }
 
 void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
@@ -129,7 +103,7 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
             //  If there are any data to write in write buffer, write as much as
             //  possible to the socket.
             if (write_pos < write_size) {
-                size_t nbytes = pgm_sender.write_pkt (writebuf + write_pos,
+                size_t nbytes = epgm_socket.write_pkt (writebuf + write_pos,
                     write_size - write_pos, 0);
 
                 printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);

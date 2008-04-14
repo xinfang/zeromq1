@@ -17,12 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pgm_sender.hpp"
+#include "pgm_socket.hpp"
 #include "err.hpp"
 
-zmq::pgm_sender_t::pgm_sender_t (const char *network_,
-    uint16_t port_): g_transport (NULL)
+zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_, 
+    const char *network_, uint16_t port_): g_transport (NULL)
 {
+    printf ("GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
 
     pgm_init ();
 
@@ -46,7 +47,6 @@ zmq::pgm_sender_t::pgm_sender_t (const char *network_,
 
     pgm_transport_set_max_tpdu (g_transport, g_max_tpdu);
 	pgm_transport_set_txw_sqns (g_transport, g_sqns);
-    pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
 	pgm_transport_set_rxw_sqns (g_transport, g_sqns);
     pgm_transport_set_hops (g_transport, 16);
 	pgm_transport_set_ambient_spm (g_transport, 8192*1000);
@@ -56,46 +56,57 @@ zmq::pgm_sender_t::pgm_sender_t (const char *network_,
     pgm_transport_set_peer_expiry (g_transport, 5*8192*1000);
 	pgm_transport_set_spmr_expiry (g_transport, 250*1000);
 
+
+    if (receiver_) {
+        pgm_transport_set_nak_bo_ivl (g_transport, 50*1000);
+        pgm_transport_set_nak_rpt_ivl (g_transport, 200*1000);
+        pgm_transport_set_nak_rdata_ivl (g_transport, 200*1000);
+        pgm_transport_set_nak_data_retries (g_transport, 5);
+        pgm_transport_set_nak_ncf_retries (g_transport, 2);
+    }
+
     rc = pgm_transport_bind (g_transport);
     assert (rc == 0);
+
+    printf ("TSI: %s\n", pgm_print_tsi (&g_transport->tsi));
 }
 
-zmq::pgm_sender_t::~pgm_sender_t ()
+zmq::pgm_socket_t::~pgm_socket_t ()
 {
-    printf ("= %s(%i)\n", __FILE__, __LINE__);
     pgm_transport_destroy (g_transport, TRUE);
 }
 
 
-int zmq::pgm_sender_t::get_fd_count ()
+int zmq::pgm_socket_t::get_fd_count (short events_)
 {
     int nfds = IP_MAX_MEMBERSHIPS;
     pollfd fds [IP_MAX_MEMBERSHIPS];
     memset (fds, '\0', sizeof (fds));
 
-    int rc = pgm_transport_poll_info (g_transport, (pollfd*)&fds, &nfds, EPOLLIN | EPOLLOUT);
+    int rc = pgm_transport_poll_info (g_transport, (pollfd*)&fds, &nfds, events_);
+    printf ("nfds %i, %s(%i)\n", rc, __FILE__, __LINE__);
     assert (rc <= nfds);
 
     return nfds;
 }
 
-int zmq::pgm_sender_t::get_pfds (pollfd *fds_, int count_)
+int zmq::pgm_socket_t::get_pfds (pollfd *fds_, int count_, short events_)
 {
-    int rc = pgm_transport_poll_info (g_transport, fds_, &count_, EPOLLIN | EPOLLOUT);
+    int rc = pgm_transport_poll_info (g_transport, fds_, &count_, events_);
     assert (rc == count_);
 
     return rc;
 }
 
 
-size_t zmq::pgm_sender_t::write (unsigned char *data_, size_t size_)
+size_t zmq::pgm_socket_t::write (unsigned char *data_, size_t size_)
 {
     ssize_t nbytes = pgm_transport_send (g_transport, data_, size_, 0);
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
 
-size_t zmq::pgm_sender_t::write_pkt (const struct iovec *iovec_, int niovecs_)
+size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
 {
     ssize_t nbytes = pgm_transport_sendv3_pkt_dontwait (g_transport, iovec_, niovecs_, MSG_DONTWAIT);
   
@@ -112,3 +123,32 @@ size_t zmq::pgm_sender_t::write_pkt (const struct iovec *iovec_, int niovecs_)
     return nbytes;
 }
 
+size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
+{ 
+    ssize_t nbytes = pgm_transport_recv (g_transport, data_, size_, 0 /*MSG_DONTWAIT*/);
+    errno_assert (nbytes != -1);
+    return (size_t) nbytes;
+}
+
+size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
+{
+//    printf ("%s(%i)\n", __FILE__, __LINE__);
+    ssize_t nbytes = pgm_transport_recvmsg (g_transport, &msgv, MSG_DONTWAIT);
+
+    // In a case when not ODATA fired POLLIN event
+    // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
+    if (nbytes == -1 && errno != EAGAIN) {
+        printf ("errno %i, ", errno);
+        errno_assert (nbytes != -1); 
+    }
+
+    nbytes = nbytes == -1 ? 0 : nbytes;
+    printf ("received %i bytes, ", (int)nbytes);
+    printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
+//    fflush (stdout); 
+
+    // iov
+    *iov_ = msgv.msgv_iov;
+
+    return (size_t)nbytes;
+}
