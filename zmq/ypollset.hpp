@@ -23,7 +23,7 @@
 #include <assert.h>
 
 #include "i_signaler.hpp"
-#include "atomic_uint.hpp"
+#include "atomic_bitmap.hpp"
 #include "ysemaphore.hpp"
 #include "stdint.hpp"
 
@@ -38,7 +38,7 @@ namespace zmq
     {
     public:
 
-        typedef atomic_uint_t::integer_t integer_t;
+        typedef atomic_bitmap_t::integer_t integer_t;
 
         //  Create the pollset
         inline ypollset_t ()
@@ -73,7 +73,7 @@ namespace zmq
         //  Wait signal is carried in the last bit of the integer
         enum {wait_signal = sizeof (integer_t) * 8 - 1};
 
-        atomic_uint_t bits;
+        atomic_bitmap_t bits;
         ysemaphore_t sem;
     };
 

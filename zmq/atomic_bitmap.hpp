@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ATOMIC_UINT_HPP_INCLUDED__
-#define __ZMQ_ATOMIC_UINT_HPP_INCLUDED__
+#ifndef __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
+#define __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 
 #include <pthread.h>
 
@@ -33,7 +33,7 @@ namespace zmq
     //  instructions is driven specifically by the needs of ypollset
     //  implementation.
 
-    class atomic_uint_t
+    class atomic_bitmap_t
     {
     public:
 
@@ -43,7 +43,7 @@ namespace zmq
         typedef uint32_t integer_t;
 #endif
 
-        inline atomic_uint_t (integer_t value_ = 0) :
+        inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
@@ -53,7 +53,7 @@ namespace zmq
 #endif
         }
 
-        inline ~atomic_uint_t ()
+        inline ~atomic_bitmap_t ()
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
     && !defined (__x86_64__)))
@@ -135,11 +135,11 @@ namespace zmq
         //  "While izte is being called from one thread no other thread is
         //  allowed to perform any operation that would result in clearing
         //  bits of the value (btr, xchg, izte)."
-        //  If the code using atomic_uint doesn't adhere to this assumption
+        //  If the code using atomic_bitmap doesn't adhere to this assumption
         //  the behaviour of izte is undefined.
         inline integer_t izte (integer_t thenval_, integer_t elseval_)
         {
-            uint32_t oldval;
+            integer_t oldval;
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             __asm__ volatile (
                 "lock; cmpxchgl %1, %3\n\t"
