@@ -71,7 +71,26 @@ void zmq::pgm_sender_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
 
 void zmq::pgm_sender_engine_t::in_event (pollfd *pfd_, int count_, int index_)
 {
-    assert (0);
+    assert (count_ == pgm_sender_fds);
+
+    switch (index_) {
+        case pgm_recv_fd_idx:
+            // POLLIN event from recv socket 
+            // In sender engine it means NAK receiving
+            {
+                iovec *iovs;
+    
+                size_t nbytes = epgm_socket.read_msg (&iovs);
+
+                printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+
+                assert (!nbytes);
+            }
+            break;
+        default:
+            assert (0);
+    }
+
 }
 
 void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
@@ -79,10 +98,7 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
     assert (count_ == pgm_sender_fds);
 
     switch (index_) {
-        case 0:
-            assert (0);
-            break;
-        case 2:
+        case pgm_send_fd_idx:
             // POLLOUT event from send socket
 
             //  If write buffer is empty, try to read new data from the encoder

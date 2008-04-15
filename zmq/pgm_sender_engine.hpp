@@ -27,8 +27,6 @@
 namespace zmq
 {
 
-    enum {pgm_sender_fds = 3};
-
     class pgm_sender_engine_t : public i_pollable
     {
     public:

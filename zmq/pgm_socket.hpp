@@ -29,6 +29,14 @@
 
 namespace zmq
 {
+    // Sender engine has to use 3 fds
+    enum {pgm_sender_fds = 3};
+    
+    // Receiver engine has to use 2 fds
+    enum {pgm_receiver_fds = 2};
+
+    // Indexes as fds are returned from pgm_transport_poll_info
+    enum {pgm_recv_fd_idx = 0, pgm_wait_fd_idx = 1, pgm_send_fd_idx = 2};
 
     //  Encapsulates PGM socket
     class pgm_socket_t
@@ -48,13 +56,13 @@ namespace zmq
         int get_pfds (pollfd *fds_, int count_, short events_);
 
         // 
-        size_t write (unsigned char *data_, size_t size_);
+//        size_t write (unsigned char *data_, size_t size_);
 
         //
         size_t write_pkt (const struct iovec *iovec_, int niovec_);
 
         //  
-        size_t read (unsigned char *data_, size_t size_);
+//        size_t read (unsigned char *data_, size_t size_);
 
         //
         size_t read_msg (iovec **iov_);
@@ -62,11 +70,15 @@ namespace zmq
         // Testing functions
         int send_nak (int seq_num_);
 
+    protected:
+        pgm_transport_t* g_transport;
+
     private:
         pgm_msgv_t msgv;
 
-    protected:
-        pgm_transport_t* g_transport;
+        // For NAK testing
+        int received_count;
+        int send_nak_each;
     };
 }
 #endif

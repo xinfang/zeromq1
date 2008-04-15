@@ -21,7 +21,8 @@
 #include "err.hpp"
 
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_, 
-    const char *network_, uint16_t port_): g_transport (NULL)
+    const char *network_, uint16_t port_): g_transport (NULL), 
+    received_count (0), send_nak_each (3)
 {
     printf ("GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
 
@@ -84,7 +85,7 @@ int zmq::pgm_socket_t::get_fd_count (short events_)
     memset (fds, '\0', sizeof (fds));
 
     int rc = pgm_transport_poll_info (g_transport, (pollfd*)&fds, &nfds, events_);
-    printf ("nfds %i, %s(%i)\n", rc, __FILE__, __LINE__);
+//    printf ("nfds %i, %s(%i)\n", rc, __FILE__, __LINE__);
     assert (rc <= nfds);
 
     return nfds;
@@ -98,13 +99,14 @@ int zmq::pgm_socket_t::get_pfds (pollfd *fds_, int count_, short events_)
     return rc;
 }
 
-
+/*
 size_t zmq::pgm_socket_t::write (unsigned char *data_, size_t size_)
 {
     ssize_t nbytes = pgm_transport_send (g_transport, data_, size_, 0);
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
+*/
 
 size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
 {
@@ -123,12 +125,14 @@ size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
     return nbytes;
 }
 
+/*
 size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
 { 
-    ssize_t nbytes = pgm_transport_recv (g_transport, data_, size_, 0 /*MSG_DONTWAIT*/);
+    ssize_t nbytes = pgm_transport_recv (g_transport, data_, size_, 0);
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
+*/
 
 size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
 {
@@ -150,5 +154,37 @@ size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
     // iov
     *iov_ = msgv.msgv_iov;
 
+    // NAK testing
+    int rc;
+    if (nbytes != 0) {
+        if (received_count > 0 && send_nak_each > 0) {
+            if (received_count % send_nak_each == 0) {
+                rc = send_nak (received_count);
+                assert (rc != -1);
+            }
+        }
+        received_count++;
+    }
+
+
     return (size_t)nbytes;
+}
+
+int zmq::pgm_socket_t::send_nak (int seq_num_)
+{
+    if (!g_transport->peers_list) {
+		return -1;
+	}
+
+    GList* list = g_transport->peers_list;
+	do {
+		GList* next = list->next;
+		pgm_peer_t* peer = (pgm_peer_t*)list->data;
+        ::send_nak (peer, seq_num_);
+
+        printf ("TSI: %s\n", pgm_print_tsi (&(peer->tsi)));
+        list = next;
+    } while (list);
+
+    return 0;
 }

@@ -39,6 +39,11 @@ pkginclude_HEADERS = \
 	pgm_sender_engine.hpp \
 	pgm_receiver_engine.hpp
 
+#	bp_engine.hpp
+#	amqp09_engine.hpp
+#	amqp09_client_fsm.hpp
+#	amqp09_server_fsm.hpp
+
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
     tcp_socket.hpp \
@@ -93,6 +98,14 @@ libzmq_la_SOURCES = \
 	pgm_sender_engine.cpp \
 	pgm_receiver_engine.hpp \
 	pgm_receiver_engine.cpp
+
+#    bp_engine.hpp
+#    bp_engine.cpp
+#    amqp09_engine.hpp
+#    amqp09_client_fsm.hpp
+#    amqp09_client_fsm.cpp
+#    amqp09_server_fsm.hpp
+#    amqp09_server_fsm.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

@@ -27,8 +27,6 @@
 namespace zmq
 {
 
-    enum {pgm_receiver_fds = 2};
-
     class pgm_receiver_engine_t : public i_pollable
     {
     public:

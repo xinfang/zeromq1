@@ -72,7 +72,7 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
     assert (count_ == pgm_receiver_fds);
 
     switch (index_) {
-        case 0:
+        case pgm_recv_fd_idx:
             // POLLIN event from recv socket
             {
                 iovec *iovs;
@@ -98,10 +98,8 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
                 proxy.flush ();
             }
             break;
-        case 1:
-            // POLLIN from waitting socket
+        default:
             assert (0);
-            break;
     }
 }
 
