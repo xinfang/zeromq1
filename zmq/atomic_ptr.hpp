@@ -69,17 +69,17 @@ namespace zmq
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
-            T *old;
+            T *old = val_;
             __asm__ volatile ("lock; xchgl %0, %1"
-                : "=r" (val_)
+                : "=r" (old)
                 : "m" (ptr), "0" (old)
                 : "memory");
             return old;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
-            T *old;
+            T *old = val_;
             __asm__ volatile ("lock; xchgq %0, %1"
-                : "=r" (val_)
+                : "=r" (old)
                 : "m" (ptr), "0" (old)
                 : "memory");
             return old;
