@@ -20,14 +20,54 @@
 #ifndef __ZMQ_COMMAND_HPP_INCLUDED__
 #define __ZMQ_COMMAND_HPP_INCLUDED__
 
+#include "i_pollable.hpp"
+#include "ysemaphore.hpp"
+
 namespace zmq
 {
 
-    struct command_t
+    struct engine_command_t
     {
-        int i;
+        enum type_t
+        {
+            revive
+        } type;
+
+        union {
+            struct {
+            } revive;
+        } args;   
     };
 
-}
+    struct command_t
+    {
+        enum type_t
+        {
+            stop,
+            register_engine,
+            unregister_engine,
+            engine_command
+        } type;
+
+        union
+        {
+            struct {
+            } stop;
+            struct {
+                i_pollable *engine;
+                ysemaphore_t *blocker;
+            } register_engine;
+            struct {
+                i_pollable *engine;
+                ysemaphore_t *blocker;
+            } unregister_engine;
+            struct {
+                i_pollable *engine;
+                engine_command_t command;
+            } engine_command;
+        } args;
+    };
+
+}    
 
 #endif
