@@ -22,6 +22,7 @@
 
 #include "demux.hpp"
 #include "decoder.hpp"
+#include "msg.hpp"
 
 namespace zmq
 {
@@ -40,7 +41,7 @@ namespace zmq
 
         demux_t *demux;
         unsigned char tmpbuf [8];
-        cmsg_t msg;
+        void *msg;
     };
 
 }

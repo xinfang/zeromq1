@@ -20,7 +20,7 @@
 #ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
 #define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
-#include "cmsg.hpp"
+#include "msg.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
@@ -42,10 +42,10 @@ namespace zmq
         ~api_engine_t ();
 
         //  Send a message
-        void send (const cmsg_t &value_);
+        void send (void *value_);
 
         //  Receive a message
-        void receive (cmsg_t *value_);
+        void receive (void **value_);
 
     protected:
 

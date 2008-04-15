@@ -25,6 +25,7 @@
 
 #include "mux.hpp"
 #include "encoder.hpp"
+#include "msg.hpp"
 
 namespace zmq
 {
@@ -42,7 +43,7 @@ namespace zmq
         bool message_ready ();
 
         mux_t *mux;
-        cmsg_t msg;
+        void *msg;
         unsigned char tmpbuf [9];
     };
 

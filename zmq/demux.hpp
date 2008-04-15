@@ -23,8 +23,6 @@
 #include <assert.h>
 #include <vector>
 
-#include "cmsg.hpp"
-
 namespace zmq
 {
 
@@ -32,12 +30,12 @@ namespace zmq
     {
     public:
 
-        void write (const cmsg_t &msg_)
+        void write (void *msg_)
         {
         }
 
 
-        void instant_write (const cmsg_t &msg_)
+        void instant_write (void *msg_)
         {
         }
 

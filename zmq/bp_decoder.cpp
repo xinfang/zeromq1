@@ -34,12 +34,8 @@ void zmq::bp_decoder_t::one_byte_size_ready ()
     if (*tmpbuf == 0xff)
         next_step (tmpbuf, 8, &bp_decoder_t::eight_byte_size_ready);
     else {
-        msg.size = *tmpbuf;
-        msg.data = malloc (*tmpbuf);
-        assert (msg.data);
-        msg.ffn = free;
-
-        next_step (msg.data, *tmpbuf, &bp_decoder_t::message_ready);
+        msg = msg_alloc (*tmpbuf);
+        next_step (msg_data (msg), *tmpbuf, &bp_decoder_t::message_ready);
     }
 }
 
@@ -47,12 +43,8 @@ void zmq::bp_decoder_t::eight_byte_size_ready ()
 {
     //  8-byte size is read. Allocate the buffer for message body and
     //  read data into it.
-    msg.size = get_uint64 (tmpbuf);
-    msg.data = malloc (msg.size);
-    assert (msg.data);
-    msg.ffn = free;
-
-    next_step (msg.data, msg.size, &bp_decoder_t::message_ready);
+    msg = msg_alloc (get_uint64 (tmpbuf));
+    next_step (msg_data (msg), msg_size (msg), &bp_decoder_t::message_ready);
 }
 
 void zmq::bp_decoder_t::message_ready ()

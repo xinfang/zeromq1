@@ -33,12 +33,12 @@ zmq::api_engine_t::~api_engine_t ()
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-void zmq::api_engine_t::send (const cmsg_t &value_)
+void zmq::api_engine_t::send (void *value_)
 {
     demux.instant_write (value_);
 }
 
-void zmq::api_engine_t::receive (cmsg_t *value_)
+void zmq::api_engine_t::receive (void **value_)
 {
     //  Get message from mux
     bool ok = mux.read (value_);

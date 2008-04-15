@@ -26,13 +26,13 @@ zmq::amqp09_decoder_t::amqp09_decoder_t (demux_t *demux_,
     demux (demux_),
     unmarshaller (unmarshaller_),
     flow_on (false),
-    server (server_)
+    server (server_),
+    msg (NULL)
 {
     //  Alocate buffer for the frames
     framebuf_size = i_amqp09::frame_min_size;
     framebuf = (unsigned char*) malloc (framebuf_size);
     assert (framebuf);
-    init_cmsg (msg);
 
     //  Wait for frame header to arrive
     next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
@@ -40,7 +40,7 @@ zmq::amqp09_decoder_t::amqp09_decoder_t (demux_t *demux_,
 
 zmq::amqp09_decoder_t::~amqp09_decoder_t ()
 {
-    free_cmsg (msg);
+    msg_dealloc (msg);
     free (framebuf);
 }
 
@@ -113,10 +113,7 @@ void zmq::amqp09_decoder_t::content_header_payload_ready ()
     //  Check the frame frame-end octet
     assert (framebuf [payload_size] == i_amqp09::frame_end);
 
-    msg.size = body_size;
-    msg.data = malloc (body_size);
-    assert (msg.data);
-    msg.ffn = free;           
+    msg = msg_alloc (body_size);         
     curr_body_size = 0;
     msg_data_off = 0;
 
@@ -133,8 +130,8 @@ void zmq::amqp09_decoder_t::content_body_frame_header_ready ()
     assert (type == i_amqp09::frame_body);
 
     curr_body_size = size;
-    assert (msg_data_off + size <= msg.size);
-    next_step (((unsigned char*) msg.data) + msg_data_off, size,
+    assert (msg_data_off + size <= msg_size (msg));
+    next_step (((unsigned char*) msg_data (msg)) + msg_data_off, size,
         &amqp09_decoder_t::content_body_payload_ready);
 }
 
@@ -152,7 +149,7 @@ void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
     //  command. Otherwise wait for next message body frame.
     assert (tmpbuf [0] == i_amqp09::frame_end);
 
-    if (msg_data_off == msg.size) {
+    if (msg_data_off == msg_size (msg)) {
         demux->write (msg);
         next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
     }

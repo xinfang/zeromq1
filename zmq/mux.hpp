@@ -22,7 +22,7 @@
 
 #include <assert.h>
 
-#include "cmsg.hpp"
+#include "msg.hpp"
 
 namespace zmq
 {
@@ -31,7 +31,7 @@ namespace zmq
     {
     public:
 
-        bool read (cmsg_t *msg_)
+        bool read (void **msg_)
         {
             return false;
         }

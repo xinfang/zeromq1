@@ -4,8 +4,8 @@ pkginclude_HEADERS = \
     api_engine.hpp \
     atomic_ptr.hpp \
     atomic_uint.hpp \
+    atomic_counter.hpp \
     bp_decoder.hpp \
-    cmsg.hpp \
     decoder.hpp \
     dispatcher.hpp \
     err.hpp \
@@ -34,7 +34,8 @@ pkginclude_HEADERS = \
     amqp09_unmarshaller.hpp \
     command.hpp \
     mux.hpp \
-    demux.hpp
+    demux.hpp \
+    msg.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -44,6 +45,7 @@ libzmq_la_SOURCES = \
     ysocketpair.cpp \
     atomic_ptr.hpp \
     atomic_uint.hpp \
+    atomic_counter.hpp \
     err.hpp \
     wire.hpp \
     ypipe.hpp \
@@ -56,7 +58,6 @@ libzmq_la_SOURCES = \
     ysemaphore.cpp \
     dispatcher.hpp \
     dispatcher.cpp \
-    cmsg.hpp \
     decoder.hpp \
     bp_decoder.hpp \
     bp_decoder.cpp \
@@ -91,7 +92,8 @@ libzmq_la_SOURCES = \
     mux.hpp \
     mux.cpp \
     demux.hpp \
-    demux.cpp 
+    demux.cpp \
+    msg.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 
