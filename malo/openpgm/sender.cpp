@@ -36,12 +36,12 @@ int main (int argc, char *argv [])
 //    char buff [1024];
 //    memset (buff, '\0', sizeof (buff));
 
-    sleep (10);
+    sleep (2);
 
     for (int i = 0; i < nloops; i++) {
         api.send (1, msg);
-
-        sleep (2);
+        printf ("================================================ %i ==============================================\n", i);
+        sleep (1);
 
 //        assert (msg.size <= sizeof (buff));
         
