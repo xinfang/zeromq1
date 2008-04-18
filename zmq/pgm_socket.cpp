@@ -21,8 +21,8 @@
 #include "err.hpp"
 
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_, 
-    const char *network_, uint16_t port_): g_transport (NULL), 
-    received_count (0), send_nak_each (3)
+    const char *network_, uint16_t port_): g_transport (NULL) 
+//    , received_count (0), send_nak_each (3)
 {
     printf ("GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
 
@@ -42,13 +42,18 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
     rc = pgm_transport_create (&g_transport, &gsi, port_, &recv_smr, 1, &send_smr);
     errno_assert (rc == 0);
 
-    int g_max_tpdu = 1500;
     int g_sqns = 10;
     int g_max_rte = 400*1000;
+    int g_max_tpdu = 1500;
+
+    if (!receiver_) {
+//        g_sqns = 2;
+//        g_max_rte = 400*1000;
+    }
 
     pgm_transport_set_max_tpdu (g_transport, g_max_tpdu);
 	pgm_transport_set_txw_sqns (g_transport, g_sqns);
-	pgm_transport_set_rxw_sqns (g_transport, g_sqns);
+    pgm_transport_set_rxw_sqns (g_transport, g_sqns);
     pgm_transport_set_hops (g_transport, 16);
 	pgm_transport_set_ambient_spm (g_transport, 8192*1000);
     guint spm_heartbeat[] = { 1*1000, 1*1000, 2*1000, 4*1000, 8*1000, 16*1000, 
@@ -59,11 +64,24 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
 
 
     if (receiver_) {
+        // Set NAK transmit back-off interval [us] 
         pgm_transport_set_nak_bo_ivl (g_transport, 50*1000);
+        // Set timeout before repeating NAK [us]
         pgm_transport_set_nak_rpt_ivl (g_transport, 200*1000);
+        // Set timeout for receiving RDATA
         pgm_transport_set_nak_rdata_ivl (g_transport, 200*1000);
-        pgm_transport_set_nak_data_retries (g_transport, 5);
+        // Set retries for DATA packets after NAK
+        pgm_transport_set_nak_data_retries (g_transport, 2);
+        // Set retries for DATA after NCF
         pgm_transport_set_nak_ncf_retries (g_transport, 2);
+
+        pgm_transport_set_recv_only (g_transport, FALSE);
+
+    } else {
+        pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
+
+        pgm_transport_set_send_only (g_transport);
+
     }
 
     rc = pgm_transport_bind (g_transport);
@@ -110,8 +128,9 @@ size_t zmq::pgm_socket_t::write (unsigned char *data_, size_t size_)
 
 size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
 {
-    ssize_t nbytes = pgm_transport_sendv3_pkt_dontwait (g_transport, iovec_, niovecs_, MSG_DONTWAIT);
-  
+//    ssize_t nbytes = pgm_transport_sendv3_pkt_dontwait (g_transport, iovec_, niovecs_, MSG_DONTWAIT);
+ 
+    ssize_t nbytes = pgm_transport_send_packetv (g_transport, iovec_, niovecs_, MSG_DONTWAIT, true);
     // In case nbytes == -1 and errno == EAGAIN have to try again
     // otherwise error
     if (nbytes == -1 && errno != EAGAIN) {
@@ -137,7 +156,7 @@ size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
 size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
 {
 //    printf ("%s(%i)\n", __FILE__, __LINE__);
-    ssize_t nbytes = pgm_transport_recvmsg (g_transport, &msgv, MSG_DONTWAIT);
+    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, &msgv, 1, MSG_DONTWAIT);
 
     // In a case when not ODATA fired POLLIN event
     // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
@@ -154,6 +173,7 @@ size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
     // iov
     *iov_ = msgv.msgv_iov;
 
+/*
     // NAK testing
     int rc;
     if (nbytes != 0) {
@@ -165,11 +185,12 @@ size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
         }
         received_count++;
     }
-
+*/
 
     return (size_t)nbytes;
 }
 
+/*
 int zmq::pgm_socket_t::send_nak (int seq_num_)
 {
     if (!g_transport->peers_list) {
@@ -188,3 +209,4 @@ int zmq::pgm_socket_t::send_nak (int seq_num_)
 
     return 0;
 }
+*/

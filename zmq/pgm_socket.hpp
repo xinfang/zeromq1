@@ -68,7 +68,7 @@ namespace zmq
         size_t read_msg (iovec **iov_);
 
         // Testing functions
-        int send_nak (int seq_num_);
+//        int send_nak (int seq_num_);
 
     protected:
         pgm_transport_t* g_transport;
@@ -77,8 +77,8 @@ namespace zmq
         pgm_msgv_t msgv;
 
         // For NAK testing
-        int received_count;
-        int send_nak_each;
+//        int received_count;
+//        int send_nak_each;
     };
 }
 #endif

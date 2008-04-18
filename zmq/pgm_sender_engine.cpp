@@ -80,7 +80,9 @@ void zmq::pgm_sender_engine_t::in_event (pollfd *pfd_, int count_, int index_)
             {
                 iovec *iovs;
     
-                size_t nbytes = epgm_socket.read_msg (&iovs);
+                size_t nbytes = 0;//epgm_socket.read_msg (&iovs);
+                // debug only 
+                pfd_ [index_].events ^= POLLIN;
 
                 printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
