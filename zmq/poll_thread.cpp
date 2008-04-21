@@ -35,12 +35,26 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_,
 
 zmq::poll_thread_t::~poll_thread_t ()
 {
-    //  Ask worker thread to stop
-    signaler.signal (stop_event);
+    //  Send a 'stop' event ot the worker thread
+    //  TODO: Analyse whether using the to-self command pipe here is appropriate
+    command_t cmd;
+    cmd.init_stop ();
+    dispatcher->write (thread_id, thread_id, cmd);
 
     //  Wait till worker thread terminates
     int rc = pthread_join (worker, NULL);
     errno_assert (rc == 0);
+}
+
+int zmq::poll_thread_t::get_thread_id ()
+{
+    return thread_id;
+}
+
+void zmq::poll_thread_t::send_command (int destination_thread_id_,
+    const command_t &command_)
+{
+    assert (false);
 }
 
 void *zmq::poll_thread_t::worker_routine (void *arg_)
@@ -74,28 +88,12 @@ void zmq::poll_thread_t::loop ()
         assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
         assert (!(pfd [1].revents & (POLLERR | POLLNVAL)));
 
+        //  Process commands from other threads
         if (pfd [0].revents & POLLIN) {
-
-            //  Process for administrative commands.
             uint32_t signals = signaler.check ();
             assert (signals);
-
-            //  Process revive commands
-            for (int signal = 0; signal < stop_event; signal ++)
-                if (signals & (1 << signal))
-                    engine->revive (signal);
-
-            //  Process stop command
-            if (signals & (1 << stop_event)) {
-
-                    //  Stop command :
-                    //  If there are no messages to send, quit immediately
-                    //  Otherwise wait till all the messages are sent
-                    if (!(engine->get_events () & POLLOUT))
-                        return;
-                    else
-                        stop = true;
-            }
+            if (!process_commands (signals))
+                return;
         }
 
         if (pfd [1].revents & POLLOUT) {
@@ -112,4 +110,39 @@ void zmq::poll_thread_t::loop ()
             engine->in_event ();
         }
     }
+}
+
+bool zmq::poll_thread_t::process_commands (uint32_t signals_)
+{
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals_ & (1 << source_thread_id)) {
+            dispatcher_t::item_t *first;
+            dispatcher_t::item_t *last;
+            dispatcher->read (source_thread_id, thread_id, &first, &last);
+            while (first != last) {
+                switch (first->value.type) {
+
+                //  Exit the working thread
+                case command_t::stop:
+                    return false;
+
+                //  Forward the command to the specified engine
+                case command_t::engine_command:
+                    first->value.args.engine_command.engine->process_command (
+                        first->value.args.engine_command.command);
+                    break;
+
+                //  Unknown command
+                default:
+                    assert (false);
+                }
+                dispatcher_t::item_t *o = first;
+                first = first->next;
+                delete o;
+            }
+        }
+    }
+    return true;
 }

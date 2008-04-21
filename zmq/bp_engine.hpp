@@ -46,11 +46,11 @@ namespace zmq
         ~bp_engine_t ();
 
         //  i_pollable interface implementation
-        void revive (int engine_id_);
         int get_fd ();
         short get_events ();
         void in_event ();
         void out_event ();
+        void process_command (const engine_command_t &command_);
 
     private:
 

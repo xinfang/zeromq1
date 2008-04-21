@@ -25,9 +25,10 @@
 #include <pthread.h>
 #include <poll.h>
 
+#include "i_thread.hpp"
+#include "i_pollable.hpp"
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
-#include "i_pollable.hpp"
 
 namespace zmq
 {
@@ -37,7 +38,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t 
+    class poll_thread_t : public i_thread
     {
     public:
 
@@ -47,12 +48,22 @@ namespace zmq
         poll_thread_t (dispatcher_t *dispatcher_, i_pollable *engine_);
         ~poll_thread_t ();
 
+        //  i_thread implementation
+        int get_thread_id ();
+        void send_command (int destination_thread_id_,
+            const command_t &command_);
+
     private:
 
-        enum {stop_event = 30};
-
+        //  Main worker thread routing
         static void *worker_routine (void *arg_);
+
+        //  Main routine (non-static) - called from worker_routine
         void loop ();
+
+        //  Processes commands from other threads. Returns false if the thread
+        //  should terminate.
+        bool process_commands (uint32_t signals_);
 
         dispatcher_t *dispatcher;
         int thread_id;

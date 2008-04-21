@@ -89,12 +89,6 @@ namespace zmq
 
         // i_pollable interface implementation
 
-        inline void revive (int engine_id_)
-        {
-            mux.revive (/*engine_id_*/);   //  TODO
-            events |= POLLOUT;
-        }
-
         inline int get_fd ()
         {
             return socket.get_fd ();
@@ -144,6 +138,26 @@ namespace zmq
                     write_size - write_pos);
                 write_pos += nbytes;
             }
+        }
+
+        void process_command (const engine_command_t &command_)
+        {
+            switch (command_.type) {
+            case engine_command_t::revive:
+
+                //  Forward the revive command to the pipe
+                command_.args.revive.pipe->revive ();
+
+                //  There is at least one engine that has messages ready -
+                //  start polling the socket for writing.
+                events |= POLLOUT;
+                break;
+
+           default:
+
+               //  Unknown command
+               assert (false);
+           }
         }
 
         //  Interface to communicate with embedded marshaller object

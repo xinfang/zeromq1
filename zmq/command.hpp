@@ -22,6 +22,7 @@
 
 #include "i_pollable.hpp"
 #include "ysemaphore.hpp"
+#include "pipe.hpp"
 
 namespace zmq
 {
@@ -30,12 +31,23 @@ namespace zmq
     {
         enum type_t
         {
-            revive
+            revive,
+            send_to,
+            receive_from
         } type;
 
         union {
             struct {
+                pipe_t *pipe;
             } revive;
+            struct {
+                pipe_t *pipe;
+                int thread_id;
+            } send_to;
+            struct {
+                pipe_t *pipe;
+                int thread_id;
+            } receive_from;
         } args;   
     };
 
@@ -54,18 +66,64 @@ namespace zmq
             struct {
             } stop;
             struct {
-                i_pollable *engine;
+                struct i_pollable *engine;
                 ysemaphore_t *blocker;
             } register_engine;
             struct {
-                i_pollable *engine;
+                struct i_pollable *engine;
                 ysemaphore_t *blocker;
             } unregister_engine;
             struct {
-                i_pollable *engine;
+                struct i_pollable *engine;
                 engine_command_t command;
             } engine_command;
         } args;
+
+        inline void init_stop ()
+        {
+            type = stop;
+        }
+
+        inline void init_register_engine (i_pollable *engine_)
+        {
+            type = register_engine;
+            args.register_engine.engine = engine_;
+        }
+
+        inline void init_unregister_engine (i_pollable *engine_)
+        {
+            type = unregister_engine;
+            args.unregister_engine.engine = engine_;
+        }
+
+        inline void init_engine_send_to (i_pollable *engine_, pipe_t *pipe_,
+            int thread_id_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::send_to;
+            args.engine_command.command.args.send_to.pipe = pipe_;
+            args.engine_command.command.args.send_to.thread_id = thread_id_;
+        }
+
+        inline void init_engine_receive_from (i_pollable *engine_,
+            pipe_t *pipe_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::receive_from;
+            args.engine_command.command.args.receive_from.pipe = pipe_;
+        }
+
+        inline void init_engine_revive (i_pollable *engine_,
+            pipe_t *pipe_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::revive;
+            args.engine_command.command.args.revive.pipe = pipe_;
+        }
+
     };
 
 }    

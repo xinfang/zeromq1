@@ -56,14 +56,6 @@ short zmq::bp_engine_t::get_events ()
     //return events | (proxy.has_messages () ? POLLOUT : 0);
 }
 
-void zmq::bp_engine_t::revive (int engine_id_)
-{
-    //  There is at least one engine that has messages ready - start polling
-    //  the socket for writing.
-    mux.revive (/*engine_id_*/);  //  TODO
-    events |= POLLOUT;
-}
-
 void zmq::bp_engine_t::in_event ()
 {
     //  Read as much data as possible to the read buffer
@@ -103,5 +95,23 @@ void zmq::bp_engine_t::out_event ()
         size_t nbytes = socket.write (writebuf + write_pos,
             write_size - write_pos);
         write_pos += nbytes;
+    }
+}
+
+void zmq::bp_engine_t::process_command (const engine_command_t &command_)
+{
+    switch (command_.type) {
+    case engine_command_t::revive:
+
+        //  Forward the revive command to the pipe
+        command_.args.revive.pipe->revive ();
+
+        //  There is at least one engine that has messages ready - start polling
+        //  the socket for writing.
+        events |= POLLOUT;
+        break;
+
+    default:
+        assert (false);
     }
 }

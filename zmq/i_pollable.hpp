@@ -21,6 +21,7 @@
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
 #include "i_signaler.hpp"
+#include "command.hpp"
 
 namespace zmq
 {
@@ -33,9 +34,6 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Notifies the engine that another engine sent it messages
-        virtual void revive (int engine_id_) = 0;
-
         //  Returns file descriptor to be used by poll thread to poll on
         virtual int get_fd () = 0;
 
@@ -47,6 +45,12 @@ namespace zmq
 
         //  Called by poll thread when out event occurs
         virtual void out_event () = 0;
+
+        //  Called when command from a different thread is received
+        //  TODO: Shouldn't we move this method to a separate inteface?
+        //        Possibly being a base class for i_pollable?
+        virtual void process_command (
+            const struct engine_command_t &command_) = 0;
     };
 
 }
