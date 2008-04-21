@@ -50,8 +50,9 @@ namespace zmq
         bp_encoder_t encoder;
         epgm_socket_t epgm_socket;
 
-        unsigned char *writebuf;
-        size_t writebuf_size;
+        unsigned char *txw_slice;
+        size_t txw_max_tsdu;
+
         size_t write_size;
         size_t write_pos;
 

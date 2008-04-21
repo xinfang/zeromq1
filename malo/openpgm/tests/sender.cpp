@@ -2,12 +2,12 @@
 #include <cstdio>
 #include <unistd.h>
 
-#include "../../zmq/epgm_sender.hpp"
+#include "../../../zmq/epgm_socket.hpp"
 
 int main (int argc, char *argv [])
 {
 
-    zmq::epgm_sender_t pgm_sender ("eth3;226.0.0.1", 7500);
+    zmq::epgm_socket_t pgm_socket (false, false, "eth3;226.0.0.1", 7500);
 
 
 //    char a_buff[] = "AB";
@@ -23,9 +23,15 @@ int main (int argc, char *argv [])
 //    memset (buff, '-', sizeof (buff));
 //    snprintf (buff, sizeof (buff), "abcdefghijk"); 
 
+    size_t tsdu = 0;
+
     for (int i = 0; i < 10; i++) {
-        int rc = pgm_sender.write_pkt ((unsigned char*)b_buff, strlen (b_buff), i - 1);
-//       sleep (1);
+        unsigned char *buff = pgm_socket.alloc_one (&tsdu);
+
+        printf ("received %i in from tx window\n", tsdu);
+        strcpy ((char*)buff, "__abcdefg");
+        int rc = pgm_socket.write_pkt (buff, strlen ((char*)buff), i - 1);
+       sleep (2);
     }
 
     return 0;

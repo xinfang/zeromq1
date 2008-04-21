@@ -98,18 +98,14 @@ size_t zmq::epgm_socket_t::read_msg (iovec **iov_)
 
 size_t zmq::epgm_socket_t::write_pkt (unsigned char *data_, size_t size_, uint16_t offset_)
 {
-    printf ("going to write %iB + %iB, offset %i, %s(%i)\n", (int)size_, 
-        (int)sizeof (uint16_t), offset_, __FILE__, __LINE__);
+    printf ("going to write %iB, offset %i, %s(%i)\n", (int)size_, 
+        offset_, __FILE__, __LINE__);
     
-    put_uint16 (offset_buff, offset_);
+    put_uint16 (data_, offset_);
     
-    iov [1].iov_base = data_;
-    iov [1].iov_len = size_;
+    size_t nbytes = pgm_socket_t::write_one (data_, size_);
 
-    size_t nbytes = pgm_socket_t::write_pkt (iov, 2);
-
-    // returning original size, without added offset 
-    nbytes = nbytes > 0 ? nbytes - sizeof (uint16_t) : 0;
+    nbytes = nbytes > 0 ? nbytes : 0;
 
     printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 

@@ -26,18 +26,18 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
     proxy (dispatcher_, engine_id_),
     encoder (&proxy, source_engine_id_),
     epgm_socket (false, false, network_, port_),
-    writebuf_size (8192),
+//    writebuf_size (8192),
     write_size (0),
     write_pos (0)
 
 {
-    writebuf = new unsigned char [writebuf_size];
-    assert (writebuf);
+//    writebuf = new unsigned char [writebuf_size];
+//    assert (writebuf);
 }
 
 zmq::pgm_sender_engine_t::~pgm_sender_engine_t ()
 {
-    delete [] writebuf;
+//    delete [] writebuf;
 }
 
 void zmq::pgm_sender_engine_t::set_signaler (i_signaler *signaler_)
@@ -105,8 +105,9 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
 
             //  If write buffer is empty, try to read new data from the encoder
             if (write_pos == write_size) {
-
-                write_size = encoder.read (writebuf, writebuf_size);
+                // get memory slice from tx window
+                txw_slice = epgm_socket.alloc_one (&txw_max_tsdu);
+                write_size = encoder.read (txw_slice + sizeof (uint16_t), txw_max_tsdu - sizeof (uint16_t));
                 write_pos = 0;
 
                 printf ("read %iB from encoder, %s(%i)\n", (int)write_size, __FILE__, __LINE__);
@@ -115,13 +116,16 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                 if (!write_size) {
                     pfd_ [index_].events ^= POLLOUT;
                     printf ("POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
+                } else {
+                    // Addning uint16_t for offset in a case when encoder returned > 0B
+                    write_size += sizeof (uint16_t);
                 }
             }
 
             //  If there are any data to write in write buffer, write as much as
             //  possible to the socket.
             if (write_pos < write_size) {
-                size_t nbytes = epgm_socket.write_pkt (writebuf + write_pos,
+                size_t nbytes = epgm_socket.write_pkt (txw_slice + write_pos,
                     write_size - write_pos, 0);
 
                 printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);

@@ -39,8 +39,8 @@ int main (int argc, char *argv [])
     sleep (2);
 
     for (int i = 0; i < nloops; i++) {
-        api.send (1, msg);
         printf ("================================================ %i ==============================================\n", i);
+        api.send (1, msg);
         sleep (1);
 
 //        assert (msg.size <= sizeof (buff));

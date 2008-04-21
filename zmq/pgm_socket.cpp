@@ -80,6 +80,9 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
     } else {
         pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
 
+        // Construct full window
+        pgm_transport_set_txw_preallocate (g_transport, g_sqns);
+
         pgm_transport_set_send_only (g_transport);
 
     }
@@ -126,6 +129,43 @@ size_t zmq::pgm_socket_t::write (unsigned char *data_, size_t size_)
 }
 */
 
+// send one PGM data packet, transmit window owned memory.
+size_t zmq::pgm_socket_t::write_one (unsigned char *tsdu_, size_t tsdu_len_)
+{
+    iovec iov;
+
+    iov.iov_base = tsdu_;
+    iov.iov_len = tsdu_len_;
+
+    ssize_t nbytes = pgm_transport_send_packetv (g_transport, &iov, 1, MSG_DONTWAIT | MSG_WAITALL, true);
+
+    assert (nbytes != -EINVAL);
+
+    if (nbytes == -1 && errno != EAGAIN) {
+        errno_assert (0);
+    }
+
+    nbytes = nbytes == -1 ? 0 : nbytes;
+
+    printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+    
+    // We have to write all data as one packet
+    if (nbytes > 0) {
+        assert (nbytes = tsdu_len_);
+    }
+
+    return nbytes;
+}
+
+unsigned char *zmq::pgm_socket_t::alloc_one (size_t *tsdu_len_)
+{
+    // Space for one NON fragmented packet
+    unsigned char *slice = (unsigned char*)pgm_packetv_alloc_m (g_transport, FALSE, tsdu_len_);
+    printf ("Received %iB (tsdu) slice from tx window\n", *tsdu_len_);
+    return slice;
+}
+
+/*
 size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
 {
 //    ssize_t nbytes = pgm_transport_sendv3_pkt_dontwait (g_transport, iovec_, niovecs_, MSG_DONTWAIT);
@@ -143,7 +183,7 @@ size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
 
     return nbytes;
 }
-
+*/
 /*
 size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
 { 

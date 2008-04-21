@@ -59,7 +59,13 @@ namespace zmq
 //        size_t write (unsigned char *data_, size_t size_);
 
         //
-        size_t write_pkt (const struct iovec *iovec_, int niovec_);
+//        size_t write_pkt (const struct iovec *iovec_, int niovec_);
+
+        // Send one PGM data packet, transmit window owned memory.
+        size_t write_one (unsigned char *tsdu_, size_t tsdu_len_);
+
+        // Allocates one slice in tx window (or returns from GTrashStack)
+        unsigned char *alloc_one (size_t *tsdu_len_);
 
         //  
 //        size_t read (unsigned char *data_, size_t size_);
