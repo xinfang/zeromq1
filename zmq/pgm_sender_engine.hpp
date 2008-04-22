@@ -50,8 +50,11 @@ namespace zmq
         bp_encoder_t encoder;
         epgm_socket_t epgm_socket;
 
+        bool have_txw_slice;
         unsigned char *txw_slice;
-        size_t txw_max_tsdu;
+
+        // Taken from transmit window
+        size_t max_tsdu;
 
         size_t write_size;
         size_t write_pos;

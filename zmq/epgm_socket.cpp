@@ -22,8 +22,7 @@
 zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_) :
     pgm_socket_t (receiver_, pasive_, network_, port_), apdu_offset (0), joined (false)
 {
-    iov [0].iov_base = offset_buff;
-    iov [0].iov_len = sizeof (uint16_t);
+
 }
 
 zmq::epgm_socket_t::~epgm_socket_t ()
@@ -96,14 +95,14 @@ size_t zmq::epgm_socket_t::read_msg (iovec **iov_)
     return nbytes;
 }
 
-size_t zmq::epgm_socket_t::write_pkt (unsigned char *data_, size_t size_, uint16_t offset_)
+size_t zmq::epgm_socket_t::write_one_pkt_with_offset (unsigned char *data_, size_t size_, uint16_t offset_)
 {
     printf ("going to write %iB, offset %i, %s(%i)\n", (int)size_, 
         offset_, __FILE__, __LINE__);
     
     put_uint16 (data_, offset_);
     
-    size_t nbytes = pgm_socket_t::write_one (data_, size_);
+    size_t nbytes = pgm_socket_t::write_one_pkt (data_, size_);
 
     nbytes = nbytes > 0 ? nbytes : 0;
 

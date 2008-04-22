@@ -37,21 +37,13 @@ namespace zmq
         ~epgm_socket_t ();
 
         // 
-        size_t write_pkt (unsigned char *data_, size_t size_, uint16_t offset_);
+        size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_, uint16_t offset_);
 
         //
         size_t read_msg (iovec **iov_);
 
     private:
         
-        // Used in sender
-
-        // We are always sending two iovecs, apdu_offset & payload
-        struct iovec iov [2];
-
-        // Buffer to store first message offset
-        unsigned char offset_buff [sizeof (uint16_t)];
-
         // Used in receiver
 
         // Offset in received apdu

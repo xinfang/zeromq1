@@ -55,20 +55,19 @@ namespace zmq
         // Fills pollfd structure
         int get_pfds (pollfd *fds_, int count_, short events_);
 
-        // 
-//        size_t write (unsigned char *data_, size_t size_);
-
-        //
-//        size_t write_pkt (const struct iovec *iovec_, int niovec_);
 
         // Send one PGM data packet, transmit window owned memory.
-        size_t write_one (unsigned char *tsdu_, size_t tsdu_len_);
+        size_t write_one_pkt (unsigned char *data_, size_t data_len_);
 
-        // Allocates one slice in tx window (or returns from GTrashStack)
-        unsigned char *alloc_one (size_t *tsdu_len_);
+        // Allocates one slice for packet in tx window (or returns from GTrashStack)
+        unsigned char *alloc_one_pkt (bool can_fragment_);
 
-        //  
-//        size_t read (unsigned char *data_, size_t size_);
+        // Fees one slice allocated with alloc_one_pkt
+        void free_one_pkt (unsigned char *data_, bool can_fragment_);
+
+        // Returns max tsdu size
+        size_t get_max_tsdu (bool can_fragment_);
+
 
         //
         size_t read_msg (iovec **iov_);
