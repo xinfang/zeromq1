@@ -43,9 +43,14 @@ namespace zmq
         //  and readbuf_size determine the amount of batching to use.
         bp_engine_t (bool listen_, const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_);
+
+        //  Creates bp_engine over existing connection
+        bp_engine_t (int socket_, size_t writebuf_size_, size_t readbuf_size_);
+
         ~bp_engine_t ();
 
         //  i_pollable interface implementation
+        void set_thread (i_thread *thread_);
         int get_fd ();
         short get_events ();
         void in_event ();
@@ -53,6 +58,8 @@ namespace zmq
         void process_command (const engine_command_t &command_);
 
     private:
+
+        i_thread *thread;
 
         mux_t mux;
         demux_t demux;  

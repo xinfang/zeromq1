@@ -62,7 +62,33 @@ namespace zmq
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
+            thread (NULL),
             socket (listen_, address_, port_),
+            marshaller (this),
+            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
+            unmarshaller (&fsm),
+            encoder (&mux, &marshaller, fsm.server (),
+                out_exchange_, out_routing_key_),
+            decoder (&demux, &unmarshaller, fsm.server ()),
+            writebuf_size (writebuf_size_),
+            readbuf_size (readbuf_size_),
+            write_size (0),
+            write_pos (0),
+            events (POLLIN)
+        {
+            writebuf = (unsigned char*) malloc (writebuf_size);
+            assert (writebuf);
+            readbuf = (unsigned char*) malloc (readbuf_size);
+            assert (readbuf);
+        }
+
+        //  Opens AMQP engine over existing socket
+        amqp09_engine_t (int socket_,
+              size_t writebuf_size_, size_t readbuf_size_,
+              const char *out_exchange_, const char *out_routing_key_,
+              const char *in_exchange_, const char *in_routing_key_) :
+            thread (NULL),
+            socket (socket_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
@@ -89,6 +115,11 @@ namespace zmq
 
         // i_pollable interface implementation
 
+        inline void set_thread (i_thread *thread_)
+        {
+            thread = thread_;
+        }
+
         inline int get_fd ()
         {
             return socket.get_fd ();
@@ -98,7 +129,7 @@ namespace zmq
         {
             //  TODO
             //return events | (proxy.has_messages () ? POLLOUT : 0);
-            assert (false);
+            return events;
         }
 
         void in_event ()
@@ -183,6 +214,8 @@ namespace zmq
         }
 
     private:
+
+        i_thread *thread;
 
         tcp_socket_t socket;
         mux_t mux;

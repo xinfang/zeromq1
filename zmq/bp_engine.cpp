@@ -23,9 +23,28 @@
 
 zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
       uint16_t port_, size_t writebuf_size_, size_t readbuf_size_) :
+    thread (NULL),
     encoder (&mux),
     decoder (&demux),
     socket (listen_, address_, port_),
+    events (POLLIN),
+    writebuf_size (writebuf_size_),
+    readbuf_size (readbuf_size_),
+    write_size (0),
+    write_pos (0)
+{
+    writebuf = (unsigned char*) malloc (writebuf_size);
+    assert (writebuf);
+    readbuf = (unsigned char*) malloc (readbuf_size);
+    assert (readbuf);
+}
+
+zmq::bp_engine_t::bp_engine_t (int socket_,
+      size_t writebuf_size_, size_t readbuf_size_) :
+    thread (NULL),
+    encoder (&mux),
+    decoder (&demux),
+    socket (socket_),
     events (POLLIN),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
@@ -44,6 +63,11 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
+void zmq::bp_engine_t::set_thread (i_thread *thread_)
+{
+    thread = thread_;
+}
+
 int zmq::bp_engine_t::get_fd ()
 {
     return socket.get_fd ();
@@ -52,8 +76,8 @@ int zmq::bp_engine_t::get_fd ()
 short zmq::bp_engine_t::get_events ()
 {
     //  TODO
-    assert (false);
-    //return events | (proxy.has_messages () ? POLLOUT : 0);
+    //  return events | (proxy.has_messages () ? POLLOUT : 0);
+    return events;
 }
 
 void zmq::bp_engine_t::in_event ()

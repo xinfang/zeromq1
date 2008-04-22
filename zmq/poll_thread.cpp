@@ -59,7 +59,7 @@ int zmq::poll_thread_t::get_thread_id ()
 void zmq::poll_thread_t::send_command (int destination_thread_id_,
     const command_t &command_)
 {
-    assert (false);
+    dispatcher->write (thread_id, destination_thread_id_, command_);
 }
 
 void *zmq::poll_thread_t::worker_routine (void *arg_)
@@ -132,6 +132,11 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         //  Add the engine to the engine list
                         i_pollable *engine =
                             first->value.args.register_engine.engine;
+
+                        //  Set the thread callback in the engine
+                        engine->set_thread (this);
+
+                        //  Store the engine pointer
                         engines.push_back (engine);
 
                         //  Add the engine to the pollset

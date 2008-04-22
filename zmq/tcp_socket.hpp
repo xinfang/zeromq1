@@ -32,6 +32,13 @@ namespace zmq
     {
     public:
 
+        //  Attaches object to the existing socket
+        inline tcp_socket_t (int sock_) :
+            listening_socket (-1),
+            s (sock_)
+        {
+        }
+
         // Opens a TCP socket. Either connectes to the host specified by
         // 'address' argument (when listen = false), or listens to the incoming
         // connections on the network interface specified by 'address'

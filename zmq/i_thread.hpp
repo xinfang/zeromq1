@@ -40,7 +40,7 @@ namespace zmq
 
         //  Sends command to a different thread
         virtual void send_command (int destination_thread_id_,
-            const command_t &command_) = 0;
+            const struct command_t &command_) = 0;
     };
 
 }
