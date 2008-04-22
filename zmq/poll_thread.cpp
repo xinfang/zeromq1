@@ -17,14 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+
 #include "poll_thread.hpp"
 #include "err.hpp"
 
-zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_,
-      i_pollable *engine_) :
+zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
-    engine (engine_)
+    pollset (1)
 {
+    //  Initialise the pollset
+    pollset [0].fd = signaler.get_fd ();
+    pollset [0].events = POLLIN;
+
     //  Register the thread with command dispatcher
     thread_id = dispatcher->allocate_thread_id (&signaler);
 
@@ -66,48 +71,41 @@ void *zmq::poll_thread_t::worker_routine (void *arg_)
 
 void zmq::poll_thread_t::loop ()
 {
-    bool stop = false;
-
-    pollfd pfd [2];
-
-    //  Poll for administrative commands (revive & stop commands)
-    pfd [0].fd = signaler.get_fd ();
-    pfd [0].events = POLLIN;
-
-    //  Poll for events from the engine
-    pfd [1].fd = engine->get_fd ();
-
     while (true)
     {
         //  Adjust the events to wait - the engine chooses the events
-        pfd [1].events = engine->get_events ();
+        //  TODO
 
         //  Wait for events
-        int rc = poll (pfd, 2, -1);
+        int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
-        assert (!(pfd [0].revents & (POLLERR | POLLHUP | POLLNVAL)));
-        assert (!(pfd [1].revents & (POLLERR | POLLNVAL)));
+
+        //  Check for errors
+        for (std::vector <pollfd>::iterator it = pollset.begin ();
+              it != pollset.end (); it ++)
+            assert (!(it->revents & (POLLERR | POLLNVAL)));
 
         //  Process commands from other threads
-        if (pfd [0].revents & POLLIN) {
+        if (pollset [0].revents & POLLIN) {
             uint32_t signals = signaler.check ();
             assert (signals);
             if (!process_commands (signals))
                 return;
         }
 
-        if (pfd [1].revents & POLLOUT) {
-
-            //  Process out event from the engine
-            engine->out_event ();
-            if (stop && !(engine->get_events () & POLLOUT))
-                return;
+        //  Process out events from the engines
+        for (int pollset_index = 1; pollset_index != pollset.size ();
+              pollset_index ++) {
+            if (pollset [pollset_index].revents & POLLOUT) {
+                engines [pollset_index - 1]->out_event ();
+            }
         }
 
-        if (pfd [1].revents & (POLLIN | POLLHUP)) {
-
-            //  Process in event from the engine
-            engine->in_event ();
+        //  Process in events from the engines
+        for (int pollset_index = 1; pollset_index != pollset.size ();
+              pollset_index ++) {
+            if (pollset [pollset_index].revents & (POLLIN | POLLHUP))
+                engines [pollset_index - 1]->in_event ();
         }
     }
 }
@@ -128,8 +126,43 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                 case command_t::stop:
                     return false;
 
+                //  Register the engine supplied with the poll thread
+                case command_t::register_engine:
+                    {
+                        //  Add the engine to the engine list
+                        i_pollable *engine =
+                            first->value.args.register_engine.engine;
+                        engines.push_back (engine);
+
+                        //  Add the engine to the pollset
+                        pollfd pfd = {engine->get_fd (),
+                            engine->get_events (), 0};
+                        pollset.push_back (pfd);
+                    }
+                    break;
+
+                //  Unregister the engine
+                case command_t::unregister_engine:
+                    {
+                        //  Find the engine in the list
+                        std::vector <i_pollable*>::iterator it =std::find (
+                            engines.begin (), engines.end (),
+                            first->value.args.unregister_engine.engine);
+                        assert (it != engines.end ());
+
+                        //  Remove the engine from the engine list and
+                        //  the pollset
+                        int pos = it - engines.begin ();
+                        engines.erase (it);
+                        pollset.erase (pollset.begin () + 1 + pos);
+                    }
+                    break;
+
+
                 //  Forward the command to the specified engine
                 case command_t::engine_command:
+                    //  TODO: check whether the engine still exists
+                    //  Otherwise drop the command
                     first->value.args.engine_command.engine->process_command (
                         first->value.args.engine_command.command);
                     break;

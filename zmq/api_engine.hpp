@@ -20,6 +20,7 @@
 #ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
 #define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
+#include "i_thread.hpp"
 #include "msg.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
@@ -46,6 +47,12 @@ namespace zmq
 
         //  Receive a message
         void receive (void **value_);
+
+        //  Register the engine with the thread
+        void register_engine (i_pollable *engine_, i_thread *thread_);
+
+        //  Unregister the engine with the thread
+        void unregister_engine (i_pollable *engine_, i_thread *thread_);
 
     protected:
 

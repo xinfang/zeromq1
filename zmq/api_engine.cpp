@@ -63,6 +63,21 @@ void zmq::api_engine_t::receive (void **value_)
     }
 }
 
+void zmq::api_engine_t::register_engine (i_pollable *engine_, i_thread *thread_)
+{
+    command_t command;
+    command.init_register_engine (engine_);
+    dispatcher->write (thread_id, thread_->get_thread_id (), command);
+}
+
+void zmq::api_engine_t::unregister_engine (i_pollable *engine_,
+    i_thread *thread_)
+{
+    command_t command;
+    command.init_unregister_engine (engine_);
+    dispatcher->write (thread_id, thread_->get_thread_id (), command);
+}
+
 void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals)
 {
     //  TODO
