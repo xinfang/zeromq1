@@ -30,22 +30,22 @@ zmq::epgm_socket_t::~epgm_socket_t ()
 
 }
 
-size_t zmq::epgm_socket_t::read_msg (iovec **iov_)
+size_t zmq::epgm_socket_t::read_one_pkt_with_offset (iovec *iov_)
 {
 
     // Read data
-    size_t nbytes = pgm_socket_t::read_msg (iov_);
+    size_t nbytes = read_one_pkt (iov_);
 
     // It was not ODATA event
     if (!nbytes)
         return 0;
 
     // Read APDU offset
-    apdu_offset = get_uint16 ((unsigned char*)(*iov_)->iov_base);
+    apdu_offset = get_uint16 ((unsigned char*)iov_->iov_base);
 
     // Shift iov_base & decrease iov_len of the first iovec by 2B
-    (*iov_)->iov_base = (unsigned char*)(*iov_)->iov_base + sizeof (uint16_t);
-    (*iov_)->iov_len -= sizeof (uint16_t);
+    iov_->iov_base = (unsigned char*)iov_->iov_base + sizeof (uint16_t);
+    iov_->iov_len -= sizeof (uint16_t);
     nbytes -= sizeof (uint16_t);
 
     printf ("read apdu_offset %i, %s(%i)\n", apdu_offset, __FILE__, __LINE__);
@@ -65,32 +65,19 @@ size_t zmq::epgm_socket_t::read_msg (iovec **iov_)
 
     assert (nbytes > apdu_offset);
 
-    // Shiffting
-    while (apdu_offset > 0) {
-        
-        assert (nbytes >= 0 );
+    if (!joined) {
 
-        // Offset is bigger than current iov_len
-        if (apdu_offset > (*iov_)->iov_len) {
-            printf ("throwing iovec (len %i), %s(%i)\n", (int)(*iov_)->iov_len, __FILE__, __LINE__);
-            apdu_offset -= (*iov_)->iov_len;
-            nbytes -= (*iov_)->iov_len;
-            (*iov_++);
-            continue;
-        }
-        
-        // Message starts in current iovec
-        printf ("shifting iovec (len %i), %s(%i)\n", (int)(*iov_)->iov_len, __FILE__, __LINE__);
+        printf ("shifting iovec (len %i), %s(%i)\n", (int)iov_->iov_len, __FILE__, __LINE__);
 
         // Shift iov_base
-        (*iov_)->iov_base = (unsigned char*)(*iov_)->iov_base + apdu_offset;
-        (*iov_)->iov_len -= apdu_offset;
-        nbytes -= apdu_offset;
-        apdu_offset -= apdu_offset;
+        iov_->iov_base = (unsigned char*)iov_->iov_base + apdu_offset;
+        iov_->iov_len -= apdu_offset;
+
+        // Joined 
+        joined = true;
+
+        printf ("joined into the stream, %s(%i)\n", __FILE__, __LINE__);
     }
-  
-    // Joined 
-    joined = true;
 
     return nbytes;
 }

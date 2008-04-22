@@ -70,20 +70,17 @@ namespace zmq
 
 
         //
-        size_t read_msg (iovec **iov_);
+        size_t read_pkt (iovec **iov_);
 
-        // Testing functions
-//        int send_nak (int seq_num_);
+        size_t read_one_pkt (iovec *iov_);
+
 
     protected:
         pgm_transport_t* g_transport;
 
     private:
+        // Structure to store received data
         pgm_msgv_t msgv;
-
-        // For NAK testing
-//        int received_count;
-//        int send_nak_each;
     };
 }
 #endif

@@ -40,7 +40,7 @@ namespace zmq
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_, uint16_t offset_);
 
         //
-        size_t read_msg (iovec **iov_);
+        size_t read_one_pkt_with_offset (iovec *iov_);
 
     private:
         

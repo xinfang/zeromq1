@@ -27,17 +27,12 @@ zmq::pgm_receiver_engine_t::pgm_receiver_engine_t (dispatcher_t *dispatcher_, in
     decoder (&proxy, destination_engine_id_),
     epgm_socket (true, false, network_, port_)
 {
-/*    writebuf = (unsigned char*) malloc (writebuf_size);
-    assert (writebuf);
-    readbuf = (unsigned char*) malloc (readbuf_size);
-    assert (readbuf);
-*/
+
 }
 
 zmq::pgm_receiver_engine_t::~pgm_receiver_engine_t ()
 {
-//    free (readbuf);
-//    free (writebuf);
+
 }
 
 void zmq::pgm_receiver_engine_t::set_signaler (i_signaler *signaler_)
@@ -61,10 +56,6 @@ int zmq::pgm_receiver_engine_t::get_pfds (pollfd *pfd_, int count_)
 void zmq::pgm_receiver_engine_t::revive (pollfd *pfd_, int count_, int engine_id_)
 {
     assert (0);
-    //  There is at least one engine that has messages ready - start polling
-    //  the socket for writing.
-//    proxy.revive (engine_id_);
-//    events |= POLLOUT;
 }
 
 void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
@@ -75,24 +66,21 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
         case pgm_recv_fd_idx:
             // POLLIN event from recv socket
             {
-                iovec *iovs;
+                iovec iov;
     
-                size_t nbytes = epgm_socket.read_msg (&iovs);
+                size_t nbytes = epgm_socket.read_one_pkt_with_offset (&iov);
 
                 printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
+                // No data received
                 if (!nbytes) {
                     return;
                 }
 
                 //  Push the data to the decoder
-                while (nbytes > 0) {
-                    printf ("writting %iB into decoder, %s(%i)\n", (int)iovs->iov_len, 
-                        __FILE__, __LINE__);
-                    decoder.write ((unsigned char*)iovs->iov_base, iovs->iov_len);
-                    nbytes -= iovs->iov_len;
-                    iovs++;
-                }
+                printf ("writting %iB into decoder, %s(%i)\n", (int)iov.iov_len, 
+                    __FILE__, __LINE__);
+                decoder.write ((unsigned char*)iov.iov_base, iov.iov_len);
 
                 //  Flush any messages decoder may have produced to the dispatcher
                 proxy.flush ();

@@ -66,25 +66,29 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
     if (receiver_) {
         // Set NAK transmit back-off interval [us] 
         pgm_transport_set_nak_bo_ivl (g_transport, 50*1000);
+    
         // Set timeout before repeating NAK [us]
         pgm_transport_set_nak_rpt_ivl (g_transport, 200*1000);
+
         // Set timeout for receiving RDATA
         pgm_transport_set_nak_rdata_ivl (g_transport, 200*1000);
+
         // Set retries for DATA packets after NAK
         pgm_transport_set_nak_data_retries (g_transport, 2);
+
         // Set retries for DATA after NCF
         pgm_transport_set_nak_ncf_retries (g_transport, 2);
 
+        // Set transport->can_send_data = FALSE, transport->can_send_nak !FALSE
         pgm_transport_set_recv_only (g_transport, FALSE);
-
     } else {
         pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
 
         // Construct full window
         pgm_transport_set_txw_preallocate (g_transport, g_sqns);
 
+        // Set transport->can_recv = FALSE
         pgm_transport_set_send_only (g_transport);
-
     }
 
     rc = pgm_transport_bind (g_transport);
@@ -163,17 +167,8 @@ void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
 }
 
 /*
-size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
-{ 
-    ssize_t nbytes = pgm_transport_recv (g_transport, data_, size_, 0);
-    errno_assert (nbytes != -1);
-    return (size_t) nbytes;
-}
-*/
-
-size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
+size_t zmq::pgm_socket_t::read_pkt (iovec **iov_)
 {
-//    printf ("%s(%i)\n", __FILE__, __LINE__);
     ssize_t nbytes = pgm_transport_recvmsgv (g_transport, &msgv, 1, MSG_DONTWAIT);
 
     // In a case when not ODATA fired POLLIN event
@@ -186,45 +181,40 @@ size_t zmq::pgm_socket_t::read_msg (iovec **iov_)
     nbytes = nbytes == -1 ? 0 : nbytes;
     printf ("received %i bytes, ", (int)nbytes);
     printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
-//    fflush (stdout); 
+    fflush (stdout); 
 
     // iov
     *iov_ = msgv.msgv_iov;
 
-/*
-    // NAK testing
-    int rc;
-    if (nbytes != 0) {
-        if (received_count > 0 && send_nak_each > 0) {
-            if (received_count % send_nak_each == 0) {
-                rc = send_nak (received_count);
-                assert (rc != -1);
-            }
-        }
-        received_count++;
-    }
+    return (size_t)nbytes;
+}
 */
+
+size_t zmq::pgm_socket_t::read_one_pkt (iovec *iov_)
+{
+    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, &msgv, 1, MSG_DONTWAIT);
+
+    // In a case when not ODATA fired POLLIN event
+    // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
+    if (nbytes == -1 && errno != EAGAIN) {
+        printf ("errno %i, ", errno);
+        errno_assert (nbytes != -1); 
+    }
+
+    nbytes = nbytes == -1 ? 0 : nbytes;
+    printf ("received %i bytes, ", (int)nbytes);
+    printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
+    fflush (stdout); 
+
+    if (nbytes > 0) {
+        // be sure that only one iovec was returned by pgm_transport_recvmsgv
+        assert (msgv.msgv_iovlen == 1);
+
+        // iov
+        iov_->iov_base = (msgv.msgv_iov)->iov_base;
+        iov_->iov_len = (msgv.msgv_iov)->iov_len;
+    }
 
     return (size_t)nbytes;
 }
 
-/*
-int zmq::pgm_socket_t::send_nak (int seq_num_)
-{
-    if (!g_transport->peers_list) {
-		return -1;
-	}
-
-    GList* list = g_transport->peers_list;
-	do {
-		GList* next = list->next;
-		pgm_peer_t* peer = (pgm_peer_t*)list->data;
-        ::send_nak (peer, seq_num_);
-
-        printf ("TSI: %s\n", pgm_print_tsi (&(peer->tsi)));
-        list = next;
-    } while (list);
-
-    return 0;
-}
-*/

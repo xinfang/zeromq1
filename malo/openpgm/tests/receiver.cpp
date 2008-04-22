@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 
-#include "../../../zmq/pgm_receiver.hpp"
+#include "../../../zmq/epgm_socket.hpp"
 
 int main (int argc, char *argv [])
 {
@@ -21,28 +21,28 @@ int main (int argc, char *argv [])
     printf ("network \"%s\", port %i, nloops %i\n", 
         network, port, nloops);
 
-    zmq::pgm_receiver_t pgm_receiver (network, port);
+    zmq::epgm_socket_t pgm_socket (true, false, network, port);
 
 //    int fd = pgm_receiver.get_fd ();
 
-    struct iovec* msgv_iov;
+    iovec iov;
 
-    for (int i = 0; i < nloops; i++) {
+    while (nloops) {
         
-        int rc = pgm_receiver.read_msg (&msgv_iov);
-        printf ("read %i B, %s(%i)\n", rc, __FILE__, __LINE__);
+        int nbytes = pgm_socket.read_one_pkt_with_offset (&iov);
+        printf ("read %i B, %s(%i)\n", nbytes, __FILE__, __LINE__);
 
-        while (rc > 0) {
-            for (unsigned int i = 0; i < msgv_iov->iov_len; i++) {
-	    	    printf ("[%i]", ((char*)msgv_iov->iov_base) [i]);
-                if (((char*)msgv_iov->iov_base) [i] >= '0' && ((char*)msgv_iov->iov_base) [i] <= 'z')
-    		        printf ("%c ", ((char*)msgv_iov->iov_base) [i]);    
+        if (nbytes > 0) {
+            for (unsigned int i = 0; i < iov.iov_len; i++) {
+	    	    printf ("[%i]", ((char*)iov.iov_base) [i]);
+                if (((char*)iov.iov_base) [i] >= '0' && ((char*)iov.iov_base) [i] <= 'z')
+    		        printf ("%c ", ((char*)iov.iov_base) [i]);    
     	    }
-
             printf ("\n");
-            rc -= msgv_iov->iov_len;
-            msgv_iov++;
+
+            nloops--;
         }
+        sleep (1);
     }
 
     return 0;
