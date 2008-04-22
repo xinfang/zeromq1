@@ -171,8 +171,8 @@ unsigned char *zmq::pgm_socket_t::alloc_one_pkt (bool can_fragment_)
 
 void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
 {
-    // have to shift data_ pointer back to the begining of the slice
-    g_slice_free1 (g_transport->max_tpdu - g_transport->iphdr_len, data_ - pgm_transport_pkt_offset (can_fragment_));
+    // Push allocated slice into the trash_data
+    pgm_packetv_free1 (g_transport, data_, can_fragment_);
 }
 
 /*
