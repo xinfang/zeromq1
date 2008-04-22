@@ -26,10 +26,10 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
     proxy (dispatcher_, engine_id_),
     encoder (&proxy, source_engine_id_),
     epgm_socket (false, false, network_, port_),
-    have_txw_slice (false),
+    txw_slice (NULL),
+    max_tsdu (0),
     write_size (0),
     write_pos (0)
-
 {
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
@@ -38,7 +38,7 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
 
 zmq::pgm_sender_engine_t::~pgm_sender_engine_t ()
 {
-    if (have_txw_slice) {
+    if (txw_slice) {
         printf ("Freeing unused slice\n");
         epgm_socket.free_one_pkt (txw_slice, false);
     }
@@ -112,9 +112,9 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
             //  If write buffer is empty, try to read new data from the encoder
             if (write_pos == write_size) {
                 // get memory slice from tx window if we do not have already one
-                if (!have_txw_slice) {
+                if (!txw_slice) {
                     txw_slice = epgm_socket.alloc_one_pkt (false);
-                    have_txw_slice = true;
+                    printf ("Alocated packet in tx window\n");
                 }
 
                 write_size = encoder.read (txw_slice + sizeof (uint16_t), max_tsdu - sizeof (uint16_t));
@@ -139,10 +139,11 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                     write_size - write_pos, 0);
 
                 printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+
                 assert (write_size - write_pos == nbytes);
 
-                // slice is owned by tx window
-                have_txw_slice = false;
+                // slice is now owned by tx window
+                txw_slice = NULL;
 
                 write_pos += nbytes;
             }

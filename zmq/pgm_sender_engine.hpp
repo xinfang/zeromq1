@@ -50,7 +50,6 @@ namespace zmq
         bp_encoder_t encoder;
         epgm_socket_t epgm_socket;
 
-        bool have_txw_slice;
         unsigned char *txw_slice;
 
         // Taken from transmit window

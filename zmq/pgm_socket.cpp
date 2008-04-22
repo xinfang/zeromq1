@@ -120,22 +120,10 @@ int zmq::pgm_socket_t::get_pfds (pollfd *fds_, int count_, short events_)
     return rc;
 }
 
-/*
-size_t zmq::pgm_socket_t::write (unsigned char *data_, size_t size_)
-{
-    ssize_t nbytes = pgm_transport_send (g_transport, data_, size_, 0);
-    errno_assert (nbytes != -1);
-    return (size_t) nbytes;
-}
-*/
-
 // send one PGM data packet, transmit window owned memory.
 size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
 {
-    struct iovec iov = {data_,data_len_};
-
-//    iov.iov_base = tsdu_;
-//    iov.iov_len = tsdu_len_;
+    iovec iov = {data_,data_len_};
 
     ssize_t nbytes = pgm_transport_send_packetv (g_transport, &iov, 1, MSG_DONTWAIT | MSG_WAITALL, true);
 
@@ -164,8 +152,7 @@ size_t zmq::pgm_socket_t::get_max_tsdu (bool can_fragment_)
 
 unsigned char *zmq::pgm_socket_t::alloc_one_pkt (bool can_fragment_)
 {
-    printf ("Alocated packet in tx window\n");
-    // Space for packet of the size returned with max_tsdu (can_fragment_)
+    // Slice for packet of the size returned with max_tsdu (can_fragment_)
     return (unsigned char*)pgm_packetv_alloc (g_transport, can_fragment_);
 }
 
@@ -175,25 +162,6 @@ void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
     pgm_packetv_free1 (g_transport, data_, can_fragment_);
 }
 
-/*
-size_t zmq::pgm_socket_t::write_pkt (const struct iovec *iovec_, int niovecs_)
-{
-//    ssize_t nbytes = pgm_transport_sendv3_pkt_dontwait (g_transport, iovec_, niovecs_, MSG_DONTWAIT);
- 
-    ssize_t nbytes = pgm_transport_send_packetv (g_transport, iovec_, niovecs_, MSG_DONTWAIT, true);
-    // In case nbytes == -1 and errno == EAGAIN have to try again
-    // otherwise error
-    if (nbytes == -1 && errno != EAGAIN) {
-        errno_assert (0);
-    }
-
-    nbytes = nbytes == -1 ? 0 : nbytes;
-
-    printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
-
-    return nbytes;
-}
-*/
 /*
 size_t zmq::pgm_socket_t::read (unsigned char *data_, size_t size_)
 { 
