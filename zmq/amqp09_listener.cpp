@@ -26,6 +26,15 @@
 #include "amqp09_listener.hpp"
 #include "amqp09_server_engine.hpp"
 
+zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (
+    i_thread *handler_thread_, const char *interface_, uint16_t port_)
+{
+    amqp09_listener_t *instance = new amqp09_listener_t (handler_thread_,
+        interface_, port_);
+    assert (instance);
+    return instance;
+}
+
 zmq::amqp09_listener_t::amqp09_listener_t (i_thread *handler_thread_,
       const char *interface_, uint16_t port_) :
     thread (NULL),
@@ -92,7 +101,7 @@ void zmq::amqp09_listener_t::in_event ()
 
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
-    amqp09_server_engine_t *engine = new amqp09_server_engine_t (s,
+    amqp09_server_engine_t *engine = amqp09_server_engine_t::create (thread, s,
         8192, 8192, "", "", "", "");
     assert (engine);
 

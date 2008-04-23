@@ -30,13 +30,10 @@ namespace zmq
     {
     public:
 
-        //  Creates a listener. "thread" argument points to the thread that
-        //  should serve newly-created BP engines.
-        bp_listener_t (i_thread *handler_thread_, const char *interface_,
-            uint16_t port_);
-
-        //  Destroys the listener
-        ~bp_listener_t ();
+        //  Creates a BP listener. handler_thread argument points
+        //  to the thread that will serve newly-created BP engines.
+        static bp_listener_t *create (i_thread *handler_thread_,
+            const char *interface_, uint16_t port_);
 
         //  i_pollable implementation
         void set_thread (i_thread *thread_);
@@ -47,6 +44,10 @@ namespace zmq
         void process_command (const engine_command_t &command_);
 
     private:
+
+        bp_listener_t (i_thread *handler_thread_,
+            const char *interface_, uint16_t port_);
+        ~bp_listener_t ();
 
         //  The thread managing the listener
         i_thread *thread;

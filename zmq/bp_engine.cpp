@@ -21,6 +21,25 @@
 
 #include "bp_engine.hpp"
 
+zmq::bp_engine_t *zmq::bp_engine_t::create (bool listen_,
+    const char *address_, uint16_t port_,
+    size_t writebuf_size_, size_t readbuf_size_)
+{
+    bp_engine_t *instance = new bp_engine_t (
+        listen_, address_, port_, writebuf_size_, readbuf_size_);
+    assert (instance);
+    return instance;
+}
+
+zmq::bp_engine_t *zmq::bp_engine_t::create (int socket_,
+    size_t writebuf_size_, size_t readbuf_size_)
+{
+    bp_engine_t *instance = new bp_engine_t (
+        socket_, writebuf_size_, readbuf_size_);
+    assert (instance);
+    return instance;
+}
+
 zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
       uint16_t port_, size_t writebuf_size_, size_t readbuf_size_) :
     thread (NULL),

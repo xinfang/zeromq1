@@ -58,59 +58,31 @@ namespace zmq
         //  out_exchange and out_routing_key are used to set exchange and
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
-        amqp09_engine_t (bool listen_, const char *address_, uint16_t port_,
-              size_t writebuf_size_, size_t readbuf_size_,
-              const char *out_exchange_, const char *out_routing_key_,
-              const char *in_exchange_, const char *in_routing_key_) :
-            thread (NULL),
-            socket (listen_, address_, port_),
-            marshaller (this),
-            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
-            unmarshaller (&fsm),
-            encoder (&mux, &marshaller, fsm.server (),
-                out_exchange_, out_routing_key_),
-            decoder (&demux, &unmarshaller, fsm.server ()),
-            writebuf_size (writebuf_size_),
-            readbuf_size (readbuf_size_),
-            write_size (0),
-            write_pos (0),
-            events (POLLIN)
+        static amqp09_engine_t *create (i_thread *handler_thread_,
+            bool listen_, const char *address_, uint16_t port_,
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *out_exchange_, const char *out_routing_key_,
+            const char *in_exchange_, const char *in_routing_key_)
         {
-            writebuf = (unsigned char*) malloc (writebuf_size);
-            assert (writebuf);
-            readbuf = (unsigned char*) malloc (readbuf_size);
-            assert (readbuf);
+            amqp09_engine_t *instance = new amqp09_engine_t (handler_thread_,
+                listen_, address_, port_, writebuf_size_, readbuf_size_,
+                out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
+            assert (instance);
+            return instance;
         }
 
-        //  Opens AMQP engine over existing socket
-        amqp09_engine_t (int socket_,
-              size_t writebuf_size_, size_t readbuf_size_,
-              const char *out_exchange_, const char *out_routing_key_,
-              const char *in_exchange_, const char *in_routing_key_) :
-            thread (NULL),
-            socket (socket_),
-            marshaller (this),
-            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
-            unmarshaller (&fsm),
-            encoder (&mux, &marshaller, fsm.server (),
-                out_exchange_, out_routing_key_),
-            decoder (&demux, &unmarshaller, fsm.server ()),
-            writebuf_size (writebuf_size_),
-            readbuf_size (readbuf_size_),
-            write_size (0),
-            write_pos (0),
-            events (POLLIN)
+        //  Opens AMQP engine using existing socket. For the description of
+        //  the remaining parameters have a look above
+        static amqp09_engine_t *create (i_thread *handler_thread_,
+            int socket_, size_t writebuf_size_, size_t readbuf_size_,
+            const char *out_exchange_, const char *out_routing_key_,
+            const char *in_exchange_, const char *in_routing_key_)
         {
-            writebuf = (unsigned char*) malloc (writebuf_size);
-            assert (writebuf);
-            readbuf = (unsigned char*) malloc (readbuf_size);
-            assert (readbuf);
-        }
-
-        ~amqp09_engine_t ()
-        {
-            free (readbuf);
-            free (writebuf);
+            amqp09_engine_t *instance = new amqp09_engine_t (
+                socket_, writebuf_size_, readbuf_size_,
+                out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
+            assert (instance);
+            return instance;
         }
 
         // i_pollable interface implementation
@@ -214,6 +186,60 @@ namespace zmq
         }
 
     private:
+
+        amqp09_engine_t (bool listen_, const char *address_, uint16_t port_,
+              size_t writebuf_size_, size_t readbuf_size_,
+              const char *out_exchange_, const char *out_routing_key_,
+              const char *in_exchange_, const char *in_routing_key_) :
+            thread (NULL),
+            socket (listen_, address_, port_),
+            marshaller (this),
+            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
+            unmarshaller (&fsm),
+            encoder (&mux, &marshaller, fsm.server (),
+                out_exchange_, out_routing_key_),
+            decoder (&demux, &unmarshaller, fsm.server ()),
+            writebuf_size (writebuf_size_),
+            readbuf_size (readbuf_size_),
+            write_size (0),
+            write_pos (0),
+            events (POLLIN)
+        {
+            writebuf = (unsigned char*) malloc (writebuf_size);
+            assert (writebuf);
+            readbuf = (unsigned char*) malloc (readbuf_size);
+            assert (readbuf);
+        }
+
+        amqp09_engine_t (int socket_,
+              size_t writebuf_size_, size_t readbuf_size_,
+              const char *out_exchange_, const char *out_routing_key_,
+              const char *in_exchange_, const char *in_routing_key_) :
+            thread (NULL),
+            socket (socket_),
+            marshaller (this),
+            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
+            unmarshaller (&fsm),
+            encoder (&mux, &marshaller, fsm.server (),
+                out_exchange_, out_routing_key_),
+            decoder (&demux, &unmarshaller, fsm.server ()),
+            writebuf_size (writebuf_size_),
+            readbuf_size (readbuf_size_),
+            write_size (0),
+            write_pos (0),
+            events (POLLIN)
+        {
+            writebuf = (unsigned char*) malloc (writebuf_size);
+            assert (writebuf);
+            readbuf = (unsigned char*) malloc (readbuf_size);
+            assert (readbuf);
+        }
+
+        ~amqp09_engine_t ()
+        {
+            free (readbuf);
+            free (writebuf);
+        }
 
         i_thread *thread;
 

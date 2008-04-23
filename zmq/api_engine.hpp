@@ -49,10 +49,10 @@ namespace zmq
         void receive (void **value_);
 
         //  Register the engine with the thread
+        //  By registering the engine with the thread you cease the ownership
+        //  of the engine to that thread, therefore you shouldn't use it
+        //  anymore. If you do, it will result in undefined behaviour.
         void register_engine (i_pollable *engine_, i_thread *thread_);
-
-        //  Unregister the engine with the thread
-        void unregister_engine (i_pollable *engine_, i_thread *thread_);
 
     protected:
 

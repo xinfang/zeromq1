@@ -27,6 +27,15 @@
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
 
+zmq::bp_listener_t *zmq::bp_listener_t::create (i_thread *handler_thread_,
+    const char *interface_, uint16_t port_)
+{
+    bp_listener_t *instance = new bp_listener_t (handler_thread_,
+        interface_, port_);
+    assert (instance);
+    return instance;
+}
+
 zmq::bp_listener_t::bp_listener_t (i_thread *handler_thread_,
       const char *interface_, uint16_t port_) :
     thread (NULL),
@@ -55,7 +64,7 @@ zmq::bp_listener_t::bp_listener_t (i_thread *handler_thread_,
               
     //  Start listening for incomming connections
     rc = ::listen (sock, 1);
-    errno_assert (rc == 0);
+    errno_assert (rc == 0);    
 }
 
 zmq::bp_listener_t::~bp_listener_t ()
@@ -93,7 +102,7 @@ void zmq::bp_listener_t::in_event ()
 
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
-    bp_engine_t *engine = new bp_engine_t (s, 8192, 8192);
+    bp_engine_t *engine = bp_engine_t::create (s, 8192, 8192);
     assert (engine);
 
     //  Plug the engine to the poll thread
@@ -110,6 +119,7 @@ void zmq::bp_listener_t::out_event ()
 
 void zmq::bp_listener_t::process_command (const engine_command_t &command_)
 {
-    // Listener doesn't expect any commands
+    //  TODO: The only event handled here should be terminate, which would
+    //  release the object (delete this)
     assert (false);
 }
