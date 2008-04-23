@@ -360,7 +360,7 @@ namespace zmq
 
         //  Helper function to convert binary field table into field_table_t
         void get_field_table (unsigned char *args, size_t args_size,
-            size_t offset, i_amqp09::field_table_t &table_);
+            size_t &offset, i_amqp09::field_table_t &table_);
 
         i_amqp09 *amqp;
     };
@@ -426,7 +426,7 @@ void zmq::amqp09_unmarshaller_t::write (uint16_t class_id,
 }
 
 void zmq::amqp09_unmarshaller_t::get_field_table (unsigned char *args,
-    size_t args_size, size_t offset, i_amqp09::field_table_t &table_)
+    size_t args_size, size_t &offset, i_amqp09::field_table_t &table_)
 {
     table_.clear ();
     assert (offset + sizeof (uint32_t) <= args_size);
