@@ -58,13 +58,13 @@ namespace zmq
         //  out_exchange and out_routing_key are used to set exchange and
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
-        static amqp09_engine_t *create (i_thread *handler_thread_,
+        static amqp09_engine_t *create (
             bool listen_, const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
         {
-            amqp09_engine_t *instance = new amqp09_engine_t (handler_thread_,
+            amqp09_engine_t *instance = new amqp09_engine_t (
                 listen_, address_, port_, writebuf_size_, readbuf_size_,
                 out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
             assert (instance);
@@ -73,7 +73,7 @@ namespace zmq
 
         //  Opens AMQP engine using existing socket. For the description of
         //  the remaining parameters have a look above
-        static amqp09_engine_t *create (i_thread *handler_thread_,
+        static amqp09_engine_t *create (
             int socket_, size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
