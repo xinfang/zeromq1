@@ -38,15 +38,13 @@ namespace zmq
 
         union {
             struct {
-                pipe_t *pipe;
+                class pipe_t *pipe;
             } revive;
             struct {
-                pipe_t *pipe;
-                int thread_id;
+                class pipe_t *pipe;
             } send_to;
             struct {
-                pipe_t *pipe;
-                int thread_id;
+                class pipe_t *pipe;
             } receive_from;
         } args;   
     };
@@ -96,14 +94,12 @@ namespace zmq
             args.unregister_engine.engine = engine_;
         }
 
-        inline void init_engine_send_to (i_pollable *engine_, pipe_t *pipe_,
-            int thread_id_)
+        inline void init_engine_send_to (i_pollable *engine_, pipe_t *pipe_)
         {
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::send_to;
             args.engine_command.command.args.send_to.pipe = pipe_;
-            args.engine_command.command.args.send_to.thread_id = thread_id_;
         }
 
         inline void init_engine_receive_from (i_pollable *engine_,

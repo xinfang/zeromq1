@@ -41,6 +41,9 @@ namespace zmq
         //  Sends command to a different thread
         virtual void send_command (int destination_thread_id_,
             const struct command_t &command_) = 0;
+
+        //  Registers engine with the locator
+        virtual void register_engine (struct i_pollable *engine_) = 0;
     };
 
 }

@@ -27,7 +27,8 @@
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
     thread_count (thread_count_),
     signalers (thread_count_, (i_signaler*) NULL),
-    used (thread_count_, false)
+    used (thread_count_, false),
+    locator (this)
 {
     //  Alocate N * N matrix of dispatching pipes
     pipes = new ypipe_t <command_t, true> [thread_count * thread_count];

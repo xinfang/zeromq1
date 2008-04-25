@@ -85,6 +85,7 @@ zmq::bp_engine_t::~bp_engine_t ()
 void zmq::bp_engine_t::set_thread (i_thread *thread_)
 {
     thread = thread_;
+    thread->register_engine (this);
 }
 
 int zmq::bp_engine_t::get_fd ()

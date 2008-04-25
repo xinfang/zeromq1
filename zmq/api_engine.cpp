@@ -41,16 +41,16 @@ void zmq::api_engine_t::send (void *value_)
 void zmq::api_engine_t::receive (void **value_)
 {
     //  Get message from mux
-    bool ok = mux.read (value_);
+    void *msg = mux.read ();
 
     //  If there is no message, wait for signals, process commands and
     //  repeat the whole thing until there is a message.
-    while (!ok) {
+    while (!msg) {
         ypollset_t::integer_t signals = pollset.poll ();
         assert (signals);
         process_commands (signals);
         ticks = 0;
-        ok = mux.read (value_);
+        msg = mux.read ();
     }
 
     //  Once every max_ticks messages check for signals and process incoming

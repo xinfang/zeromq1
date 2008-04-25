@@ -20,21 +20,47 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
+#include "i_thread.hpp"
+#include "i_pollable.hpp"
 #include "ypipe.hpp"
-#include "atomic_counter.hpp"
+#include "msg.hpp"
 
 namespace zmq
 {
 
-    class pipe_t : public ypipe_t <void*, false>
+    class pipe_t
     {
     public:
 
-        inline void revive ()
-        {
-        }
+        pipe_t (struct i_thread *source_thread_, int destination_thread_id_,
+            struct i_pollable *destination_engine_);
+        ~pipe_t ();
+
+        void instant_write (void *msg_);
+        void write (void *msg_);
+        void flush ();
+        void *read ();
+        void revive ();
 
     private:
+
+        void send_revive ();
+
+        ypipe_t <void*, false> pipe;
+
+        //  These variables should be accessed only by the methods called
+        //  from the writing thread.
+        ypipe_t <void*, false>::item_t *writebuf_first;
+        ypipe_t <void*, false>::item_t *writebuf_last;
+        i_thread *thread;
+        int thread_id;
+        i_pollable *engine;
+
+        //  These variables should be accessed only by the methods called
+        //  from the reading thread.
+        ypipe_t <void*, false>::item_t *readbuf_first;
+        ypipe_t <void*, false>::item_t *readbuf_last;
+        bool alive; 
     }; 
 
 }

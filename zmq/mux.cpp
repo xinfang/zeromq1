@@ -18,3 +18,25 @@
 */
 
 #include "mux.hpp"
+
+void *zmq::mux_t::read ()
+{
+printf ("Checking for messages\n");
+    //  If the is no incoming pipe, message cannot be retrieved
+    if (pipes.empty ())
+        return NULL;
+
+    //  Fair-queueing implementation
+    int start = current;
+    while (true) {
+        void *msg = pipes [current]->read ();
+        if (msg) {
+printf ("message retrieved\n");
+            return msg;
+        }
+        current ++;
+        current %= pipes.size ();
+        if (current == start)
+            return NULL;
+    }
+}

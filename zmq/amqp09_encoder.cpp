@@ -85,8 +85,9 @@ bool zmq::amqp09_encoder_t::message_ready ()
     if (!flow_on)
         return false;
 
-    //  Get one message from mux.
-    if (!mux->read (&msg))
+    //  Get one message from mux
+    msg = mux->read ();
+    if (!msg)
         return false;
 
     //  Encode method frame frame header

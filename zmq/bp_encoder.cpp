@@ -43,8 +43,8 @@ bool zmq::bp_encoder_t::message_ready ()
 {
     //  Read new message from the dispatcher, if there is none, return false.
     msg_dealloc (msg);
-    msg = NULL;
-    if (!mux->read (&msg))
+    msg = mux->read ();
+    if (!msg)
         return false;
 
     if (msg_size (msg) < 255) {

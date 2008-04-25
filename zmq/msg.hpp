@@ -129,8 +129,8 @@ namespace zmq
         if (!msg_)
             return;
         msg_t *msg = (msg_t*) msg_;
-        if (!msg->shared ? msg->refcount.safe_dec () :
-              msg->refcount.unsafe_dec ()) {
+        if (!(msg->shared ? msg->refcount.safe_dec () :
+              msg->refcount.unsafe_dec ())) {
             if (msg->ffn)
                 msg->ffn (msg->data);
             free (msg_);

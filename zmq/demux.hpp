@@ -23,6 +23,8 @@
 #include <assert.h>
 #include <vector>
 
+#include "pipe.hpp"
+
 namespace zmq
 {
 
@@ -30,20 +32,49 @@ namespace zmq
     {
     public:
 
-        void write (void *msg_)
+        inline demux_t ()
         {
         }
 
-
-        void instant_write (void *msg_)
+        inline ~demux_t ()
         {
         }
 
-        void flush ()
+        inline void send_to (pipe_t *pipe_)
         {
+            pipes.push_back (pipe_);
+        }
+
+        inline void write (void *msg_)
+        {
+            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+                  it != pipes.end (); it ++) {
+                void *msg = msg_safe_copy (msg_); 
+                (*it)->write (msg);
+            }
+            msg_dealloc (msg_);
+        }
+
+        inline void instant_write (void *msg_)
+        {
+            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+                  it != pipes.end (); it ++) {
+                void *msg = msg_safe_copy (msg_); 
+                (*it)->instant_write (msg);
+            }
+            msg_dealloc (msg_);
+        }
+
+        inline void flush ()
+        {
+            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+                  it != pipes.end (); it ++)
+                (*it)->flush ();
         }
 
     private:
+
+        std::vector <pipe_t*> pipes;
     };
 
 }

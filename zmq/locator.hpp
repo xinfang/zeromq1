@@ -17,44 +17,44 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_MUX_HPP_INCLUDED__
-#define __ZMQ_MUX_HPP_INCLUDED__
+#ifndef __ZMQ_LOCATOR_HPP_INCLUDED__
+#define __ZMQ_LOCATOR_HPP_INCLUDED__
 
-#include <assert.h>
 #include <vector>
 
-#include "pipe.hpp"
+#include "i_pollable.hpp"
 
 namespace zmq
 {
 
-    class mux_t
+    class locator_t
     {
     public:
 
-        inline mux_t () :
-            current (0)
-        {
-        }
+       struct engine_info_t
+       {
+           i_thread *thread;
+           i_pollable *engine;
+       };
 
-        inline ~mux_t ()
-        {
-        }
+       locator_t (class dispatcher_t *dispatcher_);
+       ~locator_t ();
 
-        inline void receive_from (pipe_t *pipe_)
-        {
-            pipes.push_back (pipe_);
-        }
-
-        //  Returns a message, NULL if no message is available
-        void *read ();
+       void register_engine (i_thread *thread_, i_pollable *engine_);
 
     private:
 
-        std::vector <pipe_t*> pipes;
-        int current;
+        dispatcher_t *dispatcher;
+        
+        std::vector <engine_info_t> engines;
+
+        //  Access to the locator is synchronised using mutex. That should be
+        //  OK as locator is not accessed on the critical path (message being
+        //  passed through the system).
+        pthread_mutex_t sync;
     };
 
 }
 
 #endif
+

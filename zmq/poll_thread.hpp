@@ -52,6 +52,7 @@ namespace zmq
         int get_thread_id ();
         void send_command (int destination_thread_id_,
             const command_t &command_);
+        void register_engine (i_pollable *engine_);
 
     private:
 

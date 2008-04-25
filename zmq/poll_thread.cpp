@@ -74,7 +74,9 @@ void zmq::poll_thread_t::loop ()
     while (true)
     {
         //  Adjust the events to wait - the engine chooses the events
-        //  TODO
+        for (int engine_nbr = 0; engine_nbr != engines.size (); engine_nbr ++)
+            pollset [engine_nbr + 1].events =
+                engines [engine_nbr]->get_events ();
 
         //  Wait for events
         int rc = poll (&pollset [0], pollset.size (), -1);
@@ -183,4 +185,9 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
         }
     }
     return true;
+}
+
+void zmq::poll_thread_t::register_engine (i_pollable *engine_)
+{
+    dispatcher->get_locator ().register_engine (this, engine_);
 }

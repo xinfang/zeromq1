@@ -90,6 +90,7 @@ namespace zmq
         inline void set_thread (i_thread *thread_)
         {
             thread = thread_;
+            thread->register_engine (this);
         }
 
         inline int get_fd ()
@@ -156,6 +157,21 @@ namespace zmq
                 events |= POLLOUT;
                 break;
 
+           case engine_command_t::send_to:
+
+                //  Start sending messages to a pipe
+printf ("engine %p sends to pipe %p\n", this, command_.args.send_to.pipe);
+                demux.send_to (command_.args.send_to.pipe);
+                break;
+
+           case engine_command_t::receive_from:
+
+                //  Start receiving messages from a pipe
+printf ("engine %p receives from pipe %p\n", this, command_.args.receive_from.pipe);
+                mux.receive_from (command_.args.receive_from.pipe);
+                events |= POLLOUT;
+                break;
+
            default:
 
                //  Unknown command
@@ -203,7 +219,7 @@ namespace zmq
             readbuf_size (readbuf_size_),
             write_size (0),
             write_pos (0),
-            events (POLLIN)
+            events (POLLIN | POLLOUT)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
             assert (writebuf);
@@ -227,7 +243,7 @@ namespace zmq
             readbuf_size (readbuf_size_),
             write_size (0),
             write_pos (0),
-            events (POLLIN)
+            events (POLLIN | POLLOUT)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
             assert (writebuf);

@@ -26,6 +26,7 @@
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
 #include "command.hpp"
+#include "locator.hpp"
 
 namespace zmq
 {
@@ -99,6 +100,13 @@ namespace zmq
         //  Return thread ID to the pool of free thread IDs
         void deallocate_thread_id (int thread_id_);
 
+        //  Get locator reference
+        //  TODO: Is this the right place to place locator?
+        inline class locator_t &get_locator ()
+        {
+            return locator;
+        }
+
     private:
 
         int thread_count;
@@ -111,6 +119,8 @@ namespace zmq
         //  the performance of the system as a whole.
         std::vector <bool> used;
         pthread_mutex_t mutex;
+
+        locator_t locator;
     };
 
 }

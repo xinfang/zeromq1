@@ -71,9 +71,10 @@ namespace zmq
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t increment = 1;
+            volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
-                : "=r" (increment), "=m" ((volatile integer_t) value)
-                : "m" ((volatile integer_t) value)
+                : "=r" (increment), "=m" (*val)
+                : "0" (increment), "m" (*val)
                 : "memory", "cc");
 #else
             int rc = pthread_mutex_lock (&mutex);
@@ -96,9 +97,10 @@ namespace zmq
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t oldval = -1;
+            volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
-                : "=r" (oldval), "=m" ((volatile integer_t) value)
-                : "0" (oldval), "m" ((volatile integer_t) value)
+                : "=r" (oldval), "=m" (*val)
+                : "0" (oldval), "m" (*val)
                 : "memory", "cc");
             return oldval > 1;
 #else
