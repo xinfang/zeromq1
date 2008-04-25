@@ -160,14 +160,12 @@ namespace zmq
            case engine_command_t::send_to:
 
                 //  Start sending messages to a pipe
-printf ("engine %p sends to pipe %p\n", this, command_.args.send_to.pipe);
                 demux.send_to (command_.args.send_to.pipe);
                 break;
 
            case engine_command_t::receive_from:
 
                 //  Start receiving messages from a pipe
-printf ("engine %p receives from pipe %p\n", this, command_.args.receive_from.pipe);
                 mux.receive_from (command_.args.receive_from.pipe);
                 events |= POLLOUT;
                 break;

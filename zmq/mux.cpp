@@ -21,7 +21,6 @@
 
 void *zmq::mux_t::read ()
 {
-printf ("Checking for messages\n");
     //  If the is no incoming pipe, message cannot be retrieved
     if (pipes.empty ())
         return NULL;
@@ -30,10 +29,8 @@ printf ("Checking for messages\n");
     int start = current;
     while (true) {
         void *msg = pipes [current]->read ();
-        if (msg) {
-printf ("message retrieved\n");
+        if (msg)
             return msg;
-        }
         current ++;
         current %= pipes.size ();
         if (current == start)

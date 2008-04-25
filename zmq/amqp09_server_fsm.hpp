@@ -102,6 +102,18 @@ namespace zmq
             bool nowait_,
             const i_amqp09::field_table_t &filter_);
 
+        void channel_close (
+            uint16_t reply_code_,
+            const i_amqp09::shortstr_t reply_text_,
+            uint16_t class_id_,
+            uint16_t method_id_);
+
+        void connection_close (
+            uint16_t reply_code_,
+            const i_amqp09::shortstr_t reply_text_,
+            uint16_t class_id_,
+            uint16_t method_id_);
+
     private:
 
         enum state_t

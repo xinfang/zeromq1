@@ -93,9 +93,7 @@ void zmq::pipe_t::flush ()
 {
     if (!writebuf_first)
         return;
-printf ("flushing messages to pipe (%p)\n", this);
     if (!pipe.write (writebuf_first, writebuf_last)) {
-printf ("reviving pipe (%p)\n", this);
         send_revive ();
 }
     writebuf_first = NULL;
@@ -104,7 +102,6 @@ printf ("reviving pipe (%p)\n", this);
 
 void zmq::pipe_t::revive ()
 {
-printf ("pipe revived\n");
     assert (!alive);
     alive = true;
 }
@@ -127,7 +124,6 @@ void *zmq::pipe_t::read ()
 
         //  Get new message batch from the pipe to the read buffer
         if (!pipe.read (&readbuf_first, &readbuf_last)) {
-printf ("pipe dying (%p)\n", this);
             alive = false;
             return NULL;
         }

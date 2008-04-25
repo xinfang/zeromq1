@@ -171,6 +171,28 @@ void zmq::amqp09_server_fsm_t::basic_consume (
         marshaller->basic_consume_ok ("");
 }
 
+void zmq::amqp09_server_fsm_t::channel_close (
+    uint16_t reply_code_,
+    const i_amqp09::shortstr_t reply_text_,
+    uint16_t class_id_,
+    uint16_t method_id_)
+{
+    //  TODO: this is a fake channel close; the state machine actually
+    //  remains in active state
+    marshaller->channel_close_ok ();
+}
+
+void zmq::amqp09_server_fsm_t::connection_close (
+    uint16_t reply_code_,
+    const i_amqp09::shortstr_t reply_text_,
+    uint16_t class_id_,
+    uint16_t method_id_)
+{
+    //  TODO: this is a fake connection close; the state machine actually
+    //  remains in active state
+    marshaller->connection_close_ok ();
+}
+
 void zmq::amqp09_server_fsm_t::unexpected ()
 {
     assert (0);
