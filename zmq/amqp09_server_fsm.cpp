@@ -52,13 +52,10 @@ void zmq::amqp09_server_fsm_t::connection_start_ok (
     const i_amqp09::longstr_t response_,
     const i_amqp09::shortstr_t locale_)
 {
-    if (state != expect_connection_start_ok) {
-        unexpected ();
-        return;
-    }
+    assert (state == expect_connection_start_ok);
 
     //  TODO:  Check the mechanism, the locale and credentials
-    //  TODO: SASL challenge/response handshaking may happen here
+    //  TODO:  SASL challenge/response handshaking may happen here
 
     marshaller->connection_tune (1, i_amqp09::frame_min_size, 0);
     state = expect_connection_tune_ok;
@@ -69,10 +66,7 @@ void zmq::amqp09_server_fsm_t::connection_tune_ok (
     uint32_t frame_max_,
     uint16_t heartbeat_)
 {
-    if (state != expect_connection_tune_ok) {
-        unexpected ();
-        return;
-    }
+    assert (state = expect_connection_tune_ok);
 
     //  TODO: multiple channels, different frame sizes and heartbeats
     //  should be supported
@@ -88,10 +82,7 @@ void zmq::amqp09_server_fsm_t::connection_open (
     const i_amqp09::shortstr_t capabilities_,
     bool insist_)
 {
-    if (state != expect_connection_open) {
-        unexpected ();
-        return;
-    }
+    assert (state == expect_connection_open);
 
     //  TODO: allow different virtual hosts
     assert (virtual_host_.size == 1 && virtual_host_.data [0] == '/');
@@ -103,10 +94,7 @@ void zmq::amqp09_server_fsm_t::connection_open (
 void zmq::amqp09_server_fsm_t::channel_open (
     const i_amqp09::shortstr_t out_of_band_)
 {
-    if (state != expect_channel_open) {
-        unexpected ();
-        return;
-    }
+    assert (state == expect_channel_open);
 
     marshaller->channel_open_ok (i_amqp09::longstr_t ("0", 1));
     state = active;
@@ -123,10 +111,7 @@ void zmq::amqp09_server_fsm_t::queue_declare (
     bool nowait_,
     const i_amqp09::field_table_t &arguments_)
 {
-    if (state != active) {
-        unexpected ();
-        return;
-    }
+    assert (state == active);
 
     //  TODO: This should do something...
     if (!nowait_)
@@ -141,10 +126,7 @@ void zmq::amqp09_server_fsm_t::queue_bind (
     bool nowait_,
     const i_amqp09::field_table_t &arguments_)
 {
-    if (state != active) {
-        unexpected ();
-        return;
-    }
+    assert (state == active);
 
     //  TODO: This should do something...
     if (!nowait_)
@@ -161,10 +143,7 @@ void zmq::amqp09_server_fsm_t::basic_consume (
     bool nowait_,
     const i_amqp09::field_table_t &filter_)
 {
-    if (state != active) {
-        unexpected ();
-        return;
-    }
+    assert (state == active);
 
     //  TODO: This should do something...
     if (!nowait_)
@@ -177,9 +156,11 @@ void zmq::amqp09_server_fsm_t::channel_close (
     uint16_t class_id_,
     uint16_t method_id_)
 {
-    //  TODO: this is a fake channel close; the state machine actually
-    //  remains in active state
+    assert (state == active);
+
     marshaller->channel_close_ok ();
+    state = expect_connection_close;
+    engine->flow (false);
 }
 
 void zmq::amqp09_server_fsm_t::connection_close (
@@ -188,9 +169,10 @@ void zmq::amqp09_server_fsm_t::connection_close (
     uint16_t class_id_,
     uint16_t method_id_)
 {
-    //  TODO: this is a fake connection close; the state machine actually
-    //  remains in active state
+    //  TODO: this is a fake connection close
+    //  Nothing is actually deallocated
     marshaller->connection_close_ok ();
+    engine->flow (false);
 }
 
 void zmq::amqp09_server_fsm_t::unexpected ()

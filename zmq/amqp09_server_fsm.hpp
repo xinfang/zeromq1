@@ -123,6 +123,7 @@ namespace zmq
             expect_connection_open,
             expect_channel_open,
             active,
+            expect_connection_close
         };
 
         state_t state;
