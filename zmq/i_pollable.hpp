@@ -20,7 +20,6 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
-#include "i_signaler.hpp"
 #include "i_thread.hpp"
 #include "command.hpp"
 

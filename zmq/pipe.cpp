@@ -66,7 +66,7 @@ zmq::pipe_t::~pipe_t ()
 
 void zmq::pipe_t::instant_write (void *msg_)
 {
-    assert (writebuf_first != writebuf_last);
+    assert (writebuf_first == writebuf_last);
     if (!pipe.write (msg_))
         send_revive ();
 }
@@ -93,9 +93,8 @@ void zmq::pipe_t::flush ()
 {
     if (!writebuf_first)
         return;
-    if (!pipe.write (writebuf_first, writebuf_last)) {
+    if (!pipe.write (writebuf_first, writebuf_last))
         send_revive ();
-}
     writebuf_first = NULL;
     writebuf_last = NULL;
 }

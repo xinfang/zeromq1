@@ -107,7 +107,7 @@ void zmq::amqp09_client_fsm_t::channel_open_ok (
         i_amqp09::field_table_t ());
     marshaller->queue_bind (0, "", in_exchange.c_str (),
         in_routing_key.c_str (), true, i_amqp09::field_table_t ());
-    marshaller->basic_consume (0, "", "", false, true, false, false, 
+    marshaller->basic_consume (0, "", "", true, true, false, false, 
         i_amqp09::field_table_t ());
 
     state = expect_basic_consume_ok;

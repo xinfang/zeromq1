@@ -25,6 +25,9 @@ zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
 {
     //  Register the thread with the command dispatcher
     thread_id = dispatcher->allocate_thread_id (&pollset);
+
+    //  Register the engine with the locator
+    dispatcher->get_locator ().register_engine (this, NULL);
 }
 
 zmq::api_engine_t::~api_engine_t ()
@@ -35,10 +38,16 @@ zmq::api_engine_t::~api_engine_t ()
 
 void zmq::api_engine_t::send (void *value_)
 {
+    //  Check the signals and process the commands if there are any
+    ypollset_t::integer_t signals = pollset.check ();
+    if (signals)
+        process_commands (signals);
+
+    //  Pass the message to the demux
     demux.instant_write (value_);
 }
 
-void zmq::api_engine_t::receive (void **value_)
+void *zmq::api_engine_t::receive ()
 {
     //  Get message from mux
     void *msg = mux.read ();
@@ -61,6 +70,8 @@ void zmq::api_engine_t::receive (void **value_)
             process_commands (signals);
         ticks = 0;
     }
+
+    return msg;
 }
 
 void zmq::api_engine_t::register_engine (i_pollable *engine_, i_thread *thread_)
@@ -70,9 +81,79 @@ void zmq::api_engine_t::register_engine (i_pollable *engine_, i_thread *thread_)
     dispatcher->write (thread_id, thread_->get_thread_id (), command);
 }
 
-void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals)
+int zmq::api_engine_t::get_thread_id ()
+{
+    return thread_id;
+}
+
+void zmq::api_engine_t::send_command (int destination_thread_id_,
+    const struct command_t &command_)
+{
+    dispatcher->write (thread_id, destination_thread_id_, command_);
+}
+
+void zmq::api_engine_t::register_engine (struct i_pollable *engine_)
 {
     //  TODO
     assert (false);
+}
+
+void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)
+{
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals_ & (1 << source_thread_id)) {
+            dispatcher_t::item_t *first;
+            dispatcher_t::item_t *last;
+            dispatcher->read (source_thread_id, thread_id, &first, &last);
+            while (first != last) {
+                switch (first->value.type) {
+
+                //  Process engine command
+                case command_t::engine_command:
+                    assert (!first->value.args.engine_command.engine);
+                    process_engine_command (
+                        first->value.args.engine_command.command);
+                    break;
+
+                //  Unsupported/unknown command
+                default:
+                    assert (false);
+                }
+                dispatcher_t::item_t *o = first;
+                first = first->next;
+                delete o;
+            }
+        }
+    }
+}
+
+void zmq::api_engine_t::process_engine_command (engine_command_t &command_)
+{
+    switch (command_.type) {
+    case engine_command_t::revive:
+
+        //  Forward the revive command to the pipe
+        command_.args.revive.pipe->revive ();
+        break;
+
+    case engine_command_t::send_to:
+
+        //  Start sending messages to a pipe
+        demux.send_to (command_.args.send_to.pipe);
+        break;
+
+    case engine_command_t::receive_from:
+
+        //  Start receiving messages from a pipe
+        mux.receive_from (command_.args.receive_from.pipe);
+        break;
+
+    default:
+
+        //  Unsupported/unknown command
+        assert (false);
+     }
 }
 

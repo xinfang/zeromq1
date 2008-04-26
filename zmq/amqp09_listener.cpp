@@ -101,8 +101,8 @@ void zmq::amqp09_listener_t::in_event ()
 
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
-    amqp09_server_engine_t *engine = amqp09_server_engine_t::create (thread, s,
-        8192, 8192, "", "", "", "");
+    amqp09_server_engine_t *engine = amqp09_server_engine_t::create (
+        s, 8192, 8192, "", "", "", "");
     assert (engine);
 
     //  Plug the engine to the poll thread
