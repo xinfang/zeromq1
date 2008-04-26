@@ -150,8 +150,21 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         //  Forward the revive command to the pipe
         command_.args.revive.pipe->revive ();
 
-        //  There is at least one engine that has messages ready - start polling
-        //  the socket for writing.
+        //  There is at least one engine that has messages ready -
+        //  start polling the socket for writing.
+        events |= POLLOUT;
+        break;
+
+    case engine_command_t::send_to:
+
+        //  Start sending messages to a pipe
+        demux.send_to (command_.args.send_to.pipe);
+        break;
+
+    case engine_command_t::receive_from:
+
+        //  Start receiving messages from a pipe
+        mux.receive_from (command_.args.receive_from.pipe);
         events |= POLLOUT;
         break;
 
