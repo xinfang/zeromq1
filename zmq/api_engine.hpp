@@ -37,7 +37,8 @@ namespace zmq
     {
     public:
         //  Creates API engine and attaches it to the command dispatcher
-        api_engine_t (dispatcher_t *dispatcher_);
+        //  If admin is set to true, engine won't subscribe for any messages
+        api_engine_t (dispatcher_t *dispatcher_, bool admin_ = false);
 
         //  Destroys API engine
         ~api_engine_t ();

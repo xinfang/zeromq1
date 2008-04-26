@@ -19,7 +19,7 @@
 
 #include "api_engine.hpp"
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, bool admin_) :
     ticks (0),
     dispatcher (dispatcher_)
 {
@@ -27,7 +27,8 @@ zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     thread_id = dispatcher->allocate_thread_id (&pollset);
 
     //  Register the engine with the locator
-    dispatcher->get_locator ().register_engine (this, NULL);
+    if (!admin_)
+        dispatcher->get_locator ().register_engine (this, NULL);
 }
 
 zmq::api_engine_t::~api_engine_t ()
