@@ -19,6 +19,20 @@
 
 #include "mux.hpp"
 
+zmq::mux_t::mux_t () :
+    current (0)
+{
+}
+
+zmq::mux_t::~mux_t ()
+{
+}
+
+void zmq::mux_t::receive_from (pipe_t *pipe_)
+{
+    pipes.push_back (pipe_);
+}
+
 void *zmq::mux_t::read ()
 {
     //  If the is no incoming pipe, message cannot be retrieved

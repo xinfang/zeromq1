@@ -18,3 +18,16 @@
 */
 
 #include "demux.hpp"
+
+zmq::demux_t::demux_t ()
+{
+}
+
+zmq::demux_t::~demux_t ()
+{
+}
+
+void zmq::demux_t::send_to (pipe_t *pipe_)
+{
+    pipes.push_back (pipe_);
+}

@@ -32,18 +32,10 @@ namespace zmq
     {
     public:
 
-        inline demux_t ()
-        {
-        }
+        demux_t ();
+        ~demux_t ();
 
-        inline ~demux_t ()
-        {
-        }
-
-        inline void send_to (pipe_t *pipe_)
-        {
-            pipes.push_back (pipe_);
-        }
+        void send_to (pipe_t *pipe_);
 
         inline void write (void *msg_)
         {

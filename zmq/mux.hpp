@@ -32,19 +32,11 @@ namespace zmq
     {
     public:
 
-        inline mux_t () :
-            current (0)
-        {
-        }
+        mux_t ();
+        ~mux_t ();
 
-        inline ~mux_t ()
-        {
-        }
-
-        inline void receive_from (pipe_t *pipe_)
-        {
-            pipes.push_back (pipe_);
-        }
+        //  Adds a pipe to receive messages from
+        void receive_from (pipe_t *pipe_);
 
         //  Returns a message, NULL if no message is available
         void *read ();
