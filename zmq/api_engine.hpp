@@ -33,7 +33,7 @@ namespace zmq
     //  thread-safe. In case you want to use 0MQ from several client threads
     //  create api_engine for each of them.
 
-    class api_engine_t : public i_thread
+    class api_engine_t : private i_thread
     {
     public:
         //  Creates API engine and attaches it to the command dispatcher
@@ -55,13 +55,13 @@ namespace zmq
         //  anymore. If you do, it will result in undefined behaviour.
         void register_engine (i_pollable *engine_, i_thread *thread_);
 
+    private:
+
         //  i_thread implementation
         int get_thread_id ();
         void send_command (int destination_thread_id_,
             const struct command_t &command_);
         void register_engine (struct i_pollable *engine_);
-
-    private:
 
         void process_commands (ypollset_t::integer_t signals_);
         void process_engine_command (engine_command_t &command_);
