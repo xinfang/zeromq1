@@ -50,7 +50,7 @@ namespace zmq
         virtual void out_event () = 0;
 
         //  Called when command from a different thread is received
-        //  TODO: Shouldn't we move this method to a separate inteface?
+        //  TODO: Shouldn't we move this method to a separate interface?
         //        Possibly being a base class for i_pollable?
         virtual void process_command (
             const struct engine_command_t &command_) = 0;

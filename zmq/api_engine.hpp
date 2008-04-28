@@ -43,10 +43,13 @@ namespace zmq
         //  Destroys API engine
         ~api_engine_t ();
 
-        //  Send a message
+        //  Send the message, 0MQ takes responsibility for deallocating the
+        //  message.
         void send (void *value_);
 
-        //  Receive a message
+        //  Receive a message, if 'block' argument is true, it'll block till
+        //  message arrives. If it is false, it returns immediately. If no
+        //  message is available the return value is NULL.
         void *receive (bool block = true);
 
         //  Register the engine with the thread
