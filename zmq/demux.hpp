@@ -47,6 +47,14 @@ namespace zmq
 
         inline void write (void *msg_)
         {
+            //  Optimisation for the case where's there only a single pipe
+            //  to send the message to - no refcount adjustment (i.e. atomic
+            //  operations) needed.
+            if (pipes.size () == 1) {
+                (*pipes.begin ())->write (msg_);
+                return;
+            }
+
             for (std::vector <pipe_t*>::iterator it = pipes.begin ();
                   it != pipes.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
@@ -57,6 +65,14 @@ namespace zmq
 
         inline void instant_write (void *msg_)
         {
+            //  Optimisation for the case where's there only a single pipe
+            //  to send the message to - no refcount adjustment (i.e. atomic
+            //  operations) needed.
+            if (pipes.size () == 1) {
+                (*pipes.begin ())->instant_write (msg_);
+                return;
+            }
+
             for (std::vector <pipe_t*>::iterator it = pipes.begin ();
                   it != pipes.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
