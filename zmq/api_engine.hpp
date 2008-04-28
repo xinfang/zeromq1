@@ -47,7 +47,7 @@ namespace zmq
         void send (void *value_);
 
         //  Receive a message
-        void *receive ();
+        void *receive (bool block = true);
 
         //  Register the engine with the thread
         //  By registering the engine with the thread you cease the ownership

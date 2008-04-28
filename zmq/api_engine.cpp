@@ -48,29 +48,37 @@ void zmq::api_engine_t::send (void *value_)
     demux.instant_write (value_);
 }
 
-void *zmq::api_engine_t::receive ()
+void *zmq::api_engine_t::receive (bool block)
 {
     //  Get message from mux
     void *msg = mux.read ();
 
-    //  If there is no message, wait for signals, process commands and
-    //  repeat the whole thing until there is a message.
-    while (!msg) {
-        ypollset_t::integer_t signals = pollset.poll ();
-        assert (signals);
-        process_commands (signals);
-        ticks = 0;
-        msg = mux.read ();
+    if (block) {
+
+        //  If there is no message, wait for signals, process commands and
+        //  repeat the whole thing until there is a message.
+        while (!msg) {
+            ypollset_t::integer_t signals = pollset.poll ();
+            assert (signals);
+            process_commands (signals);
+            ticks = 0;
+            msg = mux.read ();
+        }
     }
 
     //  Once every max_ticks messages check for signals and process incoming
     //  commands.
-    if (++ ticks == max_ticks) {
+    if (++ ticks == max_ticks || !msg) {
         ypollset_t::integer_t signals = pollset.check ();
         if (signals)
             process_commands (signals);
         ticks = 0;
     }
+
+    //  If the call is non-blocking, try to get the message once again
+    //  after the commands were processed
+    if (!msg)
+       msg = mux.read ();
 
     return msg;
 }
