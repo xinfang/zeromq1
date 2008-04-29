@@ -78,6 +78,11 @@ void zmq::poll_thread_t::loop ()
             pollset [engine_nbr + 1].events =
                 engines [engine_nbr]->get_events ();
 
+        //  TODO: Polling all the time isn't efficient. We should do it in
+        //  a manner similar to API thread. I.e. loop throught dispatcher
+        //  if messages are available and and poll only occasinally (every
+        //  100 messages or so). If there are no messages, poll immediately.
+
         //  Wait for events
         int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
