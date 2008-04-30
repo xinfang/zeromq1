@@ -28,19 +28,26 @@
 #include "bp_engine.hpp"
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
-    const char *interface_, uint16_t port_, poll_thread_t *handler_thread_)
+    const char *interface_, uint16_t port_, int handler_thread_count_,
+    poll_thread_t **handler_threads_)
 {
     bp_listener_t *instance = new bp_listener_t (thread_, interface_, port_,
-        handler_thread_);
+        handler_thread_count_, handler_threads_);
     assert (instance);
     return instance;
 }
 
-zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_, const char *interface_,
-      uint16_t port_, poll_thread_t *handler_thread_) :
-    context (thread_),
-    handler_thread (handler_thread_)
+zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
+      const char *interface_, uint16_t port_, int handler_thread_count_,
+      poll_thread_t **handler_threads_) :
+    context (thread_)
 {
+    //  Initialise the array of threads to handle new connections
+    assert (handler_thread_count_ > 0);
+    for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
+        handler_threads.push_back (handler_threads_ [thread_nbr]);
+    current_handler_thread = 0;
+
     //  Create IP addess
     sockaddr_in interface;
     memset (&interface, 0, sizeof (interface));
@@ -100,8 +107,14 @@ void zmq::bp_listener_t::in_event ()
 
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
-    bp_engine_t *engine = bp_engine_t::create (handler_thread, s, 8192, 8192);
+    bp_engine_t *engine = bp_engine_t::create (
+        handler_threads [current_handler_thread], s, 8192, 8192);
     assert (engine);
+
+    //  Move to the next thread to get round-robin balancing of engines
+    current_handler_thread ++;
+    if (current_handler_thread == handler_threads.size ())
+        current_handler_thread = 0;
 }
 
 void zmq::bp_listener_t::out_event ()

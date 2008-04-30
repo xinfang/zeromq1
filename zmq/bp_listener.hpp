@@ -20,6 +20,8 @@
 #ifndef __ZMQ_BP_LISTENER_HPP_INCLUDED__
 #define __ZMQ_BP_LISTENER_HPP_INCLUDED__
 
+#include <vector>
+
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
 
@@ -30,11 +32,11 @@ namespace zmq
     {
     public:
 
-        //  Creates a BP listener. handler_thread argument points
-        //  to the thread that will serve newly-created BP engines.
+        //  Creates a BP listener. Handler thread array determines
+        //  the threads that will serve newly-created BP engines.
         static bp_listener_t *create (poll_thread_t *thread_,
             const char *interface_, uint16_t port_,
-            poll_thread_t *handler_thread_);
+            int handler_thread_count_, poll_thread_t **handler_thread_);
 
         //  i_pollable implementation
         int get_fd ();
@@ -46,14 +48,16 @@ namespace zmq
     private:
 
         bp_listener_t (poll_thread_t *thread_, const char *interface_,
-            uint16_t port_, poll_thread_t *handler_thread_);
+            uint16_t port_, int handler_thread_count_,
+            poll_thread_t **handler_threads_);
         ~bp_listener_t ();
 
         //  The context listener is running in
         i_context *context;
 
-        //  The thread to manage newly-created BP engines
-        poll_thread_t *handler_thread;
+        //  The thread array to manage newly-created BP engines
+        std::vector <poll_thread_t*> handler_threads;
+        int current_handler_thread;
 
         //  Listening socket
         int sock;
