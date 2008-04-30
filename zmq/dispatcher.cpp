@@ -25,14 +25,17 @@
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
-    thread_count (thread_count_),
-    signalers (thread_count_, (i_signaler*) NULL),
-    used (thread_count_, false),
+    thread_count (thread_count_ + 1),
+    signalers (thread_count, (i_signaler*) NULL),
+    used (thread_count, false),
     locator (this)
 {
     //  Alocate N * N matrix of dispatching pipes
     pipes = new ypipe_t <command_t, true> [thread_count * thread_count];
     assert (pipes);
+
+    //  Mark admin thread ID as used already
+    used [admin_thread_id] = true;
 
     //  Initialise the mutex
     int rc = pthread_mutex_init (&mutex, NULL);
@@ -58,8 +61,12 @@ int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
     //  Find the first free thread ID
     std::vector <bool>::iterator it = std::find (used.begin (),
         used.end (), false);
-    assert (it != used.end ());  //  No more IDs are available!
-        *it = true;
+
+    //  No more IDs are available!
+    assert (it != used.end ());
+
+    //  Mark the thread ID as used
+    *it = true;
     int thread_id = it - used.begin ();
 
     //  Unlock the mutex
@@ -84,6 +91,26 @@ void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
 
     //  Unregister signaler
     signalers [thread_id_] = NULL;
+
+    //  Unlock the mutex
+    rc = pthread_mutex_unlock (&mutex);
+    errno_assert (rc == 0);
+}
+
+int zmq::dispatcher_t::get_thread_id ()
+{
+    return admin_thread_id;
+}
+
+void zmq::dispatcher_t::send_command (i_context *destination_,
+    const command_t &command_)
+{
+    //  Lock the mutex
+    int rc = pthread_mutex_lock (&mutex);
+    errno_assert (rc == 0);
+
+    //  Pass the command to the other thread via a pipe
+    write (admin_thread_id, destination_->get_thread_id (), command_);
 
     //  Unlock the mutex
     rc = pthread_mutex_unlock (&mutex);

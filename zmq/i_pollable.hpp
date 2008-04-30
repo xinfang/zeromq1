@@ -34,9 +34,6 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Used by owner thread to pass reference to itself to the engine
-        virtual void set_thread (struct i_thread *thread_) = 0;
-
         //  Returns file descriptor to be used by poll thread to poll on
         virtual int get_fd () = 0;
 

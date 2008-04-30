@@ -33,8 +33,9 @@ zmq::locator_t::~locator_t ()
     errno_assert (rc == 0);
 }
 
-void zmq::locator_t::register_engine (i_thread *thread_, i_pollable *engine_)
+void zmq::locator_t::register_engine (i_context *context_, i_pollable *engine_)
 {
+    //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
     errno_assert (rc == 0);
 
@@ -43,9 +44,10 @@ void zmq::locator_t::register_engine (i_thread *thread_, i_pollable *engine_)
     std::vector <engine_info_t> my_engines = engines;
 
     //  Register the engine in the engine repository
-    engine_info_t info = {thread_, engine_};
+    engine_info_t info = {context_, engine_};
     engines.push_back (info);
 
+    //  Leave critical section
     rc = pthread_mutex_unlock (&sync);
     errno_assert (rc == 0);
 
@@ -55,8 +57,8 @@ void zmq::locator_t::register_engine (i_thread *thread_, i_pollable *engine_)
 
         {
             //  Create outgoing pipe
-            pipe_t *pipe = new pipe_t (thread_, it->thread->get_thread_id (),
-                it->engine);
+            pipe_t *pipe = new pipe_t (context_, engine_,
+                it->context, it->engine);
             assert (pipe);
 
             //  Bind local end of the pipe
@@ -64,17 +66,16 @@ void zmq::locator_t::register_engine (i_thread *thread_, i_pollable *engine_)
             send_to.init_engine_send_to (NULL, pipe);
             engine_->process_command (send_to.args.engine_command.command);
 
-            //  Bind remote end of the pipe
+            //  Bind remote end of the pipe (via admin context)
             command_t receive_from;
             receive_from.init_engine_receive_from (it->engine, pipe);
-            dispatcher->write (thread_->get_thread_id (),
-                it->thread->get_thread_id (), receive_from);
+            dispatcher->send_command (it->context, receive_from);
         }
 
         {
             //  Create incoming pipe
-            pipe_t *pipe = new pipe_t (it->thread, thread_->get_thread_id (),
-                engine_);
+            pipe_t *pipe = new pipe_t (it->context, it->engine,
+                context_, engine_);
             assert (pipe);
 
             //  Bind local end of the pipe
@@ -82,11 +83,10 @@ void zmq::locator_t::register_engine (i_thread *thread_, i_pollable *engine_)
             receive_from.init_engine_receive_from (NULL, pipe);
             engine_->process_command (receive_from.args.engine_command.command);
 
-            //  Bind remote end of the pipe
+            //  Bind remote end of the pipe (via admin context)
             command_t send_to;
             send_to.init_engine_send_to (it->engine, pipe);
-            dispatcher->write (thread_->get_thread_id (),
-                it->thread->get_thread_id (), send_to);
+            dispatcher->send_command (it->context, send_to);
         }
     }
 }

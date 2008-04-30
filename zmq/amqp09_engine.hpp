@@ -22,6 +22,7 @@
 
 #include "i_pollable.hpp"
 #include "i_signaler.hpp"
+#include "poll_thread.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
 #include "amqp09_encoder.hpp"
@@ -58,13 +59,13 @@ namespace zmq
         //  out_exchange and out_routing_key are used to set exchange and
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
-        static amqp09_engine_t *create (
+        static amqp09_engine_t *create (poll_thread_t *thread_,
             bool listen_, const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
         {
-            amqp09_engine_t *instance = new amqp09_engine_t (
+            amqp09_engine_t *instance = new amqp09_engine_t (thread_,
                 listen_, address_, port_, writebuf_size_, readbuf_size_,
                 out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
             assert (instance);
@@ -73,12 +74,12 @@ namespace zmq
 
         //  Opens AMQP engine using existing socket. For the description of
         //  the remaining parameters have a look above
-        static amqp09_engine_t *create (
+        static amqp09_engine_t *create (poll_thread_t *thread_,
             int socket_, size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
         {
-            amqp09_engine_t *instance = new amqp09_engine_t (
+            amqp09_engine_t *instance = new amqp09_engine_t (thread_,
                 socket_, writebuf_size_, readbuf_size_,
                 out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
             assert (instance);
@@ -86,12 +87,6 @@ namespace zmq
         }
 
         // i_pollable interface implementation
-
-        inline void set_thread (i_thread *thread_)
-        {
-            thread = thread_;
-            thread->register_engine (this);
-        }
 
         inline int get_fd ()
         {
@@ -201,11 +196,12 @@ namespace zmq
 
     private:
 
-        amqp09_engine_t (bool listen_, const char *address_, uint16_t port_,
+        amqp09_engine_t (poll_thread_t *thread_,
+              bool listen_, const char *address_, uint16_t port_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
-            thread (NULL),
+            context (thread_),
             socket (listen_, address_, port_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
@@ -223,13 +219,14 @@ namespace zmq
             assert (writebuf);
             readbuf = (unsigned char*) malloc (readbuf_size);
             assert (readbuf);
+            thread_->register_engine (this, true);
         }
 
-        amqp09_engine_t (int socket_,
+        amqp09_engine_t (poll_thread_t *thread_, int socket_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
-            thread (NULL),
+            context (thread_),
             socket (socket_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
@@ -247,6 +244,7 @@ namespace zmq
             assert (writebuf);
             readbuf = (unsigned char*) malloc (readbuf_size);
             assert (readbuf);
+            thread_->register_engine (this, true);
         }
 
         ~amqp09_engine_t ()
@@ -255,7 +253,8 @@ namespace zmq
             free (writebuf);
         }
 
-        i_thread *thread;
+        //  The context the engine runs in
+        i_context *context;
 
         tcp_socket_t socket;
         mux_t mux;

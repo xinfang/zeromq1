@@ -23,29 +23,34 @@
 #include <vector>
 
 #include "i_pollable.hpp"
+#include "i_context.hpp"
 
 namespace zmq
 {
+
+    //  TODO: remove the circular reference between the dispatcher
+    //  and the locator
+    class dispatcher_t;
 
     class locator_t
     {
     public:
 
-       struct engine_info_t
-       {
-           i_thread *thread;
-           i_pollable *engine;
-       };
+        locator_t (dispatcher_t *dispatcher_);
+        ~locator_t ();
 
-       locator_t (class dispatcher_t *dispatcher_);
-       ~locator_t ();
-
-       void register_engine (i_thread *thread_, i_pollable *engine_);
+        void register_engine (i_context *context_, i_pollable *engine_);
 
     private:
 
         dispatcher_t *dispatcher;
-        
+
+        struct engine_info_t
+        {
+            i_context *context;
+            i_pollable *engine;
+        };
+
         std::vector <engine_info_t> engines;
 
         //  Access to the locator is synchronised using mutex. That should be

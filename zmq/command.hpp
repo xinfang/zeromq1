@@ -65,11 +65,9 @@ namespace zmq
             } stop;
             struct {
                 struct i_pollable *engine;
-                ysemaphore_t *blocker;
             } register_engine;
             struct {
                 struct i_pollable *engine;
-                ysemaphore_t *blocker;
             } unregister_engine;
             struct {
                 struct i_pollable *engine;

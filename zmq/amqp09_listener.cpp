@@ -26,18 +26,18 @@
 #include "amqp09_listener.hpp"
 #include "amqp09_server_engine.hpp"
 
-zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (
-    i_thread *handler_thread_, const char *interface_, uint16_t port_)
+zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (poll_thread_t *thread_,
+    const char *interface_, uint16_t port_, poll_thread_t *handler_thread_)
 {
-    amqp09_listener_t *instance = new amqp09_listener_t (handler_thread_,
-        interface_, port_);
+    amqp09_listener_t *instance = new amqp09_listener_t (thread_,
+        interface_, port_, handler_thread_);
     assert (instance);
     return instance;
 }
 
-zmq::amqp09_listener_t::amqp09_listener_t (i_thread *handler_thread_,
-      const char *interface_, uint16_t port_) :
-    thread (NULL),
+zmq::amqp09_listener_t::amqp09_listener_t (poll_thread_t *thread_,
+      const char *interface_, uint16_t port_, poll_thread_t *handler_thread_) :
+    context (thread_),
     handler_thread (handler_thread_)
 {
     //  Create IP addess
@@ -64,6 +64,9 @@ zmq::amqp09_listener_t::amqp09_listener_t (i_thread *handler_thread_,
     //  Start listening for incomming connections
     rc = ::listen (sock, 1);
     errno_assert (rc == 0);
+
+    //  Register the listener with the polling thread
+    thread_->register_engine (this, false);
 }
 
 zmq::amqp09_listener_t::~amqp09_listener_t ()
@@ -71,11 +74,6 @@ zmq::amqp09_listener_t::~amqp09_listener_t ()
     //  Close the listening socket
     int rc = close (sock);
     errno_assert (rc == 0);
-}
-
-void zmq::amqp09_listener_t::set_thread (i_thread *thread_)
-{
-    thread = thread_;
 }
 
 int zmq::amqp09_listener_t::get_fd ()
@@ -102,13 +100,8 @@ void zmq::amqp09_listener_t::in_event ()
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
     amqp09_server_engine_t *engine = amqp09_server_engine_t::create (
-        s, 8192, 8192, "", "", "", "");
+        handler_thread, s, 8192, 8192, "", "", "", "");
     assert (engine);
-
-    //  Plug the engine to the poll thread
-    command_t command;
-    command.init_register_engine (engine);
-    thread->send_command (handler_thread->get_thread_id (), command);
 }
 
 void zmq::amqp09_listener_t::out_event ()

@@ -20,7 +20,7 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
-#include "i_thread.hpp"
+#include "i_context.hpp"
 #include "i_pollable.hpp"
 #include "ypipe.hpp"
 #include "msg.hpp"
@@ -32,7 +32,9 @@ namespace zmq
     {
     public:
 
-        pipe_t (struct i_thread *source_thread_, int destination_thread_id_,
+        pipe_t (struct i_context *source_context_,
+            struct i_pollable *source_engine_,
+            struct i_context *destination_context_,
             struct i_pollable *destination_engine_);
         ~pipe_t ();
 
@@ -46,15 +48,21 @@ namespace zmq
 
         void send_revive ();
 
+        //  The message pipe itself
         ypipe_t <void*, false> pipe;
+
+        //  Identification of the engine sendinf the messages to the pipe
+        i_context *source_context;
+        i_pollable *source_engine;
+
+        //  Identification of the engine receiving the messages from the pipe
+        i_context *destination_context;
+        i_pollable *destination_engine;
 
         //  These variables should be accessed only by the methods called
         //  from the writing thread.
         ypipe_t <void*, false>::item_t *writebuf_first;
         ypipe_t <void*, false>::item_t *writebuf_last;
-        i_thread *thread;
-        int thread_id;
-        i_pollable *engine;
 
         //  These variables should be accessed only by the methods called
         //  from the reading thread.

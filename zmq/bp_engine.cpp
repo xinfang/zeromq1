@@ -21,28 +21,29 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (bool listen_,
-    const char *address_, uint16_t port_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
+    bool listen_, const char *address_, uint16_t port_,
     size_t writebuf_size_, size_t readbuf_size_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        listen_, address_, port_, writebuf_size_, readbuf_size_);
+        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_);
     assert (instance);
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (int socket_,
-    size_t writebuf_size_, size_t readbuf_size_)
+zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
+    int socket_, size_t writebuf_size_, size_t readbuf_size_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        socket_, writebuf_size_, readbuf_size_);
+        thread_, socket_, writebuf_size_, readbuf_size_);
     assert (instance);
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
-      uint16_t port_, size_t writebuf_size_, size_t readbuf_size_) :
-    thread (NULL),
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
+      bool listen_, const char *address_, uint16_t port_,
+      size_t writebuf_size_, size_t readbuf_size_) :
+    context (thread_),
     encoder (&mux),
     decoder (&demux),
     socket (listen_, address_, port_),
@@ -56,11 +57,12 @@ zmq::bp_engine_t::bp_engine_t (bool listen_, const char *address_,
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
+    thread_->register_engine (this, true);
 }
 
-zmq::bp_engine_t::bp_engine_t (int socket_,
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
       size_t writebuf_size_, size_t readbuf_size_) :
-    thread (NULL),
+    context (thread_),
     encoder (&mux),
     decoder (&demux),
     socket (socket_),
@@ -74,18 +76,13 @@ zmq::bp_engine_t::bp_engine_t (int socket_,
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
+    thread_->register_engine (this, true);
 }
 
 zmq::bp_engine_t::~bp_engine_t ()
 {
     free (readbuf);
     free (writebuf);
-}
-
-void zmq::bp_engine_t::set_thread (i_thread *thread_)
-{
-    thread = thread_;
-    thread->register_engine (this);
 }
 
 int zmq::bp_engine_t::get_fd ()

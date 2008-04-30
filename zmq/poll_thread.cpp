@@ -51,15 +51,27 @@ zmq::poll_thread_t::~poll_thread_t ()
     errno_assert (rc == 0);
 }
 
+void zmq::poll_thread_t::register_engine (i_pollable *engine_, bool bind)
+{
+    //  Plug the engine to the poll thread (via admin context)
+    command_t command;
+    command.init_register_engine (engine_);
+    dispatcher->send_command (this, command);
+
+    //  Ask locator to create and bind all the necessary pipes
+    if (bind)
+        dispatcher->get_locator ().register_engine (this, engine_);
+}
+
 int zmq::poll_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::poll_thread_t::send_command (int destination_thread_id_,
+void zmq::poll_thread_t::send_command (i_context *destination_,
     const command_t &command_)
 {
-    dispatcher->write (thread_id, destination_thread_id_, command_);
+    dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
 void *zmq::poll_thread_t::worker_routine (void *arg_)
@@ -111,7 +123,8 @@ void zmq::poll_thread_t::loop ()
         //  Process in events from the engines
         for (int pollset_index = 1; pollset_index != pollset.size ();
               pollset_index ++) {
-            if (pollset [pollset_index].revents & (POLLIN | POLLHUP))
+            //  TODO: investigate the POLLHUP issue on OS X
+            if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
                 engines [pollset_index - 1]->in_event ();
         }
     }
@@ -139,9 +152,6 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         //  Add the engine to the engine list
                         i_pollable *engine =
                             first->value.args.register_engine.engine;
-
-                        //  Set the thread callback in the engine
-                        engine->set_thread (this);
 
                         //  Store the engine pointer
                         engines.push_back (engine);
@@ -190,9 +200,4 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
         }
     }
     return true;
-}
-
-void zmq::poll_thread_t::register_engine (i_pollable *engine_)
-{
-    dispatcher->get_locator ().register_engine (this, engine_);
 }

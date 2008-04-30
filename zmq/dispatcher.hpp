@@ -23,9 +23,9 @@
 #include <vector>
 #include <pthread.h>
 
+#include "i_context.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
-#include "command.hpp"
 #include "locator.hpp"
 
 namespace zmq
@@ -45,13 +45,17 @@ namespace zmq
     //  is not a cross-cutting functionality, the optimisation is not part
     //  of the class and should be implemented by individual threads.
 
-    class dispatcher_t
+    class dispatcher_t : public i_context
     {
     public:
 
         typedef ypipe_t <command_t, true>::item_t item_t;
 
-        //  Create the dispatcher object
+        //  Create the dispatcher object. The actual number of threads
+        //  supported will be thread_count_ + 1 (standard worker threads +
+        //  one administrative thread). The administrative thread is
+        //  specific in that it is synchronised and can be used from any
+        //  thread whatsoever.
         dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object
@@ -100,6 +104,10 @@ namespace zmq
         //  Return thread ID to the pool of free thread IDs
         void deallocate_thread_id (int thread_id_);
 
+        //  i_context (administrative context) implementation
+        int get_thread_id ();
+        void send_command (i_context *destination_, const command_t &command_);
+
         //  Get locator reference
         //  TODO: Is this the right place to place locator?
         inline class locator_t &get_locator ()
@@ -109,6 +117,8 @@ namespace zmq
 
     private:
 
+        enum {admin_thread_id = 0};
+
         int thread_count;
         ypipe_t <command_t, true> *pipes;
         std::vector <i_signaler*> signalers;
@@ -116,10 +126,13 @@ namespace zmq
         //  Vector specifying which thread IDs are used and which are not.
         //  The access to the vector is synchronised using mutex - this is OK
         //  as the performance of thread ID assignment is not critical for
-        //  the performance of the system as a whole.
+        //  the performance of the system as a whole. The mutex is also used
+        //  to sync the commands from the administrative context.
         std::vector <bool> used;
         pthread_mutex_t mutex;
 
+        //  TODO: Locator is at the moment embedded in the dispatcher -
+        //  We should find a better place for it
         locator_t locator;
     };
 

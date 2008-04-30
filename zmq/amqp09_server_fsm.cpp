@@ -160,7 +160,8 @@ void zmq::amqp09_server_fsm_t::channel_close (
 
     marshaller->channel_close_ok ();
     state = expect_connection_close;
-    engine->flow (false);
+
+    //  TODO: engine->flow (false);
 }
 
 void zmq::amqp09_server_fsm_t::connection_close (
@@ -172,7 +173,8 @@ void zmq::amqp09_server_fsm_t::connection_close (
     //  TODO: this is a fake connection close
     //  Nothing is actually deallocated
     marshaller->connection_close_ok ();
-    engine->flow (false);
+
+    //  TODO: engine->flow (false);
 }
 
 void zmq::amqp09_server_fsm_t::unexpected ()

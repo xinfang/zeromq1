@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include <poll.h>
 
-#include "i_thread.hpp"
+#include "i_context.hpp"
 #include "i_pollable.hpp"
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
@@ -38,7 +38,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t : public i_thread
+    class poll_thread_t : public i_context
     {
     public:
 
@@ -48,11 +48,13 @@ namespace zmq
         //  Destroy the poll thread
         ~poll_thread_t ();
 
-        //  i_thread implementation
+        //  Registers the engine with the poll thread. If 'bind' is true
+        //  the pipes between the engine and other engines are created.
+        void register_engine (i_pollable *engine_, bool bind);
+
+        //  i_context implementation
         int get_thread_id ();
-        void send_command (int destination_thread_id_,
-            const command_t &command_);
-        void register_engine (i_pollable *engine_);
+        void send_command (i_context *destination_, const command_t &command_);
 
     private:
 

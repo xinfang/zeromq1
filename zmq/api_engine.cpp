@@ -19,7 +19,7 @@
 
 #include "api_engine.hpp"
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, bool admin_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks (0),
     dispatcher (dispatcher_)
 {
@@ -27,8 +27,7 @@ zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_, bool admin_) :
     thread_id = dispatcher->allocate_thread_id (&pollset);
 
     //  Register the engine with the locator
-    if (!admin_)
-        dispatcher->get_locator ().register_engine (this, NULL);
+    dispatcher->get_locator ().register_engine (this, NULL);
 }
 
 zmq::api_engine_t::~api_engine_t ()
@@ -83,28 +82,15 @@ void *zmq::api_engine_t::receive (bool block)
     return msg;
 }
 
-void zmq::api_engine_t::register_engine (i_pollable *engine_, i_thread *thread_)
-{
-    command_t command;
-    command.init_register_engine (engine_);
-    dispatcher->write (thread_id, thread_->get_thread_id (), command);
-}
-
 int zmq::api_engine_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::api_engine_t::send_command (int destination_thread_id_,
-    const struct command_t &command_)
+void zmq::api_engine_t::send_command (i_context *destination_,
+    const command_t &command_)
 {
-    dispatcher->write (thread_id, destination_thread_id_, command_);
-}
-
-void zmq::api_engine_t::register_engine (struct i_pollable *engine_)
-{
-    //  TODO
-    assert (false);
+    dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
 void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)

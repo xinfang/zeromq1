@@ -20,14 +20,15 @@
 #include "pipe.hpp"
 #include "command.hpp"
 
-zmq::pipe_t::pipe_t (struct i_thread *source_thread_,
-      int destination_thread_id_, struct i_pollable *destination_engine_) :
+zmq::pipe_t::pipe_t (i_context *source_context_, i_pollable *source_engine_,
+      i_context *destination_context_, i_pollable *destination_engine_) :
     pipe (false),
+    source_context (source_context_),
+    source_engine (source_engine),
+    destination_context (destination_context_),
+    destination_engine (destination_engine_),
     writebuf_first (NULL),
     writebuf_last (NULL),
-    thread (source_thread_),
-    thread_id (destination_thread_id_),
-    engine (destination_engine_),
     readbuf_first (NULL),
     readbuf_last (NULL),
     alive (true)
@@ -108,8 +109,8 @@ void zmq::pipe_t::revive ()
 void zmq::pipe_t::send_revive ()
 {
     command_t cmd;
-    cmd.init_engine_revive (engine, this);
-    thread->send_command (thread_id, cmd);
+    cmd.init_engine_revive (destination_engine, this);
+    source_context->send_command (destination_context, cmd);
 }
 
 void *zmq::pipe_t::read ()
