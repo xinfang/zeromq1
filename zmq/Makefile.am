@@ -36,7 +36,7 @@ pkginclude_HEADERS = \
     mux.hpp \
     demux.hpp \
     msg.hpp \
-    i_thread.hpp \
+    i_context.hpp \
     pipe.hpp \
     bp_listener.hpp \
     amqp09_listener.hpp \
@@ -101,7 +101,7 @@ libzmq_la_SOURCES = \
     demux.hpp \
     demux.cpp \
     msg.hpp \
-    i_thread.hpp \
+    i_context.hpp \
     pipe.hpp \
     pipe.cpp \
     bp_listener.hpp \
