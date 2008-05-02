@@ -105,8 +105,9 @@ namespace perf
                 amq_client_session_wait (session, 0);
 
                 //  Exit the loop if Ctrl+C is encountered
-                if (!connection->alive)
-                    assert (false);
+//  FIXME
+//                if (!connection->alive)
+//                    assert (false);
 
                 //  Get the message
                 content = amq_client_session_basic_arrived (session);
