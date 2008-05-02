@@ -42,7 +42,7 @@ zmq::amqp09_encoder_t::amqp09_encoder_t (dispatcher_proxy_t *proxy_,
     tmpbuf = (unsigned char*) malloc (tmpbuf_size);
     assert (tmpbuf);
 
-    next_step (NULL, 0, &amqp09_encoder_t::message_ready);
+    next_step (NULL, 0, &amqp09_encoder_t::message_ready, false);
 }
 
 zmq::amqp09_encoder_t::~amqp09_encoder_t ()
@@ -72,7 +72,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
         offset += sizeof (uint16_t);
         put_uint16 (tmpbuf + offset, command.method_id);
         offset += sizeof (uint16_t);
-        next_step (tmpbuf, offset, &amqp09_encoder_t::command_header);
+        next_step (tmpbuf, offset, &amqp09_encoder_t::command_header, false);
         return true;
     }
 
@@ -142,7 +142,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
     offset += sizeof (uint8_t);
     put_uint32 (tmpbuf + size_offset, offset - 8); 
 
-    next_step (tmpbuf, offset, &amqp09_encoder_t::content_header);
+    next_step (tmpbuf, offset, &amqp09_encoder_t::content_header, false);
     return true;
 }
 
@@ -151,7 +151,7 @@ bool zmq::amqp09_encoder_t::command_header ()
     //  Encode command arguments. No processing is necessary as arguments are
     //  already converted into binary format by AMQP marshaller.
     next_step (command.args, command.args_size,
-        &amqp09_encoder_t::command_arguments);
+        &amqp09_encoder_t::command_arguments, false);
     return true;
 }
 
@@ -162,7 +162,7 @@ bool zmq::amqp09_encoder_t::command_arguments ()
     //  any more.
     free (command.args);
     tmpbuf [0] = i_amqp09::frame_end;
-    next_step (tmpbuf, 1, &amqp09_encoder_t::message_ready);
+    next_step (tmpbuf, 1, &amqp09_encoder_t::message_ready, false);
     return true;
 }
 
@@ -189,7 +189,7 @@ bool zmq::amqp09_encoder_t::content_header ()
     put_uint32 (tmpbuf + size_offset, offset - 8);
     
     body_offset = 0;
-    next_step (tmpbuf, offset, &amqp09_encoder_t::content_body_frame_header);
+    next_step (tmpbuf, offset, &amqp09_encoder_t::content_body_frame_header, false);
     return true;
 }
 
@@ -208,7 +208,7 @@ bool zmq::amqp09_encoder_t::content_body_frame_header ()
     put_uint32 (tmpbuf + offset, body_size);
     offset += sizeof (uint32_t);
 
-    next_step (tmpbuf, offset, &amqp09_encoder_t::content_body);
+    next_step (tmpbuf, offset, &amqp09_encoder_t::content_body, false);
     return true;
 }
 
@@ -220,7 +220,7 @@ bool zmq::amqp09_encoder_t::content_body ()
 
     //  Encode appropriate fragment of the message body fraction
     next_step ((unsigned char*) message.data + body_offset,
-        body_size, &amqp09_encoder_t::frame_end);
+        body_size, &amqp09_encoder_t::frame_end, false);
     body_offset += body_size;
     return true;
 }
@@ -235,9 +235,9 @@ bool zmq::amqp09_encoder_t::frame_end ()
     //  message body frame.
     if (message.size == body_offset)
         next_step (tmpbuf, sizeof (uint8_t),
-            &amqp09_encoder_t::message_ready);
+            &amqp09_encoder_t::message_ready, false);
     else
         next_step (tmpbuf, sizeof (uint8_t),
-            &amqp09_encoder_t::content_body_frame_header);
+            &amqp09_encoder_t::content_body_frame_header, false);
     return true;
 }

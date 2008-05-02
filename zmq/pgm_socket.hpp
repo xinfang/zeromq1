@@ -22,7 +22,7 @@
 
 #include <glib.h>
 #include <pgm/pgm.h>
-
+#include <unistd.h>
 #include <assert.h>
 
 #include "stdint.hpp"
@@ -43,8 +43,8 @@ namespace zmq
     {
     public:
         // If receiver_ is true PGM transport is not generating SPM packets
-        // in a case of pasive_ receiver no NAKs are generated
-        pgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_);
+        // in a case of passive_ receiver no NAKs are generated
+        pgm_socket_t (bool receiver_, bool passive_, const char *network_, uint16_t port_, size_t readbuf_size_ = 0);
 
         //  Closes the transport
         ~pgm_socket_t ();
@@ -55,6 +55,11 @@ namespace zmq
         // Fills pollfd structure
         int get_pfds (pollfd *fds_, int count_, short events_);
 
+        // Read one byte from transport->waititng_pipe
+        //char read_one_byte_from_waiting_pipe ();
+
+        // Drop superuser privil
+        void drop_superuser ();
 
         // Send one PGM data packet, transmit window owned memory.
         size_t write_one_pkt (unsigned char *data_, size_t data_len_);
@@ -68,19 +73,27 @@ namespace zmq
         // Returns max tsdu size
         size_t get_max_tsdu (bool can_fragment_);
 
+        // Returns maximum count of apdus which fills readbuf_size_
+        size_t get_max_apdu_at_once (size_t readbuf_size_);
 
         //
-        size_t read_pkt (iovec **iov_);
-
         size_t read_one_pkt (iovec *iov_);
 
+        // reads iov_len apdus
+        size_t read_pkt (iovec *iov_, size_t iov_len_);
 
     protected:
         pgm_transport_t* g_transport;
 
     private:
-        // Structure to store received data
+        // array of structure to store received data
         pgm_msgv_t msgv;
+
+        // array of structure to store received data
+        pgm_msgv_t *pgm_msgv;
+
+        // number of pgm_msgv_t in pgm_msgv array
+        size_t pgm_msgv_len;
     };
 }
 #endif

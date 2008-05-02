@@ -26,7 +26,7 @@ zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_,
     source_engine_id (source_engine_id_)
 {
     init_cmsg (msg);
-    next_step (NULL, 0, &bp_encoder_t::message_ready);
+    next_step (NULL, 0, &bp_encoder_t::message_ready, true);
 }
 
 zmq::bp_encoder_t::~bp_encoder_t ()
@@ -37,7 +37,7 @@ zmq::bp_encoder_t::~bp_encoder_t ()
 bool zmq::bp_encoder_t::size_ready ()
 {
     //  Write message content
-    next_step (msg.data, msg.size, &bp_encoder_t::message_ready);
+    next_step (msg.data, msg.size, &bp_encoder_t::message_ready, false);
     return true;
 }
 
@@ -53,14 +53,14 @@ bool zmq::bp_encoder_t::message_ready ()
 
         //  Write one-byte length
         tmpbuf [0] = (unsigned char) msg.size;
-        next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
+        next_step (tmpbuf, 1, &bp_encoder_t::size_ready, true);
     }
     else {
 
         //  Write 0xff escape character & 8-byte length
         tmpbuf [0] = 0xff;
         put_uint64 (tmpbuf + 1, msg.size);
-        next_step (tmpbuf, 9, &bp_encoder_t::size_ready);
+        next_step (tmpbuf, 9, &bp_encoder_t::size_ready, true);
     }
     return true;
 }

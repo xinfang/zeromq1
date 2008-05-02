@@ -19,8 +19,10 @@
 
 #include "./epgm_socket.hpp"
 
-zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_) :
-    pgm_socket_t (receiver_, pasive_, network_, port_), apdu_offset (0), joined (false)
+zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, 
+      const char *network_, uint16_t port_, size_t readbuf_size_) :
+    pgm_socket_t (receiver_, pasive_, network_, port_, readbuf_size_), 
+      apdu_offset (0), joined (false)
 {
 
 }
@@ -32,52 +34,85 @@ zmq::epgm_socket_t::~epgm_socket_t ()
 
 size_t zmq::epgm_socket_t::read_one_pkt_with_offset (iovec *iov_)
 {
+    assert (0);
+}
+
+size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
+{
+
+    int translated = 0;
 
     // Read data
-    size_t nbytes = read_one_pkt (iov_);
+    size_t nbytes = read_pkt (iov_, iov_len_);
 
     // It was not ODATA event
     if (!nbytes)
-        return 0;
+        return (size_t)0;
 
-    // Read APDU offset
-    apdu_offset = get_uint16 ((unsigned char*)iov_->iov_base);
+    iovec *iov = iov_;
+    iovec *iov_end = iov + iov_len_;
 
-    // Shift iov_base & decrease iov_len of the first iovec by 2B
-    iov_->iov_base = (unsigned char*)iov_->iov_base + sizeof (uint16_t);
-    iov_->iov_len -= sizeof (uint16_t);
-    nbytes -= sizeof (uint16_t);
 
-    printf ("read apdu_offset %i, %s(%i)\n", apdu_offset, __FILE__, __LINE__);
-    fflush (stdout);
+    while (translated < nbytes) {
+        
+        assert (iov <= iov_end);
 
-    if (apdu_offset == 0xFFFF) {
-        if (joined) {
-            printf ("0xffff, joined sending all up, %s(%i)\n", 
-                __FILE__, __LINE__);
-            return nbytes;
-        } else {
-            printf ("0xffff, not joined throwing data, %s(%i)\n", 
-                __FILE__, __LINE__);
-            return (size_t)0;
+        // Read APDU offset
+        apdu_offset = get_uint16 ((unsigned char*)iov->iov_base);
+
+        // Shift iov_base & decrease iov_len of the iovec by sizeof (uint16_t)
+        iov->iov_base = (unsigned char*)iov->iov_base + sizeof (uint16_t);
+        iov->iov_len -= sizeof (uint16_t);
+        nbytes -= sizeof (uint16_t);
+
+        printf ("read apdu_offset %i, %s(%i)\n", apdu_offset, __FILE__, __LINE__);
+        fflush (stdout);
+
+        if (apdu_offset == 0xFFFF) {
+
+            if (joined) {
+                printf ("0xffff, joined sending all up, %s(%i)\n", 
+                    __FILE__, __LINE__);
+
+                translated += iov->iov_len;
+
+            } else {
+                printf ("0xffff, not joined throwing data, %s(%i)\n", 
+                    __FILE__, __LINE__);
+
+                // setting iov_len to 0 that iov_base is not pushed into encoder
+                nbytes -= iov->iov_len;
+                iov->iov_len = 0;
+            }
+            iov++;
+            continue;
         }
+
+        assert (iov->iov_len > apdu_offset);
+
+        if (!joined) {
+
+            if (apdu_offset) {
+               printf ("shifting iov_base (len %i), %s(%i)\n", (int)iov_->iov_len, __FILE__, __LINE__);
+
+                // Shift iov_base
+                iov->iov_base = (unsigned char*)iov->iov_base + apdu_offset;
+                iov->iov_len -= apdu_offset;
+                
+                nbytes -= apdu_offset;
+            }
+
+            // Joined 
+            joined = true;
+
+            printf ("joined into the stream, %s(%i)\n", __FILE__, __LINE__);
+        }
+
+        translated += iov->iov_len;
+        iov++;
     }
 
-    assert (nbytes > apdu_offset);
-
-    if (!joined) {
-
-        printf ("shifting iovec (len %i), %s(%i)\n", (int)iov_->iov_len, __FILE__, __LINE__);
-
-        // Shift iov_base
-        iov_->iov_base = (unsigned char*)iov_->iov_base + apdu_offset;
-        iov_->iov_len -= apdu_offset;
-
-        // Joined 
-        joined = true;
-
-        printf ("joined into the stream, %s(%i)\n", __FILE__, __LINE__);
-    }
+    assert (nbytes == translated);
 
     return nbytes;
 }

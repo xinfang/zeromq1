@@ -27,7 +27,7 @@ int main (int argc, char *argv [])
     zmq::dispatcher_t disptacher (2);
 
     zmq::api_engine_t api (&disptacher, 0);
-    zmq::pgm_receiver_engine_t engine (&disptacher, 1, network, port, 0);
+    zmq::pgm_receiver_engine_t engine (&disptacher, 1, network, port, /*1456*/8192, 0);
     zmq::poll_thread_t io (&engine);
 
     zmq::cmsg_t msg;

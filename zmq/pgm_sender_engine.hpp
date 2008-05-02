@@ -58,6 +58,7 @@ namespace zmq
         size_t write_size;
         size_t write_pos;
 
+        size_t first_message_offest;
     };
 
 }

@@ -29,7 +29,8 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
     txw_slice (NULL),
     max_tsdu (0),
     write_size (0),
-    write_pos (0)
+    write_pos (0), 
+    first_message_offest (-1)
 {
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
@@ -117,10 +118,12 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                     printf ("Alocated packet in tx window\n");
                 }
 
-                write_size = encoder.read (txw_slice + sizeof (uint16_t), max_tsdu - sizeof (uint16_t));
+                write_size = encoder.read (txw_slice + sizeof (uint16_t), 
+                    max_tsdu - sizeof (uint16_t), &first_message_offest);
                 write_pos = 0;
 
-                printf ("read %iB from encoder, %s(%i)\n", (int)write_size, __FILE__, __LINE__);
+                printf ("read %iB from encoder offset %i, %s(%i)\n", 
+                    (int)write_size, (int)first_message_offest, __FILE__, __LINE__);
 
                 //  If there are no data to write stop polling for output
                 if (!write_size) {
@@ -136,7 +139,7 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
             //  note that all data has to written in one write
             if (write_pos < write_size) {
                 size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + write_pos,
-                    write_size - write_pos, 0);
+                    write_size - write_pos, first_message_offest);
 
                 printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
 

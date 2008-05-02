@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 
-#include "../../../zmq/epgm_socket.hpp"
+#include "../../../zmq/pgm_socket.hpp"
 
 int main (int argc, char *argv [])
 {
@@ -21,18 +21,21 @@ int main (int argc, char *argv [])
     printf ("network \"%s\", port %i, nloops %i\n", 
         network, port, nloops);
 
-    zmq::epgm_socket_t pgm_socket (true, false, network, port);
+    size_t readbuf_size = 8192;
 
-//    int fd = pgm_receiver.get_fd ();
+    zmq::pgm_socket_t pgm_socket (true, false, network, port, readbuf_size);
 
-    iovec iov;
+    size_t iov_len = pgm_socket.get_max_apdu_at_once (readbuf_size);
+
+    iovec *iov = new iovec [iov_len];
+
 
     while (nloops) {
         
-        int nbytes = pgm_socket.read_one_pkt_with_offset (&iov);
+        int nbytes = pgm_socket.read_pkt (iov, iov_len);
         printf ("read %i B, %s(%i)\n", nbytes, __FILE__, __LINE__);
 
-        if (nbytes > 0) {
+/*        if (nbytes > 0) {
             for (unsigned int i = 0; i < iov.iov_len; i++) {
 	    	    printf ("[%i]", ((char*)iov.iov_base) [i]);
                 if (((char*)iov.iov_base) [i] >= '0' && ((char*)iov.iov_base) [i] <= 'z')
@@ -42,8 +45,12 @@ int main (int argc, char *argv [])
 
             nloops--;
         }
+*/
         sleep (1);
+
     }
+
+    delete [] iov;
 
     return 0;
 }

@@ -20,9 +20,9 @@
 #include "pgm_socket.hpp"
 #include "err.hpp"
 
-zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_, 
-    const char *network_, uint16_t port_): g_transport (NULL) 
-//    , received_count (0), send_nak_each (3)
+zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_, 
+    const char *network_, uint16_t port_, size_t readbuf_size_): g_transport (NULL), 
+    pgm_msgv (NULL), pgm_msgv_len (-1)
 {
     printf ("GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
 
@@ -46,24 +46,20 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
     int g_max_rte = 400*1000;
     int g_max_tpdu = 1500;
 
-    if (!receiver_) {
-//        g_sqns = 2;
-//        g_max_rte = 400*1000;
-    }
-
+    // common parameters
     pgm_transport_set_max_tpdu (g_transport, g_max_tpdu);
-	pgm_transport_set_txw_sqns (g_transport, g_sqns);
-    pgm_transport_set_rxw_sqns (g_transport, g_sqns);
     pgm_transport_set_hops (g_transport, 16);
-	pgm_transport_set_ambient_spm (g_transport, 8192*1000);
-    guint spm_heartbeat[] = { 1*1000, 1*1000, 2*1000, 4*1000, 8*1000, 16*1000, 
-        32*1000, 64*1000, 128*1000, 256*1000, 512*1000, 1024*1000, 2048*1000, 4096*1000, 8192*1000 };
-	pgm_transport_set_heartbeat_spm (g_transport, spm_heartbeat, G_N_ELEMENTS(spm_heartbeat));
-    pgm_transport_set_peer_expiry (g_transport, 5*8192*1000);
-	pgm_transport_set_spmr_expiry (g_transport, 250*1000);
 
-
+    // receiver transport
     if (receiver_) {
+  
+        // Set  transport->may_close_on_failure to true
+        // after data los recvmsgv returns -1 errno set to ECONNRESET
+        pgm_transport_set_close_on_failure (g_transport);
+
+        // Set transport->can_send_data = FALSE, transport->can_send_nak !passive_
+        pgm_transport_set_recv_only (g_transport, passive_);
+
         // Set NAK transmit back-off interval [us] 
         pgm_transport_set_nak_bo_ivl (g_transport, 50*1000);
     
@@ -73,32 +69,55 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool pasive_,
         // Set timeout for receiving RDATA
         pgm_transport_set_nak_rdata_ivl (g_transport, 200*1000);
 
-        // Set retries for DATA packets after NAK
+        // Set retries for NAK without NCF/DATA
         pgm_transport_set_nak_data_retries (g_transport, 2);
 
-        // Set retries for DATA after NCF
+        // Set retries for NCF after NAK (NAK_NCF_RETRIES)
         pgm_transport_set_nak_ncf_retries (g_transport, 2);
 
-        // Set transport->can_send_data = FALSE, transport->can_send_nak !FALSE
-        pgm_transport_set_recv_only (g_transport, FALSE);
+        pgm_transport_set_peer_expiry (g_transport, 5*8192*1000);
+	    pgm_transport_set_spmr_expiry (g_transport, 250*1000);
+
+        pgm_transport_set_rxw_sqns (g_transport, g_sqns);
+        
+    // sender transport
     } else {
-        pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
-
-        // Construct full window
-        pgm_transport_set_txw_preallocate (g_transport, g_sqns);
-
         // Set transport->can_recv = FALSE
         pgm_transport_set_send_only (g_transport);
+
+        pgm_transport_set_txw_max_rte (g_transport, g_max_rte);
+
+        // preallocate full (g_sqns) window
+        pgm_transport_set_txw_preallocate (g_transport, g_sqns);
+
+	    pgm_transport_set_txw_sqns (g_transport, g_sqns);
+
+        pgm_transport_set_ambient_spm (g_transport, 8192*1000);
+
+        guint spm_heartbeat[] = { 1*1000, 1*1000, 2*1000, 4*1000, 8*1000, 16*1000, 
+            32*1000, 64*1000, 128*1000, 256*1000, 512*1000, 1024*1000, 2048*1000, 4096*1000, 8192*1000 };
+	    pgm_transport_set_heartbeat_spm (g_transport, spm_heartbeat, G_N_ELEMENTS(spm_heartbeat));
     }
+
 
     rc = pgm_transport_bind (g_transport);
     assert (rc == 0);
+
+    if (receiver_) {
+        // allocate pgm_msgv array
+        pgm_msgv_len = get_max_apdu_at_once (readbuf_size_);
+        pgm_msgv = new pgm_msgv_t [pgm_msgv_len];
+    }
 
     printf ("TSI: %s\n", pgm_print_tsi (&g_transport->tsi));
 }
 
 zmq::pgm_socket_t::~pgm_socket_t ()
 {
+    if (pgm_msgv) {
+        delete [] pgm_msgv;
+    }
+
     pgm_transport_destroy (g_transport, TRUE);
 }
 
@@ -154,6 +173,20 @@ size_t zmq::pgm_socket_t::get_max_tsdu (bool can_fragment_)
     return (size_t)pgm_transport_max_tsdu (g_transport, can_fragment_);
 }
 
+size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
+{
+    assert (readbuf_size_ > 0);
+
+    size_t max_apdus = (int)readbuf_size_ / get_max_tsdu (false);
+
+    printf ("maxapdu_at_once %i, max tsdu %i\n", (int)max_apdus, (int)get_max_tsdu (false));
+
+    // should have at least one apdu per read
+    assert (max_apdus);
+
+    return max_apdus;
+}
+
 unsigned char *zmq::pgm_socket_t::alloc_one_pkt (bool can_fragment_)
 {
     // Slice for packet of the size returned with max_tsdu (can_fragment_)
@@ -166,54 +199,83 @@ void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
     pgm_packetv_free1 (g_transport, data_, can_fragment_);
 }
 
-/*
-size_t zmq::pgm_socket_t::read_pkt (iovec **iov_)
+void zmq::pgm_socket_t::drop_superuser ()
 {
-    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, &msgv, 1, MSG_DONTWAIT);
+    pgm_drop_superuser ();
+}
 
-    // In a case when not ODATA fired POLLIN event
-    // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
-    if (nbytes == -1 && errno != EAGAIN) {
-        printf ("errno %i, ", errno);
-        errno_assert (nbytes != -1); 
-    }
-
-    nbytes = nbytes == -1 ? 0 : nbytes;
-    printf ("received %i bytes, ", (int)nbytes);
-    printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
-    fflush (stdout); 
-
-    // iov
-    *iov_ = msgv.msgv_iov;
-
-    return (size_t)nbytes;
+/*
+char zmq::pgm_socket_t::read_one_byte_from_waiting_pipe ()
+{
+    char buf;
+    while (1 == read (g_transport->waiting_pipe[0], &buf, sizeof(buf)));
+    printf ("read 1B \'%c\' from waititng pipe\n", buf);
+    return buf;
 }
 */
 
 size_t zmq::pgm_socket_t::read_one_pkt (iovec *iov_)
 {
-    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, &msgv, 1, MSG_DONTWAIT);
+    assert (0);
+}
 
-    // In a case when not ODATA fired POLLIN event
+size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
+{
+
+    assert (iov_len_ == pgm_msgv_len);
+
+    int translated = 0;
+
+    // jusr for debug to see how many pgm_msgv_t we have translated
+    size_t msgv_read = 0;
+    
+    iovec *iov = iov_;
+    iovec *iov_end = iov + iov_len_;
+
+    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, pgm_msgv, pgm_msgv_len, MSG_DONTWAIT);
+   
+    pgm_msgv_t *msgv = pgm_msgv;
+
+    printf ("raw received %i bytes", (int)nbytes);
+    if (nbytes < 0) { 
+        printf (", errno %i %s", errno, strerror (errno));
+    }
+    printf (", %s(%i)\n", __FILE__, __LINE__);
+
+    // In a case when not ODATA/DRATA fired POLLIN event
     // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
+    // 
+    // nbytes == -1 errno == ECONNRESET for data loss
     if (nbytes == -1 && errno != EAGAIN) {
-        printf ("errno %i, ", errno);
-        errno_assert (nbytes != -1); 
+        fflush (stdout);
+        errno_assert (0); 
+    }
+
+    // tanslate from pgm_msgv_t into iovec
+    while (translated < (int)nbytes) {
+        assert (iov <= iov_end);
+
+        iov->iov_base = (msgv->msgv_iov)->iov_base;
+        iov->iov_len = (msgv->msgv_iov)->iov_len;
+        
+        // only one apdu per pgm_msgv_t structure
+        assert (msgv->msgv_iovlen == 1);
+        
+        translated += iov->iov_len;
+
+        msgv++;
+        msgv_read++;
+        iov++;
+
+        printf ("translated %i, nbytes %i\n", translated, (int)nbytes);
     }
 
     nbytes = nbytes == -1 ? 0 : nbytes;
     printf ("received %i bytes, ", (int)nbytes);
-    printf ("in %i iovecs, %s(%i)\n", nbytes == 0 ? 0 : (int)msgv.msgv_iovlen, __FILE__, __LINE__);
+    printf ("in %i pgm_msgv_t, %s(%i)\n", msgv_read, __FILE__, __LINE__);
     fflush (stdout); 
 
-    if (nbytes > 0) {
-        // be sure that only one iovec was returned by pgm_transport_recvmsgv
-        assert (msgv.msgv_iovlen == 1);
-
-        // iov
-        iov_->iov_base = (msgv.msgv_iov)->iov_base;
-        iov_->iov_len = (msgv.msgv_iov)->iov_len;
-    }
+    assert (nbytes == translated);
 
     return (size_t)nbytes;
 }

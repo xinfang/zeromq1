@@ -32,7 +32,8 @@ namespace zmq
     public:
 
         pgm_receiver_engine_t (dispatcher_t *dispatcher_, int engine_id_,
-            const char *network_, uint16_t port_, int destination_engine_id_);
+            const char *network_, uint16_t port_, size_t readbuf_size_, 
+            int destination_engine_id_);
         ~pgm_receiver_engine_t ();
 
         //  i_pollable interface implementation
@@ -49,6 +50,9 @@ namespace zmq
 
         bp_decoder_t decoder;
         epgm_socket_t epgm_socket;
+
+        iovec *iov;
+        size_t iov_len;
     };
 
 }

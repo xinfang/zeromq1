@@ -31,7 +31,8 @@ namespace zmq
     {
     public:
         // .
-        epgm_socket_t (bool receiver_, bool pasive_, const char *network_, uint16_t port_);    
+        epgm_socket_t (bool receiver_, bool pasive_, const char *network_, 
+              uint16_t port_, size_t readbuf_size_ = 0);
 
         // .
         ~epgm_socket_t ();
@@ -41,6 +42,9 @@ namespace zmq
 
         //
         size_t read_one_pkt_with_offset (iovec *iov_);
+
+        //
+        size_t read_pkt_with_offset (iovec *iov_, size_t iov_len_);
 
     private:
         
