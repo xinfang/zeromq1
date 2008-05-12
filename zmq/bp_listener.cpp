@@ -74,7 +74,7 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
     errno_assert (rc == 0); 
 
     //  Register the listener with the polling thread
-    thread_->register_engine (this, false);   
+    thread_->register_engine (this);   
 }
 
 zmq::bp_listener_t::~bp_listener_t ()

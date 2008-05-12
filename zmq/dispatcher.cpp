@@ -24,11 +24,12 @@
 #include "err.hpp"
 
 
-zmq::dispatcher_t::dispatcher_t (int thread_count_) :
+zmq::dispatcher_t::dispatcher_t (int thread_count_,const char *address_,
+      uint16_t port_) :
     thread_count (thread_count_ + 1),
     signalers (thread_count, (i_signaler*) NULL),
     used (thread_count, false),
-    locator (this)
+    locator (this, address_, port_)
 {
     //  Alocate N * N matrix of dispatching pipes
     pipes = new ypipe_t <command_t, true> [thread_count * thread_count];

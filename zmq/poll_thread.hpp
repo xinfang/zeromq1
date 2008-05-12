@@ -48,9 +48,8 @@ namespace zmq
         //  Destroy the poll thread
         ~poll_thread_t ();
 
-        //  Registers the engine with the poll thread. If 'bind' is true
-        //  the pipes between the engine and other engines are created.
-        void register_engine (i_pollable *engine_, bool bind);
+        //  Registers the engine with the poll thread.
+        void register_engine (i_pollable *engine_);
 
         //  i_context implementation
         int get_thread_id ();

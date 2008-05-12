@@ -20,10 +20,12 @@
 #ifndef __ZMQ_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_LOCATOR_HPP_INCLUDED__
 
-#include <vector>
+#include <string>
+#include <map>
 
-#include "i_pollable.hpp"
+#include "i_engine.hpp"
 #include "i_context.hpp"
+#include "tcp_socket.hpp"
 
 namespace zmq
 {
@@ -36,27 +38,64 @@ namespace zmq
     {
     public:
 
-        locator_t (dispatcher_t *dispatcher_);
+        //  Creates the local locator and connects it to the global locator
+        //  identified by 'address' and 'port' paramters.
+        locator_t (dispatcher_t *dispatcher_, const char *address_,
+            uint16_t port_);
         ~locator_t ();
 
-        void register_engine (i_context *context_, i_pollable *engine_);
+        void add_exchange (const char *exchange_,
+            i_context *context_, i_engine *engine_, bool exclusive_ = true,
+            const char *address_ = NULL, uint16_t port_ = 0);
+
+        void get_exchange (const char *exchange_,
+            i_context **context_, i_engine **engine_);
+
+        void add_queue (const char *exchange_,
+            i_context *context_, i_engine *engine_, bool exclusive_ = true,
+            const char *address_ = NULL, uint16_t port_ = 0);
+
+        void get_queue (const char *exchange_,
+            i_context **context_, i_engine **engine_);
 
     private:
 
-        dispatcher_t *dispatcher;
-
-        struct engine_info_t
+        enum
         {
-            i_context *context;
-            i_pollable *engine;
+            add_exchange_id = 1,
+            add_queue_id = 2,
+            get_exchange_id = 3,
+            get_queue_id = 4
         };
 
-        std::vector <engine_info_t> engines;
+        dispatcher_t *dispatcher;
+
+        struct exchange_info_t
+        {
+            i_context *context;
+            i_engine *engine;
+        };
+
+        typedef std::map <std::string, exchange_info_t> exchanges_t;
+
+        exchanges_t exchanges;
+
+        struct queue_info_t
+        {
+            i_context *context;
+            i_engine *engine;
+        };
+
+        typedef std::map <std::string, queue_info_t> queues_t;
+
+        queues_t queues;
 
         //  Access to the locator is synchronised using mutex. That should be
         //  OK as locator is not accessed on the critical path (message being
         //  passed through the system).
         pthread_mutex_t sync;
+
+        tcp_socket_t global_locator;
     };
 
 }

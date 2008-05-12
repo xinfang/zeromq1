@@ -57,7 +57,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
-    thread_->register_engine (this, true);
+    thread_->register_engine (this);
 }
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
@@ -76,7 +76,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
-    thread_->register_engine (this, true);
+    thread_->register_engine (this);
 }
 
 zmq::bp_engine_t::~bp_engine_t ()
@@ -155,7 +155,9 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::send_to:
 
         //  Start sending messages to a pipe
-        demux.send_to (command_.args.send_to.pipe);
+        demux.send_to (
+            command_.args.send_to.exchange,
+            command_.args.send_to.pipe);
         break;
 
     case engine_command_t::receive_from:

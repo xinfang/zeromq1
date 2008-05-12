@@ -20,7 +20,10 @@
 #ifndef __ZMQ_COMMAND_HPP_INCLUDED__
 #define __ZMQ_COMMAND_HPP_INCLUDED__
 
+#include <string.h>
+
 #include "i_pollable.hpp"
+#include "i_engine.hpp"
 #include "ysemaphore.hpp"
 #include "pipe.hpp"
 
@@ -41,6 +44,7 @@ namespace zmq
                 class pipe_t *pipe;
             } revive;
             struct {
+                char exchange [16];
                 class pipe_t *pipe;
             } send_to;
             struct {
@@ -70,7 +74,7 @@ namespace zmq
                 struct i_pollable *engine;
             } unregister_engine;
             struct {
-                struct i_pollable *engine;
+                struct i_engine *engine;
                 engine_command_t command;
             } engine_command;
         } args;
@@ -92,15 +96,20 @@ namespace zmq
             args.unregister_engine.engine = engine_;
         }
 
-        inline void init_engine_send_to (i_pollable *engine_, pipe_t *pipe_)
+        inline void init_engine_send_to (i_engine *engine_,
+            const char *exchange_, pipe_t *pipe_)
         {
+            assert (strlen (exchange_) < 16);
+
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::send_to;
+            strcpy (args.engine_command.command.args.send_to.exchange,
+                exchange_);
             args.engine_command.command.args.send_to.pipe = pipe_;
         }
 
-        inline void init_engine_receive_from (i_pollable *engine_,
+        inline void init_engine_receive_from (i_engine *engine_,
             pipe_t *pipe_)
         {
             type = engine_command;
@@ -109,7 +118,7 @@ namespace zmq
             args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
-        inline void init_engine_revive (i_pollable *engine_,
+        inline void init_engine_revive (i_engine *engine_,
             pipe_t *pipe_)
         {
             type = engine_command;

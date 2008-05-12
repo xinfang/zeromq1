@@ -20,6 +20,7 @@
 #ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
 
+#include "i_engine.hpp"
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
 #include "mux.hpp"
@@ -35,7 +36,7 @@ namespace zmq
     //  Event handling is done via poll - i.e. bp_engine should be used with
     //  poll_thread.
 
-    class bp_engine_t : public i_pollable
+    class bp_engine_t : public i_engine, public i_pollable
     {
     public:
 

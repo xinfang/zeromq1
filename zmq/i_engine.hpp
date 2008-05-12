@@ -17,31 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
-#define __ZMQ_I_POLLABLE_HPP_INCLUDED__
+#ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
+#define __ZMQ_I_ENGINE_HPP_INCLUDED__
+
+#include "command.hpp"
 
 namespace zmq
 {
 
-    //  Virtual interface to be exposed by engines for communication with
-    //  poll thread.
-    struct i_pollable
+    //  Virtual interface to be exposed by engines so that they can receive
+    //  commands from other engines.
+    struct i_engine
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_pollable () {};
+        virtual ~i_engine () {};
 
-        //  Returns file descriptor to be used by poll thread to poll on
-        virtual int get_fd () = 0;
-
-        //  Returns events poll thread should poll for
-        virtual short get_events () = 0;
-
-        //  Called by poll thread when in event occurs
-        virtual void in_event () = 0;
-
-        //  Called by poll thread when out event occurs
-        virtual void out_event () = 0;
+        //  Called when command from a different thread is received
+        virtual void process_command (
+            const struct engine_command_t &command_) = 0;
     };
 
 }

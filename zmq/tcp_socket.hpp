@@ -53,17 +53,17 @@ namespace zmq
 
         //  Writes as much data as possible to the socket. Returns the number
         //  of bytes actually written.
-        size_t write (unsigned char *data, size_t size);
+        size_t write (const void *data, size_t size);
 
         //  Reads data from the socket (up to 'size' bytes). Returns the number
         //  of bytes actually read.
-        size_t read (unsigned char *data, size_t size);
+        size_t read (void *data, size_t size);
 
         //  Writes all the data to the socket
-        void blocking_write (unsigned char *data, size_t size);
+        void blocking_write (const void *data, size_t size);
 
         //  Reads 'size' bytes from the socket
-        void blocking_read (unsigned char *data, size_t size);
+        void blocking_read (void *data, size_t size);
 
     private:
         int listening_socket;

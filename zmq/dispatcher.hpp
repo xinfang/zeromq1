@@ -56,7 +56,8 @@ namespace zmq
         //  one administrative thread). The administrative thread is
         //  specific in that it is synchronised and can be used from any
         //  thread whatsoever.
-        dispatcher_t (int thread_count_);
+        //  'address' and 'port' paramters specify the global locator to use.
+        dispatcher_t (int thread_count_, const char *address_, uint16_t port_);
 
         //  Destroy the dispatcher object
         ~dispatcher_t ();

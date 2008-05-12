@@ -25,9 +25,6 @@ zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
 {
     //  Register the thread with the command dispatcher
     thread_id = dispatcher->allocate_thread_id (&pollset);
-
-    //  Register the engine with the locator
-    dispatcher->get_locator ().register_engine (this, NULL);
 }
 
 zmq::api_engine_t::~api_engine_t ()
@@ -36,7 +33,17 @@ zmq::api_engine_t::~api_engine_t ()
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-void zmq::api_engine_t::send (void *value_)
+void zmq::api_engine_t::create_exchange (const char *exchange_, bool exclusive_)
+{
+    dispatcher->get_locator ().add_exchange (exchange_, this, this, exclusive_);
+}
+
+void zmq::api_engine_t::create_queue (const char *queue_, bool exclusive_)
+{
+    dispatcher->get_locator ().add_queue (queue_, this, this, exclusive_);
+}
+
+void zmq::api_engine_t::send (const char *exchange_, void *value_)
 {
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
@@ -44,7 +51,7 @@ void zmq::api_engine_t::send (void *value_)
         process_commands (signals);
 
     //  Pass the message to the demux
-    demux.instant_write (value_);
+    demux.instant_write (exchange_, value_);
 }
 
 void *zmq::api_engine_t::receive (bool block)
@@ -93,38 +100,7 @@ void zmq::api_engine_t::send_command (i_context *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)
-{
-    for (int source_thread_id = 0;
-          source_thread_id != dispatcher->get_thread_count ();
-          source_thread_id ++) {
-        if (signals_ & (1 << source_thread_id)) {
-            dispatcher_t::item_t *first;
-            dispatcher_t::item_t *last;
-            dispatcher->read (source_thread_id, thread_id, &first, &last);
-            while (first != last) {
-                switch (first->value.type) {
-
-                //  Process engine command
-                case command_t::engine_command:
-                    assert (!first->value.args.engine_command.engine);
-                    process_engine_command (
-                        first->value.args.engine_command.command);
-                    break;
-
-                //  Unsupported/unknown command
-                default:
-                    assert (false);
-                }
-                dispatcher_t::item_t *o = first;
-                first = first->next;
-                delete o;
-            }
-        }
-    }
-}
-
-void zmq::api_engine_t::process_engine_command (engine_command_t &command_)
+void zmq::api_engine_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {
     case engine_command_t::revive:
@@ -136,7 +112,9 @@ void zmq::api_engine_t::process_engine_command (engine_command_t &command_)
     case engine_command_t::send_to:
 
         //  Start sending messages to a pipe
-        demux.send_to (command_.args.send_to.pipe);
+        demux.send_to (
+            command_.args.send_to.exchange,
+            command_.args.send_to.pipe);
         break;
 
     case engine_command_t::receive_from:
@@ -152,3 +130,34 @@ void zmq::api_engine_t::process_engine_command (engine_command_t &command_)
      }
 }
 
+void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)
+{
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals_ & (1 << source_thread_id)) {
+            dispatcher_t::item_t *first;
+            dispatcher_t::item_t *last;
+            dispatcher->read (source_thread_id, thread_id, &first, &last);
+            while (first != last) {
+                switch (first->value.type) {
+
+                //  Process engine command
+                case command_t::engine_command:
+                    assert (first->value.args.engine_command.engine ==
+                        (i_engine*) this);
+                    process_command (
+                        first->value.args.engine_command.command);
+                    break;
+
+                //  Unsupported/unknown command
+                default:
+                    assert (false);
+                }
+                dispatcher_t::item_t *o = first;
+                first = first->next;
+                delete o;
+            }
+        }
+    }
+}

@@ -21,6 +21,7 @@
 #define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
 #include "i_context.hpp"
+#include "i_engine.hpp"
 #include "msg.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
@@ -33,7 +34,7 @@ namespace zmq
     //  thread-safe. In case you want to use 0MQ from several client threads
     //  create api_engine for each of them.
 
-    class api_engine_t : private i_context
+    class api_engine_t : private i_context, private i_engine
     {
     public:
         //  Creates API engine and attaches it to the command dispatcher
@@ -43,9 +44,12 @@ namespace zmq
         //  Destroys API engine
         ~api_engine_t ();
 
-        //  Send the message, 0MQ takes responsibility for deallocating the
-        //  message.
-        void send (void *value_);
+        void create_exchange (const char *exchange_, bool exclusive_);
+        void create_queue (const char *queue_, bool exclusive_);
+
+        //  Send a message to specified exchange, 0MQ takes responsibility
+        //  for deallocating the message.
+        void send (const char *exchange_, void *value_);
 
         //  Receive a message, if 'block' argument is true, it'll block till
         //  message arrives. If it is false, it returns immediately. If no
@@ -54,9 +58,12 @@ namespace zmq
 
     private:
 
-        //  i_thread implementation
+        //  i_context implementation
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
+
+        //  i_engine implementation
+        void process_command (const engine_command_t &command_);
 
         void process_commands (ypollset_t::integer_t signals_);
         void process_engine_command (engine_command_t &command_);

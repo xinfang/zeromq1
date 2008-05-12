@@ -51,16 +51,12 @@ zmq::poll_thread_t::~poll_thread_t ()
     errno_assert (rc == 0);
 }
 
-void zmq::poll_thread_t::register_engine (i_pollable *engine_, bool bind)
+void zmq::poll_thread_t::register_engine (i_pollable *engine_)
 {
     //  Plug the engine to the poll thread (via admin context)
     command_t command;
     command.init_register_engine (engine_);
     dispatcher->send_command (this, command);
-
-    //  Ask locator to create and bind all the necessary pipes
-    if (bind)
-        dispatcher->get_locator ().register_engine (this, engine_);
 }
 
 int zmq::poll_thread_t::get_thread_id ()

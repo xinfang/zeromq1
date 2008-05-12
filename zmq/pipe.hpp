@@ -21,7 +21,7 @@
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
 #include "i_context.hpp"
-#include "i_pollable.hpp"
+#include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "msg.hpp"
 
@@ -33,9 +33,9 @@ namespace zmq
     public:
 
         pipe_t (struct i_context *source_context_,
-            struct i_pollable *source_engine_,
+            struct i_engine *source_engine_,
             struct i_context *destination_context_,
-            struct i_pollable *destination_engine_);
+            struct i_engine *destination_engine_);
         ~pipe_t ();
 
         void instant_write (void *msg_);
@@ -53,11 +53,11 @@ namespace zmq
 
         //  Identification of the engine sendinf the messages to the pipe
         i_context *source_context;
-        i_pollable *source_engine;
+        i_engine *source_engine;
 
         //  Identification of the engine receiving the messages from the pipe
         i_context *destination_context;
-        i_pollable *destination_engine;
+        i_engine *destination_engine;
 
         //  These variables should be accessed only by the methods called
         //  from the writing thread.

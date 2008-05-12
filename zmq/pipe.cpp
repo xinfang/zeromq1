@@ -20,8 +20,8 @@
 #include "pipe.hpp"
 #include "command.hpp"
 
-zmq::pipe_t::pipe_t (i_context *source_context_, i_pollable *source_engine_,
-      i_context *destination_context_, i_pollable *destination_engine_) :
+zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
+      i_context *destination_context_, i_engine *destination_engine_) :
     pipe (false),
     source_context (source_context_),
     source_engine (source_engine),

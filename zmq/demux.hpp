@@ -22,6 +22,8 @@
 
 #include <assert.h>
 #include <vector>
+#include <map>
+#include <string>
 
 #include "pipe.hpp"
 
@@ -30,43 +32,58 @@ namespace zmq
 
     class demux_t
     {
+    private:
+
+        typedef std::vector <pipe_t*> exchange_t;
+        typedef std::map <std::string, exchange_t> exchanges_t;
+
     public:
 
         demux_t ();
         ~demux_t ();
 
-        void send_to (pipe_t *pipe_);
+        void send_to (const char *exchange_, pipe_t *pipe_);
 
-        inline void write (void *msg_)
+        inline void write (const char *exchange_, void *msg_)
         {
+            //  Find the specified exchange
+            exchanges_t::iterator eit = exchanges.find (exchange_);
+            assert (eit != exchanges.end ());
+            exchange_t &exchange = eit->second;
+
             //  Optimisation for the case where's there only a single pipe
             //  to send the message to - no refcount adjustment (i.e. atomic
             //  operations) needed.
-            if (pipes.size () == 1) {
-                (*pipes.begin ())->write (msg_);
+            if (exchange.size () == 1) {
+                (*exchange.begin ())->write (msg_);
                 return;
             }
 
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
+            for (exchange_t::iterator it = exchange.begin ();
+                  it != exchange.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
                 (*it)->write (msg);
             }
             msg_dealloc (msg_);
         }
 
-        inline void instant_write (void *msg_)
+        inline void instant_write (const char *exchange_, void *msg_)
         {
+            //  Find the specified exchange
+            exchanges_t::iterator eit = exchanges.find (exchange_);
+            assert (eit != exchanges.end ());
+            exchange_t &exchange = eit->second;
+
             //  Optimisation for the case where's there only a single pipe
             //  to send the message to - no refcount adjustment (i.e. atomic
             //  operations) needed.
-            if (pipes.size () == 1) {
-                (*pipes.begin ())->instant_write (msg_);
+            if (exchange.size () == 1) {
+                (*exchange.begin ())->instant_write (msg_);
                 return;
             }
 
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
+            for (exchange_t::iterator it = exchange.begin ();
+                  it != exchange.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
                 (*it)->instant_write (msg);
             }
@@ -75,14 +92,19 @@ namespace zmq
 
         inline void flush ()
         {
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++)
-                (*it)->flush ();
+            //  In the outer loop traverse all the exchanges,
+            //  in the inner loop all the pipes belonging to the exchange
+            //  are traversed. Flush is called on each of them.
+            for (exchanges_t::iterator eit = exchanges.begin ();
+                  eit != exchanges.end (); eit ++)
+                for (exchange_t::iterator it = eit->second.begin ();
+                      it != eit->second.end (); it ++)
+                    (*it)->flush ();
         }
 
     private:
 
-        std::vector <pipe_t*> pipes;
+        exchanges_t exchanges;
     };
 
 }

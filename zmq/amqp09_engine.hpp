@@ -20,6 +20,7 @@
 #ifndef __ZMQ_AMQP09_ENGINE_HPP_INCLUDED__
 #define __ZMQ_AMQP09_ENGINE_HPP_INCLUDED__
 
+#include "i_engine.hpp"
 #include "i_pollable.hpp"
 #include "i_signaler.hpp"
 #include "poll_thread.hpp"
@@ -44,7 +45,7 @@ namespace zmq
     //  implementation (either amqp09_server_fsm or amqp09_client_fsm).
 
     template <typename F> class amqp09_engine_t :
-        public i_pollable, private i_signaler
+        public i_engine, public i_pollable, private i_signaler
     {
     public:
 
@@ -155,7 +156,9 @@ namespace zmq
            case engine_command_t::send_to:
 
                 //  Start sending messages to a pipe
-                demux.send_to (command_.args.send_to.pipe);
+                demux.send_to (
+                    command_.args.send_to.exchange,
+                    command_.args.send_to.pipe);
                 break;
 
            case engine_command_t::receive_from:
@@ -219,7 +222,7 @@ namespace zmq
             assert (writebuf);
             readbuf = (unsigned char*) malloc (readbuf_size);
             assert (readbuf);
-            thread_->register_engine (this, true);
+            thread_->register_engine (this);
         }
 
         amqp09_engine_t (poll_thread_t *thread_, int socket_,
@@ -244,7 +247,7 @@ namespace zmq
             assert (writebuf);
             readbuf = (unsigned char*) malloc (readbuf_size);
             assert (readbuf);
-            thread_->register_engine (this, true);
+            thread_->register_engine (this);
         }
 
         ~amqp09_engine_t ()
