@@ -138,7 +138,7 @@ int main (int argc, char *argv [])
         errno_assert (rc != -1);
 
         //  Traverse all the sockets
-        for (int pos = 1; pos != pollfds.size (); pos ++) {
+        for (int pos = 1; pos < pollfds.size (); pos ++) {
 
             //  Get the socket being currently being processed
             int s = pollfds [pos].fd;

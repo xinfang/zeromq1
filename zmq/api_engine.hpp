@@ -20,6 +20,8 @@
 #ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
 #define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
+#include <list>
+
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "msg.hpp"
@@ -44,8 +46,14 @@ namespace zmq
         //  Destroys API engine
         ~api_engine_t ();
 
-        void create_exchange (const char *exchange_, bool exclusive_);
-        void create_queue (const char *queue_, bool exclusive_);
+        //  Creates new exchange
+        void create_exchange (const char *exchange_);
+
+        //  Creates new queue
+        void create_queue (const char *queue_);
+
+        //  Binds the exchange to the queue
+        void bind (const char *exchange_, const char *queue_);
 
         //  Send a message to specified exchange, 0MQ takes responsibility
         //  for deallocating the message.
@@ -71,11 +79,15 @@ namespace zmq
         enum {max_ticks = 100};
 
         int ticks;
-        mux_t mux;
-        demux_t demux;
         dispatcher_t *dispatcher;
         int thread_id;
         ypollset_t pollset;
+
+        typedef std::map <std::string, demux_t> exchanges_t;
+        exchanges_t exchanges;
+
+        typedef std::map <std::string, mux_t> queues_t;
+        queues_t queues;        
     };
 
 }

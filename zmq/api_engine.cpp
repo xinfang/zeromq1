@@ -33,31 +33,56 @@ zmq::api_engine_t::~api_engine_t ()
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-void zmq::api_engine_t::create_exchange (const char *exchange_, bool exclusive_)
+void zmq::api_engine_t::create_exchange (const char *exchange_)
 {
-    dispatcher->get_locator ().add_exchange (exchange_, this, this, exclusive_);
+    //  Insert the exchange to the local list of exchanges
+    //  If the exchange is already present, return immediately
+    if (!exchanges.insert (
+          exchanges_t::value_type (exchange_, demux_t ())).second)
+        return;
+
+    //  TODO: global scope etc.
+    //  dispatcher->get_locator ().add_exchange (
+    //      exchange_, this, this, exclusive_);
 }
 
-void zmq::api_engine_t::create_queue (const char *queue_, bool exclusive_)
+void zmq::api_engine_t::create_queue (const char *queue_)
 {
-    dispatcher->get_locator ().add_queue (queue_, this, this, exclusive_);
+    //  Insert the queue to the local list of queues
+    //  If the queue is already present, return immediately
+    if (!queues.insert (
+          queues_t::value_type (queue_, mux_t ())).second)
+        return;
+
+    //  TODO: global scope etc.
+    //  dispatcher->get_locator ().add_queue (queue_, this, this, exclusive_);
+}
+
+void zmq::api_engine_t::bind (const char *exchange_, const char *queue_)
+{
+    assert (false);
 }
 
 void zmq::api_engine_t::send (const char *exchange_, void *value_)
 {
-    //  TODO: exhcnage_ argument is ignored for now!
-
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
     if (signals)
         process_commands (signals);
 
+    //  Find the appropriate exchange
+    exchanges_t::iterator it = exchanges.find (exchange_);
+    assert (it != exchanges.end ());
+
     //  Pass the message to the demux
-    demux.instant_write (value_);
+    it->second.instant_write (value_);
 }
 
 void *zmq::api_engine_t::receive (bool block)
 {
+    assert (false);
+
+/*
     //  Get message from mux
     void *msg = mux.read ();
 
@@ -89,6 +114,7 @@ void *zmq::api_engine_t::receive (bool block)
        msg = mux.read ();
 
     return msg;
+*/
 }
 
 int zmq::api_engine_t::get_thread_id ()
@@ -113,19 +139,28 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::send_to:
 
-        //  TODO: Find the right demux here...
-        //  based on command_.args.send_to.exchange,
-        assert (false);
+        {
+            //  Find the right demux
+            exchanges_t::iterator it =
+                exchanges.find (command_.args.send_to.exchange);
+            assert (it != exchanges.end ());
 
-        //  Start sending messages to a pipe
-        demux.send_to (
-            command_.args.send_to.pipe);
+            //  Start sending messages to a pipe
+            it->second.send_to (command_.args.send_to.pipe);
+        }
         break;
 
     case engine_command_t::receive_from:
 
-        //  Start receiving messages from a pipe
-        mux.receive_from (command_.args.receive_from.pipe);
+        {
+            //  Find the right mux
+            queues_t::iterator it = 
+                queues.find (command_.args.receive_from.queue);
+            assert (it != queues.end ());
+
+            //  Start receiving messages from a pipe
+            it->second.receive_from (command_.args.receive_from.pipe);
+        }
         break;
 
     default:
