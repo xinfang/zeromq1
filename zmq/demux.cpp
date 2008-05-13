@@ -27,12 +27,7 @@ zmq::demux_t::~demux_t ()
 {
 }
 
-void zmq::demux_t::send_to (const char *exchange_, pipe_t *pipe_)
+void zmq::demux_t::send_to (pipe_t *pipe_)
 {
-    //  Find the specified exchange
-    exchanges_t::iterator eit = exchanges.find (exchange_);
-    assert (eit != exchanges.end ());
-
-    //  Add the pipe to the exchange
-    eit->second.push_back (pipe_);
+    pipes.push_back (pipe_);
 }

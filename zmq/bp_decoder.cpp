@@ -52,7 +52,7 @@ void zmq::bp_decoder_t::message_ready ()
     //  Message is completely read. Push it to the dispatcher and start reading
     //  new message. Note that BP uses unnamed exchange to dispatch
     //  the messages.
-    demux->write ("", msg);
+    demux->write (msg);
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 

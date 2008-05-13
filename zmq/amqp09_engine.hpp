@@ -155,9 +155,12 @@ namespace zmq
 
            case engine_command_t::send_to:
 
+                //  TODO: Find the right demux to use based on
+                //  command_.args.send_to.exchange
+                assert (false);
+
                 //  Start sending messages to a pipe
                 demux.send_to (
-                    command_.args.send_to.exchange,
                     command_.args.send_to.pipe);
                 break;
 

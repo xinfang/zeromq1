@@ -154,9 +154,11 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::send_to:
 
+        //  BP engine has only a single exchange
+        assert (command_.args.send_to.exchange == "");
+
         //  Start sending messages to a pipe
         demux.send_to (
-            command_.args.send_to.exchange,
             command_.args.send_to.pipe);
         break;
 

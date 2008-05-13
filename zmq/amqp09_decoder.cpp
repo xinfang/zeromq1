@@ -150,7 +150,7 @@ void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
     assert (tmpbuf [0] == i_amqp09::frame_end);
 
     if (msg_data_off == msg_size (msg)) {
-        demux->write ("", msg);  //  TODO: get exchange name from the command
+        demux->write (msg);
         next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
     }
     else

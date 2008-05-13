@@ -45,13 +45,15 @@ void zmq::api_engine_t::create_queue (const char *queue_, bool exclusive_)
 
 void zmq::api_engine_t::send (const char *exchange_, void *value_)
 {
+    //  TODO: exhcnage_ argument is ignored for now!
+
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
     if (signals)
         process_commands (signals);
 
     //  Pass the message to the demux
-    demux.instant_write (exchange_, value_);
+    demux.instant_write (value_);
 }
 
 void *zmq::api_engine_t::receive (bool block)
@@ -111,9 +113,12 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::send_to:
 
+        //  TODO: Find the right demux here...
+        //  based on command_.args.send_to.exchange,
+        assert (false);
+
         //  Start sending messages to a pipe
         demux.send_to (
-            command_.args.send_to.exchange,
             command_.args.send_to.pipe);
         break;
 
