@@ -45,6 +45,7 @@ struct exchange_info_t
 {
     string interface;
     uint16_t port;
+    int fd;
 };
 
 typedef map <string, exchange_info_t> exchanges_t;
@@ -53,9 +54,39 @@ struct queue_info_t
 {
     string interface;
     uint16_t port;
+    int fd;
 };
 
 typedef map <string, queue_info_t> queues_t;
+
+void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
+{
+    //  Delete the symbols associated with socket s_ from
+    //  the exchange repository
+    exchanges_t::iterator eit = exchanges_.begin();
+    while (eit != exchanges_.end ()) {
+        if (eit->second.fd == s_) {
+            exchanges_t::iterator tmp = eit;
+            eit ++;
+            exchanges_.erase (tmp);
+            continue;
+        }
+        eit ++;
+    }
+
+    //  Delete the symbols associated with socket s_ from
+    //  the queue repository
+    queues_t::iterator qit = queues_.begin();
+    while (qit != queues_.end ()) {
+        if (qit->second.fd == s_) {
+            queues_t::iterator tmp = qit;
+            qit ++;
+            queues_.erase (tmp);
+            continue;
+        }
+        qit ++;
+    }
+}
 
 int main (int argc, char *argv [])
 {
@@ -109,16 +140,35 @@ int main (int argc, char *argv [])
         //  Traverse all the sockets
         for (int pos = 1; pos != pollfds.size (); pos ++) {
 
-            assert (!(pollfds [pos].revents & POLLERR));
-            assert (!(pollfds [pos].revents & POLLHUP));
+            //  Get the socket being currently being processed
+            int s = pollfds [pos].fd;
+
+            if ((pollfds [pos].revents & POLLERR) ||
+                  (pollfds [pos].revents & POLLHUP)) {
+
+                //  Unregister all the symbols registered by this connection
+                //  and delete the descriptor from pollfds vector
+                unregister (s, exchanges, queues);
+                pollfds.erase (pollfds.begin () + pos);
+                continue;
+            }
 
             if (pollfds [pos].revents & POLLIN) {
-
-                int s = pollfds [pos].fd;
 
                 //  Read command ID
                 unsigned char cmd;
                 ssize_t nbytes = recv (s, &cmd, 1, MSG_WAITALL);
+
+                //  Connection closed by peer
+                if (nbytes == 0) {
+
+                    //  Unregister all the symbols registered by this connection
+                    //  and delete the descriptor from pollfds vector
+                    unregister (s, exchanges, queues);
+                    pollfds.erase (pollfds.begin () + pos);
+                    continue;
+                }
+
                 errno_assert (nbytes == 1);
 
                 switch (cmd) {
@@ -148,7 +198,7 @@ int main (int argc, char *argv [])
                         port = ntohs (port);
 
                         //  Insert exchange to the exchange repository
-                        exchange_info_t info = {interface, port};
+                        exchange_info_t info = {interface, port, s};
                         if (!exchanges.insert (
                               exchanges_t::value_type (name, info)).second)
                             assert (false);
@@ -181,7 +231,7 @@ int main (int argc, char *argv [])
                         port = ntohs (port);
 
                         //  Insert queue to the queue repository
-                        queue_info_t info = {interface, port};
+                        queue_info_t info = {interface, port, s};
                         if (!queues.insert (
                               queues_t::value_type (name, info)).second)
                             assert (false);
@@ -266,3 +316,4 @@ int main (int argc, char *argv [])
 
     return 0;
 }
+
