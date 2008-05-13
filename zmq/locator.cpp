@@ -82,7 +82,7 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     exchanges_t::iterator it = exchanges.find (exchange_);
 
     //  If the exchange is unknown, find it using global locator
-    if (it != exchanges.end ())
+    if (it == exchanges.end ())
     {
 
          //  Send to 'get exchange' command
