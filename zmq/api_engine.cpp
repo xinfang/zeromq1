@@ -33,7 +33,10 @@ zmq::api_engine_t::~api_engine_t ()
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-void zmq::api_engine_t::create_exchange (const char *exchange_)
+void zmq::api_engine_t::create_exchange (const char *exchange_,
+    scope_t scope_, const char *address_, uint16_t port_,
+    poll_thread_t *listener_thread_, int handler_thread_count_,
+    poll_thread_t **handler_threads_)
 {
     //  Insert the exchange to the local list of exchanges
     //  If the exchange is already present, return immediately
@@ -41,12 +44,18 @@ void zmq::api_engine_t::create_exchange (const char *exchange_)
           exchanges_t::value_type (exchange_, demux_t ())).second)
         return;
 
-    //  TODO: global scope etc.
-    //  dispatcher->get_locator ().add_exchange (
-    //      exchange_, this, this, exclusive_);
+    if (scope_ == scope_local)
+        return;
+
+    //  Register the exchange with the locator
+    dispatcher->get_locator ().create_exchange (exchange_, this, this,
+        scope_, address_, port_, listener_thread_,
+        handler_thread_count_, handler_threads_);
 }
 
-void zmq::api_engine_t::create_queue (const char *queue_)
+void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
+    const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
+    int handler_thread_count_, poll_thread_t **handler_threads_)
 {
     //  Insert the queue to the local list of queues
     //  If the queue is already present, return immediately
@@ -54,13 +63,72 @@ void zmq::api_engine_t::create_queue (const char *queue_)
           queues_t::value_type (queue_, mux_t ())).second)
         return;
 
-    //  TODO: global scope etc.
-    //  dispatcher->get_locator ().add_queue (queue_, this, this, exclusive_);
+    if (scope_ == scope_local)
+        return;
+
+    //  Register the queue with the locator
+    dispatcher->get_locator ().create_queue (queue_, this, this, scope_,
+        address_, port_, listener_thread_, handler_thread_count_,
+        handler_threads_);
 }
 
-void zmq::api_engine_t::bind (const char *exchange_, const char *queue_)
+void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
+    poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
 {
-    assert (false);
+    //  Find the exchange
+    i_context *exchange_context;
+    i_engine *exchange_engine;
+    exchanges_t::iterator eit = exchanges.find (exchange_);
+    if (eit != exchanges.end ()) {
+        exchange_context = this;
+        exchange_engine = this;
+    }
+    else {
+        dispatcher->get_locator ().get_exchange (exchange_,
+            &exchange_context, &exchange_engine, exchange_thread_);
+printf ("exchange %s resides in thread %d\n", exchange_,
+    exchange_context->get_thread_id ());
+    }
+
+    //  Find the queue
+    i_context *queue_context;
+    i_engine *queue_engine;
+    queues_t::iterator qit = queues.find (queue_);
+    if (qit != queues.end ()) {
+        queue_context = this;
+        queue_engine = this;
+    }
+    else {
+        dispatcher->get_locator ().get_queue (queue_,
+            &queue_context, &queue_engine, queue_thread_);
+printf ("queue %s resides in thread %d\n", queue_,
+    queue_context->get_thread_id ());
+    }
+
+    //  Create the pipe
+    pipe_t *pipe = new pipe_t (exchange_context, exchange_engine,
+        queue_context, queue_engine);
+    assert (pipe);
+
+    //  Bind the source end of the pipe
+    if (eit != exchanges.end ())
+        eit->second.send_to (pipe);
+    else {
+        command_t cmd;
+        cmd.init_engine_send_to (exchange_engine, exchange_, pipe);
+        send_command (exchange_context, cmd);  //  queue_context?
+printf ("send_to command sent to thread %d\n",
+    exchange_context->get_thread_id());
+    }
+
+    //  Bind the destination end of the pipe
+    if (qit != queues.end ())
+        qit->second.receive_from (pipe);
+    else {
+        command_t cmd;
+        cmd.init_engine_receive_from (queue_engine, queue_, pipe);
+        send_command (queue_context, cmd);
+    }
 }
 
 void zmq::api_engine_t::send (const char *exchange_, void *value_)

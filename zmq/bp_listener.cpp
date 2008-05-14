@@ -34,6 +34,9 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     bp_listener_t *instance = new bp_listener_t (thread_, interface_, port_,
         handler_thread_count_, handler_threads_);
     assert (instance);
+
+printf ("BP listener created on address %s:%d\n", interface_, (int) port_);
+
     return instance;
 }
 

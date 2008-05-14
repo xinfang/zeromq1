@@ -202,7 +202,9 @@ int main (int argc, char *argv [])
                         if (!exchanges.insert (
                               exchanges_t::value_type (name, info)).second)
                             assert (false);
-                        
+
+printf ("exchange %s registered\n", name); 
+ 
                         break;
                     }
                 case add_queue:
@@ -235,6 +237,8 @@ int main (int argc, char *argv [])
                         if (!queues.insert (
                               queues_t::value_type (name, info)).second)
                             assert (false);
+
+printf ("queue %s registered\n", name);  
                         
                         break;
                     }
@@ -266,6 +270,8 @@ int main (int argc, char *argv [])
                         nbytes = send (s, &port, 2, 0);
                         errno_assert (nbytes == 2);
 
+printf ("exchange %s retrieved\n", name);  
+
                         break;
                     }
                 case get_queue:
@@ -295,6 +301,8 @@ int main (int argc, char *argv [])
                         uint16_t port = htons (it->second.port);
                         nbytes = send (s, &port, 2, 0);
                         errno_assert (nbytes == 2);
+
+printf ("queue %s retrieved\n", name);  
 
                         break;
                     }

@@ -29,6 +29,7 @@
 #include "mux.hpp"
 #include "demux.hpp"
 #include "ypollset.hpp"
+#include "scope.hpp"
 
 namespace zmq
 {
@@ -47,13 +48,28 @@ namespace zmq
         ~api_engine_t ();
 
         //  Creates new exchange
-        void create_exchange (const char *exchange_);
+        void create_exchange (
+            const char *exchange_,
+            scope_t scope_ = scope_local,
+            const char *address = NULL,
+            uint16_t port_ = 0,
+            poll_thread_t *listener_thread_ = NULL,
+            int handler_thread_count_ = 0,
+            poll_thread_t **handler_threads_ = NULL);
 
         //  Creates new queue
-        void create_queue (const char *queue_);
+        void create_queue (
+            const char *queue_,
+            scope_t scope_ = scope_local,
+            const char *address_ = NULL,
+            uint16_t port_ = 0,
+            poll_thread_t *listener_thread_ = NULL,
+            int handler_thread_count_ = 0,
+            poll_thread_t **handler_threads_ = NULL);
 
         //  Binds the exchange to the queue
-        void bind (const char *exchange_, const char *queue_);
+        void bind (const char *exchange_, const char *queue_,
+            poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
 
         //  Send a message to specified exchange, 0MQ takes responsibility
         //  for deallocating the message.

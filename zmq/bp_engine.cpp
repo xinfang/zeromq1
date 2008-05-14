@@ -28,6 +28,9 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     bp_engine_t *instance = new bp_engine_t (
         thread_, listen_, address_, port_, writebuf_size_, readbuf_size_);
     assert (instance);
+
+printf ("BP engine created\n");
+
     return instance;
 }
 
@@ -37,6 +40,9 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     bp_engine_t *instance = new bp_engine_t (
         thread_, socket_, writebuf_size_, readbuf_size_);
     assert (instance);
+
+printf ("BP engine created\n");
+
     return instance;
 }
 

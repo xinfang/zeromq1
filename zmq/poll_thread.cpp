@@ -128,6 +128,7 @@ void zmq::poll_thread_t::loop ()
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 {
+printf ("pt: processing commands\n");
     for (int source_thread_id = 0;
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
@@ -145,6 +146,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                 //  Register the engine supplied with the poll thread
                 case command_t::register_engine:
                     {
+printf ("pt: register engine\n");
                         //  Add the engine to the engine list
                         i_pollable *engine =
                             first->value.args.register_engine.engine;
@@ -162,6 +164,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                 //  Unregister the engine
                 case command_t::unregister_engine:
                     {
+printf ("pt: unregister engine\n");
                         //  Find the engine in the list
                         std::vector <i_pollable*>::iterator it =std::find (
                             engines.begin (), engines.end (),
@@ -179,6 +182,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 //  Forward the command to the specified engine
                 case command_t::engine_command:
+printf ("pt: engine command\n");
                     //  TODO: check whether the engine still exists
                     //  Otherwise drop the command
                     first->value.args.engine_command.engine->process_command (
@@ -187,6 +191,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 //  Unknown command
                 default:
+printf ("pt: unknown command\n");
                     assert (false);
                 }
                 dispatcher_t::item_t *o = first;

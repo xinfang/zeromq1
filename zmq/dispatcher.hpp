@@ -72,9 +72,13 @@ namespace zmq
         inline void write (int source_thread_id_, int destination_thread_id_,
             const command_t &value_)
         {
+printf ("writing command\n");
             if (!pipes [source_thread_id_ * thread_count +
-                destination_thread_id_].write (value_))
+                destination_thread_id_].write (value_)) {
+printf ("signaling thread %d from thread %d\n", destination_thread_id_,
+    source_thread_id_);
                 signalers [destination_thread_id_]->signal (source_thread_id_);
+            }
         }
 
         //  Write a message sequenct to dispatcher. 'first' parameter points

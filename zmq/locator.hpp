@@ -26,6 +26,7 @@
 #include "i_engine.hpp"
 #include "i_context.hpp"
 #include "tcp_socket.hpp"
+#include "scope.hpp"
 
 namespace zmq
 {
@@ -44,19 +45,25 @@ namespace zmq
             uint16_t port_);
         ~locator_t ();
 
-        void add_exchange (const char *exchange_,
-            i_context *context_, i_engine *engine_, bool exclusive_ = true,
-            const char *address_ = NULL, uint16_t port_ = 0);
+        void create_exchange (const char *exchange_,
+            i_context *context_, i_engine *engine_, scope_t scope_,
+            const char *address_, uint16_t port_,
+            class poll_thread_t *listener_thread_,
+            int handler_thread_count_, class poll_thread_t **handler_threads_);
 
         void get_exchange (const char *exchange_,
-            i_context **context_, i_engine **engine_);
+            i_context **context_, i_engine **engine_,
+            class poll_thread_t *thread_);
 
-        void add_queue (const char *exchange_,
-            i_context *context_, i_engine *engine_, bool exclusive_ = true,
-            const char *address_ = NULL, uint16_t port_ = 0);
+        void create_queue (const char *exchange_,
+            i_context *context_, i_engine *engine_, scope_t scope_,
+            const char *address_, uint16_t port_,
+            class poll_thread_t *listener_thread_,
+            int handler_thread_count_, class poll_thread_t **handler_threads_);
 
         void get_queue (const char *exchange_,
-            i_context **context_, i_engine **engine_);
+            i_context **context_, i_engine **engine_,
+            class poll_thread_t *thread_);
 
     private:
 

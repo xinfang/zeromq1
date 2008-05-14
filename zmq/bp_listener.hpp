@@ -36,7 +36,7 @@ namespace zmq
         //  the threads that will serve newly-created BP engines.
         static bp_listener_t *create (poll_thread_t *thread_,
             const char *interface_, uint16_t port_,
-            int handler_thread_count_, poll_thread_t **handler_thread_);
+            int handler_thread_count_, poll_thread_t **handler_threads_);
 
         //  i_pollable implementation
         int get_fd ();

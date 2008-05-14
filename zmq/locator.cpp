@@ -21,6 +21,8 @@
 
 #include "locator.hpp"
 #include "dispatcher.hpp"
+#include "bp_listener.hpp"
+#include "bp_engine.hpp"
 
 zmq::locator_t::locator_t (dispatcher_t *dispatcher_, const char *address_,
       uint16_t port_) :
@@ -37,8 +39,10 @@ zmq::locator_t::~locator_t ()
     errno_assert (rc == 0);
 }
 
-void zmq::locator_t::add_exchange (const char *exchange_, i_context *context_,
-    i_engine *engine_, bool exclusive_, const char *address_, uint16_t port_)
+void zmq::locator_t::create_exchange (const char *exchange_,
+    i_context *context_, i_engine *engine_, scope_t scope_,
+    const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
+    int handler_thread_count_, poll_thread_t **handler_threads_)
 {
     assert (strlen (exchange_) < 256);
     assert (strlen (address_) < 256);
@@ -47,11 +51,16 @@ void zmq::locator_t::add_exchange (const char *exchange_, i_context *context_,
     int rc = pthread_mutex_lock (&sync);
     errno_assert (rc == 0);
 
+    //  Add the exchange to the list of known exchanges
     exchange_info_t info = {context_, engine_};
     exchanges.insert (exchanges_t::value_type (exchange_, info));
 
     //  Add exchange to the global locator
-    if (!exclusive_) {
+    if (scope_ == scope_global) {
+
+         //  Create a listener for the exchange
+         bp_listener_t::create (listener_thread_, address_, port_,
+            handler_thread_count_, handler_threads_);
 
          //  Send to 'add exchange' command
          unsigned char cmd = add_exchange_id;
@@ -72,7 +81,7 @@ void zmq::locator_t::add_exchange (const char *exchange_, i_context *context_,
 }
 
 void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
-    i_engine **engine_)
+    i_engine **engine_, poll_thread_t *thread_)
 {
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
@@ -100,6 +109,15 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          uint16_t port;
          global_locator.blocking_read (&port, 2);
          port = ntohs (port);
+
+         //  Create the proxy engine for the exchange
+         bp_engine_t *engine = bp_engine_t::create (thread_,
+             false, address, port, 8192, 8192);
+
+         //  Write it into exchange repository
+         exchange_info_t info = {thread_, engine};
+         it = exchanges.insert (
+             exchanges_t::value_type (exchange_, info)).first;
     }
 
     *context_ = it->second.context;
@@ -110,8 +128,10 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     errno_assert (rc == 0);
 }
 
-void zmq::locator_t::add_queue (const char *queue_, i_context *context_,
-    i_engine *engine_, bool exclusive_, const char *address_, uint16_t port_)
+void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
+    i_engine *engine_, scope_t scope_, const char *address_, uint16_t port_,
+    poll_thread_t *listener_thread_, int handler_thread_count_,
+    poll_thread_t **handler_threads_)
 {
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
@@ -121,7 +141,7 @@ void zmq::locator_t::add_queue (const char *queue_, i_context *context_,
     queues.insert (queues_t::value_type (queue_, info));
 
     //  Add queue to the global locator
-    if (!exclusive_) {
+    if (scope_ == scope_global) {
 
          //  Send to 'add queue' command
          unsigned char cmd = add_queue_id;
@@ -142,7 +162,7 @@ void zmq::locator_t::add_queue (const char *queue_, i_context *context_,
 }
 
 void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
-    i_engine **engine_)
+    i_engine **engine_, poll_thread_t *thread_)
 {
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);

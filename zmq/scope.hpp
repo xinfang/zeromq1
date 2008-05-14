@@ -17,38 +17,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mux.hpp"
+#ifndef __ZMQ_SCOPE_HPP_INCLUDED__
+#define __ZMQ_SCOPE_HPP_INCLUDED__
 
-zmq::mux_t::mux_t () :
-    current (0)
+namespace zmq
 {
+
+    enum scope_t
+    {
+        //  Local scope means that the object is visible only within
+        //  the engine that created it.
+        scope_local,
+
+        //  Process scope means that the object is visible to all the engines
+        //  within the process registered with the same dispatcher object.
+        scope_process,
+
+        //  Global scope means that the object is visible to all the 0MQ
+        //  processes registered with the same global_locator.
+        scope_global
+    };
+
 }
 
-zmq::mux_t::~mux_t ()
-{
-}
-
-void zmq::mux_t::receive_from (pipe_t *pipe_)
-{
-    pipes.push_back (pipe_);
-printf ("reading from pipe %p\n", pipe_);
-}
-
-void *zmq::mux_t::read ()
-{
-    //  If the is no incoming pipe, message cannot be retrieved
-    if (pipes.empty ())
-        return NULL;
-
-    //  Fair-queueing implementation
-    int start = current;
-    while (true) {
-        void *msg = pipes [current]->read ();
-        if (msg)
-            return msg;
-        current ++;
-        current %= pipes.size ();
-        if (current == start)
-            return NULL;
-    }
-}
+#endif
