@@ -60,7 +60,8 @@ void zmq::locator_t::create_exchange (const char *exchange_,
 
          //  Create a listener for the exchange
          bp_listener_t::create (listener_thread_, address_, port_,
-            handler_thread_count_, handler_threads_);
+            handler_thread_count_, handler_threads_,
+            false, context_, engine_, exchange_);
 
          //  Send to 'add exchange' command
          unsigned char cmd = add_exchange_id;

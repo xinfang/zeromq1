@@ -78,7 +78,7 @@ namespace zmq
         //  Receive a message, if 'block' argument is true, it'll block till
         //  message arrives. If it is false, it returns immediately. If no
         //  message is available the return value is NULL.
-        void *receive (bool block = true);
+        void *receive (bool block_ = true);
 
     private:
 
@@ -102,8 +102,11 @@ namespace zmq
         typedef std::map <std::string, demux_t> exchanges_t;
         exchanges_t exchanges;
 
+        //  Current queue points to the queue to be used for retrieving the
+        //  message next time it is required
         typedef std::map <std::string, mux_t> queues_t;
-        queues_t queues;        
+        queues_t queues; 
+        queues_t::iterator current_queue;       
     };
 
 }

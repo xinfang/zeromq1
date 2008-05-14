@@ -29,8 +29,6 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
         thread_, listen_, address_, port_, writebuf_size_, readbuf_size_);
     assert (instance);
 
-printf ("BP engine created\n");
-
     return instance;
 }
 
@@ -40,8 +38,6 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     bp_engine_t *instance = new bp_engine_t (
         thread_, socket_, writebuf_size_, readbuf_size_);
     assert (instance);
-
-printf ("BP engine created\n");
 
     return instance;
 }
@@ -159,9 +155,6 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::send_to:
-
-        //  BP engine has only a single exchange
-        assert (command_.args.send_to.exchange == "");
 
         //  Start sending messages to a pipe
         demux.send_to (

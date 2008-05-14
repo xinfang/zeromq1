@@ -21,7 +21,8 @@
 
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks (0),
-    dispatcher (dispatcher_)
+    dispatcher (dispatcher_),
+    current_queue (queues.begin ())
 {
     //  Register the thread with the command dispatcher
     thread_id = dispatcher->allocate_thread_id (&pollset);
@@ -63,6 +64,9 @@ void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
           queues_t::value_type (queue_, mux_t ())).second)
         return;
 
+    //  Move the current queue pointer to the beginning of the list
+    current_queue = queues.begin ();
+
     if (scope_ == scope_local)
         return;
 
@@ -86,8 +90,6 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     else {
         dispatcher->get_locator ().get_exchange (exchange_,
             &exchange_context, &exchange_engine, exchange_thread_);
-printf ("exchange %s resides in thread %d\n", exchange_,
-    exchange_context->get_thread_id ());
     }
 
     //  Find the queue
@@ -101,8 +103,6 @@ printf ("exchange %s resides in thread %d\n", exchange_,
     else {
         dispatcher->get_locator ().get_queue (queue_,
             &queue_context, &queue_engine, queue_thread_);
-printf ("queue %s resides in thread %d\n", queue_,
-    queue_context->get_thread_id ());
     }
 
     //  Create the pipe
@@ -116,9 +116,7 @@ printf ("queue %s resides in thread %d\n", queue_,
     else {
         command_t cmd;
         cmd.init_engine_send_to (exchange_engine, exchange_, pipe);
-        send_command (exchange_context, cmd);  //  queue_context?
-printf ("send_to command sent to thread %d\n",
-    exchange_context->get_thread_id());
+        send_command (exchange_context, cmd);
     }
 
     //  Bind the destination end of the pipe
@@ -146,43 +144,73 @@ void zmq::api_engine_t::send (const char *exchange_, void *value_)
     it->second.instant_write (value_);
 }
 
-void *zmq::api_engine_t::receive (bool block)
+void *zmq::api_engine_t::receive (bool block_)
 {
-    assert (false);
+    void *msg = NULL;
 
-/*
-    //  Get message from mux
-    void *msg = mux.read ();
+    //  Remember the original current queue position. We'll use this value
+    //  as a marker for identifying whether we've inspected all the queues.
+    queues_t::iterator start = current_queue;
 
-    if (block) {
+    //  Big loop - iteration happens each time after new commands
+    //  are processed (thus new messages may be available)
+    while (true) {
 
-        //  If there is no message, wait for signals, process commands and
-        //  repeat the whole thing until there is a message.
-        while (!msg) {
-            ypollset_t::integer_t signals = pollset.poll ();
-            assert (signals);
-            process_commands (signals);
-            ticks = 0;
-            msg = mux.read ();
+        //  Small loop doesn't make sense if there are no queues
+        if (!queues.empty ()) {
+
+            //  Small loop - we are iterating over the array of queues
+            //  checking whether any of them has messages available
+            while (true) {
+
+               //  Get a message
+               msg = current_queue->second.read ();
+
+               //  Move to the next queue
+               current_queue ++;
+               if (current_queue == queues.end ())
+                   current_queue = queues.begin ();
+
+               //  If we have a message skip the small loop
+               if (msg)
+                   break;
+
+               //  If we've iterated over all the queues skip the loop
+               if (current_queue == start)
+                   break;
+            }
         }
+
+        //  If we have a message skip the big loop
+        if (msg)
+            break;
+
+        //  If we don't have a message and no blocking is required
+        //  skip the big loop
+        if (!block_)
+            break;
+
+        //  This is a blocking call and we have no messages
+        //  We wait for commands, we process them and we continue
+        //  with getting the messages.
+        ypollset_t::integer_t signals = pollset.poll ();
+        assert (signals);
+        process_commands (signals);
+        ticks = 0;
     }
 
     //  Once every max_ticks messages check for signals and process incoming
-    //  commands.
-    if (++ ticks == max_ticks || !msg) {
+    //  commands. This happens only if we are not polling altogether because
+    //  there are messages available all the time. If poll occurs, ticks is
+    //  set to zero and thus we avoid this code.
+    if (++ ticks == max_ticks) {
         ypollset_t::integer_t signals = pollset.check ();
         if (signals)
             process_commands (signals);
         ticks = 0;
     }
 
-    //  If the call is non-blocking, try to get the message once again
-    //  after the commands were processed
-    if (!msg)
-       msg = mux.read ();
-
     return msg;
-*/
 }
 
 int zmq::api_engine_t::get_thread_id ()

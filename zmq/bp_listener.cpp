@@ -29,22 +29,32 @@
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, uint16_t port_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
+    poll_thread_t **handler_threads_, bool source_,
+    i_context *peer_context_, i_engine *peer_engine_,
+    const char *peer_name_)
 {
     bp_listener_t *instance = new bp_listener_t (thread_, interface_, port_,
-        handler_thread_count_, handler_threads_);
+        handler_thread_count_, handler_threads_, source_, peer_context_,
+        peer_engine_, peer_name_);
     assert (instance);
-
-printf ("BP listener created on address %s:%d\n", interface_, (int) port_);
 
     return instance;
 }
 
 zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
       const char *interface_, uint16_t port_, int handler_thread_count_,
-      poll_thread_t **handler_threads_) :
-    context (thread_)
+      poll_thread_t **handler_threads_, bool source_,
+      i_context *peer_context_, i_engine *peer_engine_,
+      const char *peer_name_) :
+    context (thread_),
+    source (source_),
+    peer_context (peer_context_),
+    peer_engine (peer_engine_)
 {
+    //  Copy the peer name
+    assert (strlen (peer_name_) < 16);
+    strcpy (peer_name, peer_name_);
+
     //  Initialise the array of threads to handle new connections
     assert (handler_thread_count_ > 0);
     for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
@@ -113,6 +123,57 @@ void zmq::bp_listener_t::in_event ()
     bp_engine_t *engine = bp_engine_t::create (
         handler_threads [current_handler_thread], s, 8192, 8192);
     assert (engine);
+
+    if (source) {
+
+        //  The newly created engine serves as a local source of messages
+        //  I.e. it reads messages from the socket and passes them on to
+        //  the peer engine.
+        i_context *source_context = handler_threads [current_handler_thread];
+        i_engine *source_engine = engine;
+
+        //  Create the pipe to the newly created engine
+        pipe_t *pipe = new pipe_t (source_context, source_engine,
+            peer_context, peer_engine);
+        assert (pipe);
+
+        //  Bind new engine to the source end of the pipe
+        command_t cmd_send_to;
+        cmd_send_to.init_engine_send_to (source_engine, "", pipe);
+        source_engine->process_command (
+            cmd_send_to.args.engine_command.command);
+
+        //  Bind the peer to the destination end of the pipe
+        command_t cmd_receive_from;
+        cmd_receive_from.init_engine_receive_from (peer_engine,
+            peer_name, pipe);
+        context->send_command (peer_context, cmd_receive_from);
+    }
+    else {
+
+        //  The newly created engine serves as a local destination of messages
+        //  I.e. it sends messages received from the peer engine to the socket.
+        i_context *destination_context =
+            handler_threads [current_handler_thread];
+        i_engine *destination_engine = engine;
+
+        //  Create the pipe to the newly created engine
+        pipe_t *pipe = new pipe_t (peer_context, peer_engine,
+            destination_context, destination_engine);
+        assert (pipe);
+
+        //  Bind new engine to the destination end of the pipe
+        command_t cmd_receive_from;
+        cmd_receive_from.init_engine_receive_from (
+            destination_engine, "", pipe);
+        destination_engine->process_command (
+            cmd_receive_from.args.engine_command.command);
+
+        //  Bind the peer to the source end of the pipe
+        command_t cmd_send_to;
+        cmd_send_to.init_engine_send_to (peer_engine, peer_name, pipe);
+        context->send_command (peer_context, cmd_send_to);
+    }
 
     //  Move to the next thread to get round-robin balancing of engines
     current_handler_thread ++;

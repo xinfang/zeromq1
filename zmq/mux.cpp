@@ -31,7 +31,6 @@ zmq::mux_t::~mux_t ()
 void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
     pipes.push_back (pipe_);
-printf ("reading from pipe %p\n", pipe_);
 }
 
 void *zmq::mux_t::read ()

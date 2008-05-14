@@ -36,7 +36,9 @@ namespace zmq
         //  the threads that will serve newly-created BP engines.
         static bp_listener_t *create (poll_thread_t *thread_,
             const char *interface_, uint16_t port_,
-            int handler_thread_count_, poll_thread_t **handler_threads_);
+            int handler_thread_count_, poll_thread_t **handler_threads_,
+            bool source_, i_context *peer_context_, i_engine *peer_engine_,
+            const char *peer_name_);
 
         //  i_pollable implementation
         int get_fd ();
@@ -49,8 +51,22 @@ namespace zmq
 
         bp_listener_t (poll_thread_t *thread_, const char *interface_,
             uint16_t port_, int handler_thread_count_,
-            poll_thread_t **handler_threads_);
+            poll_thread_t **handler_threads_, bool source_,
+            i_context *peer_context_, i_engine *peer_engine_,
+            const char *peer_name_);
         ~bp_listener_t ();
+
+        //  Determines whether the engine serves as a local source of messages
+        //  (i.e. reads them from the sockets and makes them available) or
+        //  a local destination of messages (i.e. gathers the messages and
+        //  sends them to the socket)
+        bool source;
+
+        //  Determine the engine and the object (either exchange or queue)
+        //  within the engine to serve as a peer to this engine.
+        i_context *peer_context;
+        i_engine *peer_engine;
+        char peer_name [16];
 
         //  The context listener is running in
         i_context *context;
