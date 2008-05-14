@@ -43,7 +43,8 @@ pkginclude_HEADERS = \
     locator.hpp \
     amqp09_client_engine.hpp \
     amqp09_server_engine.hpp \
-    i_engine.hpp
+    i_engine.hpp \
+    scope.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -113,7 +114,8 @@ libzmq_la_SOURCES = \
     locator.cpp \
     amqp09_client_engine.hpp \
     amqp09_server_engine.hpp \
-    i_engine.hpp
+    i_engine.hpp \
+    scope.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 
