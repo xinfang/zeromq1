@@ -117,6 +117,9 @@ libzmq_la_SOURCES = \
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 
+bin_PROGRAMS = global_locator
+global_locator_SOURCES = global_locator.cpp stdint.hpp err.hpp
+
 dist-hook:
 		-rm $(distdir)/stdint.hpp
 		-rm $(distdir)/platform.hpp
