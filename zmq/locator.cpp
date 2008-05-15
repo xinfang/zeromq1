@@ -45,7 +45,6 @@ void zmq::locator_t::create_exchange (const char *exchange_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
     assert (strlen (exchange_) < 256);
-    assert (strlen (address_) < 256);
 
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
@@ -57,6 +56,8 @@ void zmq::locator_t::create_exchange (const char *exchange_,
 
     //  Add exchange to the global locator
     if (scope_ == scope_global) {
+
+         assert (strlen (address_) < 256);
 
          //  Create a listener for the exchange
          bp_listener_t::create (listener_thread_, address_, port_,
@@ -96,8 +97,7 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     exchanges_t::iterator it = exchanges.find (exchange_);
 
     //  If the exchange is unknown, find it using global locator
-    if (it == exchanges.end ())
-    {
+    if (it == exchanges.end ()) {
 
          //  Send to 'get exchange' command
          unsigned char cmd = get_exchange_id;
@@ -140,6 +140,8 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
 {
+    assert (strlen (queue_) < 256);
+
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
     errno_assert (rc == 0);
@@ -149,6 +151,8 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
 
     //  Add queue to the global locator
     if (scope_ == scope_global) {
+
+         assert (strlen (address_) < 256);
 
          //  Create a listener for the exchange
          bp_listener_t::create (listener_thread_, address_, port_,
@@ -187,8 +191,8 @@ void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
     queues_t::iterator it = queues.find (queue_);
  
     //  If the exchange is unknown, find it using global locator
-    if (it == queues.end ())
-    {
+    if (it == queues.end ()) {
+
          //  Send to 'get queue' command
          unsigned char cmd = get_queue_id;
          global_locator.blocking_write (&cmd, 1);
