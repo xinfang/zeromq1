@@ -39,6 +39,9 @@ void zmq::api_engine_t::create_exchange (const char *exchange_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
 {
+#ifdef ZMQ_DEBUG
+    printf ("Creating exchange %s.\n", exchange_);
+#endif
     //  Insert the exchange to the local list of exchanges
     //  If the exchange is already present, return immediately
     if (!exchanges.insert (
@@ -58,6 +61,9 @@ void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
     const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
+#ifdef ZMQ_DEBUG
+    printf ("Creating queue %s.\n", queue_);
+#endif
     //  Insert the queue to the local list of queues
     //  If the queue is already present, return immediately
     if (!queues.insert (
@@ -79,6 +85,9 @@ void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
 void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
 {
+#ifdef ZMQ_DEBUG
+    printf ("Binding exchange %s to queue %s.\n", exchange_, queue_);
+#endif
     //  Find the exchange
     i_context *exchange_context;
     i_engine *exchange_engine;
@@ -131,6 +140,9 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
 
 void zmq::api_engine_t::send (const char *exchange_, void *value_)
 {
+#ifdef ZMQ_DEBUG
+    printf ("Sending message to exchange %s.\n", exchange_);
+#endif
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
     if (signals)
@@ -146,6 +158,9 @@ void zmq::api_engine_t::send (const char *exchange_, void *value_)
 
 void *zmq::api_engine_t::receive (bool block_)
 {
+#ifdef ZMQ_DEBUG
+    printf ("Retrieveing a message.\n");
+#endif
     void *msg = NULL;
 
     //  Remember the original current queue position. We'll use this value

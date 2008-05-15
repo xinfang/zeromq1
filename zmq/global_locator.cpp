@@ -201,6 +201,10 @@ int main (int argc, char *argv [])
                             reply = fail_id;
                             nbytes = send (s, &reply, 1, 0);
                             errno_assert (nbytes == 1);
+#ifdef ZMQ_DEBUG
+                            printf ("Error when creating exchange: exchange %s"
+                                " already exists.\n", name);
+#endif
                             break;
                         }
 
@@ -208,7 +212,10 @@ int main (int argc, char *argv [])
                         reply = create_exchange_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         errno_assert (nbytes == 1);
- 
+#ifdef ZMQ_DEBUG
+                        printf ("Exchange %s created (%s:%d).\n", name,
+                            interface, (int) port);
+#endif
                         break;
                     }
                 case create_queue_id:
@@ -245,6 +252,10 @@ int main (int argc, char *argv [])
                             reply = fail_id;
                             nbytes = send (s, &reply, 1, 0);
                             errno_assert (nbytes == 1);
+#ifdef ZMQ_DEBUG
+                            printf ("Error when creating queue: "
+                                "queue %s already exists.\n", name);
+#endif
                             break;
                         }
 
@@ -252,7 +263,10 @@ int main (int argc, char *argv [])
                         reply = create_queue_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         errno_assert (nbytes == 1);
-                        
+#ifdef ZMQ_DEBUG
+                        printf ("Queue %s created (%s:%d).\n", name,
+                            interface, (int) port);
+#endif        
                         break;
                     }
                 case get_exchange_id:
@@ -274,6 +288,10 @@ int main (int argc, char *argv [])
                              reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
                              errno_assert (nbytes == 1);
+#ifdef ZMQ_DEBUG
+                             printf ("Error when looking for an exchange: "
+                                 "exchange %s does not exist.\n", name);
+#endif
                              break;
                         }
 
@@ -293,8 +311,12 @@ int main (int argc, char *argv [])
                         //  Send the port
                         uint16_t port = htons (it->second.port);
                         nbytes = send (s, &port, 2, 0);
-                        errno_assert (nbytes == 2);  
-
+                        errno_assert (nbytes == 2);
+#ifdef ZMQ_DEBUG
+                        printf ("Exchange %s retrieved (%s:%d).\n", name,
+                            it->second.interface.c_str (),
+                            (int) it->second.port);  
+#endif
                         break;
                     }
                 case get_queue_id:
@@ -316,6 +338,10 @@ int main (int argc, char *argv [])
                              reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
                              errno_assert (nbytes == 1);
+#ifdef ZMQ_DEBUG
+                             printf ("Error when looking for a queue: "
+                                 "queue %s does not exist.\n", name);
+#endif
                              break;
                         }
 
@@ -336,7 +362,10 @@ int main (int argc, char *argv [])
                         uint16_t port = htons (it->second.port);
                         nbytes = send (s, &port, 2, 0);
                         errno_assert (nbytes == 2);
-
+#ifdef ZMQ_DEBUG
+                        printf ("Queue %s retrieved (%s:%d).\n", name,
+                        it->second.interface.c_str (), (int) it->second.port);  
+#endif
                         break;
                     }
                 default:
