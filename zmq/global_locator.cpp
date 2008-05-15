@@ -38,7 +38,11 @@ enum
     add_exchange = 1,
     add_queue = 2,
     get_exchange = 3,
-    get_queue = 4
+    get_exchange_ok = 4,
+    get_exchange_fail = 5,
+    get_queue = 6,
+    get_queue_ok = 7,
+    get_queue_fail = 8
 };
 
 struct exchange_info_t
@@ -157,6 +161,7 @@ int main (int argc, char *argv [])
 
                 //  Read command ID
                 unsigned char cmd;
+                unsigned char reply;
                 ssize_t nbytes = recv (s, &cmd, 1, MSG_WAITALL);
 
                 //  Connection closed by peer
@@ -251,7 +256,19 @@ int main (int argc, char *argv [])
 
                         //  Find the exchange in the repository
                         exchanges_t::iterator it = exchanges.find (name);
-                        assert (it != exchanges.end ());
+                        if (it == exchanges.end ()) {
+
+                             //  Send the error
+                             reply = get_exchange_fail;
+                             nbytes = send (s, &reply, 1, 0);
+                             errno_assert (nbytes == 1);
+                             break;
+                        }
+
+                        //  Send reply command
+                        reply = get_exchange_ok;
+                        nbytes = send (s, &reply, 1, 0);
+                        errno_assert (nbytes == 1);
 
                         //  Send the interface
                         size = it->second.interface.size ();
@@ -281,7 +298,19 @@ int main (int argc, char *argv [])
 
                         //  Find the queue in the repository
                         queues_t::iterator it = queues.find (name);
-                        assert (it != queues.end ());
+                        if (it == queues.end ()) {
+
+                             //  Send the error
+                             reply = get_queue_fail;
+                             nbytes = send (s, &reply, 1, 0);
+                             errno_assert (nbytes == 1);
+                             break;
+                        }
+
+                        //  Send the reply command
+                        reply = get_queue_ok;
+                        nbytes = send (s, &reply, 1, 0);
+                        errno_assert (nbytes == 1);
 
                         //  Send the interface
                         size = it->second.interface.size ();

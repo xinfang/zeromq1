@@ -72,7 +72,11 @@ namespace zmq
             add_exchange_id = 1,
             add_queue_id = 2,
             get_exchange_id = 3,
-            get_queue_id = 4
+            get_exchange_ok_id = 4,
+            get_exchange_fail_id = 5,
+            get_queue_id = 6,
+            get_queue_ok_id = 7,
+            get_queue_fail_id = 8
         };
 
         dispatcher_t *dispatcher;

@@ -103,6 +103,8 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          global_locator.blocking_write (exchange_, size);
 
          //  Read the response
+         global_locator.blocking_read (&cmd, 1);
+         assert (cmd ==get_exchange_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
          global_locator.blocking_read (address, size);
@@ -144,6 +146,11 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
     //  Add queue to the global locator
     if (scope_ == scope_global) {
 
+         //  Create a listener for the exchange
+         bp_listener_t::create (listener_thread_, address_, port_,
+            handler_thread_count_, handler_threads_,
+            true, context_, engine_, queue_);
+
          //  Send to 'add queue' command
          unsigned char cmd = add_queue_id;
          global_locator.blocking_write (&cmd, 1);
@@ -170,7 +177,38 @@ void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
     errno_assert (rc == 0);
 
     queues_t::iterator it = queues.find (queue_);
-    assert (it != queues.end ());
+ 
+    //  If the exchange is unknown, find it using global locator
+    if (it == queues.end ())
+    {
+         //  Send to 'get queue' command
+         unsigned char cmd = get_queue_id;
+         global_locator.blocking_write (&cmd, 1);
+         unsigned char size = strlen (queue_);
+         global_locator.blocking_write (&size, 1);
+         global_locator.blocking_write (queue_, size);
+
+         //  Read the response
+         global_locator.blocking_read (&cmd, 1);
+         assert (cmd ==get_queue_ok_id);
+         global_locator.blocking_read (&size, 1);
+         char address [256];
+         global_locator.blocking_read (address, size);
+         address [size] = 0;
+         uint16_t port;
+         global_locator.blocking_read (&port, 2);
+         port = ntohs (port);
+
+         //  Create the proxy engine for the exchange
+         bp_engine_t *engine = bp_engine_t::create (thread_,
+             false, address, port, 8192, 8192);
+
+         //  Write it into queue repository
+         queue_info_t info = {thread_, engine};
+         it = queues.insert (
+             queues_t::value_type (queue_, info)).first;
+    }
+
     *context_ = it->second.context;
     *engine_ = it->second.engine;
 
