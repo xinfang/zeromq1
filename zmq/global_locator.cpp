@@ -32,18 +32,8 @@ using namespace std;
 
 #include "stdint.hpp"
 #include "err.hpp"
-
-enum
-{
-    add_exchange = 1,
-    add_queue = 2,
-    get_exchange = 3,
-    get_exchange_ok = 4,
-    get_exchange_fail = 5,
-    get_queue = 6,
-    get_queue_ok = 7,
-    get_queue_fail = 8
-};
+#include "global_locator.hpp"
+using namespace zmq;
 
 struct exchange_info_t
 {
@@ -177,7 +167,7 @@ int main (int argc, char *argv [])
                 errno_assert (nbytes == 1);
 
                 switch (cmd) {
-                case add_exchange:
+                case create_exchange_id:
                     {
                         //  Parse exchange name
                         unsigned char size;
@@ -205,12 +195,23 @@ int main (int argc, char *argv [])
                         //  Insert exchange to the exchange repository
                         exchange_info_t info = {interface, port, s};
                         if (!exchanges.insert (
-                              exchanges_t::value_type (name, info)).second)
-                            assert (false);
+                              exchanges_t::value_type (name, info)).second) {
+
+                            //  Send an error if the exchange already exists
+                            reply = fail_id;
+                            nbytes = send (s, &reply, 1, 0);
+                            errno_assert (nbytes == 1);
+                            break;
+                        }
+
+                        //  Send reply command
+                        reply = create_exchange_ok_id;
+                        nbytes = send (s, &reply, 1, 0);
+                        errno_assert (nbytes == 1);
  
                         break;
                     }
-                case add_queue:
+                case create_queue_id:
                     {
                         //  Parse queue name
                         unsigned char size;
@@ -238,12 +239,23 @@ int main (int argc, char *argv [])
                         //  Insert queue to the queue repository
                         queue_info_t info = {interface, port, s};
                         if (!queues.insert (
-                              queues_t::value_type (name, info)).second)
-                            assert (false); 
+                              queues_t::value_type (name, info)).second) {
+
+                            //  Send an error if the queue already exists
+                            reply = fail_id;
+                            nbytes = send (s, &reply, 1, 0);
+                            errno_assert (nbytes == 1);
+                            break;
+                        }
+
+                        //  Send reply command
+                        reply = create_queue_ok_id;
+                        nbytes = send (s, &reply, 1, 0);
+                        errno_assert (nbytes == 1);
                         
                         break;
                     }
-                case get_exchange:
+                case get_exchange_id:
                     {
                         //  Parse exchange name
                         unsigned char size;
@@ -259,14 +271,14 @@ int main (int argc, char *argv [])
                         if (it == exchanges.end ()) {
 
                              //  Send the error
-                             reply = get_exchange_fail;
+                             reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
                              errno_assert (nbytes == 1);
                              break;
                         }
 
                         //  Send reply command
-                        reply = get_exchange_ok;
+                        reply = get_exchange_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         errno_assert (nbytes == 1);
 
@@ -285,7 +297,7 @@ int main (int argc, char *argv [])
 
                         break;
                     }
-                case get_queue:
+                case get_queue_id:
                     {
                         //  Parse queue name
                         unsigned char size;
@@ -301,14 +313,14 @@ int main (int argc, char *argv [])
                         if (it == queues.end ()) {
 
                              //  Send the error
-                             reply = get_queue_fail;
+                             reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
                              errno_assert (nbytes == 1);
                              break;
                         }
 
                         //  Send the reply command
-                        reply = get_queue_ok;
+                        reply = get_queue_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         errno_assert (nbytes == 1);
 

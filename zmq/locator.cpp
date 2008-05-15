@@ -64,7 +64,7 @@ void zmq::locator_t::create_exchange (const char *exchange_,
             false, context_, engine_, exchange_);
 
          //  Send to 'add exchange' command
-         unsigned char cmd = add_exchange_id;
+         unsigned char cmd = create_exchange_id;
          global_locator.blocking_write (&cmd, 1);
          unsigned char size = strlen (exchange_);
          global_locator.blocking_write (&size, 1);
@@ -74,6 +74,10 @@ void zmq::locator_t::create_exchange (const char *exchange_,
          global_locator.blocking_write (address_, size);
          uint16_t port = htons (port_);
          global_locator.blocking_write (&port, 2);
+
+         //  Read the response
+         global_locator.blocking_read (&cmd, 1);
+         assert (cmd == create_exchange_ok_id);
     }
 
     //  Leave critical section
@@ -104,7 +108,7 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
-         assert (cmd ==get_exchange_ok_id);
+         assert (cmd == get_exchange_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
          global_locator.blocking_read (address, size);
@@ -152,7 +156,7 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
             true, context_, engine_, queue_);
 
          //  Send to 'add queue' command
-         unsigned char cmd = add_queue_id;
+         unsigned char cmd = create_queue_id;
          global_locator.blocking_write (&cmd, 1);
          unsigned char size = strlen (queue_);
          global_locator.blocking_write (&size, 1);
@@ -162,6 +166,10 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          global_locator.blocking_write (address_, size);
          uint16_t port = htons (port_);
          global_locator.blocking_write (&port, 2);
+
+         //  Read the response
+         global_locator.blocking_read (&cmd, 1);
+         assert (cmd == create_queue_ok_id);
     }
 
     //  Leave critical section
@@ -190,7 +198,7 @@ void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
-         assert (cmd ==get_queue_ok_id);
+         assert (cmd == get_queue_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
          global_locator.blocking_read (address, size);

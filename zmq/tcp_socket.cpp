@@ -19,6 +19,7 @@
 
 #include "tcp_socket.hpp"
 
+#include <assert.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -37,6 +38,7 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     memset (&ip_address, 0, sizeof (ip_address));
     ip_address.sin_family = AF_INET;
     int rc = inet_pton (AF_INET, address_, &ip_address.sin_addr);
+    assert (rc != 0);
     errno_assert (rc > 0);
     ip_address.sin_port = htons (port_);
 

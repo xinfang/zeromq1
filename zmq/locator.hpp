@@ -27,6 +27,7 @@
 #include "i_context.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
+#include "global_locator.hpp"
 
 namespace zmq
 {
@@ -66,18 +67,6 @@ namespace zmq
             class poll_thread_t *thread_);
 
     private:
-
-        enum
-        {
-            add_exchange_id = 1,
-            add_queue_id = 2,
-            get_exchange_id = 3,
-            get_exchange_ok_id = 4,
-            get_exchange_fail_id = 5,
-            get_queue_id = 6,
-            get_queue_ok_id = 7,
-            get_queue_fail_id = 8
-        };
 
         dispatcher_t *dispatcher;
 
