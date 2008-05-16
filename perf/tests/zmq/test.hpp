@@ -18,8 +18,8 @@
 */
 
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 15
-#define TEST_TIME 5000
+#define TEST_MSG_SIZE_STEPS 9
+#define TEST_TIME 4000
 
 // MT test
 #define TEST_THREADS 1
@@ -39,12 +39,6 @@
 #define SYS_SLOPE_BIG 0.89
 #define SYS_OFF_BIG 0
 
-#define PORT_NUMBER 5555
+#define PORT_NUMBER 5671
 
-struct worker_args_t
-{
-    int id;
-    int msg_size;
-    int msg_count;
-    perf::i_transport *transport;
-};
+#define TEST_MSG_COUNT_THRPUT 1000000

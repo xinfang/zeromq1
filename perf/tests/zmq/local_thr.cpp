@@ -29,25 +29,22 @@
 
 #include "./test.hpp"
 
-void *worker_function (void *);
-
 int main (int argc, char *argv [])
 {
-    if (argc != 1){
-        printf ("Usage: local\n");
+    if (argc != 5){
+        printf ("Usage: local <listen IP> <listen port> <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
-    //  Main results results
-    std::string filename ("timing.dat");
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
-
-    FILE *output = ::fopen (filename.c_str (), "w");
+    FILE *output = ::fopen ("timing.dat", "w");
     assert (output);
 
     int msg_count;
     size_t msg_size;
+
+    char *queue_name = new char [2];
+    memset (queue_name, 0, 2);
+    queue_name [0] = '0';
 
     char file_name [255];
     memset (file_name, '\0', sizeof (file_name));
@@ -55,19 +52,15 @@ int main (int argc, char *argv [])
     perf::time_instant_t start_time;
     perf::time_instant_t stop_time;
 
-    perf::time_instant_t min_start_time;
-    perf::time_instant_t max_stop_time;
-
     // throughput [msgs/s]
     unsigned long long msg_thput;
     // throughput [Mb/s]
     unsigned long long tcp_thput;
+    printf ("receiver: listen %s:%i, GL %s:%i\n", argv [1], 
+        atoi (argv [2]), argv [3], atoi (argv [4]));
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
    
-        min_start_time = std::numeric_limits<unsigned long long>::max ();
-        max_stop_time = 0;
-
         msg_size = TEST_MSG_SIZE_START * (0x1 << i);
 
         if (msg_size < SYS_BREAK) {
@@ -78,91 +71,52 @@ int main (int argc, char *argv [])
                 (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
         }
 
-        msg_count /= TEST_THREADS;
-
-//        msg_count = TEST_MSG_COUNT_THRPUT;
-        printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", msg_size);
-        printf ("Number of messages in the throughput test: %i (per thread)\n", 
-            msg_count);
+        printf ("Message size: %i\n", (int)msg_size);
+        printf ("Number of messages in the throughput test: %i\n", msg_count);
 
         {
-            perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
-
-            for (int j = 0; j < TEST_THREADS; j++) {
-                w_args = new worker_args_t;
-                w_args->id = j;
-                w_args->msg_size = msg_size;
-                w_args->msg_count = msg_count;
-                w_args->transport = &transport;
-
-                int rc = pthread_create (&workers [j], NULL, worker_function,
-                    (void*)w_args);
-                assert (rc == 0);
-            }
+            perf::zmq_t transport (false, queue_name, argv [3], atoi (argv [4]), argv [1], atoi (argv [2]) + i);
             
-            for (int j = 0; j < TEST_THREADS; j++) {
-                int rc = pthread_join (workers [j], NULL);
-                assert (rc == 0);
+            perf::raw_receiver_t worker (msg_count, msg_size);
+    
+            snprintf (file_name, sizeof (file_name) - 1, "%i_%i_", (int)msg_size, 0); 
 
-                // read results from finished worker file
-                snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
-                    msg_size, j);
-
-                perf::read_times_1f (&start_time, &stop_time, file_name);
-
-                if (start_time < min_start_time)
-                    min_start_time = start_time;
-
-                if (stop_time > max_stop_time)
-                    max_stop_time = stop_time;
-
-                // delete file
-                rc = remove (file_name);
-                assert (rc == 0);
-            }
-
+            worker.run (transport, file_name);
         }
+         
+        // read results from finished worker file
+        snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", (int)msg_size, 0);
+        perf::read_times_1f (&start_time, &stop_time, file_name);
 
-        printf ("Test end\n");
-        fflush (stdout);
+        fprintf (output, "%i %i %llu %llu\n", (int)msg_size, 
+              msg_count, start_time, stop_time);
 
-        printf ("Test time: %llu [ms]\n", (max_stop_time - min_start_time) / 
-            (long long)1000);
+        // delete file
+        int rc = remove (file_name);
+        assert (rc == 0);
+
+        printf ("Test time: %llu [ms]\n", (stop_time - start_time) / (long long)1000);
 
         // throughput [msgs/s]
-        msg_thput = ((long long) 1000000 * (long long) msg_count * 
-            (long long)TEST_THREADS ) / (max_stop_time - min_start_time);
+        msg_thput = ((long long) 1000000 * (long long) msg_count) / (stop_time - start_time);
 
         // throughput [Mb/s]
         tcp_thput = (msg_thput * msg_size * 8) /(long long) 1000000;
-                
+               
         printf ("Your average throughput is %llu msgs/s\n", msg_thput);
         printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
 
-        fprintf (output, "%i %i %llu %llu\n", msg_size, 
-            msg_count * TEST_THREADS, min_start_time, max_stop_time);
+        queue_name [0] += 1;
+
     }
     
+    printf ("Test end\n");
+    fflush (stdout);
+
     fclose (output);
+
+    delete [] queue_name;
 
     return 0;
 }
 
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size,
-        w_args->id);
-
-    perf::raw_receiver_t worker (w_args->msg_count);
-    worker.run (*w_args->transport, prefix, w_args->id);
-
-    delete w_args;
-
-    return NULL;
-}

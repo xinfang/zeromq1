@@ -31,8 +31,8 @@ namespace perf
     class raw_receiver_t : public i_worker
     {
     public:
-        inline raw_receiver_t (int message_count_) :
-            message_count (message_count_)
+        inline raw_receiver_t (int message_count_, size_t message_size_) :
+            message_count (message_count_), message_size (message_size_)
         {
         }
 
@@ -45,9 +45,13 @@ namespace perf
             //  Receive the messages as quickly as possible
             for (int message_nbr = 0; message_nbr != message_count;
                   message_nbr++){
-                transport_.receive (thread_id_);
+                size_t size = transport_.receive (thread_id_);
                  if (message_nbr == 0)
                     start_time = now();
+
+                // check incomming message size
+                assert (size == message_size);
+
             }
 
             time_instant_t stop_time = now();
@@ -67,6 +71,7 @@ namespace perf
 
     protected:
         int message_count;
+        size_t message_size;
     };
 
 }

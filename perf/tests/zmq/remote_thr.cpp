@@ -25,21 +25,20 @@
 
 #include "./test.hpp"
 
-void *worker_function (void *);
-
 int main (int argc, char *argv [])
 {
 
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
+    if (argc != 3) {
+        printf ("Usage: remote <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
-
     size_t msg_size;
     int msg_count;
+
+    char *queue_name = new char [2];
+    memset (queue_name, 0, 2);
+    queue_name [0] = '0';
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 
@@ -53,52 +52,25 @@ int main (int argc, char *argv [])
                 (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
         }
 
-        msg_count /= TEST_THREADS;
-
-//        msg_count = TEST_MSG_COUNT_THRPUT;
+        printf ("Message size: %i\n", (int)msg_size);
+        printf ("Number of messages in the throughput test: %i\n", msg_count);
 
         {
-            perf::zmq_t transport (false, argv [1], PORT_NUMBER, TEST_THREADS);
+            perf::zmq_t transport (true, queue_name, argv [1], atoi (argv[2]), NULL, 0);
             
-            for (int j = 0; j < TEST_THREADS; j++) {
-                w_args = new worker_args_t;
-                w_args->id = j;
-                w_args->msg_size = msg_size;
-                w_args->msg_count = msg_count;
-                w_args->transport = &transport;
-
-                int rc = pthread_create (&workers [j], NULL, worker_function,
-                    (void*)w_args);
-                assert (rc == 0);
-            }
+            perf::raw_sender_t worker (msg_count, msg_size);
             
-            for (int j = 0; j < TEST_THREADS; j++) {
-                int rc = pthread_join (workers [j], NULL);
-                assert (rc == 0);
-            }
-        }
+            worker.run (transport, "");
+           
+         }
 
-        sleep (2); // Wait till new listeners are started by the 'local'
+        queue_name [0] += 1;
+
+        sleep (4); // Wait till new listeners are started by the 'local'
 
     }
 
+    delete [] queue_name;
+
     return 0;
-}
-
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size,
-        w_args->id);
-
-    perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
-    worker.run (*w_args->transport, prefix, w_args->id);
-
-    delete w_args;
-
-    return NULL;
 }

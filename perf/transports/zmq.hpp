@@ -33,86 +33,71 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool listen_, const char *ip_address_, unsigned short port_, 
-                unsigned int count_io_thread_ = 1) :
-            dispatcher (2 * count_io_thread_), 
-            count_io_thread (count_io_thread_) 
+        zmq_t (bool sender_, char *queue_name_, const char *locator_ip_, unsigned short locator_port_,
+              const char *listen_ip_, unsigned short listen_port_, 
+              unsigned int thread_count_ = 2) :
+            thread_count (thread_count_), sender (sender_),
+            dispatcher (thread_count, locator_ip_, locator_port_),
+            api (&dispatcher),
+            worker (&dispatcher)
         {
-            engine = new zmq::bp_engine_t* [count_io_thread_];
-            assert (engine);
+            
+            if (sender) {
+                assert (!listen_ip_);
+                assert (!listen_port_);
 
-            io = new zmq::poll_thread_t* [count_io_thread_];
-            assert (io);
+                api.create_exchange ("E");
+                api.bind ("E", queue_name_, &worker, &worker);
 
-            api = new zmq::api_engine_t* [count_io_thread_];
-            assert (api);
-
-            for (unsigned int i = 0; i < count_io_thread_; i++) {
+            } else {
+                assert (listen_ip_);
+                assert (listen_port_);
                 
-                // api IDs are from 0 to count_io_thread_
-                api [i] = new zmq::api_engine_t (&dispatcher); 
-                assert (api [i]);
-           }
+                zmq::poll_thread_t *workers [] = {&worker};
 
-           for (unsigned int i = 0; i < count_io_thread_; i++) {
+                api.create_queue (queue_name_, zmq::scope_global, listen_ip_, listen_port_,
+                    &worker, 1, workers);
 
-                // engine IDs are from count_io_thread_ to 2 * count_io_thread_
-                engine [i] = new zmq::bp_engine_t (&dispatcher, 
-                    listen_, ip_address_, port_ + i, i, i, 8192, 8192);
-                assert (engine [i]);
             }
-
-           for (unsigned int i = 0; i < count_io_thread_; i++) {
-                io [i] = new zmq::poll_thread_t (engine [i]);
-                assert (io [i]);
-
-                if (!listen_ && count_io_thread > 1) {
-                    usleep (1000);  // wait for 'local' 
-                }
-            }
-
         }
 
         inline ~zmq_t ()
         {
-            for (unsigned int i = 0; i < count_io_thread; i++) {
-                delete io [i];
-                delete engine [i];
-                delete api [i];
-            }
-            delete [] engine;
-            delete [] io;
-            delete [] api;
+            sleep (1);
         }
 
         inline virtual void send (size_t size_, unsigned int thread_id_ = 0)
         {
-            assert (thread_id_ < count_io_thread);
+            assert (sender);
+            assert (thread_id_ < thread_count);
             assert (size_ <= 65536);
 
-            zmq::cmsg_t msg = {buffer, size_, NULL};
-            api [thread_id_]->send (count_io_thread + thread_id_, msg);
+            void *msg = zmq::msg_alloc (size_);
+            api.send ("E", msg);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
         {
-            assert (thread_id_ < count_io_thread);
+            assert (!sender);
+            assert (thread_id_ < thread_count);
 
-            zmq::cmsg_t msg;
-            api [thread_id_]->receive (&msg);
-            size_t res = msg.size;
-            zmq::free_cmsg (msg);
-            return res;
+            void *msg = api.receive ();
+            assert (msg);
 
+            size_t size = ((zmq::msg_t*)msg)->size;
+            
+            zmq::msg_dealloc (msg);
+
+            return size;
         }
 
     protected:
+
+        unsigned int thread_count;
+        bool sender;
         zmq::dispatcher_t dispatcher;
-        zmq::api_engine_t **api;
-        zmq::bp_engine_t **engine;
-        zmq::poll_thread_t **io;
-        unsigned char buffer [65536];
-        unsigned int count_io_thread;
+        zmq::api_engine_t api;
+        zmq::poll_thread_t worker;
     };
 
 }
