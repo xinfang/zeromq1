@@ -43,7 +43,8 @@ namespace zmq
 
     private:
 
-        std::vector <pipe_t*> pipes;
+        typedef std::vector <pipe_t*> pipes_t;
+        pipes_t pipes;
         int current;
     };
 

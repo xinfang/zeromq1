@@ -47,7 +47,7 @@ namespace zmq
                 return;
             }
 
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+            for (pipes_t::iterator it = pipes.begin ();
                   it != pipes.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
                 (*it)->write (msg);
@@ -65,7 +65,7 @@ namespace zmq
                 return;
             }
 
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+            for (pipes_t::iterator it = pipes.begin ();
                   it != pipes.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
                 (*it)->instant_write (msg);
@@ -75,14 +75,15 @@ namespace zmq
 
         inline void flush ()
         {
-            for (std::vector <pipe_t*>::iterator it = pipes.begin ();
+            for (pipes_t::iterator it = pipes.begin ();
                   it != pipes.end (); it ++)
                 (*it)->flush ();
         }
 
     private:
 
-        std::vector <pipe_t*> pipes;
+        typedef std::vector <pipe_t*> pipes_t;
+        pipes_t pipes;
     };
 
 }
