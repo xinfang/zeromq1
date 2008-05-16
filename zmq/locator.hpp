@@ -46,23 +46,29 @@ namespace zmq
             uint16_t port_);
         ~locator_t ();
 
+        //  Creates exchange
         void create_exchange (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *address_, uint16_t port_,
             class poll_thread_t *listener_thread_,
             int handler_thread_count_, class poll_thread_t **handler_threads_);
 
-        void get_exchange (const char *exchange_,
+        //  Gets the engine that handles specified exchange
+        //  Returns false if the exchange is unknown
+        bool get_exchange (const char *exchange_,
             i_context **context_, i_engine **engine_,
             class poll_thread_t *thread_);
 
+        //  Creates queue
         void create_queue (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *address_, uint16_t port_,
             class poll_thread_t *listener_thread_,
             int handler_thread_count_, class poll_thread_t **handler_threads_);
 
-        void get_queue (const char *exchange_,
+        //  Gets the engine that handles specified queue
+        //  Returns false if the queue is unknown
+        bool get_queue (const char *exchange_,
             i_context **context_, i_engine **engine_,
             class poll_thread_t *thread_);
 

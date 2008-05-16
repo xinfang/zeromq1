@@ -97,8 +97,13 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
         exchange_engine = this;
     }
     else {
-        dispatcher->get_locator ().get_exchange (exchange_,
-            &exchange_context, &exchange_engine, exchange_thread_);
+        if (!(dispatcher->get_locator ().get_exchange (exchange_,
+              &exchange_context, &exchange_engine, exchange_thread_))) {
+#ifdef ZMQ_DEBUG
+            printf ("Exchange %s cannot be found.\n", exchange_);
+#endif
+            assert (false);
+        }
     }
 
     //  Find the queue
@@ -110,8 +115,13 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
         queue_engine = this;
     }
     else {
-        dispatcher->get_locator ().get_queue (queue_,
-            &queue_context, &queue_engine, queue_thread_);
+        if (!(dispatcher->get_locator ().get_queue (queue_,
+              &queue_context, &queue_engine, queue_thread_))) {
+#ifdef ZMQ_DEBUG
+            printf ("Queue %s cannot be found.\n", queue_);
+#endif
+            assert (false);
+        }
     }
 
     //  Create the pipe

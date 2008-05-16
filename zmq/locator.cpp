@@ -86,7 +86,7 @@ void zmq::locator_t::create_exchange (const char *exchange_,
     errno_assert (rc == 0);
 }
 
-void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
+bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     i_engine **engine_, poll_thread_t *thread_)
 {
     //  Enter critical section
@@ -108,6 +108,8 @@ void zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
+         if (cmd == fail_id)
+             return false;
          assert (cmd == get_exchange_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
@@ -181,7 +183,7 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
     errno_assert (rc == 0);
 }
 
-void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
+bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
     i_engine **engine_, poll_thread_t *thread_)
 {
     //  Enter critical section
@@ -202,6 +204,8 @@ void zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
+         if (cmd == fail_id)
+             return false;
          assert (cmd == get_queue_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
