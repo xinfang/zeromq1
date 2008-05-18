@@ -109,7 +109,7 @@ namespace zmq
     //  in the future.
     inline void *msg_unsafe_copy (void *msg_)
     {
-        ((msg_t*) msg_)->refcount.safe_inc ();
+        ((msg_t*) msg_)->refcount.safe_add (1);
         return msg_;
     }
 
@@ -118,7 +118,7 @@ namespace zmq
     //  in the future.
     inline void *msg_safe_copy (void *msg_)
     {
-        ((msg_t*) msg_)->refcount.safe_inc ();
+        ((msg_t*) msg_)->refcount.safe_add (1);
         ((msg_t*) msg_)->shared = true;
         return msg_;
     }
@@ -129,8 +129,8 @@ namespace zmq
         if (!msg_)
             return;
         msg_t *msg = (msg_t*) msg_;
-        if (!(msg->shared ? msg->refcount.safe_dec () :
-              msg->refcount.unsafe_dec ())) {
+        if (!(msg->shared ? msg->refcount.safe_sub (1) :
+              msg->refcount.unsafe_sub (1))) {
             if (msg->ffn)
                 msg->ffn (msg->data);
             free (msg_);

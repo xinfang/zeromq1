@@ -59,18 +59,17 @@ namespace zmq
             value = value_;
         }
 
-        //  Non-atomic increment
-        inline void unsafe_inc ()
+        //  Non-atomic addition
+        inline void unsafe_add (integer_t increment)
         {
-            value ++;
+            value += increment;
         }
 
-        //  Atomic increment.
-        inline void safe_inc ()
+        //  Atomic addition
+        inline void safe_add (integer_t increment)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
-            integer_t increment = 1;
             volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
                 : "=r" (increment), "=m" (*val)
@@ -79,34 +78,36 @@ namespace zmq
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
-            ((volatile integer_t) value) ++;
+            value += increment;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
 #endif
         }
 
-        //  Non-atomic decrement. Returns false if the counter drops to zero.
-        inline bool unsafe_dec ()
+        //  Non-atomic subtraction. Returns false if the counter drops to zero.
+        inline bool unsafe_sub (integer_t decrement)
         {
-            return -- value;
+            value -= decrement;
+            return value;
         }
 
-        //  Atomic decrement. Returns false if the counter drops to zero.
-        inline bool safe_dec ()
+        //  Atomic subtraction. Returns false if the counter drops to zero.
+        inline bool safe_sub (integer_t decrement)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
-            integer_t oldval = -1;
+            integer_t oldval = -decrement;
             volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
                 : "=r" (oldval), "=m" (*val)
                 : "0" (oldval), "m" (*val)
                 : "memory", "cc");
-            return oldval > 1;
+            return oldval != decrement;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
-            bool result = ((volatile integer_t) value) --;
+            value -= decrement;
+            bool result = value;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
             return result;
@@ -115,7 +116,7 @@ namespace zmq
 
     protected:
 
-        integer_t value;
+        volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;
