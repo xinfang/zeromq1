@@ -108,8 +108,15 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
-         if (cmd == fail_id)
+         if (cmd == fail_id) {
+
+             //  Leave critical section
+             rc = pthread_mutex_unlock (&sync);
+             errno_assert (rc == 0);
+
              return false;
+         }
+
          assert (cmd == get_exchange_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
@@ -135,6 +142,8 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     //  Leave critical section
     rc = pthread_mutex_unlock (&sync);
     errno_assert (rc == 0);
+
+    return true;
 }
 
 void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
@@ -204,8 +213,15 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Read the response
          global_locator.blocking_read (&cmd, 1);
-         if (cmd == fail_id)
+         if (cmd == fail_id) {
+
+             //  Leave critical section
+             rc = pthread_mutex_unlock (&sync);
+             errno_assert (rc == 0);
+
              return false;
+         }
+
          assert (cmd == get_queue_ok_id);
          global_locator.blocking_read (&size, 1);
          char address [256];
@@ -231,4 +247,6 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
     //  Leave critical section
     rc = pthread_mutex_unlock (&sync);
     errno_assert (rc == 0);
+
+    return true;
 }
