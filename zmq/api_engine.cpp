@@ -34,7 +34,7 @@ zmq::api_engine_t::~api_engine_t ()
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-void zmq::api_engine_t::create_exchange (const char *exchange_,
+int zmq::api_engine_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *address_, uint16_t port_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
@@ -44,17 +44,22 @@ void zmq::api_engine_t::create_exchange (const char *exchange_,
 #endif
     //  Insert the exchange to the local list of exchanges
     //  If the exchange is already present, return immediately
-    if (!exchanges.insert (
-          exchanges_t::value_type (exchange_, demux_t ())).second)
-        return;
+    for (exchanges_t::iterator it = exchanges.begin ();
+          it != exchanges.end (); it ++)
+        if (it->first == exchange_)
+            return it - exchanges.begin ();
+
+    exchanges.push_back (exchanges_t::value_type (exchange_, demux_t ()));
 
     if (scope_ == scope_local)
-        return;
+        return exchanges.size () - 1;
 
     //  Register the exchange with the locator
     dispatcher->get_locator ().create_exchange (exchange_, this, this,
         scope_, address_, port_, listener_thread_,
         handler_thread_count_, handler_threads_);
+
+    return exchanges.size () - 1;
 }
 
 void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
@@ -91,7 +96,10 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     //  Find the exchange
     i_context *exchange_context;
     i_engine *exchange_engine;
-    exchanges_t::iterator eit = exchanges.find (exchange_);
+    exchanges_t::iterator eit;
+    for (eit = exchanges.begin (); eit != exchanges.end (); eit ++)
+        if (eit->first == exchange_)
+            break;
     if (eit != exchanges.end ()) {
         exchange_context = this;
         exchange_engine = this;
@@ -148,7 +156,7 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     }
 }
 
-void zmq::api_engine_t::send (const char *exchange_, void *value_)
+void zmq::api_engine_t::send (int exchange_id_, void *value_)
 {
 #ifdef ZMQ_DEBUG
     printf ("Sending message to exchange %s.\n", exchange_);
@@ -158,12 +166,8 @@ void zmq::api_engine_t::send (const char *exchange_, void *value_)
     if (signals)
         process_commands (signals);
 
-    //  Find the appropriate exchange
-    exchanges_t::iterator it = exchanges.find (exchange_);
-    assert (it != exchanges.end ());
-
     //  Pass the message to the demux
-    it->second.instant_write (value_);
+    exchanges [exchange_id_].second.instant_write (value_);
 }
 
 void *zmq::api_engine_t::receive (bool block_)
@@ -262,8 +266,10 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
 
         {
             //  Find the right demux
-            exchanges_t::iterator it =
-                exchanges.find (command_.args.send_to.exchange);
+            exchanges_t::iterator it;
+            for (it = exchanges.begin (); it != exchanges.end (); it ++)
+                if (it->first == command_.args.send_to.exchange)
+                    break;
             assert (it != exchanges.end ());
 
             //  Start sending messages to a pipe

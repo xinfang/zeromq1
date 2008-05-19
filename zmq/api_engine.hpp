@@ -47,8 +47,8 @@ namespace zmq
         //  Destroys API engine
         ~api_engine_t ();
 
-        //  Creates new exchange
-        void create_exchange (
+        //  Creates new exchange, returns exchange ID
+        int create_exchange (
             const char *exchange_,
             scope_t scope_ = scope_local,
             const char *address = NULL,
@@ -73,7 +73,7 @@ namespace zmq
 
         //  Send a message to specified exchange, 0MQ takes responsibility
         //  for deallocating the message.
-        void send (const char *exchange_, void *value_);
+        void send (int exchange_id_, void *value_);
 
         //  Receive a message, if 'block' argument is true, it'll block till
         //  message arrives. If it is false, it returns immediately. If no
@@ -99,7 +99,7 @@ namespace zmq
         int thread_id;
         ypollset_t pollset;
 
-        typedef std::map <std::string, demux_t> exchanges_t;
+        typedef std::vector <std::pair <std::string, demux_t> > exchanges_t;
         exchanges_t exchanges;
 
         //  Current queue points to the queue to be used for retrieving the
