@@ -159,7 +159,7 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
 void zmq::api_engine_t::send (int exchange_id_, void *value_)
 {
 #ifdef ZMQ_DEBUG
-    printf ("Sending message to exchange %s.\n", exchange_);
+    printf ("Sending a message.\n");
 #endif
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
