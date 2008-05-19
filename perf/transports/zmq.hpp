@@ -46,7 +46,7 @@ namespace perf
                 assert (!listen_ip_);
                 assert (!listen_port_);
 
-                api.create_exchange ("E");
+                exchange_id = api.create_exchange ("E");
                 api.bind ("E", queue_name_, &worker, &worker);
 
             } else {
@@ -73,7 +73,7 @@ namespace perf
             assert (size_ <= 65536);
 
             void *msg = zmq::msg_alloc (size_);
-            api.send ("E", msg);
+            api.send (exchange_id, msg);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
@@ -98,6 +98,7 @@ namespace perf
         zmq::dispatcher_t dispatcher;
         zmq::api_engine_t api;
         zmq::poll_thread_t worker;
+	int exchange_id;
     };
 
 }
