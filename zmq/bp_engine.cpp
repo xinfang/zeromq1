@@ -53,7 +53,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
-    write_pos (0)
+    write_pos (0),
+    socket_error (false)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -72,7 +73,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
-    write_pos (0)
+    write_pos (0),
+    socket_error (false)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -99,7 +101,7 @@ short zmq::bp_engine_t::get_events ()
     return events;
 }
 
-void zmq::bp_engine_t::in_event ()
+bool zmq::bp_engine_t::in_event ()
 {
     //  Read as much data as possible to the read buffer
     size_t nbytes = socket.read (readbuf, readbuf_size);
@@ -109,7 +111,7 @@ void zmq::bp_engine_t::in_event ()
         //  If the other party closed the connection, stop polling
         //  TODO: handle the event more gracefully
         events ^= POLLIN;
-        return;
+        return false;
     }
 
     //  Push the data to the decoder
@@ -117,9 +119,10 @@ void zmq::bp_engine_t::in_event ()
 
     //  Flush any messages decoder may have produced
     demux.flush ();
+    return true;
 }
 
-void zmq::bp_engine_t::out_event ()
+bool zmq::bp_engine_t::out_event ()
 {
     //  If write buffer is empty, try to read new data from the encoder
     if (write_pos == write_size) {
@@ -135,10 +138,19 @@ void zmq::bp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        size_t nbytes = socket.write (writebuf + write_pos,
+        ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
             write_size - write_pos);
+        if (nbytes <= 0) 
+            return false;
         write_pos += nbytes;
     }
+    return true;
+}
+
+void zmq::bp_engine_t::close_event()
+{
+    socket_error = true;
+    assert(!"close event call - not implemented");
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)
@@ -147,7 +159,8 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::revive:
 
         //  Forward the revive command to the pipe
-        command_.args.revive.pipe->revive ();
+        if (!socket_error)
+            command_.args.revive.pipe->revive ();
 
         //  There is at least one engine that has messages ready -
         //  start polling the socket for writing.
@@ -157,14 +170,16 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::send_to:
 
         //  Start sending messages to a pipe
-        demux.send_to (
-            command_.args.send_to.pipe);
+        if (!socket_error)
+            demux.send_to (
+                command_.args.send_to.pipe);
         break;
 
     case engine_command_t::receive_from:
 
         //  Start receiving messages from a pipe
-        mux.receive_from (command_.args.receive_from.pipe);
+        if (!socket_error)
+            mux.receive_from (command_.args.receive_from.pipe);
         events |= POLLOUT;
         break;
 

@@ -93,7 +93,7 @@ short zmq::amqp09_listener_t::get_events ()
     return POLLIN;
 }
 
-void zmq::amqp09_listener_t::in_event ()
+bool zmq::amqp09_listener_t::in_event ()
 {
     //  Accept first incoming connection
     int s = accept (sock, NULL, NULL);
@@ -115,12 +115,19 @@ void zmq::amqp09_listener_t::in_event ()
     current_handler_thread ++;
     if (current_handler_thread == handler_threads.size ())
         current_handler_thread = 0;
+    return true;
 }
 
-void zmq::amqp09_listener_t::out_event ()
+bool zmq::amqp09_listener_t::out_event ()
 {
     //  We should never get POLLOUT when listening for incoming connections
     assert (false);
+    return true;
+}
+
+void zmq::amqp09_listener_t::close_event ()
+{
+    assert (!"amqp09_listener close event not implemented");
 }
 
 void zmq::amqp09_listener_t::process_command (const engine_command_t &command_)

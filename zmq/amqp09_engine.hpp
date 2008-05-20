@@ -101,7 +101,7 @@ namespace zmq
             return events;
         }
 
-        void in_event ()
+        bool in_event ()
         {
             //  Get as much data from the socket as possible
             size_t nbytes = socket.read (readbuf, readbuf_size);
@@ -109,7 +109,7 @@ namespace zmq
             //  If the socket was closed by the other party, stop polling for in
             if (!nbytes) {
                 events ^= POLLIN;
-                return;
+                return false;
             }
 
             //  Push the data to the encoder
@@ -117,9 +117,10 @@ namespace zmq
 
             //  Flush any messages decoder may have produced to the dispatcher
             demux.flush ();
+            return true;
         }
 
-        void out_event ()
+        bool out_event ()
         {
             //  If there are no more data to write, try to get more from
             //  the encoder. If none are available, stop polling for out.
@@ -134,10 +135,19 @@ namespace zmq
 
             //  Write as much of the data to the socket as possible
             if (write_pos < write_size) {
-                size_t nbytes = socket.write (writebuf + write_pos,
+                ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
                     write_size - write_pos);
+                if (nbytes <= 0) 
+                    return false;
                 write_pos += nbytes;
             }
+
+            return true;
+        }
+
+        void close_event ()
+        {
+            assert (!"amqp09_engine close event not implemented");
         }
 
         void process_command (const engine_command_t &command_)

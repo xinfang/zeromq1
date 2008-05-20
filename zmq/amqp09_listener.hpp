@@ -39,8 +39,9 @@ namespace zmq
         //  i_pollable implementation
         int get_fd ();
         short get_events ();
-        void in_event ();
-        void out_event ();
+        bool in_event ();
+        bool out_event ();
+        void close_event ();
         void process_command (const engine_command_t &command_);
 
     private:

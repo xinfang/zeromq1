@@ -97,8 +97,22 @@ void zmq::poll_thread_t::loop ()
 
         //  Check for errors
         for (std::vector <pollfd>::iterator it = pollset.begin ();
-              it != pollset.end (); it ++)
-            assert (!(it->revents & (POLLERR | POLLNVAL)));
+             it != pollset.end (); it ++) 
+        {
+            if (it->revents & (POLLNVAL)) {
+                fprintf(stderr, "invalid revents: %X %X\n", it->revents, it->revents & (POLLERR | POLLNVAL));
+            }
+            // assert (!(it->revents & (POLLNVAL)));
+        }
+
+        for (int pollset_index = 1; pollset_index != pollset.size ();
+              pollset_index ++) {
+            if (pollset [pollset_index].revents & POLLERR) {
+                engines [pollset_index - 1]->close_event ();
+                unregister_engine (engines[pollset_index - 1]);
+                pollset_index --;
+            }
+        }
 
         //  Process commands from other threads
         if (pollset [0].revents & POLLIN) {
@@ -112,7 +126,11 @@ void zmq::poll_thread_t::loop ()
         for (int pollset_index = 1; pollset_index != pollset.size ();
               pollset_index ++) {
             if (pollset [pollset_index].revents & POLLOUT) {
-                engines [pollset_index - 1]->out_event ();
+                if (!engines [pollset_index - 1]->out_event ()) {
+                    engines [pollset_index - 1]->close_event ();
+                    unregister_engine (engines[pollset_index - 1]);
+                    pollset_index --;
+                }
             }
         }
 
@@ -121,9 +139,32 @@ void zmq::poll_thread_t::loop ()
               pollset_index ++) {
             //  TODO: investigate the POLLHUP issue on OS X
             if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
-                engines [pollset_index - 1]->in_event ();
+                if (!engines [pollset_index - 1]->in_event ()) {
+                    engines [pollset_index - 1]->close_event ();
+                    unregister_engine (engines[pollset_index - 1]);
+                    pollset_index--;
+                }
         }
     }
+}
+
+void zmq::poll_thread_t::unregister_engine(i_pollable* engine_)
+{
+    //  Find the engine in the list
+    std::vector <i_pollable*>::iterator it =std::find (
+        engines.begin (), engines.end (),
+        engine_);
+    assert (it != engines.end ());
+
+    //  Remove the engine from the engine list and
+    //  the pollset
+    int pos = it - engines.begin ();
+    engines.erase (it);
+    pollset.erase (pollset.begin () + 1 + pos);
+    // delete engine_;
+    fprintf(stderr, "unregistered engine %08lX (%d engines left)\n", 
+            engine_,
+            engines.size());
 }
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)

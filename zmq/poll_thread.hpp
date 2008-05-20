@@ -50,6 +50,7 @@ namespace zmq
 
         //  Registers the engine with the poll thread.
         void register_engine (i_pollable *engine_);
+        void unregister_engine (i_pollable* engine_);
 
         //  i_context implementation
         int get_thread_id ();

@@ -107,7 +107,7 @@ short zmq::bp_listener_t::get_events ()
     return POLLIN;
 }
 
-void zmq::bp_listener_t::in_event ()
+bool zmq::bp_listener_t::in_event ()
 {
     //  Accept first incoming connection
     int s = accept (sock, NULL, NULL);
@@ -179,11 +179,18 @@ void zmq::bp_listener_t::in_event ()
     current_handler_thread ++;
     if (current_handler_thread == handler_threads.size ())
         current_handler_thread = 0;
+    return true;
 }
 
-void zmq::bp_listener_t::out_event ()
+bool zmq::bp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections
+    assert (false);
+    return true;
+}
+
+void zmq::bp_listener_t::close_event()
+{
     assert (false);
 }
 

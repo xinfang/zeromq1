@@ -38,10 +38,13 @@ namespace zmq
         virtual short get_events () = 0;
 
         //  Called by poll thread when in event occurs
-        virtual void in_event () = 0;
+        virtual bool in_event () = 0;
 
         //  Called by poll thread when out event occurs
-        virtual void out_event () = 0;
+        virtual bool out_event () = 0;
+
+        //  Called by poll thread when close event occurs
+        virtual void close_event () = 0;
     };
 
 }
