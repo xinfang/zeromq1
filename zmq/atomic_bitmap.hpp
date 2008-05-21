@@ -46,7 +46,7 @@ namespace zmq
         inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+#if (1 || defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
     && !defined (__x86_64__)))
             int rc = pthread_mutex_init (&mutex, NULL);
             errno_assert (rc == 0);
@@ -55,7 +55,7 @@ namespace zmq
 
         inline ~atomic_bitmap_t ()
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
+#if (1 || defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
     && !defined (__x86_64__)))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
@@ -71,7 +71,7 @@ namespace zmq
         //  bit and actual reset, however, have to be done atomically.
         inline bool btsr (int set_index_, int reset_index_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+#if (0 && !defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             uint32_t oldval;
             __asm__ volatile (
@@ -99,14 +99,14 @@ namespace zmq
         inline integer_t xchg (integer_t newval_)
         {
             integer_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+#if (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
@@ -140,7 +140,7 @@ namespace zmq
         inline integer_t izte (integer_t thenval_, integer_t elseval_)
         {
             integer_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+#if (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             __asm__ volatile (
                 "lock; cmpxchgl %1, %3\n\t"
                 "jz 1f\n\t"
@@ -150,7 +150,7 @@ namespace zmq
                 : "=&a" (oldval)
                 : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
                 : "memory", "cc");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
             __asm__ volatile (
                 "lock; cmpxchgq %1, %3\n\t"
@@ -175,7 +175,7 @@ namespace zmq
     protected:
 
         volatile integer_t value;
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
+#if (1 || defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;
 #endif

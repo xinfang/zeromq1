@@ -57,7 +57,10 @@ namespace zmq
             if (!result) {
                 sem.wait ();
                 result = bits.xchg (0);
+                assert (result);
             }
+            else
+                assert (result);
             return result;      
         }
 
