@@ -22,7 +22,8 @@
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks (0),
     dispatcher (dispatcher_),
-    current_queue (queues.begin ())
+    current_queue (queues.begin ()),
+    dirty (false)
 {
     //  Register the thread with the command dispatcher
     thread_id = dispatcher->allocate_thread_id (&pollset);
@@ -160,7 +161,16 @@ void zmq::api_engine_t::send (int exchange_id_, void *value_)
 {
 #ifdef ZMQ_DEBUG
     printf ("Sending a message.\n");
-#endif
+#endif    
+
+    //  If there are unflushed messages, presend the current one and
+    //  flush all of them
+    if (dirty) {
+        presend (exchange_id_, value_);
+        flush ();
+        return;
+    }
+
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
     if (signals)
@@ -168,6 +178,31 @@ void zmq::api_engine_t::send (int exchange_id_, void *value_)
 
     //  Pass the message to the demux
     exchanges [exchange_id_].second.instant_write (value_);
+}
+
+void zmq::api_engine_t::presend (int exchange_id_, void *value_)
+{
+    //  Pass the message to the demux
+    exchanges [exchange_id_].second.write (value_);
+
+    //  Set te dirty flag
+    dirty = true;
+}
+
+void zmq::api_engine_t::flush ()
+{
+    //  Check the signals and process the commands if there are any
+    ypollset_t::integer_t signals = pollset.check ();
+    if (signals)
+        process_commands (signals);
+
+    //  Flush all the exchanges
+    for (exchanges_t::iterator it = exchanges.begin ();
+          it != exchanges.end (); it ++)
+        it->second.flush ();
+
+    //  Clear the dirty flag
+    dirty = false;
 }
 
 void *zmq::api_engine_t::receive (bool block_)
