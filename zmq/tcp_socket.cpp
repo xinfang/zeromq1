@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <string.h>
 #include <stdint.hpp>
 
@@ -37,7 +38,10 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     sockaddr_in ip_address;
     memset (&ip_address, 0, sizeof (ip_address));
     ip_address.sin_family = AF_INET;
-    int rc = inet_pton (AF_INET, address_, &ip_address.sin_addr);
+    //  Resolve name
+    struct hostent *he = gethostbyname (address_);
+    assert (he);
+    int rc = inet_pton (AF_INET, he->h_addr_list[0], &ip_address.sin_addr);
     assert (rc != 0);
     errno_assert (rc > 0);
     ip_address.sin_port = htons (port_);
