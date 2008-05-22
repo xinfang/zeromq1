@@ -180,9 +180,10 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::receive_from:
 
         //  Start receiving messages from a pipe
-        if (!socket_error)
+        if (!socket_error) {
             mux.receive_from (command_.args.receive_from.pipe);
-        events |= POLLOUT;
+            events |= POLLOUT;
+        }
         break;
 
     default:
