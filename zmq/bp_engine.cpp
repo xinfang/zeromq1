@@ -150,7 +150,9 @@ bool zmq::bp_engine_t::out_event ()
 void zmq::bp_engine_t::close_event()
 {
     socket_error = true;
-    assert(!"close event call - not implemented");
+
+    //  TODO: engine tear-down
+    assert (false);
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)

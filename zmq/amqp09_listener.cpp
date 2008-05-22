@@ -127,7 +127,8 @@ bool zmq::amqp09_listener_t::out_event ()
 
 void zmq::amqp09_listener_t::close_event ()
 {
-    assert (!"amqp09_listener close event not implemented");
+    //  TODO: engine tear-down
+    assert (false);
 }
 
 void zmq::amqp09_listener_t::process_command (const engine_command_t &command_)

@@ -147,7 +147,8 @@ namespace zmq
 
         void close_event ()
         {
-            assert (!"amqp09_engine close event not implemented");
+            //  TODO: engine tear-down
+            assert (false);
         }
 
         void process_command (const engine_command_t &command_)

@@ -97,14 +97,12 @@ void zmq::poll_thread_t::loop ()
 
         //  Check for errors
         for (std::vector <pollfd>::iterator it = pollset.begin ();
-             it != pollset.end (); it ++) 
-        {
-            if (it->revents & (POLLNVAL)) {
-                fprintf(stderr, "invalid revents: %X %X\n", it->revents, it->revents & (POLLERR | POLLNVAL));
-            }
-            // assert (!(it->revents & (POLLNVAL)));
+              it != pollset.end (); it ++) {
+            assert (!(it->revents & (POLLNVAL)));
+            assert (!(it->revents & (POLLHUP)));
         }
 
+        //  First of all, process socket errors
         for (int pollset_index = 1; pollset_index != pollset.size ();
               pollset_index ++) {
             if (pollset [pollset_index].revents & POLLERR) {
@@ -161,10 +159,8 @@ void zmq::poll_thread_t::unregister_engine(i_pollable* engine_)
     int pos = it - engines.begin ();
     engines.erase (it);
     pollset.erase (pollset.begin () + 1 + pos);
-    // delete engine_;
-    fprintf(stderr, "unregistered engine %08lX (%d engines left)\n", 
-            engine_,
-            engines.size());
+
+    // TODO: delete engine_;
 }
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)
