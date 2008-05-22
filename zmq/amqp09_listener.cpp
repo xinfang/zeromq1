@@ -22,6 +22,7 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
 #include "amqp09_listener.hpp"
 #include "amqp09_server_engine.hpp"
@@ -48,11 +49,14 @@ zmq::amqp09_listener_t::amqp09_listener_t (poll_thread_t *thread_,
     current_handler_thread = 0;
 
     //  Create IP addess
-    sockaddr_in interface;
-    memset (&interface, 0, sizeof (interface));
-    interface.sin_family = AF_INET;
-    int rc = inet_pton (AF_INET, interface_, &interface.sin_addr);
-    errno_assert (rc > 0);
+    struct addrinfo req;
+    memset (&req, 0, sizeof req);
+    struct addrinfo *res;
+    req.ai_family = AF_INET;
+    int rc = getaddrinfo (interface_, NULL, &req, &res);
+    assert (rc == 0);
+    sockaddr_in interface = *((sockaddr_in *)res->ai_addr);
+    freeaddrinfo (res);
     interface.sin_port = htons (port_);
 
     //  Create a listening socket

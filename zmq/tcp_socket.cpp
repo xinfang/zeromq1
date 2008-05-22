@@ -36,6 +36,7 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
 {
     //  Create IP addess
     struct addrinfo req;
+    memset (&req, 0, sizeof req);
     struct addrinfo *res;
     req.ai_family = AF_INET;
     int rc = getaddrinfo (address_, NULL, &req, &res);
