@@ -35,15 +35,13 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     uint16_t port_)
 {
     //  Create IP addess
-    sockaddr_in ip_address;
-    memset (&ip_address, 0, sizeof (ip_address));
-    ip_address.sin_family = AF_INET;
-    //  Resolve name
-    struct hostent *he = gethostbyname (address_);
-    assert (he);
-    int rc = inet_pton (AF_INET, he->h_addr_list[0], &ip_address.sin_addr);
-    assert (rc != 0);
-    errno_assert (rc > 0);
+    struct addrinfo req;
+    struct addrinfo *res;
+    req.ai_family = AF_INET;
+    int rc = getaddrinfo (address_, NULL, &req, &res);
+    assert (rc == 0);
+    sockaddr_in ip_address = *((sockaddr_in *)res->ai_addr);
+    freeaddrinfo (res);
     ip_address.sin_port = htons (port_);
 
     if (listen_) {
@@ -59,7 +57,7 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
         errno_assert (rc == 0);
 
         //  Bind the socket to the network interface and port
-        rc = bind (listening_socket, (struct sockaddr*) &ip_address,
+        rc = bind (listening_socket, (struct sockaddr*) &ip_address, 
             sizeof (ip_address));
         errno_assert (rc == 0);
               
@@ -81,7 +79,7 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
         errno_assert (s != -1);
 
         //  Connect to the remote peer
-        rc = connect (s, (sockaddr*) &ip_address, sizeof (ip_address));
+        rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
         errno_assert (rc != -1);
     }
 
