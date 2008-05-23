@@ -41,6 +41,10 @@ namespace zmq
         //  Returns a message, NULL if no message is available
         void *read ();
 
+        //  Send a command to the engines on the other
+        //  end of our pipes to destroy the pipe
+        void terminate_pipes();
+
     private:
 
         typedef std::vector <pipe_t*> pipes_t;

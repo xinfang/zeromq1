@@ -144,4 +144,11 @@ bool zmq::pipe_t::eop ()
 {
     return endofpipe;
 }
-       
+
+void zmq::pipe_t::send_destroy_pipe ()
+{
+    command_t cmd;
+    cmd.init_engine_destroy_pipe (source_engine, this);
+    destination_context->send_command (source_context, cmd);
+}
+

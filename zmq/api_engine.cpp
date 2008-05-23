@@ -325,6 +325,16 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
         }
         break;
 
+    case engine_command_t::destroy_pipe:
+        {
+            exchanges_t::iterator it;
+            for (it = exchanges.begin (); it != exchanges.end (); it ++)
+                it->second.destroy_pipe (command_.args.destroy_pipe.pipe);
+            delete command_.args.destroy_pipe.pipe;
+        }
+        break;
+
+
     default:
 
         //  Unsupported/unknown command

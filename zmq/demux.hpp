@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <vector>
+#include <algorithm>
 
 #include "pipe.hpp"
 
@@ -80,12 +81,22 @@ namespace zmq
                 (*it)->flush ();
         }
 
-        inline void terminate_pipes() 
+        inline void terminate_pipes () 
         {
             for (int i = 0; i < pipes.size (); ++i)
                 pipes [i]->instant_write (NULL);
             // remove all pointers to pipes
             pipes.clear ();
+        }
+
+        inline void destroy_pipe (pipe_t *pipe_)
+        {
+            pipes_t::iterator it = 
+                std::find (pipes.begin (), pipes.end (), pipe_);
+            if (it != pipes.end ()) {
+                pipe_->instant_write (NULL);
+                pipes.erase (it);
+            }
         }
 
     private:

@@ -44,6 +44,7 @@ namespace zmq
         void *read ();
         void revive ();
         bool eop ();
+        void send_destroy_pipe ();
 
     private:
 

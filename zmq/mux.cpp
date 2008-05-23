@@ -50,3 +50,9 @@ void *zmq::mux_t::read ()
     }
     return NULL;
 }
+
+void zmq::mux_t::terminate_pipes()
+{
+    for (int i = 0; i < pipes.size () ; ++i)
+        pipes [i]->send_destroy_pipe ();
+}

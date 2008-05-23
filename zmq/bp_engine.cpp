@@ -165,7 +165,10 @@ void zmq::bp_engine_t::close_event()
         }
         // notify all our receivers that this engine
         // is shutting down
-        demux.terminate_pipes();
+        demux.terminate_pipes ();
+
+        // notify senders that this engine is shutting down
+        mux.terminate_pipes ();
     }
 }
 
@@ -198,6 +201,11 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
             mux.receive_from (command_.args.receive_from.pipe);
             events |= POLLOUT;
         }
+        break;
+
+    case engine_command_t::destroy_pipe:
+        demux.destroy_pipe (command_.args.destroy_pipe.pipe);
+        delete command_.args.destroy_pipe.pipe;
         break;
 
     default:
