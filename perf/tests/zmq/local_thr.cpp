@@ -26,6 +26,7 @@
 #include "../../helpers/time.hpp"
 #include "../../helpers/files.hpp"
 #include "../../workers/raw_receiver.hpp"
+#include "../../workers/raw_sender.hpp"
 
 #include "./test.hpp"
 
@@ -82,6 +83,11 @@ int main (int argc, char *argv [])
             snprintf (file_name, sizeof (file_name) - 1, "%i_%i_", (int)msg_size, 0); 
 
             worker.run (transport, file_name);
+
+            printf ("received %i msgs, sending sync message\n", msg_count);
+            
+            // sync message 1B
+            transport.send_sync_message ();
         }
          
         // read results from finished worker file

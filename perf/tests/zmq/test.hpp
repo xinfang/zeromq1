@@ -18,11 +18,11 @@
 */
 
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 9
-#define TEST_TIME 4000
+#define TEST_MSG_SIZE_STEPS 17
+#define TEST_TIME 400
 
 // MT test
-#define TEST_THREADS 1
+//#define TEST_THREADS 1
 
 // latency test msg count denominator
 #define SYS_LAT_DEN 100
@@ -39,6 +39,6 @@
 #define SYS_SLOPE_BIG 0.89
 #define SYS_OFF_BIG 0
 
-#define PORT_NUMBER 5671
+//#define PORT_NUMBER 5671
 
-#define TEST_MSG_COUNT_THRPUT 1000000
+//#define TEST_MSG_COUNT_THRPUT 1000000
