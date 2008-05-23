@@ -24,14 +24,15 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
       i_context *destination_context_, i_engine *destination_engine_) :
     pipe (false),
     source_context (source_context_),
-    source_engine (source_engine),
+    source_engine (source_engine_),
     destination_context (destination_context_),
     destination_engine (destination_engine_),
     writebuf_first (NULL),
     writebuf_last (NULL),
     readbuf_first (NULL),
     readbuf_last (NULL),
-    alive (true)
+    alive (true), 
+    endofpipe (false)
 {
 }
 
@@ -132,9 +133,15 @@ void *zmq::pipe_t::read ()
     //  Get the first message from the read buffer
     ypipe_t <void*, false>::item_t *o = readbuf_first;
     void *msg = o->value;
+    if (msg == NULL)
+        endofpipe = true;
     readbuf_first = readbuf_first->next;
     delete o;
     return msg;
 }
 
-            
+bool zmq::pipe_t::eop ()
+{
+    return endofpipe;
+}
+       

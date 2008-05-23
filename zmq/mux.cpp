@@ -35,19 +35,18 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
 
 void *zmq::mux_t::read ()
 {
-    //  If the is no incoming pipe, message cannot be retrieved
-    if (pipes.empty ())
-        return NULL;
-
-    //  Fair-queueing implementation
-    int start = current;
-    while (true) {
-        void *msg = pipes [current]->read ();
+    for (int to_process = pipes.size (); to_process != 0; to_process --) {
+        void* msg = pipes [current]->read ();
+        if (pipes [current]->eop ()) {
+            delete pipes [current];
+            pipes.erase (pipes.begin () + current);
+        } else {
+            current ++;
+        }
+        if (current == pipes.size ())
+            current = 0;
         if (msg)
             return msg;
-        current ++;
-        current %= pipes.size ();
-        if (current == start)
-            return NULL;
     }
+    return NULL;
 }

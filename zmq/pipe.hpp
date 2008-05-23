@@ -43,6 +43,7 @@ namespace zmq
         void flush ();
         void *read ();
         void revive ();
+        bool eop ();
 
     private:
 
@@ -51,7 +52,7 @@ namespace zmq
         //  The message pipe itself
         ypipe_t <void*, false> pipe;
 
-        //  Identification of the engine sendinf the messages to the pipe
+        //  Identification of the engine sending the messages to the pipe
         i_context *source_context;
         i_engine *source_engine;
 
@@ -69,6 +70,7 @@ namespace zmq
         ypipe_t <void*, false>::item_t *readbuf_first;
         ypipe_t <void*, false>::item_t *readbuf_last;
         bool alive; 
+        bool endofpipe;
     }; 
 
 }

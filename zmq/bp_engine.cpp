@@ -157,10 +157,15 @@ bool zmq::bp_engine_t::out_event ()
 
 void zmq::bp_engine_t::close_event()
 {
-    socket_error = true;
+    if (!socket_error) {
+        socket_error = true;
 
-    if (abort_on_close) {
-        assert (false);
+        if (abort_on_close) {
+            assert (false);
+        }
+        // notify all our receivers that this engine
+        // is shutting down
+        demux.terminate_pipes();
     }
 }
 

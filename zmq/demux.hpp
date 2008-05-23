@@ -80,6 +80,14 @@ namespace zmq
                 (*it)->flush ();
         }
 
+        inline void terminate_pipes() 
+        {
+            for (int i = 0; i < pipes.size (); ++i)
+                pipes [i]->instant_write (NULL);
+            // remove all pointers to pipes
+            pipes.clear ();
+        }
+
     private:
 
         typedef std::vector <pipe_t*> pipes_t;
