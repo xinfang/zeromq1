@@ -35,15 +35,14 @@ namespace perf
     public:
         zmq_t (bool sender_, char *queue_name_, const char *locator_ip_, unsigned short locator_port_,
               const char *listen_ip_, unsigned short listen_port_, 
-              unsigned int thread_count_ = 3) :
+              unsigned int thread_count_ = 2) :
             thread_count (thread_count_), sender (sender_),
             dispatcher (thread_count, locator_ip_, locator_port_),
             api (&dispatcher),
-            sync_api (&dispatcher),
             worker (&dispatcher)
         {
-            printf ("locator %s/%i, listen %s/%i\n", locator_ip_, locator_port_, 
-                listen_ip_, listen_port_);
+//            printf ("locator %s/%i, listen %s/%i\n", locator_ip_, locator_port_, 
+//                listen_ip_, listen_port_);
 
 
             zmq::poll_thread_t *workers [] = {&worker};
@@ -55,11 +54,9 @@ namespace perf
                 exchange_id = api.create_exchange ("E");
                 api.bind ("E", queue_name_, &worker, &worker);
                 
-                // create sync queue
-                sync_api.create_queue ("SYNCQ");//, zmq::scope_global, listen_ip_, listen_port_,
-                //    &worker, 1, workers);
-
-                sync_api.bind ("SYNCE", "SYNCQ", &worker, &worker);
+                // create & bind sync queue
+                api.create_queue ("SYNCQ");
+                api.bind ("SYNCE", "SYNCQ", &worker, &worker);
 
             } else {
                 assert (listen_ip_);
@@ -69,7 +66,7 @@ namespace perf
                 api.create_queue (queue_name_, zmq::scope_global, listen_ip_, listen_port_,
                     &worker, 1, workers);
 
-                exchange_id = sync_api.create_exchange ("SYNCE", zmq::scope_global, listen_ip_, listen_port_ + 20,
+                exchange_id = api.create_exchange ("SYNCE", zmq::scope_global, listen_ip_, listen_port_ + 20,
                     &worker, 1, workers);
 
             }
@@ -95,7 +92,7 @@ namespace perf
             assert (!sender);
 
             void *msg = zmq::msg_alloc (1);
-            sync_api.send (exchange_id, msg);
+            api.send (exchange_id, msg);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
@@ -117,12 +114,14 @@ namespace perf
         {
             assert (sender);
 
-            void *msg = sync_api.receive ();
+            void *msg = api.receive ();
             assert (msg);
 
             size_t size = ((zmq::msg_t*)msg)->size;
             
             zmq::msg_dealloc (msg);
+
+            assert (size == 1);;
 
             return size;
         }
@@ -133,7 +132,6 @@ namespace perf
         bool sender;
         zmq::dispatcher_t dispatcher;
         zmq::api_engine_t api;
-        zmq::api_engine_t sync_api;
         zmq::poll_thread_t worker;
 	int exchange_id;
     };

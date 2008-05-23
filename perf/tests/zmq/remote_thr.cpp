@@ -63,8 +63,9 @@ int main (int argc, char *argv [])
             worker.run (transport, "");
           
             printf ("sent %i messages, waititng for sync message...", msg_count);
-            size_t size = transport.receive_sync_message ();
-            assert (size == 1);
+
+            transport.receive_sync_message ();
+
             printf ("OK\n");
          }
 
