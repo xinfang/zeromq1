@@ -49,15 +49,15 @@ namespace perf
             zmq::poll_thread_t *workers [] = {&worker};
 
             if (sender) {
-                assert (listen_ip_);
-                assert (listen_port_);
+                assert (!listen_ip_);
+                assert (!listen_port_);
 
                 exchange_id = api.create_exchange ("E");
                 api.bind ("E", queue_name_, &worker, &worker);
                 
                 // create sync queue
-                sync_api.create_queue ("SYNCQ", zmq::scope_global, listen_ip_, listen_port_,
-                    &worker, 1, workers);
+                sync_api.create_queue ("SYNCQ");//, zmq::scope_global, listen_ip_, listen_port_,
+                //    &worker, 1, workers);
 
                 sync_api.bind ("SYNCE", "SYNCQ", &worker, &worker);
 

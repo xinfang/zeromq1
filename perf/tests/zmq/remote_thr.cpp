@@ -28,8 +28,8 @@
 int main (int argc, char *argv [])
 {
 
-    if (argc != 5) {
-        printf ("Usage: remote <SYNC queue listen IP> <SYNC queue port> <\'global_locator\' IP> <\'global locator\' port>\n");
+    if (argc != 3) {
+        printf ("Usage: remote <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
@@ -56,7 +56,7 @@ int main (int argc, char *argv [])
         printf ("Number of messages in the throughput test: %i\n", msg_count);
 
         {
-            perf::zmq_t transport (true, queue_name, argv [3], atoi (argv[4]), argv [1], atoi (argv [2]) + i);
+            perf::zmq_t transport (true, queue_name, argv [1], atoi (argv[2]), NULL, 0);
             
             perf::raw_sender_t worker (msg_count, msg_size);
             
