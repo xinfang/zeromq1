@@ -62,7 +62,7 @@ void zmq::locator_t::create_exchange (const char *exchange_,
          //  Create a listener for the exchange
          bp_listener_t::create (listener_thread_, address_, port_,
             handler_thread_count_, handler_threads_,
-            false, context_, engine_, exchange_);
+            false, context_, engine_, exchange_, true);
 
          //  Send to 'add exchange' command
          unsigned char cmd = create_exchange_id;
@@ -128,7 +128,7 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, 8192, 8192);
+             false, address, port, 8192, 8192, true);
 
          //  Write it into exchange repository
          exchange_info_t info = {thread_, engine};
@@ -168,7 +168,7 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          //  Create a listener for the exchange
          bp_listener_t::create (listener_thread_, address_, port_,
             handler_thread_count_, handler_threads_,
-            true, context_, engine_, queue_);
+            true, context_, engine_, queue_, true);
 
          //  Send to 'add queue' command
          unsigned char cmd = create_queue_id;
@@ -233,7 +233,7 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, 8192, 8192);
+             false, address, port, 8192, 8192, true);
 
          //  Write it into queue repository
          queue_info_t info = {thread_, engine};

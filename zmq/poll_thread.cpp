@@ -95,17 +95,10 @@ void zmq::poll_thread_t::loop ()
         int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
 
-        //  Check for errors
-        for (std::vector <pollfd>::iterator it = pollset.begin ();
-              it != pollset.end (); it ++) {
-            assert (!(it->revents & (POLLNVAL)));
-            assert (!(it->revents & (POLLHUP)));
-        }
-
         //  First of all, process socket errors
         for (int pollset_index = 1; pollset_index != pollset.size ();
-              pollset_index ++) {
-            if (pollset [pollset_index].revents & POLLERR) {
+             pollset_index ++) {
+            if (pollset [pollset_index].revents & (POLLNVAL | POLLERR | POLLHUP)) {
                 engines [pollset_index - 1]->close_event ();
                 unregister_engine (engines[pollset_index - 1]);
                 pollset_index --;

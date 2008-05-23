@@ -38,7 +38,8 @@ namespace zmq
             const char *interface_, uint16_t port_,
             int handler_thread_count_, poll_thread_t **handler_threads_,
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
-            const char *peer_name_);
+            const char *peer_name_,
+            bool abort_on_close_);
 
         //  i_pollable implementation
         int get_fd ();
@@ -54,7 +55,7 @@ namespace zmq
             uint16_t port_, int handler_thread_count_,
             poll_thread_t **handler_threads_, bool source_,
             i_context *peer_context_, i_engine *peer_engine_,
-            const char *peer_name_);
+            const char *peer_name_, bool abort_on_close_);
         ~bp_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
@@ -78,6 +79,7 @@ namespace zmq
 
         //  Listening socket
         int sock;
+        bool abort_on_close;
     };
 
 }
