@@ -20,7 +20,9 @@
 #ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
 #define __ZMQ_API_ENGINE_HPP_INCLUDED__
 
-#include <list>
+#include <vector>
+#include <string>
+#include <utility>
 
 #include "i_context.hpp"
 #include "i_engine.hpp"
@@ -57,8 +59,8 @@ namespace zmq
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);
 
-        //  Creates new queue
-        void create_queue (
+        //  Creates new queue, returns queue ID
+        int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
             const char *address_ = NULL,
@@ -113,9 +115,9 @@ namespace zmq
 
         //  Current queue points to the queue to be used for retrieving the
         //  message next time it is required
-        typedef std::map <std::string, mux_t> queues_t;
+        typedef std::vector <std::pair <std::string, mux_t> > queues_t;
         queues_t queues; 
-        queues_t::iterator current_queue;    
+        int current_queue;    
 
         //  True if there are unflushed messages to send
         bool dirty;

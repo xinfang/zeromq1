@@ -22,7 +22,7 @@
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks (0),
     dispatcher (dispatcher_),
-    current_queue (queues.begin ()),
+    current_queue (0),
     dirty (false)
 {
     //  Register the thread with the command dispatcher
@@ -63,7 +63,7 @@ int zmq::api_engine_t::create_exchange (const char *exchange_,
     return exchanges.size () - 1;
 }
 
-void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
+int zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
     const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
@@ -72,20 +72,22 @@ void zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
 #endif
     //  Insert the queue to the local list of queues
     //  If the queue is already present, return immediately
-    if (!queues.insert (
-          queues_t::value_type (queue_, mux_t ())).second)
-        return;
+    for (queues_t::iterator it = queues.begin ();
+          it != queues.end (); it ++)
+        if (it->first == queue_)
+            return it - queues.begin ();
 
-    //  Move the current queue pointer to the beginning of the list
-    current_queue = queues.begin ();
+    queues.push_back (queues_t::value_type (queue_, mux_t ()));
 
     if (scope_ == scope_local)
-        return;
+        return queues.size () - 1;
 
     //  Register the queue with the locator
     dispatcher->get_locator ().create_queue (queue_, this, this, scope_,
         address_, port_, listener_thread_, handler_thread_count_,
         handler_threads_);
+
+    return queues.size () - 1;
 }
 
 void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
@@ -118,7 +120,10 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     //  Find the queue
     i_context *queue_context;
     i_engine *queue_engine;
-    queues_t::iterator qit = queues.find (queue_);
+    queues_t::iterator qit;
+    for (qit = queues.begin (); qit != queues.end (); qit ++)
+        if (qit->first == queue_)
+            break;
     if (qit != queues.end ()) {
         queue_context = this;
         queue_engine = this;
@@ -214,7 +219,7 @@ void *zmq::api_engine_t::receive (bool block_)
 
     //  Remember the original current queue position. We'll use this value
     //  as a marker for identifying whether we've inspected all the queues.
-    queues_t::iterator start = current_queue;
+    int start = current_queue;
 
     //  Big loop - iteration happens each time after new commands
     //  are processed (thus new messages may be available)
@@ -228,24 +233,26 @@ void *zmq::api_engine_t::receive (bool block_)
             while (true) {
 
                //  Get a message
-               msg = current_queue->second.read ();
+               msg = queues [current_queue].second.read ();
+               if (msg)
+                   msg_set_queue_id (msg, current_queue);
 
                //  Move to the next queue
                current_queue ++;
-               if (current_queue == queues.end ())
-                   current_queue = queues.begin ();
+               if (current_queue == queues.size ())
+                   current_queue = 0;
 
-               //  If we have a message skip the small loop
+               //  If we have a message exit the small loop
                if (msg)
                    break;
 
-               //  If we've iterated over all the queues skip the loop
+               //  If we've iterated over all the queues exit the loop
                if (current_queue == start)
                    break;
             }
         }
 
-        //  If we have a message skip the big loop
+        //  If we have a message exit the big loop
         if (msg)
             break;
 
@@ -316,8 +323,10 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
 
         {
             //  Find the right mux
-            queues_t::iterator it = 
-                queues.find (command_.args.receive_from.queue);
+            queues_t::iterator it;
+            for (it = queues.begin (); it != queues.end (); it ++)
+                if (it->first == command_.args.receive_from.queue)
+                    break;
             assert (it != queues.end ());
 
             //  Start receiving messages from a pipe

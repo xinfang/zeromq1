@@ -59,6 +59,7 @@ namespace zmq
         free_fn *ffn;
         bool shared;
         atomic_counter_t refcount;
+        int queue_id;
     };
 
     //  Allocates a message of the specified size.
@@ -71,6 +72,7 @@ namespace zmq
         msg->ffn = NULL;
         msg->shared = false;
         msg->refcount.unsafe_set (1);
+        msg->queue_id = 0;
         return (void*) msg;
     }
 
@@ -102,6 +104,12 @@ namespace zmq
     inline size_t msg_size (void *msg_)
     {
         return ((msg_t*) msg_)->size;
+    }
+
+    //  Returns queue ID
+    inline int msg_queue_id (void *msg_)
+    {
+        return ((msg_t*) msg_)->queue_id;
     }
 
     //  Don't rely on the function returning same pointer that was passed as
@@ -137,6 +145,13 @@ namespace zmq
         }
     }
 
+    //  Sets the queue ID of the message. This function is not intended to
+    //  be used directly by the application developer. It is used by
+    //  0MQ infrastructure instead.
+    inline void msg_set_queue_id (void *msg_, int queue_id_)
+    {
+        ((msg_t*) msg_)->queue_id = queue_id_;
+    }
 }
 
 #endif
