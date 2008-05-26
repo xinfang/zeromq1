@@ -1,6 +1,8 @@
 INCLUDES        = -I$(top_builddir) -I$(top_builddir)/zmq \
                 -I$(top_srcdir) -I$(top_srcdir)/zmq
 
+EXTRA_DIST = common.hpp
+
 noinst_PROGRAMS = gtw me stat
 
 gtw_SOURCES = gtw.cpp ../../zmq/dispatcher.hpp \
