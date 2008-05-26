@@ -37,7 +37,7 @@ public:
     inline sender_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (100000, 1)
+        meter (200000, 1)
     {
         //  Initialise the wiring
         oe_id = api.create_exchange ("OE");
@@ -46,10 +46,10 @@ public:
         api.bind ("SE", "SQ", &pt, &pt);
     }
 
-    void run (uint64_t frequency)
+    void run (uint64_t frequency, uint64_t batch_size)
     {
         //  Initialise the ticker
-        ticker_t ticker (frequency);
+        ticker_t ticker (frequency / batch_size);
 
         order_id_t order_id = 0;
         while (true) {
@@ -57,22 +57,28 @@ public:
             //  Delay a bit to get stream of orders with stable throughput
             ticker.wait_for_tick ();
 
-            //  Create random order
-            order_id ++;
-            order_type_t type = (random () % 2) ? ask : bid;
-            price_t price = random () % 100 + 450;
-            volume_t volume = random () % 100 + 1;
+            for (int counter = 0; counter != batch_size; counter ++) {
 
-            //  Send the order to the matching engine
-            void *msg = make_order (order_id, type, price, volume);
-            api.send (oe_id, msg);
-            meter.event (this);
+                //  Create random order
+                order_id ++;
+                order_type_t type = (random () % 2) ? ask : bid;
+                price_t price = random () % 100 + 450;
+                volume_t volume = random () % 100 + 1;
 
-            //  Send a timestamp to the stat component
-            if (order_id % 100000 == 0) {
-                void *msg = make_timestamp (5, order_id, now_usec ());
-                api.send (se_id, msg);
+                //  Send the order to the matching engine
+                void *msg = make_order (order_id, type, price, volume);
+                api.presend (oe_id, msg);
+                meter.event (this);
+
+                //  Send a timestamp to the stat component
+                if (order_id % 200000 == 0) {
+                    void *msg = make_timestamp (5, order_id, now_usec ());
+                    api.presend (se_id, msg);
+                }
             }
+
+	    //  Flush the batch to the network
+	    api.flush ();
         }
     }
 
@@ -111,7 +117,7 @@ public:
     receiver_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (100000, 4),
+        meter (200000, 4),
         last_timestamp (0)
     {
         //  Initialise the wiring
@@ -143,7 +149,7 @@ public:
         meter.event (this);
 
         //  Taking timestamps
-        if (order_id % 100000 == 0 && order_id > last_timestamp) {
+        if (order_id % 200000 == 0 && order_id > last_timestamp) {
             void *msg = make_timestamp (6, order_id, now_usec ());
             api.send (se_id, msg);
             last_timestamp = order_id;
@@ -194,10 +200,10 @@ private:
 //  Main routine for the sender thread
 void *sender_routine (void *arg)
 {
-    //  Start the sender with the rate of 100000 orders per second
+    //  Start the sender with the rate of X orders per second
     zmq::dispatcher_t *dispatcher = (zmq::dispatcher_t*) arg;
     sender_t sender (dispatcher);
-    sender.run (100000);
+    sender.run (450000, 20);
 }
 
 int main (int argc, char *argv [])

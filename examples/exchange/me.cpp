@@ -36,20 +36,22 @@ public:
 
     inline me_t (const char *address, uint16_t port, const char *in_address,
           const char *out_address) :
-        dispatcher (2, address, port),
+        dispatcher (3, address, port),
         api (&dispatcher),
-        pt (&dispatcher),
-	orders_meter (100000, 2),
-	trades_meter (100000, 3)
+        pt_in (&dispatcher),
+        pt_out (&dispatcher),
+	orders_meter (200000, 2),
+	trades_meter (200000, 3)
     {
         //  Initialise the wiring
-        zmq::poll_thread_t *pt_array = {&pt};
+        zmq::poll_thread_t *pt_out_array = {&pt_out};
         te_id = api.create_exchange ("TE", zmq::scope_global,
-            out_address, 5556, &pt, 1, &pt_array);
+            out_address, 5556, &pt_out, 1, &pt_out_array);
+        zmq::poll_thread_t *pt_in_array = {&pt_in};
         api.create_queue ("OQ", zmq::scope_global,
-            in_address, 5557, &pt, 1, &pt_array);
+            in_address, 5557, &pt_in, 1, &pt_in_array);
         se_id = api.create_exchange ("SE");
-        api.bind ("SE", "SQ", &pt, &pt);
+        api.bind ("SE", "SQ", &pt_out, &pt_out);
     }
 
     void run ()
@@ -77,9 +79,12 @@ public:
 	//  If no trade was executed, send order confirmation
 	if (!trades_sent) {
 	    void *msg = make_order_confirmation (order_id);
-	    api.send (te_id, msg);
+	    api.presend (te_id, msg);
 	    trades_meter.event (this);
 	}
+
+	//  Flush the outgoing messages
+        api.flush ();
     }
 
     inline void order_confirmation (order_id_t)
@@ -107,7 +112,7 @@ public:
     {
         //  Send trade back to the gateway
         void *msg = make_trade (order_id, price, volume);
-        api.send (te_id, msg);
+        api.presend (te_id, msg);
 	trades_meter.event (this);
     }
 
@@ -115,7 +120,7 @@ public:
     {
         //  Send the throughput figure to the stat component
         void *msg = make_throughput (meter_id, frequency);
-        api.send (se_id, msg);
+        api.presend (se_id, msg);
     }
 
 private:
@@ -123,7 +128,8 @@ private:
    matching_engine_t me;
    zmq::dispatcher_t dispatcher;
    zmq::api_engine_t api;
-   zmq::poll_thread_t pt;
+   zmq::poll_thread_t pt_in;
+   zmq::poll_thread_t pt_out;
    int te_id;
    int se_id;
    frequency_meter_t orders_meter;
