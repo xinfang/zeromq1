@@ -18,11 +18,11 @@
 */
 
 #define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 17
-#define TEST_TIME 400
+#define TEST_MSG_SIZE_STEPS 15
+#define TEST_TIME 4000
 
 // MT test
-//#define TEST_THREADS 1
+#define TEST_THREADS 1
 
 // latency test msg count denominator
 #define SYS_LAT_DEN 100
@@ -42,3 +42,17 @@
 //#define PORT_NUMBER 5671
 
 //#define TEST_MSG_COUNT_THRPUT 1000000
+struct worker_args_t
+{
+    int id;
+    int msg_size;
+    int msg_count;
+    const char *listen_ip;
+    unsigned short listen_port;
+    const char *locator_ip;
+    unsigned short locator_port;
+    // incomming queue name
+    const char *queue_name;
+    // outgoing exchange name
+    const char *exchange_name;
+};

@@ -28,7 +28,8 @@ namespace perf
     class echo_t : public i_worker
     {
     public:
-        inline echo_t (int message_count_) : message_count (message_count_)
+        inline echo_t (int message_count_, size_t message_size_) :
+            message_count (message_count_), message_size (message_size_)
         {
         }
 
@@ -38,11 +39,13 @@ namespace perf
             for (int message_nbr = 0; message_nbr != message_count;
                 message_nbr++){
                 size_t size = transport_.receive (thread_id_);
+                assert (size == message_size);
                 transport_.send (size, thread_id_);
             }
         }
     protected:
         int message_count;
+        size_t message_size;
     };
 
 }

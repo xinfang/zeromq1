@@ -47,7 +47,8 @@ namespace perf
             for (int roundtrip_nbr = 0; roundtrip_nbr != roundtrip_count;
                   roundtrip_nbr++) {
                 transport_.send (message_size, thread_id_);
-                transport_.receive (thread_id_);
+                size_t size = transport_.receive (thread_id_);
+                assert (size == message_size);
             }
 
             time_instant_t stop_time = now();

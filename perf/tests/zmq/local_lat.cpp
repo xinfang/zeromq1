@@ -30,8 +30,8 @@
 
 int main (int argc, char *argv [])
 {
-    if (argc != 1){
-        printf ("Usage: local\n");
+    if (argc != 3){
+        printf ("Usage: local <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
@@ -48,11 +48,14 @@ int main (int argc, char *argv [])
 
     int msg_count;
     size_t msg_size;
+
     char prefix [20];
     memset (prefix, '\0', sizeof (prefix));
 
     perf::time_instant_t start_time;
     perf::time_instant_t stop_time;
+
+    perf::zmq_t transport (true, "Q", "E", argv [1], atoi (argv [2]), NULL, 0);
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
     
@@ -69,14 +72,13 @@ int main (int argc, char *argv [])
         }
 
         printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", msg_size);
+        printf ("Message size: %i\n", (int)msg_size);
         printf ("Number of messages in the latency test: %i\n", msg_count);
 
         // prefix is msgsize_threadID_, threadID is 0 (api)
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", msg_size, 0);
+        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", (int)msg_size, 0);
 
         {
-            perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
             perf::raw_ping_pong_t worker (msg_count, msg_size);
             worker.run (transport, prefix);
         }
@@ -87,18 +89,19 @@ int main (int argc, char *argv [])
         perf::read_times_2f (&start_time, &stop_time, prefix);
 
         // write results to the main file
-        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count, start_time, stop_time);
+        fprintf (output, "%i %i %llu %llu\n", (int)msg_size, msg_count, start_time, stop_time);
 
         // delete files
         snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", 
-            msg_size, 0);
+            (int)msg_size, 0);
         int rc = remove (prefix);
         assert (rc == 0);
 
         snprintf (prefix, sizeof (prefix) - 1, "%i_%i_out.dat", 
-            msg_size, 0);
+            (int)msg_size, 0);
         rc = remove (prefix);
         assert (rc == 0);
+
     }
 
     fclose (output);

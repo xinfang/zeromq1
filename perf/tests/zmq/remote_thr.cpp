@@ -36,9 +36,7 @@ int main (int argc, char *argv [])
     size_t msg_size;
     int msg_count;
 
-    char *queue_name = new char [2];
-    memset (queue_name, 0, 2);
-    queue_name [0] = '0';
+    perf::zmq_t transport (true, "Q", "ES", argv [1], atoi (argv[2]), NULL, 0);
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 
@@ -56,8 +54,6 @@ int main (int argc, char *argv [])
         printf ("Number of messages in the throughput test: %i\n", msg_count);
 
         {
-            perf::zmq_t transport (true, queue_name, argv [1], atoi (argv[2]), NULL, 0);
-            
             perf::raw_sender_t worker (msg_count, msg_size);
             
             worker.run (transport, "");
@@ -69,13 +65,9 @@ int main (int argc, char *argv [])
             printf ("OK\n");
          }
 
-        queue_name [0] += 1;
-
-        sleep (1); // Wait till new listeners are started by the 'local'
-
     }
 
-    delete [] queue_name;
+    sleep (2); // Wait till 'local' writes results
 
     return 0;
 }

@@ -43,10 +43,11 @@ int main (int argc, char *argv [])
     int msg_count;
     size_t msg_size;
 
+/*
     char *queue_name = new char [2];
     memset (queue_name, 0, 2);
     queue_name [0] = '0';
-
+*/
     char file_name [255];
     memset (file_name, '\0', sizeof (file_name));
 
@@ -59,6 +60,8 @@ int main (int argc, char *argv [])
     unsigned long long tcp_thput;
     printf ("receiver: listen %s:%i, GL %s:%i\n", argv [1], 
         atoi (argv [2]), argv [3], atoi (argv [4]));
+
+    perf::zmq_t transport (false, "Q", "ES", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
    
@@ -75,9 +78,7 @@ int main (int argc, char *argv [])
         printf ("Message size: %i\n", (int)msg_size);
         printf ("Number of messages in the throughput test: %i\n", msg_count);
 
-        {
-            perf::zmq_t transport (false, queue_name, argv [3], atoi (argv [4]), argv [1], atoi (argv [2]) + i);
-            
+        { 
             perf::raw_receiver_t worker (msg_count, msg_size);
     
             snprintf (file_name, sizeof (file_name) - 1, "%i_%i_", (int)msg_size, 0); 
@@ -112,16 +113,12 @@ int main (int argc, char *argv [])
         printf ("Your average throughput is %llu msgs/s\n", msg_thput);
         printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
 
-        queue_name [0] += 1;
-
     }
     
     printf ("Test end\n");
     fflush (stdout);
 
     fclose (output);
-
-    delete [] queue_name;
 
     return 0;
 }

@@ -28,8 +28,8 @@
 int main (int argc, char *argv [])
 {
 
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
+    if (argc != 5) {
+        printf ("Usage: remote <listen IP> <listen port> <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
@@ -40,6 +40,8 @@ int main (int argc, char *argv [])
 
     size_t msg_size;
     int msg_count;
+
+    perf::zmq_t transport (false, "Q", "E", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 
@@ -55,17 +57,11 @@ int main (int argc, char *argv [])
             msg_count /= SYS_LAT_DEN;
         }
 
-//        msg_count = TEST_MSG_COUNT_THRPUT;
-
         {
-            perf::zmq_t transport (false, argv [1], PORT_NUMBER, TEST_THREADS);
-            perf::echo_t worker (msg_count);
+            perf::echo_t worker (msg_count, msg_size);
             worker.run (transport);
         }
-
-        sleep (2); // Wait till new listeners are started by the 'local'
-
     }
-
+    sleep (2); // Wait till results are written on 'local' side
     return 0;
 }

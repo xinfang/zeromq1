@@ -33,7 +33,8 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool sender_, char *queue_name_, const char *locator_ip_, unsigned short locator_port_,
+        zmq_t (bool sender_, const char *queue_name_, const char *exchange_name_, 
+              const char *locator_ip_, unsigned short locator_port_,
               const char *listen_ip_, unsigned short listen_port_, 
               unsigned int thread_count_ = 2) :
             thread_count (thread_count_), sender (sender_),
@@ -51,22 +52,22 @@ namespace perf
                 assert (!listen_ip_);
                 assert (!listen_port_);
 
-                exchange_id = api.create_exchange ("E");
-                api.bind ("E", queue_name_, &worker, &worker);
+                // create & bind local exchange
+                exchange_id = api.create_exchange ("E_LOCAL");
+                api.bind ("E_LOCAL", queue_name_, &worker, &worker);
                 
-                // create & bind sync queue
-                api.create_queue ("SYNCQ");
-                api.bind ("SYNCE", "SYNCQ", &worker, &worker);
+                // create & bind local queue
+                api.create_queue ("Q_LOCAL");
+                api.bind (exchange_name_, "Q_LOCAL", &worker, &worker);
 
             } else {
                 assert (listen_ip_);
                 assert (listen_port_);
                 
-
                 api.create_queue (queue_name_, zmq::scope_global, listen_ip_, listen_port_,
                     &worker, 1, workers);
 
-                exchange_id = api.create_exchange ("SYNCE", zmq::scope_global, listen_ip_, listen_port_ + 20,
+                exchange_id = api.create_exchange (exchange_name_, zmq::scope_global, listen_ip_, listen_port_ + 1,
                     &worker, 1, workers);
 
             }
@@ -79,7 +80,6 @@ namespace perf
 
         inline virtual void send (size_t size_, unsigned int thread_id_ = 0)
         {
-            assert (sender);
             assert (thread_id_ < thread_count);
             assert (size_ <= 65536);
 
@@ -97,7 +97,6 @@ namespace perf
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
         {
-            assert (!sender);
             assert (thread_id_ < thread_count);
 
             void *msg = api.receive ();
