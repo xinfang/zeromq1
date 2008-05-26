@@ -491,6 +491,7 @@ void zmq::amqp09_unmarshaller_t::get_field_table (unsigned char *args,
 #ifndef __ZMQ_AMQP09_MARSHALLER_HPP_INCLUDED__
 #define __ZMQ_AMQP09_MARSHALLER_HPP_INCLUDED__
 
+#include <stdlib.h>
 #include <queue>
 
 #include "i_amqp09.hpp"

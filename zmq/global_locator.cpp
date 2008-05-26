@@ -25,6 +25,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <string.h>
 #include <vector>
 #include <map>
 #include <string>
