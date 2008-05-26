@@ -200,13 +200,18 @@ void *sender_routine (void *arg)
     sender.run (100000);
 }
 
-int main ()
+int main (int argc, char *argv [])
 {
+    if (argc != 3) {
+        printf ("stat <locator address> <locator port>\n");
+        return 1;
+    }
+
     //  Precompute the CPU frequency
     estimate_cpu_frequency ();
 
     //  Create the shared message dispatcher
-    zmq::dispatcher_t dispatcher (4, "127.0.0.1", 5555);
+    zmq::dispatcher_t dispatcher (4, argv [1], atoi (argv [2]));
 
     //  Run the sender thread
     pthread_t sender_thread;

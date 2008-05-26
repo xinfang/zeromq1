@@ -91,17 +91,23 @@ private:
     std::queue <uint64_t> confirmation_timestamps;
 };
 
-int main ()
+int main (int argc, char *argv [])
 {
+    if (argc != 4) {
+        printf ("stat <locator address> <locator port> "
+            "<statistics interface>\n");
+        return 1;
+    }
+
     //  Initialise 0MQ infrastructure
-    zmq::dispatcher_t dispatcher (2, "127.0.0.1", 5555);
+    zmq::dispatcher_t dispatcher (2, argv [1], atoi (argv [2]));
     zmq::api_engine_t api (&dispatcher);
     zmq::poll_thread_t pt (&dispatcher);
     zmq::poll_thread_t *pt_array = {&pt};
 
     //  Initialise the wiring
     api.create_queue ("SQ", zmq::scope_global,
-        "127.0.0.1", 5558, &pt, 1, &pt_array);
+        argv [3], 5558, &pt, 1, &pt_array);
 
     //  Handler object
     handler_t handler;

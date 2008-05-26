@@ -34,8 +34,9 @@ class me_t
 {
 public:
 
-    inline me_t () :
-        dispatcher (2, "127.0.0.1", 5555),
+    inline me_t (const char *address, uint16_t port, const char *in_address,
+          const char *out_address) :
+        dispatcher (2, address, port),
         api (&dispatcher),
         pt (&dispatcher),
 	orders_meter (100000, 2),
@@ -44,9 +45,9 @@ public:
         //  Initialise the wiring
         zmq::poll_thread_t *pt_array = {&pt};
         te_id = api.create_exchange ("TE", zmq::scope_global,
-            "127.0.0.1", 5556, &pt, 1, &pt_array);
+            out_address, 5556, &pt, 1, &pt_array);
         api.create_queue ("OQ", zmq::scope_global,
-            "127.0.0.1", 5557, &pt, 1, &pt_array);
+            in_address, 5557, &pt, 1, &pt_array);
         se_id = api.create_exchange ("SE");
         api.bind ("SE", "SQ", &pt, &pt);
     }
@@ -129,13 +130,19 @@ private:
    frequency_meter_t trades_meter;
 };
 
-int main ()
+int main (int argc, char *argv [])
 {
+    if (argc != 5) {
+        printf ("stat <locator address> <locator port> <in interface> "
+            "<out interface>\n");
+        return 1;
+    }
+
     //  Precompute CPU frequency
     estimate_cpu_frequency ();
 
     //  Run the matching engine
-    me_t me;
+    me_t me (argv [1], atoi (argv [2]), argv [3], argv [4]);
     me.run (); 
     return 0;
 }
