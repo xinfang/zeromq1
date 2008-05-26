@@ -35,6 +35,9 @@ using namespace std;
 #include "global_locator.hpp"
 using namespace zmq;
 
+
+#define ZMQ_DEBUG
+
 struct exchange_info_t
 {
     string interface;

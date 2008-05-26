@@ -1,4 +1,4 @@
-SUBDIRS = zmq perf
+SUBDIRS = zmq perf examples
 
 EXTRA_DIST = \
     ./perf/helpers/files.hpp \
