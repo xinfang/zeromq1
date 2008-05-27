@@ -30,7 +30,7 @@ use English;
 use Tk;
 use Tk::Graph;
 
-my (%meters);
+my (%lat_meters, %thr_meters);
 my ($window, $poll_interval, $flags);
 
 $flags = O_NONBLOCK;
@@ -38,7 +38,8 @@ fcntl (STDIN, F_SETFL, $flags)
     or die "Couldn't set flags for STDIN: $!\n";
 
 $poll_interval = 1;
-%meters = ('1' => 0, '2' => 0, '3' => 0, '4' => 0, 'l' => 0);
+%thr_meters = ('1' => 0, '2' => 0, '3' => 0, '4' => 0);
+%lat_meters = ('l' => 0);
 
 $window = Tk::MainWindow->new (
     -title => "Throughput and latency statistics");
@@ -53,21 +54,22 @@ exit 0;
 
 sub draw_graph {
     my ($target) = @_;
-    my ($frame, $graph);
+    my ($frame, $thr_graph, $lat_graph);
 
     $frame = $target->Frame()->pack (
         -side   => 'left',
         -fill   => 'both',
         -expand => 1);
-    $graph = $frame->Graph (
+    $thr_graph = $frame->Graph (
+        -title       => 'Throughput',
         -background  => 'black',
         -type        => 'Line',
         -legend      => 0,
         -headroom    => 20,
-        -foreground  => "#46942e",
+        -foreground  => 'green',
         -debug       => 0,
         -borderwidth => 2,
-        -titlecolor  => '#435d8d',
+        -titlecolor  => 'green',
         -yformat     => '%llu',
         -ylabel      => 'msgs/s',
         -xformat     => '%d',
@@ -78,20 +80,52 @@ sub draw_graph {
         -linewidth   => 3,
         -dots        => 1,
         -look        => 20, 
-        -wire        => "#46942e",
+        -wire        => "#2c5c1d",
         -max	     => 1000000,
-        -ytick       => 20,
+        -ytick       => 10,
         -xtick       => 20,
         -config      => { 
                         '1'  => { -color => 'orange' },
                         '2'  => { -color => 'red' },
                         '3', => { -color => 'red' }, 
                         '4', => { -color => 'orange' },
+                        },
+	);
+    $lat_graph = $frame->Graph (
+        -title       => 'Latency',
+        -background  => 'black',
+        -type        => 'Line',
+        -legend      => 0,
+        -headroom    => 20,
+        -foreground  => 'green',
+        -debug       => 0,
+        -borderwidth => 2,
+        -titlecolor  => 'green',
+        -yformat     => '%llu',
+        -ylabel      => 'msecs',
+        -xformat     => '%d',
+        -xlabel      => 't',
+        -barwidth    => 15,
+        -padding     => [50, 20, -30, 70],
+        -printvalue  => '%s',
+        -linewidth   => 3,
+        -dots        => 1,
+        -look        => 20, 
+        -wire        => "#2c5c1d",
+        -max	     => 10000,
+        -ytick       => 10,
+        -xtick       => 20,
+        -config      => { 
                         'l', => { -color => 'yellow' }
                         },
 	);
-    &update_data ($graph, $poll_interval * 1000);
-    return $graph->pack (
+    &update_data ($thr_graph, $lat_graph, $poll_interval * 1000);
+    $thr_graph->pack (
+        -side   => 'bottom',
+        -expand => 1,
+        -fill   => 'both',
+	);
+    return $lat_graph->pack (
         -side   => 'bottom',
         -expand => 1,
         -fill   => 'both',
@@ -101,7 +135,7 @@ sub draw_graph {
 # -----------------------------------------------------------------------------
 
 sub update_data {
-    my ($window, $poll_msec) = @_;
+    my ($thr_graph, $lat_graph, $poll_msec) = @_;
     my ($data, $rv, $meter, $value);
 
     while (1) {
@@ -110,14 +144,18 @@ sub update_data {
         chomp ($data);
         my ($meter, $value) = split /:/, $data;
         if ($meter eq 'l') {
-            $value = $value * 100;   # Latency * 100
+            $lat_meters{$meter} = int ($value);
+        } else {
+            $thr_meters{$meter} = int ($value);
         }
-        $meters{$meter} = int ($value);
     }
-    print "1=", $meters{'1'}, " 2=", $meters{'2'}, " 3=", $meters{'3'}, 
-         " 4=", $meters{'4'}, " l=", $meters{'l'}, "\n";
+    print "1=", $thr_meters{'1'}, " 2=", $thr_meters{'2'}, 
+         " 3=", $thr_meters{'3'}, " 4=", $thr_meters{'4'}, 
+         " l=", $lat_meters{'l'}, "\n";
 
-    $window->set (\%meters);
-    $window->after ($poll_msec, [\&update_data => $window, $poll_msec]);
+    $thr_graph->set (\%thr_meters);
+    $lat_graph->set (\%lat_meters);
+    $thr_graph->after ($poll_msec, 
+        [\&update_data => $thr_graph, $lat_graph, $poll_msec]);
 }
 
