@@ -102,7 +102,7 @@ sub draw_graph {
         -borderwidth => 2,
         -titlecolor  => 'green',
         -yformat     => '%llu',
-        -ylabel      => 'msecs',
+        -ylabel      => 'usecs',
         -xformat     => '%d',
         -xlabel      => 't',
         -barwidth    => 15,
