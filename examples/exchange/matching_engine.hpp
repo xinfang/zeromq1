@@ -65,6 +65,11 @@ namespace exchange
             assert (price > lower_limit && price < upper_limit);
             assert (volume > 0);
 
+            //  Remember the original max_bid & min_ask so that we can
+            //  generate the quote if they are changed
+            price_t old_max_bid = max_bid;
+            price_t old_min_ask = min_ask;
+
             //  If at least one trade was generated, this variable will be true
             bool trades_sent = false;
 
@@ -75,7 +80,7 @@ namespace exchange
                     entry_t entry = {volume, order_id};
                     orderbook [price - lower_limit - 1].push_back (entry);
                     min_ask = std::min (min_ask, price);
-                    return trades_sent;
+                    break;
                 }
 
                 //  Get the bids with maximal prices
@@ -114,14 +119,30 @@ namespace exchange
                     trades_sent = true;
                 }
 
-                //  If order is fully executed, exit
+                //  If order is fully executed, exit the loop
                 if (volume == 0)
-                    return trades_sent;
+                    break;
 
                 //  We have executed all the bids with best price at this point
                 //  Move to next best bid price level
                 max_bid --;
             }
+
+            //  Now we find the max_bid. The algorithm seems unefficient as it
+            //  performs linear search - O(n) - however:
+            //  1. The prices tend to be packed around the market price,
+            //     conequently n is most probably 0 or 1 (thus we are in fact
+            //     getting constant-time algorithm )
+            //  2. We would have to find actual max_bid anyway after the arrival
+            //     of next ask order, so the search is inevitable.
+            while (orderbook [max_bid - lower_limit - 1].empty ())
+                max_bid --;
+
+            //  Generate the quote if needed
+            if (max_bid != old_max_bid || min_ask != old_min_ask)
+                callback->quoted (max_bid, min_ask);
+
+            return trades_sent;
         }
 
         template <typename T> bool bid (T *callback, order_id_t order_id,
@@ -129,6 +150,11 @@ namespace exchange
         {
             assert (price > lower_limit && price < upper_limit);
             assert (volume > 0);
+
+            //  Remember the original max_bid & min_ask so that we can
+            //  generate the quote if they are changed
+            price_t old_max_bid = max_bid;
+            price_t old_min_ask = min_ask;
 
             //  If at least one trade was executed, this variable will be true
             bool trades_sent = false;
@@ -140,7 +166,7 @@ namespace exchange
                     entry_t entry = {volume, order_id};
                     orderbook [price - lower_limit - 1].push_back (entry);
                     max_bid = std::max (max_bid, price);
-                    return trades_sent;
+                    break;
                 }
 
                 //  Get the asks with minimal prices
@@ -179,14 +205,30 @@ namespace exchange
                     trades_sent = true;
                 }
 
-                //  If order is fully executed, exit
+                //  If order is fully executed, exit the loop
                 if (volume == 0)
-                    return trades_sent;
+                    break;
 
                 //  We have executed all the asks with best price at this point
                 //  Move to next best ask price level
                 min_ask ++;
             }
+
+            //  Now we find the min_ask. The algorithm seems unefficient as it
+            //  performs linear search - O(n) - however:
+            //  1. The prices tend to be packed around the market price,
+            //     conequently n is most probably 0 or 1 (thus we are in fact
+            //     getting constant-time algorithm )
+            //  2. We would have to find actual min_ask anyway after the arrival
+            //     of next bid order, so the search is inevitable.
+            while (orderbook [min_ask - lower_limit - 1].empty ())
+                min_ask ++;
+
+            //  Generate the quote if needed
+            if (max_bid != old_max_bid || min_ask != old_min_ask)
+                callback->quoted (max_bid, min_ask);
+
+            return trades_sent;
         }
     private:
 
@@ -205,8 +247,7 @@ namespace exchange
         //  Set of all orders
         typedef std::vector <entries_t> orderbook_t;
 
-        //  Minimal hypotetically available ask price & maximal hypotetically
-        //  available bid price
+        //  Minimal available ask price & maximal available bid price
         //  If min_ask == upper_limit, there are no asks in the orderbook
         //  If max_bid == lower_limit, there are no bids in the orderbook
         price_t min_ask;

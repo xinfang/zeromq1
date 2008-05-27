@@ -40,10 +40,11 @@ namespace exchange
         msg_type_order = 1,
         msg_type_order_confirmation = 2,
         msg_type_trade = 3,
+        msg_type_quote = 4,
 
         //  Instrumentation messages
-        msg_type_throughput = 4,
-        msg_type_timestamp = 5
+        msg_type_throughput = 5,
+        msg_type_timestamp = 6
     };
 
     //  Creates an 'order' message
@@ -87,6 +88,19 @@ namespace exchange
         zmq::put_uint16 (buff, price);
         buff += sizeof (uint16_t);
         zmq::put_uint16 (buff, volume);
+        return msg;
+    }
+
+    //  Create 'quote' message
+    void *make_quote (price_t bid, price_t ask)
+    {
+        void *msg = zmq::msg_alloc (5);
+        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        zmq::put_uint8 (buff, msg_type_quote);
+        buff += sizeof (uint8_t);
+        zmq::put_uint16 (buff, bid);
+        buff += sizeof (uint16_t);
+        zmq::put_uint16 (buff, ask);
         return msg;
     }
 
@@ -160,6 +174,15 @@ namespace exchange
                 buff += sizeof (uint16_t);
                 volume_t volume = zmq::get_uint16 (buff);
                 callback->trade (order_id, price, volume);
+                break;
+            }
+        case msg_type_quote:
+            {
+                assert (size == 4);
+                price_t bid = zmq::get_uint16 (buff);
+                buff += sizeof (uint16_t);
+                price_t ask = zmq::get_uint16 (buff);
+                callback->quote (bid, ask);
                 break;
             }
         case msg_type_throughput:

@@ -53,6 +53,11 @@ public:
         assert (false);
     }
 
+    inline void quote (price_t bid, price_t ask)
+    {
+        assert (false);
+    }
+
     inline void throughput (uint8_t meter_id, uint64_t throughput)
     {
         printf ("Throughput at point %d: %llu msgs/sec\n",

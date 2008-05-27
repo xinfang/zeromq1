@@ -82,6 +82,11 @@ public:
         }
     }
 
+    inline void quote (price_t bid, price_t ask)
+    {
+        assert (false);
+    }
+
     inline void throughput (uint8_t meter_id, uint64_t frequency)
     {
         assert (false);
@@ -163,6 +168,12 @@ public:
         order_confirmation (order_id);
     }
 
+    inline void quote (price_t bid, price_t ask)
+    {
+        //  Measuring throughput
+        meter.event (this);
+    }
+
     inline void throughput (uint8_t meter_id, uint64_t frequency)
     {
         assert (false);
@@ -203,7 +214,7 @@ void *sender_routine (void *arg)
     //  Start the sender with the rate of X orders per second
     zmq::dispatcher_t *dispatcher = (zmq::dispatcher_t*) arg;
     sender_t sender (dispatcher);
-    sender.run (450000, 20);
+    sender.run (50000, 20);
 }
 
 int main (int argc, char *argv [])

@@ -40,8 +40,8 @@ public:
         api (&dispatcher),
         pt_in (&dispatcher),
         pt_out (&dispatcher),
-	orders_meter (200000, 2),
-	trades_meter (200000, 3)
+	in_meter (200000, 2),
+	out_meter (200000, 3)
     {
         //  Initialise the wiring
         zmq::poll_thread_t *pt_out_array = {&pt_out};
@@ -67,7 +67,7 @@ public:
     inline void order (order_id_t order_id, order_type_t type,
         price_t price, volume_t volume)
     {
-        orders_meter.event (this);
+        in_meter.event (this);
 
         //  Pass the order to matching engine
 	bool trades_sent;
@@ -80,7 +80,7 @@ public:
 	if (!trades_sent) {
 	    void *msg = make_order_confirmation (order_id);
 	    api.presend (te_id, msg);
-	    trades_meter.event (this);
+	    out_meter.event (this);
 	}
 
 	//  Flush the outgoing messages
@@ -93,6 +93,11 @@ public:
     }
 
     inline void trade (order_id_t, price_t, volume_t)
+    {
+        assert (false);
+    }
+
+    inline void quote (price_t bid, price_t ask)
     {
         assert (false);
     }
@@ -113,7 +118,15 @@ public:
         //  Send trade back to the gateway
         void *msg = make_trade (order_id, price, volume);
         api.presend (te_id, msg);
-	trades_meter.event (this);
+	out_meter.event (this);
+    }
+
+    inline void quoted (price_t bid, price_t ask)
+    {
+        //  Send quote back to the gateway
+        void *msg = make_quote (ask, bid);
+        api.presend (te_id, msg);
+	out_meter.event (this);
     }
 
     inline void frequency (uint8_t meter_id, uint64_t frequency)
@@ -132,8 +145,8 @@ private:
    zmq::poll_thread_t pt_out;
    int te_id;
    int se_id;
-   frequency_meter_t orders_meter;
-   frequency_meter_t trades_meter;
+   frequency_meter_t in_meter;
+   frequency_meter_t out_meter;
 };
 
 int main (int argc, char *argv [])
