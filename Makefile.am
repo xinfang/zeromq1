@@ -16,4 +16,5 @@ EXTRA_DIST = \
     ./perf/workers/raw_receiver.hpp \
     ./perf/workers/raw_sender.hpp \
     ./perf/workers/receiver.hpp \
-    ./perf/workers/sender.hpp
+    ./perf/workers/sender.hpp \
+    ./examples/exchange/graph.pl
