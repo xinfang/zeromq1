@@ -40,8 +40,8 @@ public:
         api (&dispatcher),
         pt_in (&dispatcher),
         pt_out (&dispatcher),
-	in_meter (1000000, 2),
-	out_meter (1000000, 3)
+	in_meter (500000, 2),
+	out_meter (500000, 3)
     {
         //  Initialise the wiring
         zmq::poll_thread_t *pt_out_array = {&pt_out};

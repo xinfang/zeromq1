@@ -37,7 +37,7 @@ public:
     inline sender_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (1000000, 1)
+        meter (500000, 1)
     {
         //  Initialise the wiring
         oe_id = api.create_exchange ("OE");
@@ -73,7 +73,7 @@ public:
                 meter.event (this);
 
                 //  Send a timestamp to the stat component
-                if (order_id % 1000000 == 0) {
+                if (order_id % 500000 == 0) {
                     void *msg = make_timestamp (5, order_id, now_usec ());
                     api.presend (se_id, msg);
                 }
@@ -124,7 +124,7 @@ public:
     receiver_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (1000000, 4),
+        meter (500000, 4),
         last_timestamp (0)
     {
         //  Initialise the wiring
@@ -158,7 +158,7 @@ public:
         meter.event (this);
 
         //  Taking timestamps
-        if (order_id % 1000000 == 0 && order_id > last_timestamp) {
+        if (order_id % 500000 == 0 && order_id > last_timestamp) {
             void *msg = make_timestamp (6, order_id, now_usec ());
             api.send (se_id, msg);
             last_timestamp = order_id;
@@ -212,19 +212,28 @@ private:
     order_id_t last_timestamp;
 };
 
+//  Arguments to be passed to the sender_routine
+struct sender_routine_args_t
+{
+    zmq::dispatcher_t *dispatcher;
+    int order_rate;
+    int batching_ratio;
+};
+
 //  Main routine for the sender thread
 void *sender_routine (void *arg)
 {
     //  Start the sender with the rate of X orders per second
-    zmq::dispatcher_t *dispatcher = (zmq::dispatcher_t*) arg;
-    sender_t sender (dispatcher);
-    sender.run (50000, 20);
+    sender_routine_args_t *args = (sender_routine_args_t*) arg;
+    sender_t sender (args->dispatcher);
+    sender.run (args->order_rate, args->batching_ratio);
+    return NULL;
 }
 
 int main (int argc, char *argv [])
 {
-    if (argc != 3) {
-        printf ("stat <locator address> <locator port>\n");
+    if (argc != 4) {
+        printf ("stat <locator address> <locator port> <orders per second>\n");
         return 1;
     }
 
@@ -236,7 +245,8 @@ int main (int argc, char *argv [])
 
     //  Run the sender thread
     pthread_t sender_thread;
-    int rc = pthread_create (&sender_thread, NULL, sender_routine, &dispatcher);
+    sender_routine_args_t args = {&dispatcher, atoi (argv [3]), 20};
+    int rc = pthread_create (&sender_thread, NULL, sender_routine, &args);
     assert (rc == 0);
 
     //  Run the receiving loop
