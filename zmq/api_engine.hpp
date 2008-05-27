@@ -70,7 +70,9 @@ namespace zmq
             poll_thread_t **handler_threads_ = NULL);
 
         //  Binds the exchange to the queue
-        void bind (const char *exchange_, const char *queue_,
+        //  If one of the objects cannot be found, function returns false
+        //  and no binding is created.
+        bool bind (const char *exchange_, const char *queue_,
             poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
 
         //  Send a message to specified exchange, 0MQ takes responsibility

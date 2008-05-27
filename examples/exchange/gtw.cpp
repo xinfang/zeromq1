@@ -37,13 +37,15 @@ public:
     inline sender_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (200000, 1)
+        meter (1000000, 1)
     {
         //  Initialise the wiring
         oe_id = api.create_exchange ("OE");
-        api.bind ("OE", "OQ", &pt, &pt);
+        bool rc = api.bind ("OE", "OQ", &pt, &pt);
+        assert (rc);
         se_id = api.create_exchange ("SE");
-        api.bind ("SE", "SQ", &pt, &pt);
+        rc = api.bind ("SE", "SQ", &pt, &pt);
+        assert (rc);
     }
 
     void run (uint64_t frequency, uint64_t batch_size)
@@ -71,7 +73,7 @@ public:
                 meter.event (this);
 
                 //  Send a timestamp to the stat component
-                if (order_id % 200000 == 0) {
+                if (order_id % 1000000 == 0) {
                     void *msg = make_timestamp (5, order_id, now_usec ());
                     api.presend (se_id, msg);
                 }
@@ -122,14 +124,16 @@ public:
     receiver_t (zmq::dispatcher_t *dispatcher) :
         api (dispatcher),
         pt (dispatcher),
-        meter (200000, 4),
+        meter (1000000, 4),
         last_timestamp (0)
     {
         //  Initialise the wiring
         api.create_queue ("TQ");
-        api.bind ("TE", "TQ", &pt, &pt);
+        bool rc = api.bind ("TE", "TQ", &pt, &pt);
+        assert (rc);
         se_id = api.create_exchange ("SE");
-        api.bind ("SE", "SQ", &pt, &pt);
+        rc = api.bind ("SE", "SQ", &pt, &pt);
+        assert (rc);
     }
 
     void run ()
@@ -154,7 +158,7 @@ public:
         meter.event (this);
 
         //  Taking timestamps
-        if (order_id % 200000 == 0 && order_id > last_timestamp) {
+        if (order_id % 1000000 == 0 && order_id > last_timestamp) {
             void *msg = make_timestamp (6, order_id, now_usec ());
             api.send (se_id, msg);
             last_timestamp = order_id;

@@ -161,6 +161,12 @@ void zmq::bp_engine_t::close_event()
         socket_error = true;
 
         if (abort_on_close) {
+
+            //  Hack to report connection breakages to the client            
+            error_handler_t *eh = get_error_handler ();
+            if (eh)
+                eh ();
+
             assert (false);
         }
         // notify all our receivers that this engine

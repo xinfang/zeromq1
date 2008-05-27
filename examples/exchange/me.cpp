@@ -40,8 +40,8 @@ public:
         api (&dispatcher),
         pt_in (&dispatcher),
         pt_out (&dispatcher),
-	in_meter (200000, 2),
-	out_meter (200000, 3)
+	in_meter (1000000, 2),
+	out_meter (1000000, 3)
     {
         //  Initialise the wiring
         zmq::poll_thread_t *pt_out_array = {&pt_out};
@@ -51,7 +51,8 @@ public:
         api.create_queue ("OQ", zmq::scope_global,
             in_address, 5557, &pt_in, 1, &pt_in_array);
         se_id = api.create_exchange ("SE");
-        api.bind ("SE", "SQ", &pt_out, &pt_out);
+        bool rc = api.bind ("SE", "SQ", &pt_out, &pt_out);
+        assert (rc);
     }
 
     void run ()
@@ -149,6 +150,11 @@ private:
    frequency_meter_t out_meter;
 };
 
+void error_handler ()
+{
+    assert (false);
+}
+
 int main (int argc, char *argv [])
 {
     if (argc != 5) {
@@ -159,6 +165,9 @@ int main (int argc, char *argv [])
 
     //  Precompute CPU frequency
     estimate_cpu_frequency ();
+
+    //  Set error handler
+    zmq::set_error_handler (error_handler);
 
     //  Run the matching engine
     me_t me (argv [1], atoi (argv [2]), argv [3], argv [4]);

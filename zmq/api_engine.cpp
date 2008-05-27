@@ -90,7 +90,7 @@ int zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
     return queues.size () - 1;
 }
 
-void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
+bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
 {
 #ifdef ZMQ_DEBUG
@@ -113,7 +113,7 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
 #ifdef ZMQ_DEBUG
             printf ("Exchange %s cannot be found.\n", exchange_);
 #endif
-            assert (false);
+            return false;
         }
     }
 
@@ -134,7 +134,7 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
 #ifdef ZMQ_DEBUG
             printf ("Queue %s cannot be found.\n", queue_);
 #endif
-            assert (false);
+            return false;
         }
     }
 
@@ -160,6 +160,8 @@ void zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
         cmd.init_engine_receive_from (queue_engine, queue_, pipe);
         send_command (queue_context, cmd);
     }
+
+    return true;
 }
 
 void zmq::api_engine_t::send (int exchange_id_, void *value_)

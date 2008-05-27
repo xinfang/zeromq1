@@ -137,6 +137,19 @@ namespace zmq
         locator_t locator;
     };
 
+    //  Hack to report connection breakages to the client
+    typedef void (error_handler_t) ();
+    inline error_handler_t *&get_error_handler ()
+    {
+        static error_handler_t *eh = NULL;
+        return eh;
+    }
+
+    inline void set_error_handler (error_handler_t *eh_)
+    {
+        get_error_handler () = eh_;
+    }
+
 }
 
 #endif
