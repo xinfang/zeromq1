@@ -67,13 +67,13 @@ public:
 
             //  Send the order to the matching engine
             void *msg = make_order (order_id, type, price, volume);
-            api.presend (oe_id, msg);
+            api.send (oe_id, msg);
             meter.event (this);
 
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
                 void *msg = make_timestamp (5, order_id, now_usec ());
-                api.presend (se_id, msg);
+                api.send (se_id, msg);
             }
         }
     }
