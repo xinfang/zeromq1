@@ -138,7 +138,8 @@ namespace zmq
     };
 
     //  Hack to report connection breakages to the client
-    typedef void (error_handler_t) ();
+    typedef bool (error_handler_t) ();
+
     inline error_handler_t *&get_error_handler ()
     {
         static error_handler_t *eh = NULL;

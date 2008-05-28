@@ -32,12 +32,11 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, uint16_t port_, int handler_thread_count_,
     poll_thread_t **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
-    const char *peer_name_,
-    bool abort_on_close_)
+    const char *peer_name_)
 {
     bp_listener_t *instance = new bp_listener_t (thread_, interface_, port_,
         handler_thread_count_, handler_threads_, source_, peer_context_,
-        peer_engine_, peer_name_, abort_on_close_);
+        peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
@@ -47,12 +46,11 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
       const char *interface_, uint16_t port_, int handler_thread_count_,
       poll_thread_t **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
-      const char *peer_name_, bool abort_on_close_) :
+      const char *peer_name_) :
     context (thread_),
     source (source_),
     peer_context (peer_context_),
-    peer_engine (peer_engine_),
-    abort_on_close (abort_on_close_)
+    peer_engine (peer_engine_)
 {
     //  Copy the peer name
     assert (strlen (peer_name_) < 16);
@@ -127,7 +125,7 @@ bool zmq::bp_listener_t::in_event ()
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
-        handler_threads [current_handler_thread], s, 8192, 8192, abort_on_close);
+        handler_threads [current_handler_thread], s, 8192, 8192);
     assert (engine);
 
     if (source) {

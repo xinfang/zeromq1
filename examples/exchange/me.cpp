@@ -150,24 +150,16 @@ private:
    frequency_meter_t out_meter;
 };
 
-void error_handler ()
-{
-    assert (false);
-}
-
 int main (int argc, char *argv [])
 {
     if (argc != 5) {
-        printf ("stat <locator address> <locator port> <in interface> "
+        printf ("Usage: me <locator address> <locator port> <in interface> "
             "<out interface>\n");
         return 1;
     }
 
     //  Precompute CPU frequency
     estimate_cpu_frequency ();
-
-    //  Set error handler
-    zmq::set_error_handler (error_handler);
 
     //  Run the matching engine
     me_t me (argv [1], atoi (argv [2]), argv [3], argv [4]);

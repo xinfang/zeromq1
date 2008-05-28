@@ -99,7 +99,7 @@ private:
 int main (int argc, char *argv [])
 {
     if (argc != 4) {
-        printf ("stat <locator address> <locator port> "
+        printf ("Usage: stat <locator address> <locator port> "
             "<statistics interface>\n");
         return 1;
     }

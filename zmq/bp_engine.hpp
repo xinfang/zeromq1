@@ -45,13 +45,11 @@ namespace zmq
         //  and readbuf_size determine the amount of batching to use.
         static bp_engine_t *create (poll_thread_t *thread_,
             bool listen_, const char *address_,
-            uint16_t port_, size_t writebuf_size_, size_t readbuf_size_, 
-            bool abort_on_close_);
+            uint16_t port_, size_t writebuf_size_, size_t readbuf_size_);
 
         //  Creates bp_engine over existing connection
         static bp_engine_t *create (poll_thread_t *thread_,
-            int socket_, size_t writebuf_size_, size_t readbuf_size_,
-            bool abort_on_close_);
+            int socket_, size_t writebuf_size_, size_t readbuf_size_);
 
         //  i_pollable interface implementation
         int get_fd ();
@@ -65,11 +63,9 @@ namespace zmq
 
         bp_engine_t (poll_thread_t *thread_,
             bool listen_, const char *address_, uint16_t port_,
-            size_t writebuf_size_, size_t readbuf_size_, 
-            bool abort_on_close_);
+            size_t writebuf_size_, size_t readbuf_size_);
         bp_engine_t (poll_thread_t *thread_, int socket_,
-            size_t writebuf_size_, size_t readbuf_size_,
-            bool abort_on_close_);
+            size_t writebuf_size_, size_t readbuf_size_);
         ~bp_engine_t ();
 
         //  Thread context the engine belongs to
@@ -93,7 +89,6 @@ namespace zmq
 
         short events;
         bool socket_error;
-        bool abort_on_close;
     };
 
 }

@@ -48,10 +48,10 @@ public:
         assert (rc);
     }
 
-    void run (uint64_t frequency, uint64_t batch_size)
+    void run (uint64_t frequency)
     {
         //  Initialise the ticker
-        ticker_t ticker (frequency / batch_size);
+        ticker_t ticker (frequency);
 
         order_id_t order_id = 0;
         while (true) {
@@ -59,28 +59,22 @@ public:
             //  Delay a bit to get stream of orders with stable throughput
             ticker.wait_for_tick ();
 
-            for (int counter = 0; counter != batch_size; counter ++) {
+            //  Create random order
+            order_id ++;
+            order_type_t type = (random () % 2) ? ask : bid;
+            price_t price = random () % 100 + 450;
+            volume_t volume = random () % 100 + 1;
 
-                //  Create random order
-                order_id ++;
-                order_type_t type = (random () % 2) ? ask : bid;
-                price_t price = random () % 100 + 450;
-                volume_t volume = random () % 100 + 1;
+            //  Send the order to the matching engine
+            void *msg = make_order (order_id, type, price, volume);
+            api.presend (oe_id, msg);
+            meter.event (this);
 
-                //  Send the order to the matching engine
-                void *msg = make_order (order_id, type, price, volume);
-                api.presend (oe_id, msg);
-                meter.event (this);
-
-                //  Send a timestamp to the stat component
-                if (order_id % 500000 == 0) {
-                    void *msg = make_timestamp (5, order_id, now_usec ());
-                    api.presend (se_id, msg);
-                }
+            //  Send a timestamp to the stat component
+            if (order_id % 500000 == 0) {
+                void *msg = make_timestamp (5, order_id, now_usec ());
+                api.presend (se_id, msg);
             }
-
-	    //  Flush the batch to the network
-	    api.flush ();
         }
     }
 
@@ -217,7 +211,6 @@ struct sender_routine_args_t
 {
     zmq::dispatcher_t *dispatcher;
     int order_rate;
-    int batching_ratio;
 };
 
 //  Main routine for the sender thread
@@ -226,14 +219,15 @@ void *sender_routine (void *arg)
     //  Start the sender with the rate of X orders per second
     sender_routine_args_t *args = (sender_routine_args_t*) arg;
     sender_t sender (args->dispatcher);
-    sender.run (args->order_rate, args->batching_ratio);
+    sender.run (args->order_rate);
     return NULL;
 }
 
 int main (int argc, char *argv [])
 {
     if (argc != 4) {
-        printf ("stat <locator address> <locator port> <orders per second>\n");
+        printf ("Usage: gtw <locator address> <locator port> "
+            "<orders per second>\n");
         return 1;
     }
 
@@ -245,7 +239,7 @@ int main (int argc, char *argv [])
 
     //  Run the sender thread
     pthread_t sender_thread;
-    sender_routine_args_t args = {&dispatcher, atoi (argv [3]), 20};
+    sender_routine_args_t args = {&dispatcher, atoi (argv [3])};
     int rc = pthread_create (&sender_thread, NULL, sender_routine, &args);
     assert (rc == 0);
 

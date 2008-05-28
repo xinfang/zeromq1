@@ -23,24 +23,20 @@
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     bool listen_, const char *address_, uint16_t port_,
-    size_t writebuf_size_, size_t readbuf_size_,
-    bool abort_on_close_)
+    size_t writebuf_size_, size_t readbuf_size_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_,
-        abort_on_close_);
+        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    int socket_, size_t writebuf_size_, size_t readbuf_size_,
-    bool abort_on_close_)
+    int socket_, size_t writebuf_size_, size_t readbuf_size_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, socket_, writebuf_size_, readbuf_size_,
-        abort_on_close_);
+        thread_, socket_, writebuf_size_, readbuf_size_);
     assert (instance);
 
     return instance;
@@ -48,8 +44,7 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
       bool listen_, const char *address_, uint16_t port_,
-      size_t writebuf_size_, size_t readbuf_size_, 
-      bool abort_on_close_) :
+      size_t writebuf_size_, size_t readbuf_size_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
@@ -59,8 +54,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
-    socket_error (false),
-    abort_on_close (abort_on_close_)
+    socket_error (false)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -70,8 +64,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
 }
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
-      size_t writebuf_size_, size_t readbuf_size_,
-      bool abort_on_close_) :
+      size_t writebuf_size_, size_t readbuf_size_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
@@ -81,8 +74,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
-    socket_error (false),
-    abort_on_close (abort_on_close_)
+    socket_error (false)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -160,15 +152,15 @@ void zmq::bp_engine_t::close_event()
     if (!socket_error) {
         socket_error = true;
 
-        if (abort_on_close) {
-
-            //  Hack to report connection breakages to the client            
-            error_handler_t *eh = get_error_handler ();
-            if (eh)
-                eh ();
-
+        //  Hack to report connection breakages to the client 
+        //  If there is no error handler, application crashes immediately
+        //  If the error handler returns false, it crahses as well
+        //  If error handler returns true, the error is ignored           
+        error_handler_t *eh = get_error_handler ();
+        assert (eh);
+        if (!eh ())
             assert (false);
-        }
+
         // notify all our receivers that this engine
         // is shutting down
         demux.terminate_pipes ();
