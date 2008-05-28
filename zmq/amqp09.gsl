@@ -199,6 +199,7 @@
 #define __ZMQ_I_AMQP09_HPP_INCLUDED__
 
 #include <assert.h>
+#include <string.h>
 #include <map>
 #include <string>
 
