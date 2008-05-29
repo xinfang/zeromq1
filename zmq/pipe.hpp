@@ -63,7 +63,8 @@ namespace zmq
 
         //  These variables should be accessed only by the methods called
         //  from the writing thread.
-        ypipe_t <void*, false>::item_t *writebuf_first;
+        void *writebuf_first;
+        ypipe_t <void*, false>::item_t *writebuf_second;
         ypipe_t <void*, false>::item_t *writebuf_last;
 
         //  These variables should be accessed only by the methods called

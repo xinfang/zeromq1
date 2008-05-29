@@ -68,23 +68,15 @@ namespace zmq
             return thread_count;
         }
 
-        //  Write a single message to diaptcher
+        //  Write messages to dispatcher. If more commands are to be written,
+        //  they are supplied in a linked list. Individual items in the list
+        //  should be allocated using new operator.
         inline void write (int source_thread_id_, int destination_thread_id_,
-            const command_t &value_)
+            const command_t &value_, item_t *second_ = NULL,
+            item_t *last_ = NULL)
         {
             if (!pipes [source_thread_id_ * thread_count +
-                  destination_thread_id_].write (value_))
-                signalers [destination_thread_id_]->signal (source_thread_id_);
-        }
-
-        //  Write a message sequenct to dispatcher. 'first' parameter points
-        //  to the first message in the sequence, 'last' parameter points to
-        //  the last message in the sequence.
-        inline void write (int source_thread_id_, int destination_thread_id_,
-            item_t *first_, item_t *last_)
-        {
-            if (!pipes [source_thread_id_ * thread_count +
-                  destination_thread_id_].write (first_, last_))
+                  destination_thread_id_].write (value_, second_, last_))
                 signalers [destination_thread_id_]->signal (source_thread_id_);
         }
 

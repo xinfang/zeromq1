@@ -67,40 +67,29 @@ namespace zmq
         //  Write an item to the pipe. If pipe is in 'dead' state, function
         //  returns false. Otherwise it returns true. Writing an item to the
         //  pipe revives it in case it is dead.
-        bool write (const T &value_)
+        //  If 'second' and 'last' arguments are used, you can add an additional
+        //  list of linked items into the ypipe. Individual items in the list
+        //  must be allocated using new operator.
+        bool write (const T &value_, item_t *second_ = NULL,
+            item_t *last_ = NULL)
         {
-            item_t *n = new item_t;
             w->value = value_;
-            w->next = n;
-            if (c.cas (w, n) == w) {
-                w = n;
-                return true;
-            }
-            else {
-                w = n;
-                c.set (n);
-                return false;
-            }
-        }
-
-        //  Write multiple items to the pipe. If pipe is in dead state, function
-        //  returns false. Otherwise it returns true. Writing an item to the
-        //  pipe revives it in case it is dead.
-        bool write (item_t *first_, item_t *last_)
-        {
             item_t *n = new item_t;
-            last_->next = n;
             
-            *w = *first_;
-            delete first_;
+            if (second_) {
+                w->next = second_;
+                last_->next = n;
+            }
+            else
+                w->next = n;
 
             if (c.cas (w, n) == w) {
                 w = n;
                 return true;
             }
             else {
-                c.set (n);
                 w = n;
+                c.set (n);
                 return false;
             }
         }

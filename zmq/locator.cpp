@@ -23,6 +23,7 @@
 #include "dispatcher.hpp"
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
+#include "config.hpp"
 
 zmq::locator_t::locator_t (dispatcher_t *dispatcher_, const char *address_,
       uint16_t port_) :
@@ -128,7 +129,7 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, 8192, 8192);
+             false, address, port, bp_out_batch_size, bp_in_batch_size);
 
          //  Write it into exchange repository
          exchange_info_t info = {thread_, engine};
@@ -233,7 +234,7 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, 8192, 8192);
+             false, address, port, bp_out_batch_size, bp_in_batch_size);
 
          //  Write it into queue repository
          queue_info_t info = {thread_, engine};

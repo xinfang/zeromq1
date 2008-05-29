@@ -28,6 +28,7 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     destination_context (destination_context_),
     destination_engine (destination_engine_),
     writebuf_first (NULL),
+    writebuf_second (NULL),
     writebuf_last (NULL),
     readbuf_first (NULL),
     readbuf_last (NULL),
@@ -39,10 +40,12 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 zmq::pipe_t::~pipe_t ()
 {
     //  Destroy the write buffer
-    while (writebuf_first != writebuf_last) {
-        ypipe_t <void*, false>::item_t *o = writebuf_first;
-        msg_dealloc (writebuf_first->value);
-        writebuf_first = writebuf_first->next;
+    if (writebuf_first)
+        msg_dealloc (writebuf_first);
+    while (writebuf_second != writebuf_last) {
+        ypipe_t <void*, false>::item_t *o = writebuf_second;
+        msg_dealloc (writebuf_second->value);
+        writebuf_second = writebuf_second->next;
         delete o;
     }
 
@@ -68,15 +71,17 @@ zmq::pipe_t::~pipe_t ()
 
 void zmq::pipe_t::instant_write (void *msg_)
 {
-    assert (writebuf_first == writebuf_last);
+    assert (!writebuf_first);
     if (!pipe.write (msg_))
         send_revive ();
 }
 
 void zmq::pipe_t::write (void *msg_)
 {
-    //  TODO: if there's only one message in the writebuf, we can
-    //  avoid one alloc/dealloc pair by holding the pointer in a member variable
+    if (!writebuf_first) {
+        writebuf_first = msg_;
+        return;
+    }
 
     ypipe_t <void*, false>::item_t *n = new ypipe_t <void*, false>::item_t;
     n->value = msg_;
@@ -86,7 +91,7 @@ void zmq::pipe_t::write (void *msg_)
         writebuf_last = n;
     }
     else {
-        writebuf_first = n;
+        writebuf_second = n;
         writebuf_last = n;
     }
 }
@@ -95,9 +100,10 @@ void zmq::pipe_t::flush ()
 {
     if (!writebuf_first)
         return;
-    if (!pipe.write (writebuf_first, writebuf_last))
+    if (!pipe.write (writebuf_first, writebuf_second, writebuf_last))
         send_revive ();
     writebuf_first = NULL;
+    writebuf_second = NULL;
     writebuf_last = NULL;
 }
 

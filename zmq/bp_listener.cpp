@@ -27,6 +27,7 @@
 
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
+#include "config.hpp"
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, uint16_t port_, int handler_thread_count_,
@@ -125,7 +126,8 @@ bool zmq::bp_listener_t::in_event ()
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
-        handler_threads [current_handler_thread], s, 8192, 8192);
+        handler_threads [current_handler_thread], s,
+        bp_out_batch_size, bp_in_batch_size);
     assert (engine);
 
     if (source) {
