@@ -359,27 +359,24 @@ void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
         if (signals_ & (1 << source_thread_id)) {
-            dispatcher_t::item_t *first;
-            dispatcher_t::item_t *last;
-            dispatcher->read (source_thread_id, thread_id, &first, &last);
-            while (first != last) {
-                switch (first->value.type) {
+
+            command_t command;
+            while (dispatcher->read (source_thread_id, thread_id, &command)) {
+
+                switch (command.type) {
 
                 //  Process engine command
                 case command_t::engine_command:
-                    assert (first->value.args.engine_command.engine ==
+                    assert (command.args.engine_command.engine ==
                         (i_engine*) this);
                     process_command (
-                        first->value.args.engine_command.command);
+                        command.args.engine_command.command);
                     break;
 
                 //  Unsupported/unknown command
                 default:
                     assert (false);
                 }
-                dispatcher_t::item_t *o = first;
-                first = first->next;
-                delete o;
             }
         }
     }

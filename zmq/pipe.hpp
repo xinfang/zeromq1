@@ -24,6 +24,7 @@
 #include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "msg.hpp"
+#include "config.hpp"
 
 namespace zmq
 {
@@ -51,7 +52,7 @@ namespace zmq
         void send_revive ();
 
         //  The message pipe itself
-        ypipe_t <void*, false> pipe;
+        ypipe_t <void*, false, message_pipe_granularity> pipe;
 
         //  Identification of the engine sending the messages to the pipe
         i_context *source_context;
@@ -61,16 +62,6 @@ namespace zmq
         i_context *destination_context;
         i_engine *destination_engine;
 
-        //  These variables should be accessed only by the methods called
-        //  from the writing thread.
-        void *writebuf_first;
-        ypipe_t <void*, false>::item_t *writebuf_second;
-        ypipe_t <void*, false>::item_t *writebuf_last;
-
-        //  These variables should be accessed only by the methods called
-        //  from the reading thread.
-        ypipe_t <void*, false>::item_t *readbuf_first;
-        ypipe_t <void*, false>::item_t *readbuf_last;
         bool alive; 
         bool endofpipe;
     }; 

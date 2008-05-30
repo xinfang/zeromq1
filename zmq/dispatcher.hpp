@@ -27,6 +27,7 @@
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
 #include "locator.hpp"
+#include "config.hpp"
 
 namespace zmq
 {
@@ -49,8 +50,6 @@ namespace zmq
     {
     public:
 
-        typedef ypipe_t <command_t, true>::item_t item_t;
-
         //  Create the dispatcher object. The actual number of threads
         //  supported will be thread_count_ + 1 (standard worker threads +
         //  one administrative thread). The administrative thread is
@@ -72,22 +71,22 @@ namespace zmq
         //  they are supplied in a linked list. Individual items in the list
         //  should be allocated using new operator.
         inline void write (int source_thread_id_, int destination_thread_id_,
-            const command_t &value_, item_t *second_ = NULL,
-            item_t *last_ = NULL)
+            const command_t &value_)
         {
-            if (!pipes [source_thread_id_ * thread_count +
-                  destination_thread_id_].write (value_, second_, last_))
+            command_pipe_t &pipe = pipes [source_thread_id_ *
+                  thread_count + destination_thread_id_];
+            pipe.write (value_);
+            if (!pipe.flush ())
                 signalers [destination_thread_id_]->signal (source_thread_id_);
         }
 
-        //  Read message sequence from the dispatcher. 'first' parameter points
-        //  to the first message in the sequence, 'last' parameter points to 
-        //  one past the last message in the sequence.
+        //  Read message from the dispatcher. Returns false if there is no
+        //  command available.
         inline bool read (int source_thread_id_, int destination_thread_id_,
-            item_t **first_, item_t **last_)
+            command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +
-                destination_thread_id_].read (first_, last_);
+                destination_thread_id_].read (command_);
         }
 
         //  Assign an thread ID to the caller
@@ -110,10 +109,13 @@ namespace zmq
 
     private:
 
+        typedef ypipe_t <command_t, true,
+            command_pipe_granularity> command_pipe_t;
+
         enum {admin_thread_id = 0};
 
         int thread_count;
-        ypipe_t <command_t, true> *pipes;
+        command_pipe_t *pipes;
         std::vector <i_signaler*> signalers;
 
         //  Vector specifying which thread IDs are used and which are not.

@@ -27,7 +27,9 @@ namespace zmq
     enum
     {
         bp_in_batch_size = 8192,
-        bp_out_batch_size = 8192
+        bp_out_batch_size = 8192,
+        message_pipe_granularity = 256,
+        command_pipe_granularity = 16
     };
 
 }

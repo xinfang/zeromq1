@@ -162,11 +162,11 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
         if (signals_ & (1 << source_thread_id)) {
-            dispatcher_t::item_t *first;
-            dispatcher_t::item_t *last;
-            dispatcher->read (source_thread_id, thread_id, &first, &last);
-            while (first != last) {
-                switch (first->value.type) {
+
+            command_t command;
+            while (dispatcher->read (source_thread_id, thread_id, &command)) {
+
+                switch (command.type) {
 
                 //  Exit the working thread
                 case command_t::stop:
@@ -177,7 +177,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                     {
                         //  Add the engine to the engine list
                         i_pollable *engine =
-                            first->value.args.register_engine.engine;
+                            command.args.register_engine.engine;
 
                         //  Store the engine pointer
                         engines.push_back (engine);
@@ -195,7 +195,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         //  Find the engine in the list
                         std::vector <i_pollable*>::iterator it =std::find (
                             engines.begin (), engines.end (),
-                            first->value.args.unregister_engine.engine);
+                            command.args.unregister_engine.engine);
                         assert (it != engines.end ());
 
                         //  Remove the engine from the engine list and
@@ -212,8 +212,8 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                     //  TODO: check whether the engine still exists
                     //  Otherwise drop the command
-                    first->value.args.engine_command.engine->process_command (
-                        first->value.args.engine_command.command);
+                    command.args.engine_command.engine->process_command (
+                        command.args.engine_command.command);
                     break;
 
                 //  Unknown command
@@ -221,9 +221,6 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                     assert (false);
                 }
-                dispatcher_t::item_t *o = first;
-                first = first->next;
-                delete o;
             }
         }
     }

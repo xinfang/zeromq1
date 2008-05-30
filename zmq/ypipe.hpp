@@ -21,108 +21,109 @@
 #define __ZMQ_YPIPE_HPP_INCLUDED__
 
 #include "atomic_ptr.hpp"
+#include "yqueue.hpp"
 
 namespace zmq
 {
 
     //  Lock-free and wait free queue implementation.
-    //  Additionally, ypipe allows to read items in batches to avoid
-    //  redundant atomic operations.
     //  Only a single thread can read from the pipe at any specific moment.
     //  Only a single thread can write to the pipe at any specific moment.
-    //  If the templete parameter D (die-fast) is set to true, the pipe
-    //  'dies' immediately after each read. If it is set to false, it dies
-    //  only if read method returns no data.
+    //
+    //  T is the type of the object in the queue.
+    //  If the template parameter D is set to true, it is quaranteed that
+    //  the pipe will die in a finite time (so that you can swich to some
+    //  other task). If D is set to false, reading from the pipe may result
+    //  in an infinite cycle (if the pipe is continuosly fed by new elements).
+    //  N is granularity of the pipe (how many elements have to be inserted
+    //  till actual memory allocation is required).
 
-    template <typename T, bool D> class ypipe_t
+    template <typename T, bool D, int N> class ypipe_t
     {
     public:
-
-        //  Structure to hold one item in the linked list of T's
-        struct item_t
-        {
-            T value;
-            item_t *next;
-        };
 
         //  Initialises the pipe. If 'dead' is set to true, the pipe is
         //  created in 'dead' state.
         ypipe_t (bool dead_ = true)
         {
-            r = w = new item_t;
-            c.set (dead_ ? NULL : w);
+            stop = false;
+            w = NULL;
+            queue.push ();
+            r = &queue.back ();
+            c.set (dead_ ? NULL : &queue.back ());
         }
 
-        //  Destroys the pipe
-        ~ypipe_t ()
+        //  Write an item to the pipe.  Don't flush it yet.
+        bool write (const T &value_)
         {
-            while (r != w) {
-                 item_t *o = r;
-                 r = r->next;
-                 delete o;
-            }
-            delete r;
+            queue.back () = value_;
+            if (!w)
+                w = &queue.back ();
+            queue.push ();
         }
 
-        //  Write an item to the pipe. If pipe is in 'dead' state, function
-        //  returns false. Otherwise it returns true. Writing an item to the
-        //  pipe revives it in case it is dead.
-        //  If 'second' and 'last' arguments are used, you can add an additional
-        //  list of linked items into the ypipe. Individual items in the list
-        //  must be allocated using new operator.
-        bool write (const T &value_, item_t *second_ = NULL,
-            item_t *last_ = NULL)
+        //  Flush the messages into the pipe. If pipe is in 'dead' state,
+        //  function returns false. Otherwise it returns true. Writing an item
+        //  to the pipe revives it in case it is dead.
+        bool flush ()
         {
-            w->value = value_;
-            item_t *n = new item_t;
-            
-            if (second_) {
-                w->next = second_;
-                last_->next = n;
-            }
-            else
-                w->next = n;
+            //  If there are no messages to flush, do nothing
+            if (!w)
+                return true;
 
-            if (c.cas (w, n) == w) {
-                w = n;
+            if (c.cas (w, &queue.back ()) == w) {
+                w = NULL;
                 return true;
             }
-            else {
-                w = n;
-                c.set (n);
-                return false;
-            }
+            c.set (&queue.back ());
+            w = NULL;
+            return false;
         }
 
-        //  Reads all the items from the pipe.
-        //  After the call, 'first_' points to first retrieved item,
-        //  'last_' points one past the last retrieved item
-        //  (i.e. if first_==last_, no items were retrieved). The caller
-        //  is responsible for deallocation of the retrieved items afterwards.
-        //  The pipe 'dies' and function returns false:
-        //  1. if D==true
-        //  2. if D==false and there are no items in the pipe
-        bool read (item_t **first_, item_t **last_)
+        //  Reads an item from the pipe. Returns false if there is no value
+        //  available.
+        bool read (T *value_)
         {
-            //  Note that as D is a template parameter, one of the branches
-            //  of the following conditional statement will be optimised out.
-            if (D) {
-                *first_ = r;
-                r = *last_ = c.xchg (NULL);
+            //  The value was prefetched already. Return it. No need to sleep
+            //  as there may be more values prefetched.
+            if (&queue.front () != r) {
+                 *value_ = queue.front ();
+                 queue.pop ();
+                 return true;
+            }
+
+            //  We are requested to stop because D is set to true
+            if (stop) {
+                stop = false;
                 return false;
             }
-            else {
-                *first_ = r;
-                r = *last_ = c.cas (r, NULL);
-                return *first_ != *last_;
+
+            //  Now let us prefetch more values
+            if (D) {
+                r = c.xchg (NULL);
+                stop = true;  //  Next attempt to prefetch will fail
             }
+            else
+                r = c.cas (&queue.front (), NULL);
+
+            if (&queue.front () == r) {
+                stop = false;
+                return false;
+            }
+
+            //  There was at least one value prefetched, return it
+            *value_ = queue.front ();
+            queue.pop ();
+            return true;
         }
 
     protected:
 
-        item_t *r;
-        item_t *w;
-        atomic_ptr_t <item_t> c;
+        yqueue_t <T, N> queue;
+        T *w;
+        T *r;
+        atomic_ptr_t <T> c;
+        bool stop;
     };
 
 }

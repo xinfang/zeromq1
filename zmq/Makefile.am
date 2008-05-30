@@ -46,7 +46,8 @@ pkginclude_HEADERS = \
     i_engine.hpp \
     scope.hpp \
     global_locator.hpp \
-    config.hpp
+    config.hpp \
+    yqueue.hpp
 
 lib_LTLIBRARIES = libzmq.la
 libzmq_la_SOURCES = \
@@ -119,7 +120,8 @@ libzmq_la_SOURCES = \
     i_engine.hpp \
     scope.hpp \
     global_locator.hpp \
-    config.hpp
+    config.hpp \
+    yqueue.hpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

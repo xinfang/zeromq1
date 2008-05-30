@@ -27,11 +27,6 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     source_engine (source_engine_),
     destination_context (destination_context_),
     destination_engine (destination_engine_),
-    writebuf_first (NULL),
-    writebuf_second (NULL),
-    writebuf_last (NULL),
-    readbuf_first (NULL),
-    readbuf_last (NULL),
     alive (true), 
     endofpipe (false)
 {
@@ -39,72 +34,30 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 
 zmq::pipe_t::~pipe_t ()
 {
-    //  Destroy the write buffer
-    if (writebuf_first)
-        msg_dealloc (writebuf_first);
-    while (writebuf_second != writebuf_last) {
-        ypipe_t <void*, false>::item_t *o = writebuf_second;
-        msg_dealloc (writebuf_second->value);
-        writebuf_second = writebuf_second->next;
-        delete o;
-    }
-
-    //  Destroy the read buffer
-    while (readbuf_first != readbuf_last) {
-        ypipe_t <void*, false>::item_t *o = readbuf_first;
-        msg_dealloc (readbuf_first->value);
-        readbuf_first = readbuf_first->next;
-        delete o;
-    }
-
     //  Destroy the messages in the pipe itself
-    ypipe_t <void*, false>::item_t *first;
-    ypipe_t <void*, false>::item_t *last;
-    pipe.read (&first, &last);
-    while (first != last) {
-        ypipe_t <void*, false>::item_t *o = first;
-        msg_dealloc (first->value);
-        first = first->next;
-        delete o;
-    }
+    //  TODO: If there are any present messages in the pipe
+    //        they won't get deallocated!
+    void *msg;
+    while (pipe.read (&msg))
+        msg_dealloc (msg);
 }
 
 void zmq::pipe_t::instant_write (void *msg_)
 {
-    assert (!writebuf_first);
-    if (!pipe.write (msg_))
+    pipe.write (msg_);
+    if (!pipe.flush ())
         send_revive ();
 }
 
 void zmq::pipe_t::write (void *msg_)
 {
-    if (!writebuf_first) {
-        writebuf_first = msg_;
-        return;
-    }
-
-    ypipe_t <void*, false>::item_t *n = new ypipe_t <void*, false>::item_t;
-    n->value = msg_;
-    n->next = NULL;
-    if (writebuf_last) {
-        writebuf_last->next = n;
-        writebuf_last = n;
-    }
-    else {
-        writebuf_second = n;
-        writebuf_last = n;
-    }
+    pipe.write (msg_);
 }
 
 void zmq::pipe_t::flush ()
 {
-    if (!writebuf_first)
-        return;
-    if (!pipe.write (writebuf_first, writebuf_second, writebuf_last))
+    if (!pipe.flush ())
         send_revive ();
-    writebuf_first = NULL;
-    writebuf_second = NULL;
-    writebuf_last = NULL;
 }
 
 void zmq::pipe_t::revive ()
@@ -122,27 +75,22 @@ void zmq::pipe_t::send_revive ()
 
 void *zmq::pipe_t::read ()
 {
-    //  If there are no messages in the read buffer...
-    if (readbuf_first == readbuf_last) {
+    //  If the pipe is dead, there's nothing we can do
+    if (!alive)
+        return NULL;
 
-        //  If the pipe is dead, there's nothing we can do
-        if (!alive)
-            return NULL;
-
-        //  Get new message batch from the pipe to the read buffer
-        if (!pipe.read (&readbuf_first, &readbuf_last)) {
-            alive = false;
-            return NULL;
-        }
+    //  Get next message, if it's not there, die.
+    void *msg;
+    if (!pipe.read (&msg))
+    {
+        alive = false;
+        return NULL;
     }
 
-    //  Get the first message from the read buffer
-    ypipe_t <void*, false>::item_t *o = readbuf_first;
-    void *msg = o->value;
-    if (msg == NULL)
+    //  If delimiter is read from the pipe, mark the pipe as ended
+    if (!msg)
         endofpipe = true;
-    readbuf_first = readbuf_first->next;
-    delete o;
+
     return msg;
 }
 

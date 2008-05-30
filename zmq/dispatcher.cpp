@@ -32,7 +32,7 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_,const char *address_,
     locator (this, address_, port_)
 {
     //  Alocate N * N matrix of dispatching pipes
-    pipes = new ypipe_t <command_t, true> [thread_count * thread_count];
+    pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
 
     //  Mark admin thread ID as used already
