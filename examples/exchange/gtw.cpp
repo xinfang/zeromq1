@@ -65,16 +65,16 @@ public:
             price_t price = random () % 100 + 450;
             volume_t volume = random () % 100 + 1;
 
-            //  Send the order to the matching engine
-            void *msg = make_order (order_id, type, price, volume);
-            api.send (oe_id, msg);
-            meter.event (this);
-
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
                 void *msg = make_timestamp (5, order_id, now_usec ());
                 api.send (se_id, msg);
             }
+
+            //  Send the order to the matching engine
+            void *msg = make_order (order_id, type, price, volume);
+            api.send (oe_id, msg);
+            meter.event (this);
         }
     }
 
