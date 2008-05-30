@@ -42,8 +42,8 @@ namespace exchange
 
         //  Lower limit is the maximal out-of-range price
         //  Upper limit is the minimal out-of-range price
-        //  If we later choose to adjust the price range dynamically, these should
-        //  be standard member variables rather than constants.
+        //  If we later choose to adjust the price range dynamically,
+        //these should be standard member variables rather than constants.
         enum
         {
             lower_limit = 0,
@@ -253,8 +253,8 @@ namespace exchange
         price_t min_ask;
         price_t max_bid;
 
-        //  The first element in the orderbook corresponds to the minimal possible
-        //  price, second one to the second minimal price etc.
+        //  The first element in the orderbook corresponds to the minimal
+        //  possible price, second one to the second minimal price etc.
         orderbook_t orderbook;
     };
 

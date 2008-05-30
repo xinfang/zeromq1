@@ -80,7 +80,7 @@ namespace exchange
             //  If the two frequencies are too far apart, there's a problem
             //  somewhere (presumably CPU frequency is being lowered
             //  as a power saving measure)
-            assert (busy_frq < sleep_frq * 1.25 && sleep_frq < busy_frq * 1.25);
+//            assert (busy_frq < sleep_frq * 1.25 && sleep_frq < busy_frq * 1.25);
 
             cpu_frequency = busy_frq;
         }
