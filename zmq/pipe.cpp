@@ -35,29 +35,10 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 zmq::pipe_t::~pipe_t ()
 {
     //  Destroy the messages in the pipe itself
-    //  TODO: If there are any present messages in the pipe
-    //        they won't get deallocated!
     void *msg;
+    pipe.flush ();
     while (pipe.read (&msg))
         msg_dealloc (msg);
-}
-
-void zmq::pipe_t::instant_write (void *msg_)
-{
-    pipe.write (msg_);
-    if (!pipe.flush ())
-        send_revive ();
-}
-
-void zmq::pipe_t::write (void *msg_)
-{
-    pipe.write (msg_);
-}
-
-void zmq::pipe_t::flush ()
-{
-    if (!pipe.flush ())
-        send_revive ();
 }
 
 void zmq::pipe_t::revive ()
@@ -92,11 +73,6 @@ void *zmq::pipe_t::read ()
         endofpipe = true;
 
     return msg;
-}
-
-bool zmq::pipe_t::eop ()
-{
-    return endofpipe;
 }
 
 void zmq::pipe_t::send_destroy_pipe ()

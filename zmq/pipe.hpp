@@ -39,12 +39,24 @@ namespace zmq
             struct i_engine *destination_engine_);
         ~pipe_t ();
 
-        void instant_write (void *msg_);
-        void write (void *msg_);
-        void flush ();
+        inline void write (void *msg_)
+        {
+            pipe.write (msg_);
+        }
+
+        inline void flush ()
+        {
+            if (!pipe.flush ())
+                send_revive ();
+        }
+
+        bool eop ()
+        {
+            return endofpipe;
+        }
+
         void *read ();
         void revive ();
-        bool eop ();
         void send_destroy_pipe ();
 
     private:

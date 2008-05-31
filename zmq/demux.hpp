@@ -62,14 +62,16 @@ namespace zmq
             //  to send the message to - no refcount adjustment (i.e. atomic
             //  operations) needed.
             if (pipes.size () == 1) {
-                (*pipes.begin ())->instant_write (msg_);
+                (*pipes.begin ())->write (msg_);
+                (*pipes.begin ())->flush ();
                 return;
             }
 
             for (pipes_t::iterator it = pipes.begin ();
                   it != pipes.end (); it ++) {
                 void *msg = msg_safe_copy (msg_); 
-                (*it)->instant_write (msg);
+                (*it)->write (msg);
+                (*it)->flush ();
             }
             msg_dealloc (msg_);
         }
@@ -83,18 +85,27 @@ namespace zmq
 
         inline void terminate_pipes () 
         {
-            for (int i = 0; i < pipes.size (); ++i)
-                pipes [i]->instant_write (NULL);
-            // remove all pointers to pipes
+            //  Write delimiters to the pipes
+            for (pipes_t::iterator it = pipes.begin ();
+                  it != pipes.end (); it ++) {
+                (*it)->write (NULL);
+                (*it)->flush ();
+            }
+
+            //  Remove all pointers to pipes
             pipes.clear ();
         }
 
         inline void destroy_pipe (pipe_t *pipe_)
         {
+            //  Find the pipe
             pipes_t::iterator it = 
                 std::find (pipes.begin (), pipes.end (), pipe_);
+
+            //  Send delimiter to the pipe and drop the pointer
             if (it != pipes.end ()) {
-                pipe_->instant_write (NULL);
+                pipe_->write (NULL);
+                pipe_->flush ();
                 pipes.erase (it);
             }
         }
