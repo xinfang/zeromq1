@@ -56,26 +56,6 @@ namespace zmq
             msg_dealloc (msg_);
         }
 
-        inline void instant_write (void *msg_)
-        {
-            //  Optimisation for the case where's there only a single pipe
-            //  to send the message to - no refcount adjustment (i.e. atomic
-            //  operations) needed.
-            if (pipes.size () == 1) {
-                (*pipes.begin ())->write (msg_);
-                (*pipes.begin ())->flush ();
-                return;
-            }
-
-            for (pipes_t::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
-                void *msg = msg_safe_copy (msg_); 
-                (*it)->write (msg);
-                (*it)->flush ();
-            }
-            msg_dealloc (msg_);
-        }
-
         inline void flush ()
         {
             for (pipes_t::iterator it = pipes.begin ();

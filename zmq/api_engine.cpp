@@ -184,7 +184,8 @@ void zmq::api_engine_t::send (int exchange_id_, void *value_)
         process_commands (signals);
 
     //  Pass the message to the demux
-    exchanges [exchange_id_].second.instant_write (value_);
+    exchanges [exchange_id_].second.write (value_);
+    exchanges [exchange_id_].second.flush ();
 }
 
 void zmq::api_engine_t::presend (int exchange_id_, void *value_)
