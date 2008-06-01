@@ -17,34 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_ENCODER_HPP_INCLUDED__
-#define __ZMQ_BP_ENCODER_HPP_INCLUDED__
+#ifndef __ZMQ_CMSG_HPP_INCLUDED__
+#define __ZMQ_CMSG_HPP_INCLUDED__
 
-#include <stddef.h>
-#include <assert.h>
-
-#include "mux.hpp"
-#include "encoder.hpp"
-#include "cmsg.hpp"
+#include "msg.hpp"
 
 namespace zmq
 {
-    //  Encoder for 0MQ backend protocol
-    class bp_encoder_t : public encoder_t <bp_encoder_t>
+
+    //  Canonical message, i.e. the elements that's dispatched between
+    //  0MQ threads - as opposed to different message formats (BP, AMQP, etc.)
+    //  that can be used for over-the-wire transfer.
+
+    struct cmsg_t
     {
-    public:
-
-        bp_encoder_t (mux_t *mux_);
-        ~bp_encoder_t ();
-
-    protected:
-
-        bool size_ready ();
-        bool message_ready ();
-
-        mux_t *mux;
-        cmsg_t cmsg;
-        unsigned char tmpbuf [9];
+        void *msg;
     };
 
 }

@@ -20,7 +20,7 @@
 #ifndef __ZMQ_AMQP09_DECODER_HPP_INCLUDED__
 #define __ZMQ_AMQP09_DECODER_HPP_INCLUDED__
 
-#include "msg.hpp"
+#include "cmsg.hpp"
 #include "decoder.hpp"
 #include "demux.hpp"
 #include "amqp09_unmarshaller.hpp"
@@ -63,7 +63,7 @@ namespace zmq
         size_t payload_size;
         size_t curr_body_size;
         size_t msg_data_off;
-        void *msg;
+        cmsg_t cmsg;
 
         bool flow_on;
         bool server;

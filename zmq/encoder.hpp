@@ -69,6 +69,8 @@ namespace zmq
         inline void next_step (void *write_pos_, size_t to_write_,
             step_t next_)
         {
+if (write_pos_ == NULL && to_write_ != 0)
+    assert (false);
             write_pos = (unsigned char*) write_pos_;
             to_write = to_write_;
             next = next_;
