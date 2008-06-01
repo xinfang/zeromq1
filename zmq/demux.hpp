@@ -65,32 +65,8 @@ namespace zmq
                 (*it)->flush ();
         }
 
-        inline void terminate_pipes () 
-        {
-            //  Write delimiters to the pipes
-            for (pipes_t::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
-                (*it)->write (NULL);
-                (*it)->flush ();
-            }
-
-            //  Remove all pointers to pipes
-            pipes.clear ();
-        }
-
-        inline void destroy_pipe (pipe_t *pipe_)
-        {
-            //  Find the pipe
-            pipes_t::iterator it = 
-                std::find (pipes.begin (), pipes.end (), pipe_);
-
-            //  Send delimiter to the pipe and drop the pointer
-            if (it != pipes.end ()) {
-                pipe_->write (NULL);
-                pipe_->flush ();
-                pipes.erase (it);
-            }
-        }
+        void terminate_pipes ();
+        void destroy_pipe (pipe_t *pipe_);
 
     private:
 
