@@ -33,34 +33,22 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
     pipes.push_back (pipe_);
 }
 
-bool zmq::mux_t::read (cmsg_t *cmsg_)
+void *zmq::mux_t::read ()
 {
-    //  Check at most as many pipes as there are available, i.e do one
-    //  round-robin cycle.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
-
-        //  Try to get a message from the current pipe
-        bool retrieved = pipes [current]->read (cmsg_);
-
-        //  If we've read delimiter from the pipe, we can delete it.
-        if (!retrieved && pipes [current]->eop ()) {
+        void* msg = pipes [current]->read ();
+        if (pipes [current]->eop ()) {
             delete pipes [current];
             pipes.erase (pipes.begin () + current);
-            current --;
+        } else {
+            current ++;
         }
-
-        //  Advance current pointer (next step of the round-robin).
-        current ++;
         if (current == pipes.size ())
             current = 0;
-
-        //  Return if the message was fetched already.
-        if (retrieved)
-            return true;
+        if (msg)
+            return msg;
     }
-
-    //  There is no message available at the moment.
-    return false;
+    return NULL;
 }
 
 void zmq::mux_t::terminate_pipes()

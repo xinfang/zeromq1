@@ -21,46 +21,43 @@
 #include "wire.hpp"
 
 zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
-    mux (mux_)
+    mux (mux_),
+    msg (NULL)
 {
-    cmsg.msg = NULL;
     next_step (NULL, 0, &bp_encoder_t::message_ready);
 }
 
 zmq::bp_encoder_t::~bp_encoder_t ()
 {
-    msg_dealloc (cmsg.msg);
+    msg_dealloc (msg);
 }
 
 bool zmq::bp_encoder_t::size_ready ()
 {
     //  Write message content
-    next_step (msg_data (cmsg.msg), msg_size (cmsg.msg),
-        &bp_encoder_t::message_ready);
+    next_step (msg_data (msg), msg_size (msg), &bp_encoder_t::message_ready);
     return true;
 }
 
 bool zmq::bp_encoder_t::message_ready ()
 {
-    //  Get rid of the old message
-    msg_dealloc (cmsg.msg);
-    cmsg.msg = NULL;
-
-    //  Read new message from mux, if there is none, return false.
-    if (!mux->read (&cmsg))
+    //  Read new message from the dispatcher, if there is none, return false.
+    msg_dealloc (msg);
+    msg = mux->read ();
+    if (!msg)
         return false;
 
-    if (msg_size (cmsg.msg) < 255) {
+    if (msg_size (msg) < 255) {
 
         //  Write one-byte length
-        tmpbuf [0] = (unsigned char) msg_size (cmsg.msg);
+        tmpbuf [0] = (unsigned char) msg_size (msg);
         next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
     }
     else {
 
         //  Write 0xff escape character & 8-byte length
         tmpbuf [0] = 0xff;
-        put_uint64 (tmpbuf + 1, msg_size (cmsg.msg));
+        put_uint64 (tmpbuf + 1, msg_size (msg));
         next_step (tmpbuf, 9, &bp_encoder_t::size_ready);
     }
     return true;

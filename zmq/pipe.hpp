@@ -23,7 +23,7 @@
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "ypipe.hpp"
-#include "cmsg.hpp"
+#include "msg.hpp"
 #include "config.hpp"
 
 namespace zmq
@@ -39,9 +39,9 @@ namespace zmq
             struct i_engine *destination_engine_);
         ~pipe_t ();
 
-        inline void write (cmsg_t *cmsg_)
+        inline void write (void *msg_)
         {
-            pipe.write (*cmsg_);
+            pipe.write (msg_);
         }
 
         inline void flush ()
@@ -55,19 +55,16 @@ namespace zmq
             return endofpipe;
         }
 
-        bool read (cmsg_t *cmsg_);
+        void *read ();
         void revive ();
         void send_destroy_pipe ();
 
     private:
 
-        typedef ypipe_t <cmsg_t, false, message_pipe_granularity>
-            underlying_pipe_t;
-
         void send_revive ();
 
         //  The message pipe itself
-        underlying_pipe_t pipe;
+        ypipe_t <void*, false, message_pipe_granularity> pipe;
 
         //  Identification of the engine sending the messages to the pipe
         i_context *source_context;

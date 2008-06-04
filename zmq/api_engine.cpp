@@ -18,7 +18,6 @@
 */
 
 #include "api_engine.hpp"
-#include "cmsg.hpp"
 
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
     ticks (0),
@@ -165,7 +164,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     return true;
 }
 
-void zmq::api_engine_t::send (int exchange_id_, void *msg_)
+void zmq::api_engine_t::send (int exchange_id_, void *value_)
 {
 #ifdef ZMQ_DEBUG
     printf ("Sending a message.\n");
@@ -174,7 +173,7 @@ void zmq::api_engine_t::send (int exchange_id_, void *msg_)
     //  If there are unflushed messages, presend the current one and
     //  flush all of them
     if (dirty) {
-        presend (exchange_id_, msg_);
+        presend (exchange_id_, value_);
         flush ();
         return;
     }
@@ -185,18 +184,14 @@ void zmq::api_engine_t::send (int exchange_id_, void *msg_)
         process_commands (signals);
 
     //  Pass the message to the demux
-    cmsg_t cmsg;
-    cmsg.msg = msg_;
-    exchanges [exchange_id_].second.write (&cmsg);
+    exchanges [exchange_id_].second.write (value_);
     exchanges [exchange_id_].second.flush ();
 }
 
-void zmq::api_engine_t::presend (int exchange_id_, void *msg_)
+void zmq::api_engine_t::presend (int exchange_id_, void *value_)
 {
     //  Pass the message to the demux
-    cmsg_t cmsg;
-    cmsg.msg = msg_;
-    exchanges [exchange_id_].second.write (&cmsg);
+    exchanges [exchange_id_].second.write (value_);
 
     //  Set te dirty flag
     dirty = true;
@@ -223,9 +218,7 @@ void *zmq::api_engine_t::receive (bool block_)
 #ifdef ZMQ_DEBUG
     printf ("Retrieveing a message.\n");
 #endif
-
-    cmsg_t cmsg;
-    bool retrieved = false;
+    void *msg = NULL;
 
     //  Remember the original current queue position. We'll use this value
     //  as a marker for identifying whether we've inspected all the queues.
@@ -243,9 +236,9 @@ void *zmq::api_engine_t::receive (bool block_)
             while (true) {
 
                //  Get a message
-               retrieved = queues [current_queue].second.read (&cmsg);
-               if (retrieved)
-                   msg_set_queue_id (cmsg.msg, current_queue);
+               msg = queues [current_queue].second.read ();
+               if (msg)
+                   msg_set_queue_id (msg, current_queue);
 
                //  Move to the next queue
                current_queue ++;
@@ -253,7 +246,7 @@ void *zmq::api_engine_t::receive (bool block_)
                    current_queue = 0;
 
                //  If we have a message exit the small loop
-               if (retrieved)
+               if (msg)
                    break;
 
                //  If we've iterated over all the queues exit the loop
@@ -263,7 +256,7 @@ void *zmq::api_engine_t::receive (bool block_)
         }
 
         //  If we have a message exit the big loop
-        if (retrieved)
+        if (msg)
             break;
 
         //  If we don't have a message and no blocking is required
@@ -291,7 +284,7 @@ void *zmq::api_engine_t::receive (bool block_)
         ticks = 0;
     }
 
-    return cmsg.msg;
+    return msg;
 }
 
 int zmq::api_engine_t::get_thread_id ()

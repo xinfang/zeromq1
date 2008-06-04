@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "cmsg.hpp"
+#include "msg.hpp"
 #include "encoder.hpp"
 #include "mux.hpp"
 #include "amqp09_marshaller.hpp"
@@ -63,7 +63,7 @@ namespace zmq
         size_t tmpbuf_size;
 
         amqp09_marshaller_t::command_t command;
-        cmsg_t cmsg;
+        void *msg;
         size_t body_offset;
 
         mux_t *mux;

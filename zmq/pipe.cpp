@@ -35,10 +35,10 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 zmq::pipe_t::~pipe_t ()
 {
     //  Destroy the messages in the pipe itself
-    cmsg_t cmsg;
+    void *msg;
     pipe.flush ();
-    while (pipe.read (&cmsg))
-        msg_dealloc (cmsg.msg);
+    while (pipe.read (&msg))
+        msg_dealloc (msg);
 }
 
 void zmq::pipe_t::revive ()
@@ -54,27 +54,25 @@ void zmq::pipe_t::send_revive ()
     source_context->send_command (destination_context, cmd);
 }
 
-bool zmq::pipe_t::read (cmsg_t *cmsg_)
+void *zmq::pipe_t::read ()
 {
-    //  If the pipe is dead, return immediately.
+    //  If the pipe is dead, there's nothing we can do
     if (!alive)
-        return false;
+        return NULL;
 
     //  Get next message, if it's not there, die.
-    if (!pipe.read (cmsg_))
+    void *msg;
+    if (!pipe.read (&msg))
     {
         alive = false;
-        return false;
+        return NULL;
     }
 
     //  If delimiter is read from the pipe, mark the pipe as ended
-    if (!cmsg_->msg) {
+    if (!msg)
         endofpipe = true;
-        return false;
-    }
 
-    //  Message was retrieved successfully.
-    return true;
+    return msg;
 }
 
 void zmq::pipe_t::send_destroy_pipe ()
