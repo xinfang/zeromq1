@@ -36,7 +36,7 @@ int main (int argc, char *argv [])
     size_t msg_size;
     int msg_count;
 
-    perf::zmq_t transport (true, "Q", "ES", argv [1], atoi (argv[2]), NULL, 0);
+    perf::zmq_t transport (true, "Q0", "ES", argv [1], atoi (argv[2]), NULL, 0);
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 

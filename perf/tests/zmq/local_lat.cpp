@@ -30,8 +30,8 @@
 
 int main (int argc, char *argv [])
 {
-    if (argc != 3){
-        printf ("Usage: local <\'global_locator\' IP> <\'global locator\' port>\n");
+    if (argc != 5){
+        printf ("Usage: local  <listen IP> <listen port> <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
@@ -55,7 +55,13 @@ int main (int argc, char *argv [])
     perf::time_instant_t start_time;
     perf::time_instant_t stop_time;
 
-    perf::zmq_t transport (true, "Q", "E", argv [1], atoi (argv [2]), NULL, 0);
+    perf::zmq_t transport (false, "QIN", "EOUT", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
+
+    // wait for sync message from echo
+    printf ("waiting for peer ");
+    fflush (stdout);
+    transport.receive_sync_message ();
+    printf ("OK\n");
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
     
@@ -71,7 +77,7 @@ int main (int argc, char *argv [])
             msg_count /= SYS_LAT_DEN;
         }
 
-        printf ("Threads: %i\n", TEST_THREADS);
+//        printf ("Threads: %i\n", TEST_THREADS);
         printf ("Message size: %i\n", (int)msg_size);
         printf ("Number of messages in the latency test: %i\n", msg_count);
 
@@ -82,9 +88,6 @@ int main (int argc, char *argv [])
             perf::raw_ping_pong_t worker (msg_count, msg_size);
             worker.run (transport, prefix);
         }
-
-        printf ("Test end\n");
-        fflush (stdout);
 
         perf::read_times_2f (&start_time, &stop_time, prefix);
 
@@ -105,6 +108,8 @@ int main (int argc, char *argv [])
     }
 
     fclose (output);
+    printf ("Test end\n");
+    fflush (stdout);
 
     return 0;
 }

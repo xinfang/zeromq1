@@ -41,7 +41,7 @@ namespace perf
         {
 
             time_instant_t start_time = now();
-
+ 
             //  Pass the message there and forth, record the times of each
             //  message arrival
             for (int roundtrip_nbr = 0; roundtrip_nbr != roundtrip_count;

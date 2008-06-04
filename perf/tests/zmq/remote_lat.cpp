@@ -28,8 +28,8 @@
 int main (int argc, char *argv [])
 {
 
-    if (argc != 5) {
-        printf ("Usage: remote <listen IP> <listen port> <\'global_locator\' IP> <\'global locator\' port>\n");
+    if (argc != 3) {
+        printf ("Usage: remote <\'global_locator\' IP> <\'global locator\' port>\n");
         return 1;
     }
 
@@ -41,7 +41,9 @@ int main (int argc, char *argv [])
     size_t msg_size;
     int msg_count;
 
-    perf::zmq_t transport (false, "Q", "E", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
+    perf::zmq_t transport (true, "QIN", "EOUT", argv [1], atoi (argv [2]), NULL, 0);
+
+    transport.send_sync_message ();
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
 

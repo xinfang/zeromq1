@@ -61,7 +61,8 @@ int main (int argc, char *argv [])
     printf ("receiver: listen %s:%i, GL %s:%i\n", argv [1], 
         atoi (argv [2]), argv [3], atoi (argv [4]));
 
-    perf::zmq_t transport (false, "Q", "ES", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
+    // Q0 message queue, ES sync exhange
+    perf::zmq_t transport (false, "Q0", "ES", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
 
     for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
    

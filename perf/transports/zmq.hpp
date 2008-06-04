@@ -89,7 +89,7 @@ namespace perf
 
         inline virtual void send_sync_message (void)
         {
-            assert (!sender);
+            //assert (!sender);
 
             void *msg = zmq::msg_alloc (1);
             api.send (exchange_id, msg);
@@ -111,7 +111,7 @@ namespace perf
 
         inline virtual size_t receive_sync_message (void)
         {
-            assert (sender);
+            //assert (sender);
 
             void *msg = api.receive ();
             assert (msg);

@@ -21,7 +21,7 @@
 #define TEST_MSG_SIZE_STEPS 15
 #define TEST_TIME 4000
 
-// MT test
+// MT test - OBSOLETE
 #define TEST_THREADS 1
 
 // latency test msg count denominator
