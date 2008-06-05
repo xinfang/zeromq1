@@ -94,6 +94,9 @@ int main (int argc, char *argv [])
         // write results to the main file
         fprintf (output, "%i %i %llu %llu\n", (int)msg_size, msg_count, start_time, stop_time);
 
+        // print result on the screen
+        printf ("Your average latency is %.2f us\n", (double)((stop_time - start_time) / 2) / msg_count);
+
         // delete files
         snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", 
             (int)msg_size, 0);
