@@ -109,6 +109,11 @@ int zmq::tcp_socket_t::get_fd ()
 size_t zmq::tcp_socket_t::write (const void *data, size_t size)
 {
     ssize_t nbytes = send (s, data, size, MSG_DONTWAIT);
+
+    //  Signalise peer failure
+    if (nbytes == -1 && errno == ECONNRESET)
+        return 0;
+
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
