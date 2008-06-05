@@ -17,13 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <netdb.h>
-
 #include "amqp09_listener.hpp"
 #include "amqp09_server_engine.hpp"
 
@@ -40,7 +33,8 @@ zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (poll_thread_t *thread_,
 zmq::amqp09_listener_t::amqp09_listener_t (poll_thread_t *thread_,
       const char *interface_, uint16_t port_, int handler_thread_count_,
       poll_thread_t **handler_threads_) :
-    context (thread_)
+    context (thread_),
+    listener (interface_, port_)
 {
     //  Initialise the array of threads to handle new connections
     assert (handler_thread_count_ > 0);
@@ -48,48 +42,17 @@ zmq::amqp09_listener_t::amqp09_listener_t (poll_thread_t *thread_,
         handler_threads.push_back (handler_threads_ [thread_nbr]);
     current_handler_thread = 0;
 
-    //  Create IP addess
-    struct addrinfo req;
-    memset (&req, 0, sizeof req);
-    struct addrinfo *res;
-    req.ai_family = AF_INET;
-    int rc = getaddrinfo (interface_, NULL, &req, &res);
-    assert (rc == 0);
-    sockaddr_in interface = *((sockaddr_in *)res->ai_addr);
-    freeaddrinfo (res);
-    interface.sin_port = htons (port_);
-
-    //  Create a listening socket
-    sock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    errno_assert (sock != -1);
-
-    //  Allow socket reusing
-    int flag = 1;
-    rc = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
-    errno_assert (rc == 0);
-
-    //  Bind the socket to the network interface and port
-    rc = bind (sock, (struct sockaddr*) &interface, sizeof (interface));
-    errno_assert (rc == 0);
-              
-    //  Start listening for incomming connections
-    rc = ::listen (sock, 1);
-    errno_assert (rc == 0);
-
     //  Register the listener with the polling thread
     thread_->register_engine (this);
 }
 
 zmq::amqp09_listener_t::~amqp09_listener_t ()
 {
-    //  Close the listening socket
-    int rc = close (sock);
-    errno_assert (rc == 0);
 }
 
 int zmq::amqp09_listener_t::get_fd ()
 {
-    return sock;
+    return listener.get_fd ();
 }
 
 short zmq::amqp09_listener_t::get_events ()
@@ -99,20 +62,11 @@ short zmq::amqp09_listener_t::get_events ()
 
 bool zmq::amqp09_listener_t::in_event ()
 {
-    //  Accept first incoming connection
-    int s = accept (sock, NULL, NULL);
-    errno_assert (s != -1);
-
-    //  Disable Nagle's algorithm
-    int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
-    errno_assert (rc == 0);
-
     //  Create the engine to take care of the socket
     //  TODO: make buffer size configurable by user
     amqp09_server_engine_t *engine = amqp09_server_engine_t::create (
         handler_threads [current_handler_thread],
-        s, 8192, 8192, "", "", "", "");
+        listener, 8192, 8192, "", "", "", "");
     assert (engine);
 
     //  Move to the next thread to get round-robin balancing of engines

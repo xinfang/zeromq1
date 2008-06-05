@@ -22,6 +22,7 @@
 
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
+#include "tcp_listener.hpp"
 
 namespace zmq
 {
@@ -59,7 +60,7 @@ namespace zmq
         int current_handler_thread;
 
         //  Listening socket
-        int sock;
+        tcp_listener_t listener;
     };
 
 }

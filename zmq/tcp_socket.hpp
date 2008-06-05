@@ -23,33 +23,32 @@
 #include <stddef.h>
 
 #include "stdint.hpp"
+#include "tcp_listener.hpp"
 
 namespace zmq
 {
 
-    //  Encapsulates simple TCP socket
+    //  The class encapsulating simple TCP read/write socket.
+
     class tcp_socket_t
     {
     public:
 
-        //  Attaches object to the existing socket
-        inline tcp_socket_t (int sock_) :
-            listening_socket (-1),
-            s (sock_)
-        {
-        }
+        //  Opens TCP socket. Connects to the host specified by
+        //  'address' and 'port' arguments. 
+        tcp_socket_t (const char *address_, uint16_t port_);
 
-        // Opens a TCP socket. Either connectes to the host specified by
-        // 'address' argument (when listen = false), or listens to the incoming
-        // connections on the network interface specified by 'address'
-        // (when listen = true).
-        tcp_socket_t (bool listen_, const char *address_, uint16_t port_);
-
-        //  Closes the socket
+        //  Opens a socket by accepting a connection from TCP listener object
+        tcp_socket_t (tcp_listener_t &listener);
+         
+        //  Closes the socket.
         ~tcp_socket_t ();
 
-        //  Returns the underlying raw socket
-        int get_fd ();
+        //  Returns the underlying socket.
+        inline int get_fd ()
+        {
+            return s;
+        }
 
         //  Writes as much data as possible to the socket. Returns the number
         //  of bytes actually written.
@@ -59,14 +58,15 @@ namespace zmq
         //  of bytes actually read.
         size_t read (void *data, size_t size);
 
-        //  Writes all the data to the socket
+        //  Writes all the data to the socket.
         void blocking_write (const void *data, size_t size);
 
-        //  Reads 'size' bytes from the socket
+        //  Reads 'size' bytes from the socket.
         void blocking_read (void *data, size_t size);
 
     private:
-        int listening_socket;
+
+        //  Underlying socket
         int s;
     };
 

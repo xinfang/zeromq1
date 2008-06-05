@@ -25,7 +25,7 @@
 #include "config.hpp"
 
 zmq::locator_t::locator_t (const char *address_, uint16_t port_) :
-    global_locator (false, address_, port_)
+    global_locator (address_, port_)
 {
     int rc = pthread_mutex_init (&sync, NULL);
     errno_assert (rc == 0);
@@ -126,7 +126,7 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, bp_out_batch_size, bp_in_batch_size,
+             address, port, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into exchange repository
@@ -232,7 +232,7 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, bp_out_batch_size, bp_in_batch_size,
+             address, port, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into queue repository

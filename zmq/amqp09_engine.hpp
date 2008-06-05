@@ -30,6 +30,7 @@
 #include "amqp09_decoder.hpp"
 #include "amqp09_unmarshaller.hpp"
 #include "tcp_socket.hpp"
+#include "tcp_listener.hpp"
 
 #include <sys/poll.h>
 
@@ -52,7 +53,7 @@ namespace zmq
         typedef F fsm_t;
 
         //  Creates amqp09_engine and attaches it to dispatcher.
-        //  Underlying TCP connection is initialised using listen, address
+        //  Underlying TCP connection is initialised using address
         //  and port parameters. source_engine_id specifies which engine
         //  to get messages from to be send to the socket, destination_engine_id
         //  specified which engine to send incoming messages to. writebuf_size
@@ -61,27 +62,28 @@ namespace zmq
         //  routing key on outgoing messages. in_exchange and on in_routing_key
         //  are used to subscribe for incoming messages.
         static amqp09_engine_t *create (poll_thread_t *thread_,
-            bool listen_, const char *address_, uint16_t port_,
+            const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
         {
             amqp09_engine_t *instance = new amqp09_engine_t (thread_,
-                listen_, address_, port_, writebuf_size_, readbuf_size_,
+                address_, port_, writebuf_size_, readbuf_size_,
                 out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
             assert (instance);
             return instance;
         }
 
-        //  Opens AMQP engine using existing socket. For the description of
-        //  the remaining parameters have a look above
+        //  Opens AMQP engine by accepting connection from the listener.
+        //  For the description of the remaining parameters have a look above.
         static amqp09_engine_t *create (poll_thread_t *thread_,
-            int socket_, size_t writebuf_size_, size_t readbuf_size_,
+            tcp_listener_t &listener_,
+            size_t writebuf_size_, size_t readbuf_size_,
             const char *out_exchange_, const char *out_routing_key_,
             const char *in_exchange_, const char *in_routing_key_)
         {
             amqp09_engine_t *instance = new amqp09_engine_t (thread_,
-                socket_, writebuf_size_, readbuf_size_,
+                listener_, writebuf_size_, readbuf_size_,
                 out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
             assert (instance);
             return instance;
@@ -214,12 +216,12 @@ namespace zmq
     private:
 
         amqp09_engine_t (poll_thread_t *thread_,
-              bool listen_, const char *address_, uint16_t port_,
+              const char *address_, uint16_t port_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             context (thread_),
-            socket (listen_, address_, port_),
+            socket (address_, port_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
@@ -239,12 +241,12 @@ namespace zmq
             thread_->register_engine (this);
         }
 
-        amqp09_engine_t (poll_thread_t *thread_, int socket_,
+        amqp09_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
               size_t writebuf_size_, size_t readbuf_size_,
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             context (thread_),
-            socket (socket_),
+            socket (listener_),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),

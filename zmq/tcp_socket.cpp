@@ -27,12 +27,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
-#include <stdint.hpp>
 
 #include "err.hpp"
 
-zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
-    uint16_t port_)
+zmq::tcp_socket_t::tcp_socket_t (const char *address_, uint16_t port_)
 {
     //  Create IP addess
     struct addrinfo req;
@@ -41,48 +39,17 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     req.ai_family = AF_INET;
     int rc = getaddrinfo (address_, NULL, &req, &res);
     assert (rc == 0);
-    sockaddr_in ip_address = *((sockaddr_in *)res->ai_addr);
+    sockaddr_in ip_address = *((sockaddr_in *) res->ai_addr);
     freeaddrinfo (res);
     ip_address.sin_port = htons (port_);
 
-    if (listen_) {
+    //  Create the socket
+    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    errno_assert (s != -1);
 
-        //  Create a listening socket
-        listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        errno_assert (listening_socket != -1);
-
-        //  Allow socket reusing
-        int flag = 1;
-        rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
-            &flag, sizeof (int));
-        errno_assert (rc == 0);
-
-        //  Bind the socket to the network interface and port
-        rc = bind (listening_socket, (struct sockaddr*) &ip_address, 
-            sizeof (ip_address));
-        errno_assert (rc == 0);
-              
-        //  Listen for incomming connections
-        rc = ::listen (listening_socket, 1);
-        errno_assert (rc == 0);
-
-        //  Accept first incoming connection
-        s = accept (listening_socket, NULL, NULL);
-        errno_assert (s != -1);
-    }
-    else {
-
-        //  Mark listening socket as unused
-        listening_socket = -1;
-
-        //  Create the socket
-        s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        errno_assert (s != -1);
-
-        //  Connect to the remote peer
-        rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
-        errno_assert (rc != -1);
-    }
+    //  Connect to the remote peer
+    rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    errno_assert (rc != -1);
 
     //  Disable Nagle's algorithm
     int flag = 1;
@@ -90,20 +57,22 @@ zmq::tcp_socket_t::tcp_socket_t (bool listen_, const char *address_,
     errno_assert (rc == 0);
 }
 
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
+{
+    //  Accept the socket
+    s = listener.accept ();
+    errno_assert (s != -1);
+
+    //  Disable Nagle's algorithm
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
+    errno_assert (rc == 0);
+}
+
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = close (s);
     errno_assert (rc == 0);
-
-    if (listening_socket != -1) {
-        rc = close (listening_socket);
-        errno_assert (rc == 0);
-    }
-}
-
-int zmq::tcp_socket_t::get_fd ()
-{
-    return s;
 }
 
 size_t zmq::tcp_socket_t::write (const void *data, size_t size)

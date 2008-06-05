@@ -22,35 +22,34 @@
 #include "bp_engine.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    bool listen_, const char *address_, uint16_t port_,
-    size_t writebuf_size_, size_t readbuf_size_, const char *local_object_)
+    const char *address_, uint16_t port_, size_t writebuf_size_,
+    size_t readbuf_size_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_,
-        local_object_);
+        thread_, address_, port_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    int socket_, size_t writebuf_size_, size_t readbuf_size_,
+    tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
     const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, socket_, writebuf_size_, readbuf_size_, local_object_);
+        thread_, listener_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
-      bool listen_, const char *address_, uint16_t port_,
-      size_t writebuf_size_, size_t readbuf_size_, const char *local_object_) :
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *address_,
+      uint16_t port_, size_t writebuf_size_, size_t readbuf_size_,
+      const char *local_object_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
-    socket (listen_, address_, port_),
+    socket (address_, port_),
     events (POLLIN),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
@@ -66,12 +65,13 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     thread_->register_engine (this);
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
-      size_t writebuf_size_, size_t readbuf_size_, const char *local_object_) :
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
+      tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
+      const char *local_object_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
-    socket (socket_),
+    socket (listener_),
     events (POLLIN),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),

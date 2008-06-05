@@ -47,7 +47,8 @@ pkginclude_HEADERS = \
     scope.hpp \
     global_locator.hpp \
     config.hpp \
-    yqueue.hpp
+    yqueue.hpp \
+    tcp_listener.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -73,7 +74,8 @@ libzmq_la_SOURCES = $pkginclude_HEADERS \
     pipe.cpp \
     bp_listener.cpp \
     amqp09_listener.cpp \
-    locator.cpp
+    locator.cpp \
+    tcp_listener.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 

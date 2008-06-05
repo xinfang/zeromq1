@@ -30,6 +30,7 @@
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
+#include "tcp_listener.hpp"
 
 namespace zmq
 {
@@ -46,14 +47,13 @@ namespace zmq
         //  listen, address and port parameters. writebuf_size
         //  and readbuf_size determine the amount of batching to use.
         static bp_engine_t *create (poll_thread_t *thread_,
-            bool listen_, const char *address_,
-            uint16_t port_, size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_);
+            const char *address_, uint16_t port_, size_t writebuf_size_,
+            size_t readbuf_size_, const char *local_object_);
 
-        //  Creates bp_engine over existing connection
+        //  Creates bp_engine from supplied listener object
         static bp_engine_t *create (poll_thread_t *thread_,
-            int socket_, size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_);
+            tcp_listener_t &listener_, size_t writebuf_size_,
+            size_t readbuf_size_, const char *local_object_);
 
         //  i_pollable interface implementation
         int get_fd ();
@@ -66,10 +66,10 @@ namespace zmq
     private:
 
         bp_engine_t (poll_thread_t *thread_,
-            bool listen_, const char *address_, uint16_t port_,
+            const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
-        bp_engine_t (poll_thread_t *thread_, int socket_,
+        bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
         ~bp_engine_t ();
