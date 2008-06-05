@@ -50,78 +50,30 @@ pkginclude_HEADERS = \
     yqueue.hpp
 
 lib_LTLIBRARIES = libzmq.la
-libzmq_la_SOURCES = \
-    tcp_socket.hpp \
+
+libzmq_la_SOURCES = $pkginclude_HEADERS \
     tcp_socket.cpp \
-    ysocketpair.hpp \
     ysocketpair.cpp \
-    atomic_ptr.hpp \
-    atomic_bitmap.hpp \
-    atomic_counter.hpp \
-    err.hpp \
-    wire.hpp \
-    ypipe.hpp \
-    ypollset.hpp \
     ypollset.cpp \
-    ysemaphore.hpp \
-    ysocketpair.hpp \
-    i_signaler.hpp \
-    ysemaphore.hpp \
     ysemaphore.cpp \
-    dispatcher.hpp \
     dispatcher.cpp \
-    decoder.hpp \
-    bp_decoder.hpp \
     bp_decoder.cpp \
-    encoder.hpp \
-    bp_encoder.hpp \
     bp_encoder.cpp \
-    api_engine.hpp \
     api_engine.cpp \
-    poll_thread.hpp \
     poll_thread.cpp \
-    platform.hpp \
-    stdint.hpp \
-    free_fn.hpp \
-    bp_engine.hpp \
     bp_engine.cpp \
-    i_pollable.hpp \
-    amqp09_encoder.hpp \
     amqp09_encoder.cpp \
-    amqp09_decoder.hpp \
     amqp09_decoder.cpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
     amqp09_client_fsm.cpp \
-    amqp09_server_fsm.hpp \
     amqp09_server_fsm.cpp \
-    i_amqp09.hpp \
-    amqp09_marshaller.hpp \
     amqp09_marshaller.cpp \
-    amqp09_unmarshaller.hpp \
     amqp09_unmarshaller.cpp \
-    command.hpp \
-    mux.hpp \
     mux.cpp \
-    demux.hpp \
     demux.cpp \
-    msg.hpp \
-    i_context.hpp \
-    pipe.hpp \
     pipe.cpp \
-    bp_listener.hpp \
     bp_listener.cpp \
-    amqp09_listener.hpp \
     amqp09_listener.cpp \
-    locator.hpp \
-    locator.cpp \
-    amqp09_client_engine.hpp \
-    amqp09_server_engine.hpp \
-    i_engine.hpp \
-    scope.hpp \
-    global_locator.hpp \
-    config.hpp \
-    yqueue.hpp
+    locator.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 
