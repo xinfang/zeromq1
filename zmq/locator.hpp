@@ -57,7 +57,7 @@ namespace zmq
         //  Returns false if the exchange is unknown
         bool get_exchange (const char *exchange_,
             i_context **context_, i_engine **engine_,
-            class poll_thread_t *thread_);
+            class poll_thread_t *thread_, const char *local_object_);
 
         //  Creates queue
         void create_queue (const char *exchange_,
@@ -70,7 +70,7 @@ namespace zmq
         //  Returns false if the queue is unknown
         bool get_queue (const char *exchange_,
             i_context **context_, i_engine **engine_,
-            class poll_thread_t *thread_);
+            class poll_thread_t *thread_, const char *local_object_);
 
     private:
 

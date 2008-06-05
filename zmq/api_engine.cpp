@@ -109,7 +109,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     }
     else {
         if (!(dispatcher->get_locator ().get_exchange (exchange_,
-              &exchange_context, &exchange_engine, exchange_thread_))) {
+              &exchange_context, &exchange_engine, exchange_thread_, queue_))) {
 #ifdef ZMQ_DEBUG
             printf ("Exchange %s cannot be found.\n", exchange_);
 #endif
@@ -130,7 +130,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     }
     else {
         if (!(dispatcher->get_locator ().get_queue (queue_,
-              &queue_context, &queue_engine, queue_thread_))) {
+              &queue_context, &queue_engine, queue_thread_, exchange_))) {
 #ifdef ZMQ_DEBUG
             printf ("Queue %s cannot be found.\n", queue_);
 #endif

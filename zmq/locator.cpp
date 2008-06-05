@@ -88,7 +88,7 @@ void zmq::locator_t::create_exchange (const char *exchange_,
 }
 
 bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
-    i_engine **engine_, poll_thread_t *thread_)
+    i_engine **engine_, poll_thread_t *thread_, const char *local_object_)
 {
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
@@ -130,7 +130,7 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
              false, address, port, bp_out_batch_size, bp_in_batch_size,
-             exchange_);
+             local_object_);
 
          //  Write it into exchange repository
          exchange_info_t info = {thread_, engine};
@@ -195,7 +195,7 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
 }
 
 bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
-    i_engine **engine_, poll_thread_t *thread_)
+    i_engine **engine_, poll_thread_t *thread_, const char *local_object_)
 {
     //  Enter critical section
     int rc = pthread_mutex_lock (&sync);
@@ -235,7 +235,8 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, bp_out_batch_size, bp_in_batch_size, queue_);
+             false, address, port, bp_out_batch_size, bp_in_batch_size,
+             local_object_);
 
          //  Write it into queue repository
          queue_info_t info = {thread_, engine};
