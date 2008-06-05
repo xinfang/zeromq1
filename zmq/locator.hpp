@@ -32,9 +32,9 @@
 namespace zmq
 {
 
-    //  TODO: remove the circular reference between the dispatcher
-    //  and the locator
-    class dispatcher_t;
+    //  Locator class locates resources in the scope of the process.
+    //  If the resource cannot be found, it asks global locator service
+    //  to find it on the network.
 
     class locator_t
     {
@@ -42,8 +42,7 @@ namespace zmq
 
         //  Creates the local locator and connects it to the global locator
         //  identified by 'address' and 'port' paramters.
-        locator_t (dispatcher_t *dispatcher_, const char *address_,
-            uint16_t port_);
+        locator_t (const char *address_, uint16_t port_);
         ~locator_t ();
 
         //  Creates exchange
@@ -73,8 +72,6 @@ namespace zmq
             class poll_thread_t *thread_, const char *local_object_);
 
     private:
-
-        dispatcher_t *dispatcher;
 
         struct exchange_info_t
         {

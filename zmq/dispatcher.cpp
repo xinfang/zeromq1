@@ -29,7 +29,7 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_,const char *address_,
     thread_count (thread_count_ + 1),
     signalers (thread_count, (i_signaler*) NULL),
     used (thread_count, false),
-    locator (this, address_, port_)
+    locator (address_, port_)
 {
     //  Alocate N * N matrix of dispatching pipes
     pipes = new command_pipe_t [thread_count * thread_count];
@@ -63,7 +63,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
     std::vector <bool>::iterator it = std::find (used.begin (),
         used.end (), false);
 
-    //  No more IDs are available!
+    //  No more thread IDs are available!
     assert (it != used.end ());
 
     //  Mark the thread ID as used

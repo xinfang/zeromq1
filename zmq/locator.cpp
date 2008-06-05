@@ -20,14 +20,11 @@
 #include <arpa/inet.h>
 
 #include "locator.hpp"
-#include "dispatcher.hpp"
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::locator_t::locator_t (dispatcher_t *dispatcher_, const char *address_,
-      uint16_t port_) :
-    dispatcher (dispatcher_),
+zmq::locator_t::locator_t (const char *address_, uint16_t port_) :
     global_locator (false, address_, port_)
 {
     int rc = pthread_mutex_init (&sync, NULL);
