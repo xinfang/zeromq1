@@ -20,6 +20,8 @@
 #ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
 
+#include <string>
+
 #include "i_engine.hpp"
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
@@ -45,11 +47,13 @@ namespace zmq
         //  and readbuf_size determine the amount of batching to use.
         static bp_engine_t *create (poll_thread_t *thread_,
             bool listen_, const char *address_,
-            uint16_t port_, size_t writebuf_size_, size_t readbuf_size_);
+            uint16_t port_, size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
 
         //  Creates bp_engine over existing connection
         static bp_engine_t *create (poll_thread_t *thread_,
-            int socket_, size_t writebuf_size_, size_t readbuf_size_);
+            int socket_, size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
 
         //  i_pollable interface implementation
         int get_fd ();
@@ -63,9 +67,11 @@ namespace zmq
 
         bp_engine_t (poll_thread_t *thread_,
             bool listen_, const char *address_, uint16_t port_,
-            size_t writebuf_size_, size_t readbuf_size_);
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
         bp_engine_t (poll_thread_t *thread_, int socket_,
-            size_t writebuf_size_, size_t readbuf_size_);
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
         ~bp_engine_t ();
 
         //  Thread context the engine belongs to
@@ -89,6 +95,10 @@ namespace zmq
 
         short events;
         bool socket_error;
+
+        //  Name of the object on this side of the connection
+        //  (exchange or queue)
+        std::string local_object;
     };
 
 }

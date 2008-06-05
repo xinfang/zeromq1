@@ -23,20 +23,22 @@
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     bool listen_, const char *address_, uint16_t port_,
-    size_t writebuf_size_, size_t readbuf_size_)
+    size_t writebuf_size_, size_t readbuf_size_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_);
+        thread_, listen_, address_, port_, writebuf_size_, readbuf_size_,
+        local_object_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    int socket_, size_t writebuf_size_, size_t readbuf_size_)
+    int socket_, size_t writebuf_size_, size_t readbuf_size_,
+    const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, socket_, writebuf_size_, readbuf_size_);
+        thread_, socket_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
@@ -44,7 +46,7 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
       bool listen_, const char *address_, uint16_t port_,
-      size_t writebuf_size_, size_t readbuf_size_) :
+      size_t writebuf_size_, size_t readbuf_size_, const char *local_object_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
@@ -54,7 +56,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
-    socket_error (false)
+    socket_error (false),
+    local_object (local_object_)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -64,7 +67,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
 }
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
-      size_t writebuf_size_, size_t readbuf_size_) :
+      size_t writebuf_size_, size_t readbuf_size_, const char *local_object_) :
     context (thread_),
     encoder (&mux),
     decoder (&demux),
@@ -74,7 +77,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, int socket_,
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
-    socket_error (false)
+    socket_error (false),
+    local_object (local_object_)
 {
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
@@ -158,7 +162,7 @@ void zmq::bp_engine_t::close_event()
         //  If error handler returns true, the error is ignored           
         error_handler_t *eh = get_error_handler ();
         assert (eh);
-        if (!eh ())
+        if (!eh (local_object.c_str ()))
             assert (false);
 
         // notify all our receivers that this engine

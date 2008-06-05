@@ -127,7 +127,7 @@ bool zmq::bp_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
         handler_threads [current_handler_thread], s,
-        bp_out_batch_size, bp_in_batch_size);
+        bp_out_batch_size, bp_in_batch_size, peer_name);
     assert (engine);
 
     if (source) {

@@ -129,7 +129,8 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, bp_out_batch_size, bp_in_batch_size);
+             false, address, port, bp_out_batch_size, bp_in_batch_size,
+             exchange_);
 
          //  Write it into exchange repository
          exchange_info_t info = {thread_, engine};
@@ -234,7 +235,7 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             false, address, port, bp_out_batch_size, bp_in_batch_size);
+             false, address, port, bp_out_batch_size, bp_in_batch_size, queue_);
 
          //  Write it into queue repository
          queue_info_t info = {thread_, engine};
