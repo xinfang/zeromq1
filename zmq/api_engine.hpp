@@ -32,7 +32,7 @@
 #include "demux.hpp"
 #include "ypollset.hpp"
 #include "scope.hpp"
-#include "locator.hpp"
+#include "i_locator.hpp"
 
 namespace zmq
 {
@@ -45,7 +45,7 @@ namespace zmq
     public:
         //  Creates API engine and attaches it to the command dispatcher and
         //  resource locator.
-        api_engine_t (dispatcher_t *dispatcher_, locator_t *locator_);
+        api_engine_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
         //  Destroys API engine
         ~api_engine_t ();
@@ -110,7 +110,7 @@ namespace zmq
 
         int ticks;
         dispatcher_t *dispatcher;
-        locator_t *locator;
+        i_locator *locator;
         int thread_id;
         ypollset_t pollset;
 

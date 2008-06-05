@@ -23,6 +23,7 @@
 #include "../interfaces/i_transport.hpp"
 
 #include "../../zmq/dispatcher.hpp"
+#include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/bp_engine.hpp"
 #include "../../zmq/poll_thread.hpp"

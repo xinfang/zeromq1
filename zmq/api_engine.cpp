@@ -20,7 +20,7 @@
 #include "api_engine.hpp"
 
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_,
-      locator_t *locator_) :
+      i_locator *locator_) :
     ticks (0),
     dispatcher (dispatcher_),
     locator (locator_),

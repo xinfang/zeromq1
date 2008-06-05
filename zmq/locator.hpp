@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 
+#include "i_locator.hpp"
 #include "i_engine.hpp"
 #include "i_context.hpp"
 #include "tcp_socket.hpp"
@@ -36,7 +37,7 @@ namespace zmq
     //  If the resource cannot be found, it asks global locator service
     //  to find it on the network.
 
-    class locator_t
+    class locator_t : public i_locator
     {
     public:
 
@@ -49,27 +50,27 @@ namespace zmq
         void create_exchange (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *address_, uint16_t port_,
-            class poll_thread_t *listener_thread_,
-            int handler_thread_count_, class poll_thread_t **handler_threads_);
+            poll_thread_t *listener_thread_, int handler_thread_count_,
+            poll_thread_t **handler_threads_);
 
         //  Gets the engine that handles specified exchange
         //  Returns false if the exchange is unknown
         bool get_exchange (const char *exchange_,
             i_context **context_, i_engine **engine_,
-            class poll_thread_t *thread_, const char *local_object_);
+            poll_thread_t *thread_, const char *local_object_);
 
         //  Creates queue
         void create_queue (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *address_, uint16_t port_,
-            class poll_thread_t *listener_thread_,
-            int handler_thread_count_, class poll_thread_t **handler_threads_);
+            poll_thread_t *listener_thread_, int handler_thread_count_,
+            poll_thread_t **handler_threads_);
 
         //  Gets the engine that handles specified queue
         //  Returns false if the queue is unknown
         bool get_queue (const char *exchange_,
             i_context **context_, i_engine **engine_,
-            class poll_thread_t *thread_, const char *local_object_);
+            poll_thread_t *thread_, const char *local_object_);
 
     private:
 

@@ -21,6 +21,7 @@
 #include <queue>
 
 #include "../../zmq/dispatcher.hpp"
+#include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/msg.hpp"
