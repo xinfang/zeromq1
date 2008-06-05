@@ -32,6 +32,7 @@
 #include "demux.hpp"
 #include "ypollset.hpp"
 #include "scope.hpp"
+#include "locator.hpp"
 
 namespace zmq
 {
@@ -42,9 +43,9 @@ namespace zmq
     class api_engine_t : private i_context, private i_engine
     {
     public:
-        //  Creates API engine and attaches it to the command dispatcher
-        //  If admin is set to true, engine won't subscribe for any messages
-        api_engine_t (dispatcher_t *dispatcher_);
+        //  Creates API engine and attaches it to the command dispatcher and
+        //  resource locator.
+        api_engine_t (dispatcher_t *dispatcher_, locator_t *locator_);
 
         //  Destroys API engine
         ~api_engine_t ();
@@ -109,6 +110,7 @@ namespace zmq
 
         int ticks;
         dispatcher_t *dispatcher;
+        locator_t *locator;
         int thread_id;
         ypollset_t pollset;
 

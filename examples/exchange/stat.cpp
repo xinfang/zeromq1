@@ -108,8 +108,9 @@ int main (int argc, char *argv [])
     }
 
     //  Initialise 0MQ infrastructure
-    zmq::dispatcher_t dispatcher (2, argv [1], atoi (argv [2]));
-    zmq::api_engine_t api (&dispatcher);
+    zmq::dispatcher_t dispatcher (2);
+    zmq::locator_t locator (argv [1], atoi (argv [2]));
+    zmq::api_engine_t api (&dispatcher, &locator);
     zmq::poll_thread_t pt (&dispatcher);
     zmq::poll_thread_t *pt_array = {&pt};
 

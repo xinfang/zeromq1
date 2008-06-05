@@ -18,6 +18,7 @@
 */
 
 #include "../../zmq/dispatcher.hpp"
+#include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/msg.hpp"
@@ -34,8 +35,8 @@ class sender_t
 {
 public:
 
-    inline sender_t (zmq::dispatcher_t *dispatcher) :
-        api (dispatcher),
+    inline sender_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
+        api (dispatcher, locator),
         pt (dispatcher),
         meter (500000, 1)
     {
@@ -115,8 +116,8 @@ class receiver_t
 {
 public:
 
-    receiver_t (zmq::dispatcher_t *dispatcher) :
-        api (dispatcher),
+    receiver_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
+        api (dispatcher, locator),
         pt (dispatcher),
         meter (500000, 4),
         last_timestamp (0)
@@ -210,6 +211,7 @@ private:
 struct sender_routine_args_t
 {
     zmq::dispatcher_t *dispatcher;
+    zmq::locator_t *locator;
     int order_rate;
 };
 
@@ -218,7 +220,7 @@ void *sender_routine (void *arg)
 {
     //  Start the sender with the rate of X orders per second
     sender_routine_args_t *args = (sender_routine_args_t*) arg;
-    sender_t sender (args->dispatcher);
+    sender_t sender (args->dispatcher, args->locator);
     sender.run (args->order_rate);
     return NULL;
 }
@@ -235,16 +237,19 @@ int main (int argc, char *argv [])
     estimate_cpu_frequency ();
 
     //  Create the shared message dispatcher
-    zmq::dispatcher_t dispatcher (4, argv [1], atoi (argv [2]));
+    zmq::dispatcher_t dispatcher (4);
+
+    //  Create a resource locator
+    zmq::locator_t locator (argv [1], atoi (argv [2]));
 
     //  Run the sender thread
     pthread_t sender_thread;
-    sender_routine_args_t args = {&dispatcher, atoi (argv [3])};
+    sender_routine_args_t args = {&dispatcher, &locator, atoi (argv [3])};
     int rc = pthread_create (&sender_thread, NULL, sender_routine, &args);
     assert (rc == 0);
 
     //  Run the receiving loop
-    receiver_t receiver (&dispatcher);
+    receiver_t receiver (&dispatcher, &locator);
     receiver.run ();
 
     return 0;

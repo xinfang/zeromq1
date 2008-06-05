@@ -36,8 +36,9 @@ public:
 
     inline me_t (const char *address, uint16_t port, const char *in_address,
           const char *out_address) :
-        dispatcher (3, address, port),
-        api (&dispatcher),
+        dispatcher (3),
+        locator (address, port),
+        api (&dispatcher, &locator),
         pt_in (&dispatcher),
         pt_out (&dispatcher),
 	in_meter (500000, 2),
@@ -141,6 +142,7 @@ private:
 
    matching_engine_t me;
    zmq::dispatcher_t dispatcher;
+   zmq::locator_t locator;
    zmq::api_engine_t api;
    zmq::poll_thread_t pt_in;
    zmq::poll_thread_t pt_out;

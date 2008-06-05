@@ -26,7 +26,6 @@
 #include "i_context.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
-#include "locator.hpp"
 #include "config.hpp"
 
 namespace zmq
@@ -55,8 +54,7 @@ namespace zmq
         //  one administrative thread). The administrative thread is
         //  specific in that it is synchronised and can be used from any
         //  thread whatsoever.
-        //  'address' and 'port' paramters specify the global locator to use.
-        dispatcher_t (int thread_count_, const char *address_, uint16_t port_);
+        dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object
         ~dispatcher_t ();
@@ -100,13 +98,6 @@ namespace zmq
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
 
-        //  Get locator reference
-        //  TODO: Is this the right place to place locator?
-        inline class locator_t &get_locator ()
-        {
-            return locator;
-        }
-
     private:
 
         typedef ypipe_t <command_t, true,
@@ -126,9 +117,6 @@ namespace zmq
         std::vector <bool> used;
         pthread_mutex_t mutex;
 
-        //  TODO: Locator is at the moment embedded in the dispatcher -
-        //  We should find a better place for it
-        locator_t locator;
     };
 
     //  Hack to report connection breakages to the client

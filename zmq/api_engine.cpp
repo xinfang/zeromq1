@@ -19,9 +19,11 @@
 
 #include "api_engine.hpp"
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_) :
+zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_,
+      locator_t *locator_) :
     ticks (0),
     dispatcher (dispatcher_),
+    locator (locator_),
     current_queue (0),
     dirty (false)
 {
@@ -56,7 +58,7 @@ int zmq::api_engine_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator
-    dispatcher->get_locator ().create_exchange (exchange_, this, this,
+    locator->create_exchange (exchange_, this, this,
         scope_, address_, port_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -83,7 +85,7 @@ int zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size () - 1;
 
     //  Register the queue with the locator
-    dispatcher->get_locator ().create_queue (queue_, this, this, scope_,
+    locator->create_queue (queue_, this, this, scope_,
         address_, port_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -108,7 +110,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
         exchange_engine = this;
     }
     else {
-        if (!(dispatcher->get_locator ().get_exchange (exchange_,
+        if (!(locator->get_exchange (exchange_,
               &exchange_context, &exchange_engine, exchange_thread_, queue_))) {
 #ifdef ZMQ_DEBUG
             printf ("Exchange %s cannot be found.\n", exchange_);
@@ -129,7 +131,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
         queue_engine = this;
     }
     else {
-        if (!(dispatcher->get_locator ().get_queue (queue_,
+        if (!(locator->get_queue (queue_,
               &queue_context, &queue_engine, queue_thread_, exchange_))) {
 #ifdef ZMQ_DEBUG
             printf ("Queue %s cannot be found.\n", queue_);

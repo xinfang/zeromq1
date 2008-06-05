@@ -38,8 +38,9 @@ namespace perf
               const char *listen_ip_, unsigned short listen_port_, 
               unsigned int thread_count_ = 2) :
             thread_count (thread_count_), sender (sender_),
-            dispatcher (thread_count, locator_ip_, locator_port_),
-            api (&dispatcher),
+            dispatcher (thread_count),
+            locator (locator_ip_, locator_port_),
+            api (&dispatcher, &locator),
             worker (&dispatcher)
         {
 //            printf ("locator %s/%i, listen %s/%i\n", locator_ip_, locator_port_, 
@@ -130,6 +131,7 @@ namespace perf
         unsigned int thread_count;
         bool sender;
         zmq::dispatcher_t dispatcher;
+        zmq::locator_t locator;
         zmq::api_engine_t api;
         zmq::poll_thread_t worker;
 	int exchange_id;
