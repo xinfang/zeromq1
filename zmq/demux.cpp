@@ -31,3 +31,53 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
 {
     pipes.push_back (pipe_);
 }
+
+void zmq::demux_t::write (void *msg_)
+{
+    //  Optimisation for the case where's there only a single pipe
+    //  to send the message to - no refcount adjustment (i.e. atomic
+    //  operations) needed.
+    if (pipes.size () == 1) {
+        (*pipes.begin ())->write (msg_);
+        return;
+    }
+
+    //  TODO: optimise this to send the existing message to the first pipe
+    //        and copies to the remaining pipes.
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
+        void *msg = msg_safe_copy (msg_); 
+        (*it)->write (msg);
+    }
+    msg_dealloc (msg_);
+}
+
+void zmq::demux_t::flush ()
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        (*it)->flush ();
+}
+
+void zmq::demux_t::terminate_pipes () 
+{
+    //  Write delimiters to the pipes
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
+        (*it)->write (NULL);
+        (*it)->flush ();
+    }
+
+    //  Remove all pointers to pipes
+    pipes.clear ();
+}
+
+void zmq::demux_t::destroy_pipe (pipe_t *pipe_)
+{
+    //  Find the pipe
+    pipes_t::iterator it = std::find (pipes.begin (), pipes.end (), pipe_);
+
+    //  Send delimiter to the pipe and drop the pointer
+    if (it != pipes.end ()) {
+        pipe_->write (NULL);
+        pipe_->flush ();
+        pipes.erase (it);
+    }
+}

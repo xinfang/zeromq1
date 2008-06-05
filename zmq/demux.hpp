@@ -36,59 +36,20 @@ namespace zmq
         demux_t ();
         ~demux_t ();
 
+        //  Start sending messages to the specified pipe
         void send_to (pipe_t *pipe_);
 
-        inline void write (void *msg_)
-        {
-            //  Optimisation for the case where's there only a single pipe
-            //  to send the message to - no refcount adjustment (i.e. atomic
-            //  operations) needed.
-            if (pipes.size () == 1) {
-                (*pipes.begin ())->write (msg_);
-                return;
-            }
+        //  Send the message (actual send is delayed till next flush)
+        void write (void *msg_);
 
-            for (pipes_t::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
-                void *msg = msg_safe_copy (msg_); 
-                (*it)->write (msg);
-            }
-            msg_dealloc (msg_);
-        }
+        //  Flush the messages
+        void flush ();
 
-        inline void flush ()
-        {
-            for (pipes_t::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++)
-                (*it)->flush ();
-        }
+        //  Write a delimiter to each pipe
+        void terminate_pipes ();
 
-        inline void terminate_pipes () 
-        {
-            //  Write delimiters to the pipes
-            for (pipes_t::iterator it = pipes.begin ();
-                  it != pipes.end (); it ++) {
-                (*it)->write (NULL);
-                (*it)->flush ();
-            }
-
-            //  Remove all pointers to pipes
-            pipes.clear ();
-        }
-
-        inline void destroy_pipe (pipe_t *pipe_)
-        {
-            //  Find the pipe
-            pipes_t::iterator it = 
-                std::find (pipes.begin (), pipes.end (), pipe_);
-
-            //  Send delimiter to the pipe and drop the pointer
-            if (it != pipes.end ()) {
-                pipe_->write (NULL);
-                pipe_->flush ();
-                pipes.erase (it);
-            }
-        }
+        //  Write a delimiter to the specified pipe
+        void destroy_pipe (pipe_t *pipe_);
 
     private:
 
