@@ -250,14 +250,14 @@ namespace zmq
             readbuf_size (readbuf_size_),
             write_size (0),
             write_pos (0),
+            socket (listener_),
+            events (POLLIN | POLLOUT),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
             encoder (&mux, &marshaller, fsm.server (),
                 out_exchange_, out_routing_key_),
-            decoder (&demux, &unmarshaller, fsm.server ()),
-            socket (listener_),
-            events (POLLIN | POLLOUT)
+            decoder (&demux, &unmarshaller, fsm.server ())
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
             assert (writebuf);
