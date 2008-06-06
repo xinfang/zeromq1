@@ -24,6 +24,7 @@
 #include <string>
 
 #include "stdint.hpp"
+#include "i_context.hpp"
 #include "i_amqp09.hpp"
 #include "amqp09_marshaller.hpp"
 #include "amqp09_engine.hpp"
@@ -41,7 +42,7 @@ namespace zmq
         //  Create the state machine over the supplied TCP socket. Interconnect
         //  it with AMQP marshaller and AMQP engine. Store in-exchange and
         //  in-routing-key so that you can subscribe for messages later on.
-        amqp09_client_fsm_t (tcp_socket_t *socket_,
+        amqp09_client_fsm_t (i_context *context_, tcp_socket_t *socket_,
               amqp09_marshaller_t *marshaller_,
               amqp09_engine_t <amqp09_client_fsm_t> *engine_,
               const char *in_exchange_, const char *in_routing_key_);
@@ -88,6 +89,8 @@ namespace zmq
             expect_basic_consume_ok,
             active
         };
+
+        i_context *context;
 
         state_t state;
 

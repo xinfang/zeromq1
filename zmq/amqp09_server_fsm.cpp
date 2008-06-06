@@ -19,12 +19,15 @@
 
 #include "amqp09_server_fsm.hpp"
 
-zmq::amqp09_server_fsm_t::amqp09_server_fsm_t (tcp_socket_t *socket_,
-      amqp09_marshaller_t *marshaller_,
+zmq::amqp09_server_fsm_t::amqp09_server_fsm_t (i_context *context_,
+      tcp_socket_t *socket_, amqp09_marshaller_t *marshaller_,
       amqp09_engine_t <amqp09_server_fsm_t> *engine_,
-      const char *in_exchange_, const char *in_routing_key_) :
+      locator_t *locator_) :
+    context (context_),
     marshaller (marshaller_),
-    engine (engine_)
+    engine (engine_),
+    locator (locator_),
+    queue_id (0)
 {
     //  Read AMQP protocol header from the supplied socket. This is done in
     //  a blocking manner. The rest of AMQP communication is done in
@@ -101,6 +104,32 @@ void zmq::amqp09_server_fsm_t::channel_open (
     engine->flow (true);
 }
 
+void zmq::amqp09_server_fsm_t::exchange_declare (
+    uint16_t ticket_,
+    const i_amqp09::shortstr_t exchange_,
+    const i_amqp09::shortstr_t type_,
+    bool passive_,
+    bool durable_,
+    bool auto_delete_,
+    bool internal_,
+    bool nowait_,
+    const i_amqp09::field_table_t &arguments_)
+{
+    assert (state == active);
+
+    std::string exchange (exchange_.data, exchange_.size);
+    std::string type (type_.data, type_.size);
+
+    //  Only fanout exchange type is supported at the moment
+    assert (type == "fanout");
+
+    locator->create_exchange (exchange.c_str (), context, engine, scope_process,
+        NULL, 0, NULL, 0, NULL);
+
+    if (!nowait_)
+        marshaller->exchange_declare_ok ();
+}
+
 void zmq::amqp09_server_fsm_t::queue_declare (
     uint16_t ticket_,
     const i_amqp09::shortstr_t queue_,
@@ -113,9 +142,23 @@ void zmq::amqp09_server_fsm_t::queue_declare (
 {
     assert (state == active);
 
-    //  TODO: This should do something...
+    //  Generate auto queue name if required
+    //  TODO: Names should be unique process-wide!
+    std::string queue;
+    if (!queue_.size) {
+        char buff [32];
+        sprintf (buff, "#%d", queue_id);
+        queue = buff;
+        queue_id ++;
+    }
+    else
+        queue = std::string (queue_.data, queue_.size);
+
+    locator->create_queue (queue.c_str (), context, engine, scope_process,
+        NULL, 0, NULL, 0, NULL);
+
     if (!nowait_)
-        marshaller->queue_declare_ok ("Q", 0, 0);
+        marshaller->queue_declare_ok (queue.c_str (), 0, 0);
 }
 
 void zmq::amqp09_server_fsm_t::queue_bind (
@@ -127,6 +170,8 @@ void zmq::amqp09_server_fsm_t::queue_bind (
     const i_amqp09::field_table_t &arguments_)
 {
     assert (state == active);
+
+assert (false);
 
     //  TODO: This should do something...
     if (!nowait_)
@@ -144,6 +189,8 @@ void zmq::amqp09_server_fsm_t::basic_consume (
     const i_amqp09::field_table_t &filter_)
 {
     assert (state == active);
+
+assert (false);
 
     //  TODO: This should do something...
     if (!nowait_)

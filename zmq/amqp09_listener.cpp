@@ -22,18 +22,19 @@
 
 zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (poll_thread_t *thread_,
     const char *interface_, uint16_t port_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
+    poll_thread_t **handler_threads_, locator_t *locator_)
 {
     amqp09_listener_t *instance = new amqp09_listener_t (thread_,
-        interface_, port_, handler_thread_count_, handler_threads_);
+        interface_, port_, handler_thread_count_, handler_threads_, locator_);
     assert (instance);
     return instance;
 }
 
 zmq::amqp09_listener_t::amqp09_listener_t (poll_thread_t *thread_,
       const char *interface_, uint16_t port_, int handler_thread_count_,
-      poll_thread_t **handler_threads_) :
+      poll_thread_t **handler_threads_, locator_t *locator_) :
     context (thread_),
+    locator (locator_),
     listener (interface_, port_)
 {
     //  Initialise the array of threads to handle new connections
@@ -66,7 +67,7 @@ bool zmq::amqp09_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     amqp09_server_engine_t *engine = amqp09_server_engine_t::create (
         handler_threads [current_handler_thread],
-        listener, 8192, 8192, "", "", "", "");
+        listener, 8192, 8192, locator);
     assert (engine);
 
     //  Move to the next thread to get round-robin balancing of engines

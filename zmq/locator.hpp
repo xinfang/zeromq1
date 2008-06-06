@@ -60,7 +60,7 @@ namespace zmq
             poll_thread_t *thread_, const char *local_object_);
 
         //  Creates queue
-        void create_queue (const char *exchange_,
+        void create_queue (const char *queue_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *address_, uint16_t port_,
             poll_thread_t *listener_thread_, int handler_thread_count_,

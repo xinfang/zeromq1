@@ -31,6 +31,7 @@
 #include "amqp09_unmarshaller.hpp"
 #include "tcp_socket.hpp"
 #include "tcp_listener.hpp"
+#include "locator.hpp"
 
 #include <sys/poll.h>
 
@@ -64,12 +65,10 @@ namespace zmq
         static amqp09_engine_t *create (poll_thread_t *thread_,
             const char *address_, uint16_t port_,
             size_t writebuf_size_, size_t readbuf_size_,
-            const char *out_exchange_, const char *out_routing_key_,
-            const char *in_exchange_, const char *in_routing_key_)
+            locator_t *locator_)
         {
             amqp09_engine_t *instance = new amqp09_engine_t (thread_,
-                address_, port_, writebuf_size_, readbuf_size_,
-                out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
+                address_, port_, writebuf_size_, readbuf_size_, locator_);
             assert (instance);
             return instance;
         }
@@ -79,12 +78,10 @@ namespace zmq
         static amqp09_engine_t *create (poll_thread_t *thread_,
             tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
-            const char *out_exchange_, const char *out_routing_key_,
-            const char *in_exchange_, const char *in_routing_key_)
+            locator_t *locator_)
         {
             amqp09_engine_t *instance = new amqp09_engine_t (thread_,
-                listener_, writebuf_size_, readbuf_size_,
-                out_exchange_, out_routing_key_, in_exchange_, in_routing_key_);
+                listener_, writebuf_size_, readbuf_size_, locator_);
             assert (instance);
             return instance;
         }
@@ -218,8 +215,7 @@ namespace zmq
         amqp09_engine_t (poll_thread_t *thread_,
               const char *address_, uint16_t port_,
               size_t writebuf_size_, size_t readbuf_size_,
-              const char *out_exchange_, const char *out_routing_key_,
-              const char *in_exchange_, const char *in_routing_key_) :
+              locator_t *locator_) :
             context (thread_),
             writebuf_size (writebuf_size_),
             readbuf_size (readbuf_size_),
@@ -228,10 +224,10 @@ namespace zmq
             socket (address_, port_),
             events (POLLIN | POLLOUT),
             marshaller (this),
-            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
+            fsm (context, &socket, &marshaller, this, locator_),
             unmarshaller (&fsm),
-            encoder (&mux, &marshaller, fsm.server (),
-                out_exchange_, out_routing_key_),
+            //  TODO: fill in exchange and routing_key in outgoing messages
+            encoder (&mux, &marshaller, fsm.server (), "", ""),
             decoder (&demux, &unmarshaller, fsm.server ())
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
@@ -243,8 +239,7 @@ namespace zmq
 
         amqp09_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
               size_t writebuf_size_, size_t readbuf_size_,
-              const char *out_exchange_, const char *out_routing_key_,
-              const char *in_exchange_, const char *in_routing_key_) :
+              locator_t *locator_) :
             context (thread_),
             writebuf_size (writebuf_size_),
             readbuf_size (readbuf_size_),
@@ -253,10 +248,10 @@ namespace zmq
             socket (listener_),
             events (POLLIN | POLLOUT),
             marshaller (this),
-            fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
+            fsm (context, &socket, &marshaller, this, locator_),
             unmarshaller (&fsm),
-            encoder (&mux, &marshaller, fsm.server (),
-                out_exchange_, out_routing_key_),
+            //  TODO: fill in exchange and routing_key in outgoing messages
+            encoder (&mux, &marshaller, fsm.server (), "", ""),
             decoder (&demux, &unmarshaller, fsm.server ())
         {
             writebuf = (unsigned char*) malloc (writebuf_size);

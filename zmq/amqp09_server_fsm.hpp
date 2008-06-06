@@ -24,15 +24,22 @@
 #include <string>
 
 #include "stdint.hpp"
+#include "i_context.hpp"
 #include "i_amqp09.hpp"
 #include "amqp09_marshaller.hpp"
 #include "amqp09_engine.hpp"
 #include "tcp_socket.hpp"
+#include "locator.hpp"
 
 namespace zmq
 {
 
     //  State machine implementation for AMQP server (broker)
+    //
+    //  TODO: We should have special engines/threads to handle shared
+    //  objects, at the moment all the objects (queues/exchanges) are
+    //  owned by the connection that created them and they are destroyed
+    //  when the connection closes.
 
     class amqp09_server_fsm_t : public i_amqp09
     {
@@ -41,10 +48,10 @@ namespace zmq
         //  Create the state machine over the supplied TCP socket. Interconnect
         //  it with AMQP marshaller and AMQP engine. in-exchange and
         //  in-routing-key are not used.
-        amqp09_server_fsm_t (tcp_socket_t *socket_,
+        amqp09_server_fsm_t (i_context *context_, tcp_socket_t *socket_,
               amqp09_marshaller_t *marshaller_,
               amqp09_engine_t <amqp09_server_fsm_t> *engine_,
-              const char *in_exchange_, const char *in_routing_key_);
+              locator_t *locator_);
 
         inline ~amqp09_server_fsm_t ()
         {
@@ -73,6 +80,17 @@ namespace zmq
 
         void channel_open (
             const i_amqp09::shortstr_t out_of_band_);
+
+        void exchange_declare (
+            uint16_t ticket_,
+            const i_amqp09::shortstr_t exchange_,
+            const i_amqp09::shortstr_t type_,
+            bool passive_,
+            bool durable_,
+            bool auto_delete_,
+            bool internal_,
+            bool nowait_,
+            const i_amqp09::field_table_t &arguments_);
 
         void queue_declare (
             uint16_t ticket_,
@@ -126,12 +144,18 @@ namespace zmq
             expect_connection_close
         };
 
+        i_context *context;
+
         state_t state;
 
         void unexpected ();
 
         amqp09_marshaller_t *marshaller;
         amqp09_engine_t <amqp09_server_fsm_t> *engine;
+        locator_t *locator;
+
+        //  Next ID to use when automatic queue name generation is required
+        int queue_id;
     };
 
 }

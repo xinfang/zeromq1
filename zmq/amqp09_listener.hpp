@@ -23,6 +23,7 @@
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
 #include "tcp_listener.hpp"
+#include "locator.hpp"
 
 namespace zmq
 {
@@ -35,7 +36,8 @@ namespace zmq
         //  the threads that will serve newly-created BP engines.
         static amqp09_listener_t *create (poll_thread_t *thread_,
             const char *interface_, uint16_t port_,
-            int handler_thread_count_, poll_thread_t **handler_threads_);
+            int handler_thread_count_, poll_thread_t **handler_threads_,
+            locator_t *locator_);
 
         //  i_pollable implementation
         int get_fd ();
@@ -49,11 +51,14 @@ namespace zmq
 
         amqp09_listener_t (poll_thread_t *thread_, const char *interface_,
             uint16_t port_, int handler_thread_count_,
-            poll_thread_t **handler_threads_);
+            poll_thread_t **handler_threads_, locator_t *locator_);
         ~amqp09_listener_t ();
 
         //  The context listener is running in
         i_context *context;
+
+        //  Associated locator object
+        locator_t *locator;
 
         //  Listening socket
         tcp_listener_t listener;

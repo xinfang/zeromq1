@@ -21,10 +21,11 @@
 
 #include "amqp09_client_fsm.hpp"
 
-zmq::amqp09_client_fsm_t::amqp09_client_fsm_t (tcp_socket_t *socket_,
-      amqp09_marshaller_t *marshaller_,
+zmq::amqp09_client_fsm_t::amqp09_client_fsm_t (i_context *context_,
+      tcp_socket_t *socket_, amqp09_marshaller_t *marshaller_,
       amqp09_engine_t <amqp09_client_fsm_t> *engine_,
       const char *in_exchange_, const char *in_routing_key_) :
+    context (context_),
     marshaller (marshaller_),
     engine (engine_),
     in_exchange (in_exchange_),
