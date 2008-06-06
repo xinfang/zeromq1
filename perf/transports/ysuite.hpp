@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <sys/poll.h>
 
-#include "../interfaces/i_transport.hpp"
+#include "i_transport.hpp"
 
 #include "../../zmq/err.hpp"
 #include "../../zmq/ypipe.hpp"

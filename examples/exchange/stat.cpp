@@ -61,7 +61,7 @@ public:
 
     inline void throughput (uint8_t meter_id, uint64_t throughput)
     {
-        printf ("%1d:%08lld\n", (int) meter_id, (long long) throughput);
+        printf ("%1d:%08lu\n", (int) meter_id, (unsigned long) throughput);
         fflush (stdout);
     }
 
@@ -70,8 +70,8 @@ public:
     {
         if (meter_id == 5) {
             if (!confirmation_timestamps.empty ()) {
-                printf ("l:%08lld\n",
-                    (long long) (confirmation_timestamps.front () - timestamp));
+                printf ("l:%08lu\n",
+                    (unsigned long) (confirmation_timestamps.front () - timestamp));
                 fflush (stdout);
                 confirmation_timestamps.pop ();
             }
@@ -82,8 +82,8 @@ public:
 
         if (meter_id == 6) {
             if (!order_timestamps.empty ()) {
-                printf ("l:%08lld\n",
-                    ((long long) (timestamp - order_timestamps.front ())));
+                printf ("l:%08lu\n",
+                    ((unsigned long) (timestamp - order_timestamps.front ())));
                 fflush (stdout);
                 order_timestamps.pop ();
             }

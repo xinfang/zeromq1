@@ -17,102 +17,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
 #include <cstdio>
-#include <string>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/raw_ping_pong.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
+#include "../scenarios/lat.hpp"
 
-#include "./test.hpp"
+using namespace perf;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5){
-        printf ("Usage: local  <listen IP> <listen port> <\'global_locator\' IP> <\'global locator\' port>\n");
+    if (argc != 7){
+        printf ("Usage: local <global_locator IP> <global_locator port> "
+        "<listen IP> <listen port> <message size> <roundtrip count>\n");
         return 1;
     }
 
-    if (TEST_THREADS != 1) {
-        printf ("Latency test with more than 1 thread does not nake sense.\n");
-        assert (0);
-    }
+    printf ("message size: %i\n", atoi (argv [5]));
+    printf ("roundtrip count: %i\n", atoi (argv [6]));
 
-    //  Main results results
-    std::string filename ("timing.dat");
+    zmq_t transport (false, "QIN", "EOUT", argv [1], atoi (argv [2]), argv [3],
+        atoi (argv [4]));
 
-    FILE *output = ::fopen (filename.c_str (), "w");
-    assert (output);
-
-    int msg_count;
-    size_t msg_size;
-
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-
-    perf::time_instant_t start_time;
-    perf::time_instant_t stop_time;
-
-    perf::zmq_t transport (false, "QIN", "EOUT", argv [3], atoi (argv [4]), argv [1], atoi (argv [2]));
-
-    // wait for sync message from echo
-    printf ("waiting for peer ");
-    fflush (stdout);
-    transport.receive_sync_message ();
-    printf ("OK\n");
-
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-    
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= SYS_LAT_DEN;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= SYS_LAT_DEN;
-        }
-
-//        printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", (int)msg_size);
-        printf ("Number of messages in the latency test: %i\n", msg_count);
-
-        // prefix is msgsize_threadID_, threadID is 0 (api)
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", (int)msg_size, 0);
-
-        {
-            perf::raw_ping_pong_t worker (msg_count, msg_size);
-            worker.run (transport, prefix);
-        }
-
-        perf::read_times_2f (&start_time, &stop_time, prefix);
-
-        // write results to the main file
-        fprintf (output, "%i %i %llu %llu\n", (int)msg_size, msg_count, start_time, stop_time);
-
-        // print result on the screen
-        printf ("Your average latency is %.2f us\n", (double)((stop_time - start_time) / 2) / msg_count);
-
-        // delete files
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", 
-            (int)msg_size, 0);
-        int rc = remove (prefix);
-        assert (rc == 0);
-
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_out.dat", 
-            (int)msg_size, 0);
-        rc = remove (prefix);
-        assert (rc == 0);
-
-    }
-
-    fclose (output);
-    printf ("Test end\n");
-    fflush (stdout);
+    local_lat (&transport, atoi (argv [5]), atoi (argv [6]));
 
     return 0;
 }

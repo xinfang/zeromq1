@@ -1,73 +1,73 @@
-/*
-    Copyright (c) 2007-2008 FastMQ Inc.
-
-    This file is part of 0MQ.
-
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#include <cstdlib>
-#include <cstdio>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/raw_sender.hpp"
+#include "../scenarios/thr.hpp"
 
-#include "./test.hpp"
+void *worker_function (void*);
 
 int main (int argc, char *argv [])
 {
 
-    if (argc != 3) {
-        printf ("Usage: remote <\'global_locator\' IP> <\'global locator\' port>\n");
+    if (argc != 6) { 
+        printf ("Usage: remote_thr <global_locator IP> <global_locator port> "
+            "<message size> <roundtrip count> <number of threads>\n"); 
         return 1;
     }
 
-    size_t msg_size;
-    int msg_count;
 
-    perf::zmq_t transport (true, "Q0", "ES", argv [1], atoi (argv[2]), NULL, 0);
+    int thread_count = atoi (argv [5]);
 
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
+    pthread_t *workers = new pthread_t [thread_count];
+    perf::thr_worker_args_t *w_args = new perf::thr_worker_args_t [thread_count];
 
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        w_args [thread_nbr].id = thread_nbr;
+        w_args [thread_nbr].msg_size = atoi (argv [3]);
+        w_args [thread_nbr].roundtrip_count = atoi (argv [4]);
+        w_args [thread_nbr].listen_ip = NULL;
+        w_args [thread_nbr].listen_port_base = 0;
+        w_args [thread_nbr].locator_ip = argv [1];
+        w_args [thread_nbr].locator_port = atoi (argv [2]);
 
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-        }
+        w_args [thread_nbr].start_time = 0;
+        w_args [thread_nbr].stop_time = 0;
 
-        printf ("Message size: %i\n", (int)msg_size);
-        printf ("Number of messages in the throughput test: %i\n", msg_count);
-
-        {
-            perf::raw_sender_t worker (msg_count, msg_size);
-            
-            worker.run (transport, "");
-          
-            printf ("sent %i messages, waititng for sync message...", msg_count);
-
-            transport.receive_sync_message ();
-
-            printf ("OK\n");
-         }
-
+        int rc = pthread_create (&(workers [thread_nbr]), NULL, worker_function, 
+            (void*)(w_args + thread_nbr));
+        assert (rc == 0);
     }
 
-    sleep (2); // Wait till 'local' writes results
+
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        int rc = pthread_join (workers [thread_nbr], NULL);
+        assert (rc == 0);
+
+    }
+    
+    delete [] w_args;
+    delete [] workers;
 
     return 0;
+}
+
+void *worker_function (void *args_)
+{
+    perf::thr_worker_args_t *w_args = (perf::thr_worker_args_t*)args_;
+
+//    printf ("remote_thr, msg_size %i, roundtrip_count %i, thread no %i\n", 
+//        (int)w_args->msg_size, w_args->roundtrip_count, w_args->id); 
+
+    char queue_name [32];
+    char exchange_name [32];
+
+    snprintf (queue_name, sizeof (queue_name), "Q%i",w_args->id);
+    snprintf (exchange_name, sizeof (exchange_name), "E%i", w_args->id);
+
+    perf::zmq_t transport (true, queue_name, exchange_name, w_args->locator_ip,
+        w_args->locator_port, NULL, 0);
+
+    perf::remote_thr (&transport, w_args->msg_size, w_args->roundtrip_count);
+
+    return NULL;
 }

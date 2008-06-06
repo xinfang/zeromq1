@@ -20,7 +20,7 @@
 #ifndef __PERF_ZEROMQ_HPP_INCLUDED__
 #define __PERF_ZEROMQ_HPP_INCLUDED__
 
-#include "../interfaces/i_transport.hpp"
+#include "i_transport.hpp"
 
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/locator.hpp"
@@ -89,14 +89,6 @@ namespace perf
             api.send (exchange_id, msg);
         }
 
-        inline virtual void send_sync_message (void)
-        {
-            //assert (!sender);
-
-            void *msg = zmq::msg_alloc (1);
-            api.send (exchange_id, msg);
-        }
-
         inline virtual size_t receive (unsigned int thread_id_ = 0)
         {
             assert (thread_id_ < thread_count);
@@ -107,22 +99,6 @@ namespace perf
             size_t size = ((zmq::msg_t*)msg)->size;
             
             zmq::msg_dealloc (msg);
-
-            return size;
-        }
-
-        inline virtual size_t receive_sync_message (void)
-        {
-            //assert (sender);
-
-            void *msg = api.receive ();
-            assert (msg);
-
-            size_t size = ((zmq::msg_t*)msg)->size;
-            
-            zmq::msg_dealloc (msg);
-
-            assert (size == 1);;
 
             return size;
         }

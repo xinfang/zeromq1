@@ -20,7 +20,7 @@
 #ifndef __PERF_TCP_HPP_INCLUDED__
 #define __PERF_TCP_HPP_INCLUDED__
 
-#include "../interfaces/i_transport.hpp"
+#include "i_transport.hpp"
 
 #include <stdlib.h>
 #include <string.h>

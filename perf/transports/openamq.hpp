@@ -24,7 +24,7 @@
 #include "amq_client_connection.h"
 #include "amq_client_session.h"
 
-#include "../interfaces/i_transport.hpp"
+#include "i_transport.hpp"
 
 namespace perf
 {

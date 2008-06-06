@@ -30,10 +30,10 @@ namespace perf
     //  For measurement purposes the exact point when the timer started
     //  (e.g. midnight January 1, 1970) is irrelevant. The only requirement
     //  is that all times are measured from the same starting point.
-    typedef unsigned long long time_instant_t;
+    typedef uint64_t time_instant_t;
 
     //  Time interval in microseconds
-    typedef unsigned long long time_interval_t;
+    typedef uint64_t time_interval_t;
 
     //  Get current time
     inline time_instant_t now ()
