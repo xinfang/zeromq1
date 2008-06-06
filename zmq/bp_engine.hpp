@@ -91,8 +91,8 @@ namespace zmq
 
         bp_encoder_t encoder;
         bp_decoder_t decoder;
-        tcp_socket_t socket;
 
+        tcp_socket_t socket;
         short events;
         bool socket_error;
 

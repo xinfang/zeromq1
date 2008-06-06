@@ -86,7 +86,7 @@ namespace zmq
             expect_connection_open_ok,
             expect_channel_open_ok,
             expect_basic_consume_ok,
-            active,
+            active
         };
 
         state_t state;

@@ -25,9 +25,9 @@ zmq::amqp09_decoder_t::amqp09_decoder_t (demux_t *demux_,
       amqp09_unmarshaller_t *unmarshaller_, bool server_) :
     demux (demux_),
     unmarshaller (unmarshaller_),
+    msg (NULL),
     flow_on (false),
-    server (server_),
-    msg (NULL)
+    server (server_)
 {
     //  Alocate buffer for the frames
     framebuf_size = i_amqp09::frame_min_size;
@@ -53,7 +53,7 @@ void zmq::amqp09_decoder_t::method_frame_header_ready ()
 {
     //  Method frame header arrived - parse it read method payload
     uint8_t type = get_uint8 (tmpbuf);
-    uint16_t channel = get_uint16 (tmpbuf + 1);
+    //  uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
     assert (type == i_amqp09::frame_method);
     assert (size + 1 <= framebuf_size); 
@@ -92,7 +92,7 @@ void zmq::amqp09_decoder_t::content_header_frame_header_ready ()
 {
     //  Frame header of content header is read. Read the content header payload.
     uint8_t type = get_uint8 (tmpbuf);
-    uint16_t channel = get_uint16 (tmpbuf + 1);
+    //  uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
     assert (type == i_amqp09::frame_header);
     assert (size + 1 <= framebuf_size); 
@@ -125,7 +125,7 @@ void zmq::amqp09_decoder_t::content_body_frame_header_ready ()
     //  Frame header of message body frame is read. Start reading it's payload.
     //  Note that the data are read directly to the message buffer.
     uint8_t type = get_uint8 (tmpbuf);
-    uint16_t channel = get_uint16 (tmpbuf + 1);
+    //  uint16_t channel = get_uint16 (tmpbuf + 1);
     uint32_t size = get_uint32 (tmpbuf + 3);
     assert (type == i_amqp09::frame_body);
 

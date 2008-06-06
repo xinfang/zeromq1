@@ -47,14 +47,14 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *address_,
       uint16_t port_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
-    encoder (&mux),
-    decoder (&demux),
-    socket (address_, port_),
-    events (POLLIN),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    encoder (&mux),
+    decoder (&demux),
+    socket (address_, port_),
+    events (POLLIN),
     socket_error (false),
     local_object (local_object_)
 {
@@ -69,14 +69,14 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
-    encoder (&mux),
-    decoder (&demux),
-    socket (listener_),
-    events (POLLIN),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    encoder (&mux),
+    decoder (&demux),
+    socket (listener_),
+    events (POLLIN),
     socket_error (false),
     local_object (local_object_)
 {
@@ -100,7 +100,7 @@ int zmq::bp_engine_t::get_fd ()
 
 short zmq::bp_engine_t::get_events ()
 {
-    //  TODO
+    //  TODO:
     //  return events | (proxy.has_messages () ? POLLOUT : 0);
     return events;
 }
@@ -165,11 +165,10 @@ void zmq::bp_engine_t::close_event()
         if (!eh (local_object.c_str ()))
             assert (false);
 
-        // notify all our receivers that this engine
-        // is shutting down
+        //  Notify all our receivers that this engine is shutting down
         demux.terminate_pipes ();
 
-        // notify senders that this engine is shutting down
+        //  Notify senders that this engine is shutting down
         mux.terminate_pipes ();
     }
 }

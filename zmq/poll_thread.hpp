@@ -74,8 +74,11 @@ namespace zmq
         ysocketpair_t signaler;
         pthread_t worker;
 
-        std::vector <pollfd> pollset;
-        std::vector <i_pollable*> engines;
+        typedef std::vector <pollfd> pollset_t;
+        pollset_t pollset;
+
+        typedef std::vector <i_pollable*> engines_t;
+        engines_t engines;
     };
 
 }

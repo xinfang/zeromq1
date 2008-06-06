@@ -84,8 +84,8 @@ namespace zmq
 
     private:
 
-        size_t to_read;
         unsigned char *read_ptr;
+        size_t to_read;
         step_t next;
     };
 

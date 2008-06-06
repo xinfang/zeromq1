@@ -221,17 +221,17 @@ namespace zmq
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             context (thread_),
-            socket (address_, port_),
+            writebuf_size (writebuf_size_),
+            readbuf_size (readbuf_size_),
+            write_size (0),
+            write_pos (0),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
             encoder (&mux, &marshaller, fsm.server (),
                 out_exchange_, out_routing_key_),
             decoder (&demux, &unmarshaller, fsm.server ()),
-            writebuf_size (writebuf_size_),
-            readbuf_size (readbuf_size_),
-            write_size (0),
-            write_pos (0),
+            socket (address_, port_),
             events (POLLIN | POLLOUT)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
@@ -246,17 +246,17 @@ namespace zmq
               const char *out_exchange_, const char *out_routing_key_,
               const char *in_exchange_, const char *in_routing_key_) :
             context (thread_),
-            socket (listener_),
+            writebuf_size (writebuf_size_),
+            readbuf_size (readbuf_size_),
+            write_size (0),
+            write_pos (0),
             marshaller (this),
             fsm (&socket, &marshaller, this, in_exchange_, in_routing_key_),
             unmarshaller (&fsm),
             encoder (&mux, &marshaller, fsm.server (),
                 out_exchange_, out_routing_key_),
             decoder (&demux, &unmarshaller, fsm.server ()),
-            writebuf_size (writebuf_size_),
-            readbuf_size (readbuf_size_),
-            write_size (0),
-            write_pos (0),
+            socket (listener_),
             events (POLLIN | POLLOUT)
         {
             writebuf = (unsigned char*) malloc (writebuf_size);
@@ -275,16 +275,8 @@ namespace zmq
         //  The context the engine runs in
         i_context *context;
 
-        tcp_socket_t socket;
         mux_t mux;
         demux_t demux;
-        amqp09_marshaller_t marshaller;
-        fsm_t fsm;
-        amqp09_unmarshaller_t unmarshaller;
-        amqp09_encoder_t encoder;
-        amqp09_decoder_t decoder;
-
-        short events;
 
         unsigned char *writebuf;
         size_t writebuf_size;
@@ -294,6 +286,16 @@ namespace zmq
 
         size_t write_size;
         size_t write_pos;
+
+        amqp09_marshaller_t marshaller;
+        fsm_t fsm;
+        amqp09_unmarshaller_t unmarshaller;
+
+        amqp09_encoder_t encoder;
+        amqp09_decoder_t decoder;
+
+        tcp_socket_t socket;
+        short events;
     };
 
 }

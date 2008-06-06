@@ -27,6 +27,6 @@ namespace zmq
     //  It is deliberately defined in the way to comply with standard C free.
     typedef void (free_fn) (void *data_);
 
-};
+}
 
 #endif

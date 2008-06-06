@@ -224,7 +224,7 @@ void *zmq::api_engine_t::receive (bool block_)
 
     //  Remember the original current queue position. We'll use this value
     //  as a marker for identifying whether we've inspected all the queues.
-    int start = current_queue;
+    queues_t::size_type start = current_queue;
 
     //  Big loop - iteration happens each time after new commands
     //  are processed (thus new messages may be available)

@@ -82,7 +82,8 @@ void zmq::poll_thread_t::loop ()
     while (true)
     {
         //  Adjust the events to wait - the engine chooses the events
-        for (int engine_nbr = 0; engine_nbr != engines.size (); engine_nbr ++)
+        for (engines_t::size_type engine_nbr = 0;
+              engine_nbr != engines.size (); engine_nbr ++)
             pollset [engine_nbr + 1].events =
                 engines [engine_nbr]->get_events ();
 
@@ -96,9 +97,10 @@ void zmq::poll_thread_t::loop ()
         errno_assert (rc != -1);
 
         //  First of all, process socket errors
-        for (int pollset_index = 1; pollset_index != pollset.size ();
-             pollset_index ++) {
-            if (pollset [pollset_index].revents & (POLLNVAL | POLLERR | POLLHUP)) {
+        for (pollset_t::size_type pollset_index = 1;
+              pollset_index != pollset.size (); pollset_index ++) {
+            if (pollset [pollset_index].revents &
+                  (POLLNVAL | POLLERR | POLLHUP)) {
                 engines [pollset_index - 1]->close_event ();
                 unregister_engine (engines[pollset_index - 1]);
                 pollset_index --;
@@ -114,8 +116,8 @@ void zmq::poll_thread_t::loop ()
         }
 
         //  Process out events from the engines
-        for (int pollset_index = 1; pollset_index != pollset.size ();
-              pollset_index ++) {
+        for (pollset_t::size_type pollset_index = 1;
+              pollset_index != pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents & POLLOUT) {
                 if (!engines [pollset_index - 1]->out_event ()) {
                     engines [pollset_index - 1]->close_event ();
@@ -126,8 +128,9 @@ void zmq::poll_thread_t::loop ()
         }
 
         //  Process in events from the engines
-        for (int pollset_index = 1; pollset_index != pollset.size ();
-              pollset_index ++) {
+        for (pollset_t::size_type pollset_index = 1;
+              pollset_index != pollset.size (); pollset_index ++) {
+
             //  TODO: investigate the POLLHUP issue on OS X
             if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
                 if (!engines [pollset_index - 1]->in_event ()) {

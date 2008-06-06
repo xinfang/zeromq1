@@ -64,21 +64,22 @@ namespace zmq
         //  sends them to the socket)
         bool source;
 
+        //  The context listener is running in
+        i_context *context;
+
         //  Determine the engine and the object (either exchange or queue)
         //  within the engine to serve as a peer to this engine.
         i_context *peer_context;
         i_engine *peer_engine;
         char peer_name [16];
 
-        //  The context listener is running in
-        i_context *context;
-
-        //  The thread array to manage newly-created BP engines
-        std::vector <poll_thread_t*> handler_threads;
-        int current_handler_thread;
-
         //  Listening socket
         tcp_listener_t listener;
+
+        //  The thread array to manage newly-created BP engines
+        typedef std::vector <poll_thread_t*> handler_threads_t;
+        handler_threads_t handler_threads;
+        handler_threads_t::size_type current_handler_thread;
     };
 
 }

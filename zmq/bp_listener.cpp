@@ -40,8 +40,8 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
       poll_thread_t **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
       const char *peer_name_) :
-    context (thread_),
     source (source_),
+    context (thread_),
     peer_context (peer_context_),
     peer_engine (peer_engine_),
     listener (interface_, port_)

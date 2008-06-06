@@ -49,7 +49,7 @@ namespace zmq
 
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
-        int current;
+        pipes_t::size_type current;
     };
 
 }

@@ -121,7 +121,7 @@ namespace zmq
         //  message next time it is required
         typedef std::vector <std::pair <std::string, mux_t> > queues_t;
         queues_t queues; 
-        int current_queue;    
+        queues_t::size_type current_queue;    
 
         //  True if there are unflushed messages to send
         bool dirty;

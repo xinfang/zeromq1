@@ -97,12 +97,14 @@ size_t zmq::tcp_socket_t::read (void *data, size_t size)
 void zmq::tcp_socket_t::blocking_write (const void *data, size_t size)
 {
     ssize_t nbytes = send (s, data, size, 0);
-    errno_assert (nbytes == size);
+    errno_assert (nbytes != -1);
+    errno_assert (((size_t) nbytes) == size);
 }
 
 void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
 {
     ssize_t nbytes = recv (s, data, size, MSG_WAITALL);
-    errno_assert (nbytes == size);
+    errno_assert (nbytes != -1);
+    errno_assert (((size_t) nbytes) == size);
 }
 

@@ -46,9 +46,6 @@ namespace zmq
 
     private:
 
-        demux_t *demux;
-        amqp09_unmarshaller_t *unmarshaller;
-
         void method_frame_header_ready ();
         void method_payload_ready ();
         void content_header_frame_header_ready ();
@@ -56,6 +53,9 @@ namespace zmq
         void content_body_frame_header_ready ();
         void content_body_payload_ready ();
         void content_body_frame_end_ready ();
+
+        demux_t *demux;
+        amqp09_unmarshaller_t *unmarshaller;
 
         unsigned char tmpbuf [7];
         unsigned char *framebuf;

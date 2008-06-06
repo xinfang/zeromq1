@@ -121,7 +121,8 @@ int main (int argc, char *argv [])
     errno_assert (rc == 0);
 
     //  Initialise the pollset
-    vector <pollfd> pollfds (1);
+    typedef vector <pollfd> pollfds_t;
+    pollfds_t pollfds (1);
     pollfds [0].fd = listening_socket;
     pollfds [0].events = POLLIN;
 
@@ -136,7 +137,7 @@ int main (int argc, char *argv [])
         errno_assert (rc != -1);
 
         //  Traverse all the sockets
-        for (int pos = 1; pos < pollfds.size (); pos ++) {
+        for (pollfds_t::size_type pos = 1; pos < pollfds.size (); pos ++) {
 
             //  Get the socket being currently being processed
             int s = pollfds [pos].fd;

@@ -217,17 +217,22 @@ namespace zmq
         //  AMQP constants
         enum {
 .for constant
-            $(constant.name:c) = $(constant.value),
-.endfor
-.for class where name <> "message"
-            $(class.name:c)_id = $(class.index),
-.endfor
-.for class where name <> "message"
-.   for method
-            $(class.name:c)_$(method.name:c)_id = $(method.index),
-.   endfor
+            $(constant.name:c) = $(constant.value)$(last ()??''?',')
 .endfor
         };
+        enum {
+.for class where name <> "message"
+            $(class.name:c)_id = $(class.index)$(last ()??''?',')
+.endfor
+        };
+.for class where name <> "message"
+        enum {
+.   for method
+            $(class.name:c)_$(method.name:c)_id = $(method.index)\
+$(last ()??''?',')
+.   endfor
+        };
+.endfor
 
         //  Wrapper class for AMQP shortstr datatype
         struct shortstr_t

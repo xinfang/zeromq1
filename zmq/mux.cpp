@@ -53,6 +53,6 @@ void *zmq::mux_t::read ()
 
 void zmq::mux_t::terminate_pipes()
 {
-    for (int i = 0; i < pipes.size () ; ++i)
+    for (pipes_t::size_type i = 0; i < pipes.size () ; i ++)
         pipes [i]->send_destroy_pipe ();
 }

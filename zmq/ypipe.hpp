@@ -57,7 +57,7 @@ namespace zmq
         }
 
         //  Write an item to the pipe.  Don't flush it yet.
-        bool write (const T &value_)
+        void write (const T &value_)
         {
             //  Place the value to the queue, add new terminator element
             queue.back () = value_;

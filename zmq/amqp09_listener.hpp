@@ -55,12 +55,13 @@ namespace zmq
         //  The context listener is running in
         i_context *context;
 
-        //  The thread array to manage newly-created AMQP engines
-        std::vector <poll_thread_t*> handler_threads;
-        int current_handler_thread;
-
         //  Listening socket
         tcp_listener_t listener;
+
+        //  The thread array to manage newly-created AMQP engines
+        typedef std::vector <poll_thread_t*> handler_threads_t;
+        handler_threads_t handler_threads;
+        handler_threads_t::size_type current_handler_thread;
     };
 
 }
