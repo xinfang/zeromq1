@@ -41,7 +41,19 @@ namespace zmq
 
         inline void write (void *msg_)
         {
-            pipe.write (msg_);
+            pipe_element_t element;
+
+            //  Pipe delimiter and large message are passed via reference.
+            //  Very small messages (VSMs) are passed by value.
+            if (!msg_ || msg_size (msg_) > max_vsm_size) {
+                element.msg = msg_;
+            }
+            else {
+                element.msg = (void*) pipe_element_t::vsm_tag;
+                element.vsm_size = msg_size (msg_);
+                memcpy (element.vsm_data, msg_data (msg_), msg_size (msg_));
+            }
+            pipe.write (element);
         }
 
         inline void flush ()
@@ -63,8 +75,23 @@ namespace zmq
 
         void send_revive ();
 
+        //  Contains 0MQ message ('msg' member). If the message is shorter than
+        //  max_vsm_size it should be transferred by copy to avoid inter-thread
+        //  contention in memory management infrastructure. In that case
+        //  'msg' member is set to vsm_tag, vsm_size is set to message
+        //  size and vsm_data contain the message body.
+        struct pipe_element_t
+        {
+            enum {vsm_tag = 0x1};
+            void *msg;
+            uint16_t vsm_size;
+            unsigned char vsm_data [max_vsm_size];
+        };
+
         //  The message pipe itself
-        ypipe_t <void*, false, message_pipe_granularity> pipe;
+        typedef ypipe_t <pipe_element_t, false, message_pipe_granularity>
+            underlying_pipe_t;
+        underlying_pipe_t pipe;
 
         //  Identification of the engine sending the messages to the pipe
         i_context *source_context;

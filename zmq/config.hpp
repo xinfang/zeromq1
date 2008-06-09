@@ -26,10 +26,26 @@ namespace zmq
     //  Compile-time settings for 0MQ
     enum
     {
+        //  Size of input and output buffers for 0MQ backend protocol.
         bp_in_batch_size = 8192,
         bp_out_batch_size = 8192,
+
+        //  Size of input and output buffers for AMQP protocol
+        amqp_in_batch_size = 8192,
+        amqp_out_batch_size = 8192,
+
+        //  Number of messages to be enqueued before memory allocation happens.
         message_pipe_granularity = 256,
-        command_pipe_granularity = 16
+
+        //  Number of commands to be enqueued before memory allocation happens.
+        command_pipe_granularity = 16,
+
+        //  Setting maximal VSM size to 1 basically switches the functionality
+        //  off. This parameter should be used with caution - it may solve
+        //  your problem, if it is caused by inter-thread contention in the
+        //  underlying memory management infrastructure, however, in most cases
+        //  it will make 0MQ slower.
+        max_vsm_size = 30
     };
 
 }

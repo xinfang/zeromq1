@@ -34,11 +34,15 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 
 zmq::pipe_t::~pipe_t ()
 {
-    //  Destroy the messages in the pipe itself
-    void *msg;
+    //  Flush so that we can read all the messages from the pipe
     pipe.flush ();
-    while (pipe.read (&msg))
-        msg_dealloc (msg);
+
+    //  Destroy the messages in the pipe itself
+    pipe_element_t element;
+    while (pipe.read (&element))
+        if (element.msg != NULL &&
+              element.msg != (void*) pipe_element_t::vsm_tag)
+            msg_dealloc (element.msg);
 }
 
 void zmq::pipe_t::revive ()
@@ -61,18 +65,27 @@ void *zmq::pipe_t::read ()
         return NULL;
 
     //  Get next message, if it's not there, die.
-    void *msg;
-    if (!pipe.read (&msg))
+    pipe_element_t element;
+    if (!pipe.read (&element))
     {
         alive = false;
         return NULL;
     }
 
+    //  if message is stored in the element's buffer,
+    //  copy it to full-blown message.
+    if (element.msg == (void*) pipe_element_t::vsm_tag) {
+        void *msg = msg_alloc (element.vsm_size);
+        assert (msg);
+        memcpy (msg_data (msg), element.vsm_data, element.vsm_size);
+        return msg;
+    }
+
     //  If delimiter is read from the pipe, mark the pipe as ended
-    if (!msg)
+    if (!element.msg)
         endofpipe = true;
 
-    return msg;
+    return element.msg;
 }
 
 void zmq::pipe_t::send_destroy_pipe ()
