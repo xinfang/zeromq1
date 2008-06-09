@@ -88,9 +88,11 @@ int main (int argc, char *argv [])
 
 //    printf ("min start_time %llu, max stop time %llu\n", 
 //        min_start_time, max_stop_time);
+    
+    double test_time = (double)(max_stop_time - min_start_time) /
+        (double) 1000;
 
-    printf ("test time: %.2f [ms]\n", (double)(max_stop_time - min_start_time) / 
-        (double) 1000);
+    printf ("test time: %.2f [ms]\n", test_time);
 
     // throughput [msgs/s]
     unsigned long msg_thput = ((long) 1000000 * 
@@ -102,6 +104,12 @@ int main (int argc, char *argv [])
 
     printf ("Your average throughput is %lu [msgs/s]\n", msg_thput);
     printf ("Your average throughput is %lu [Mb/s]\n\n", tcp_thput);
+
+    FILE *output = ::fopen ("tests.dat", "a");
+    assert (output);
+    fprintf (output, "%i,%i,%i,%.2f,%lu,%lu\n", thread_count, atoi (argv [6]), 
+        atoi (argv [5]), test_time, msg_thput, tcp_thput);
+    fclose (output);
 
     delete [] workers;
     delete [] w_args;
