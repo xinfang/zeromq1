@@ -19,7 +19,6 @@
 
 #include "amqp09_listener.hpp"
 #include "amqp09_server_engine.hpp"
-#include "config.hpp"
 
 zmq::amqp09_listener_t *zmq::amqp09_listener_t::create (poll_thread_t *thread_,
     const char *interface_, uint16_t port_, int handler_thread_count_,
@@ -68,7 +67,7 @@ bool zmq::amqp09_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     amqp09_server_engine_t *engine = amqp09_server_engine_t::create (
         handler_threads [current_handler_thread],
-        listener, amqp_out_batch_size, amqp_in_batch_size, locator);
+        listener, 8192, 8192, locator);
     assert (engine);
 
     //  Move to the next thread to get round-robin balancing of engines

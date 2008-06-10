@@ -24,6 +24,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "message.hpp"
 #include "pipe.hpp"
 
 namespace zmq
@@ -40,7 +41,7 @@ namespace zmq
         void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush)
-        void write (void *msg_);
+        void write (message_t *msg_);
 
         //  Flush the messages
         void flush ();

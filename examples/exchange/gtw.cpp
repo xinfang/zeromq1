@@ -21,7 +21,7 @@
 #include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
-#include "../../zmq/msg.hpp"
+#include "../../zmq/message.hpp"
 
 #include "ticker.hpp"
 #include "messages.hpp"
@@ -68,13 +68,15 @@ public:
 
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
-                void *msg = make_timestamp (5, order_id, now_usec ());
-                api.send (se_id, msg);
+                zmq::message_t msg;
+                make_timestamp (5, order_id, now_usec (), &msg);
+                api.send (se_id, &msg);
             }
 
             //  Send the order to the matching engine
-            void *msg = make_order (order_id, type, price, volume);
-            api.send (oe_id, msg);
+            zmq::message_t msg;
+            make_order (order_id, type, price, volume, &msg);
+            api.send (oe_id, &msg);
             meter.event (this);
         }
     }
@@ -92,8 +94,9 @@ public:
     inline void frequency (uint8_t meter_id, uint64_t frequency)
     {
         //  Send the throughput figure to the stat component
-        void *msg = make_throughput (meter_id, frequency);
-        api.send (se_id, msg);
+        zmq::message_t msg;
+        make_throughput (meter_id, frequency, &msg);
+        api.send (se_id, &msg);
     }
 
 private:
@@ -135,9 +138,9 @@ public:
     {
         //  Main message dispatch loop
         while (true) {
-            void *msg = api.receive ();
-            parse_message (msg, this);
-            zmq::msg_dealloc (msg);
+            zmq::message_t msg;
+            api.receive (&msg);
+            parse_message (&msg, this);
         }
     }
 
@@ -154,8 +157,9 @@ public:
 
         //  Taking timestamps
         if (order_id % 500000 == 0 && order_id > last_timestamp) {
-            void *msg = make_timestamp (6, order_id, now_usec ());
-            api.send (se_id, msg);
+            zmq::message_t msg;
+            make_timestamp (6, order_id, now_usec (), &msg);
+            api.send (se_id, &msg);
             last_timestamp = order_id;
         }
     }
@@ -187,8 +191,9 @@ public:
     inline void frequency (uint8_t meter_id, uint64_t frequency)
     {
         //  Send the throughput figure to the stat component
-        void *msg = make_throughput (meter_id, frequency);
-        api.send (se_id, msg);
+        zmq::message_t msg;
+        make_throughput (meter_id, frequency, &msg);
+        api.send (se_id, &msg);
     }
 
 private:

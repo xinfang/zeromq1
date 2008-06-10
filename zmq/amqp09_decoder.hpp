@@ -63,7 +63,7 @@ namespace zmq
         size_t payload_size;
         size_t curr_body_size;
         size_t msg_data_off;
-        void *msg;
+        message_t message;
 
         bool flow_on;
         bool server;

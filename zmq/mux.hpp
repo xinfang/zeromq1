@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <vector>
 
+#include "message.hpp"
 #include "pipe.hpp"
 
 namespace zmq
@@ -35,14 +36,14 @@ namespace zmq
         mux_t ();
         ~mux_t ();
 
-        //  Adds a pipe to receive messages from
+        //  Adds a pipe to receive messages from.
         void receive_from (pipe_t *pipe_);
 
-        //  Returns a message, NULL if no message is available
-        void *read ();
+        //  Returns a message, if available. If not, returns false.
+        bool read (message_t *msg_);
 
         //  Send a command to the engines on the other
-        //  end of our pipes to destroy the pipe
+        //  end of our pipes to destroy the pipe.
         void terminate_pipes();
 
     private:

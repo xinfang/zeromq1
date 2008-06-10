@@ -27,6 +27,7 @@
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/bp_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
+#include "../../zmq/message.hpp"
 
 namespace perf
 {
@@ -44,10 +45,6 @@ namespace perf
             api (&dispatcher, &locator),
             worker (&dispatcher)
         {
-//            printf ("locator %s/%i, listen %s/%i\n", locator_ip_, locator_port_, 
-//                listen_ip_, listen_port_);
-
-
             zmq::poll_thread_t *workers [] = {&worker};
 
             if (sender) {
@@ -83,24 +80,19 @@ namespace perf
         inline virtual void send (size_t size_, unsigned int thread_id_ = 0)
         {
             assert (thread_id_ < thread_count);
-            assert (size_ <= 65536);
 
-            void *msg = zmq::msg_alloc (size_);
-            api.send (exchange_id, msg);
+            zmq::message_t message (size_);
+            api.send (exchange_id, &message);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
         {
             assert (thread_id_ < thread_count);
 
-            void *msg = api.receive ();
-            assert (msg);
-
-            size_t size = ((zmq::msg_t*)msg)->size;
+            zmq::message_t message;
+            api.receive (&message);
             
-            zmq::msg_dealloc (msg);
-
-            return size;
+            return message.size ();
         }
 
     protected:

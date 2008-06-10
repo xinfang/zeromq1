@@ -33,22 +33,24 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
     pipes.push_back (pipe_);
 }
 
-void *zmq::mux_t::read ()
+bool zmq::mux_t::read (message_t *msg_)
 {
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
-        void* msg = pipes [current]->read ();
+
+        bool retrieved = pipes [current]->read ((raw_message_t*) msg_);
+
         if (pipes [current]->eop ()) {
             delete pipes [current];
             pipes.erase (pipes.begin () + current);
-        } else {
+        } else
             current ++;
-        }
         if (current == pipes.size ())
             current = 0;
-        if (msg)
-            return msg;
+
+        if (retrieved)
+            return true;
     }
-    return NULL;
+    return false;
 }
 
 void zmq::mux_t::terminate_pipes()

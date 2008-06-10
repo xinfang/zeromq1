@@ -149,6 +149,7 @@ int main (int argc, char *argv [])
                 //  and delete the descriptor from pollfds vector
                 unregister (s, exchanges, queues);
                 pollfds.erase (pollfds.begin () + pos);
+                close (s);
                 continue;
             }
 
@@ -169,7 +170,7 @@ int main (int argc, char *argv [])
                     continue;
                 }
 
-                errno_assert (nbytes == 1);
+                assert (nbytes == 1);
 
                 switch (cmd) {
                 case create_exchange_id:
@@ -177,24 +178,24 @@ int main (int argc, char *argv [])
                         //  Parse exchange name
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char name [256];
                         nbytes = recv (s, name, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         name [size] = 0;
 
                         //  Parse interface
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char interface [256];
                         nbytes = recv (s, interface, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         interface [size] = 0;
 
                         //  Parse port
                         uint16_t port;
                         nbytes = recv (s, &port, 2, MSG_WAITALL);
-                        errno_assert (nbytes == 2);
+                        assert (nbytes == 2);
                         port = ntohs (port);
 
                         //  Insert exchange to the exchange repository
@@ -205,7 +206,7 @@ int main (int argc, char *argv [])
                             //  Send an error if the exchange already exists
                             reply = fail_id;
                             nbytes = send (s, &reply, 1, 0);
-                            errno_assert (nbytes == 1);
+                            assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                             printf ("Error when creating exchange: exchange %s"
                                 " already exists.\n", name);
@@ -216,7 +217,7 @@ int main (int argc, char *argv [])
                         //  Send reply command
                         reply = create_exchange_ok_id;
                         nbytes = send (s, &reply, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                         printf ("Exchange %s created (%s:%d).\n", name,
                             interface, (int) port);
@@ -228,24 +229,24 @@ int main (int argc, char *argv [])
                         //  Parse queue name
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char name [256];
                         nbytes = recv (s, name, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         name [size] = 0;
 
                         //  Parse interface
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char interface [256];
                         nbytes = recv (s, interface, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         interface [size] = 0;
 
                         //  Parse port
                         uint16_t port;
                         nbytes = recv (s, &port, 2, MSG_WAITALL);
-                        errno_assert (nbytes == 2);
+                        assert (nbytes == 2);
                         port = ntohs (port);
 
                         //  Insert queue to the queue repository
@@ -256,7 +257,7 @@ int main (int argc, char *argv [])
                             //  Send an error if the queue already exists
                             reply = fail_id;
                             nbytes = send (s, &reply, 1, 0);
-                            errno_assert (nbytes == 1);
+                            assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                             printf ("Error when creating queue: "
                                 "queue %s already exists.\n", name);
@@ -267,7 +268,7 @@ int main (int argc, char *argv [])
                         //  Send reply command
                         reply = create_queue_ok_id;
                         nbytes = send (s, &reply, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                         printf ("Queue %s created (%s:%d).\n", name,
                             interface, (int) port);
@@ -279,10 +280,10 @@ int main (int argc, char *argv [])
                         //  Parse exchange name
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char name [256];
                         nbytes = recv (s, name, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         name [size] = 0;
 
                         //  Find the exchange in the repository
@@ -292,7 +293,7 @@ int main (int argc, char *argv [])
                              //  Send the error
                              reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
-                             errno_assert (nbytes == 1);
+                             assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                              printf ("Error when looking for an exchange: "
                                  "exchange %s does not exist.\n", name);
@@ -303,20 +304,20 @@ int main (int argc, char *argv [])
                         //  Send reply command
                         reply = get_exchange_ok_id;
                         nbytes = send (s, &reply, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
 
                         //  Send the interface
                         size = it->second.interface.size ();
                         nbytes = send (s, &size, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         nbytes = send (
                             s, it->second.interface.c_str (), size, 0);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
 
                         //  Send the port
                         uint16_t port = htons (it->second.port);
                         nbytes = send (s, &port, 2, 0);
-                        errno_assert (nbytes == 2);
+                        assert (nbytes == 2);
 #ifdef ZMQ_DEBUG
                         printf ("Exchange %s retrieved (%s:%d).\n", name,
                             it->second.interface.c_str (),
@@ -329,10 +330,10 @@ int main (int argc, char *argv [])
                         //  Parse queue name
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         char name [256];
                         nbytes = recv (s, name, size, MSG_WAITALL);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
                         name [size] = 0;
 
                         //  Find the queue in the repository
@@ -342,7 +343,7 @@ int main (int argc, char *argv [])
                              //  Send the error
                              reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
-                             errno_assert (nbytes == 1);
+                             assert (nbytes == 1);
 #ifdef ZMQ_DEBUG
                              printf ("Error when looking for a queue: "
                                  "queue %s does not exist.\n", name);
@@ -353,20 +354,20 @@ int main (int argc, char *argv [])
                         //  Send the reply command
                         reply = get_queue_ok_id;
                         nbytes = send (s, &reply, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
 
                         //  Send the interface
                         size = it->second.interface.size ();
                         nbytes = send (s, &size, 1, 0);
-                        errno_assert (nbytes == 1);
+                        assert (nbytes == 1);
                         nbytes = send (
                             s, it->second.interface.c_str (), size, 0);
-                        errno_assert (nbytes == size);
+                        assert (nbytes == size);
 
                         //  Send the port
                         uint16_t port = htons (it->second.port);
                         nbytes = send (s, &port, 2, 0);
-                        errno_assert (nbytes == 2);
+                        assert (nbytes == 2);
 #ifdef ZMQ_DEBUG
                         printf ("Queue %s retrieved (%s:%d).\n", name,
                         it->second.interface.c_str (), (int) it->second.port);  

@@ -34,15 +34,11 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 
 zmq::pipe_t::~pipe_t ()
 {
-    //  Flush so that we can read all the messages from the pipe
-    pipe.flush ();
-
     //  Destroy the messages in the pipe itself
-    pipe_element_t element;
-    while (pipe.read (&element))
-        if (element.msg != NULL &&
-              element.msg != (void*) pipe_element_t::vsm_tag)
-            msg_dealloc (element.msg);
+    raw_message_t message;
+    pipe.flush ();
+    while (pipe.read (&message))
+        msg_dealloc (message.msg);
 }
 
 void zmq::pipe_t::revive ()
@@ -58,34 +54,26 @@ void zmq::pipe_t::send_revive ()
     source_context->send_command (destination_context, cmd);
 }
 
-void *zmq::pipe_t::read ()
+bool zmq::pipe_t::read (raw_message_t *msg_)
 {
     //  If the pipe is dead, there's nothing we can do
     if (!alive)
-        return NULL;
+        return false;
 
     //  Get next message, if it's not there, die.
-    pipe_element_t element;
-    if (!pipe.read (&element))
+    if (!pipe.read (msg_))
     {
         alive = false;
-        return NULL;
-    }
-
-    //  if message is stored in the element's buffer,
-    //  copy it to full-blown message.
-    if (element.msg == (void*) pipe_element_t::vsm_tag) {
-        void *msg = msg_alloc (element.vsm_size);
-        assert (msg);
-        memcpy (msg_data (msg), element.vsm_data, element.vsm_size);
-        return msg;
+        return false;
     }
 
     //  If delimiter is read from the pipe, mark the pipe as ended
-    if (!element.msg)
+    if (msg_->msg == (void*) raw_message_t::delimiter_tag) {
         endofpipe = true;
+        return false;
+    }
 
-    return element.msg;
+    return true;
 }
 
 void zmq::pipe_t::send_destroy_pipe ()

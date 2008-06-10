@@ -86,8 +86,7 @@ bool zmq::amqp09_encoder_t::message_ready ()
         return false;
 
     //  Get one message from mux
-    msg = mux->read ();
-    if (!msg)
+    if (!mux->read (&message))
         return false;
 
     //  Encode method frame frame header
@@ -214,7 +213,7 @@ bool zmq::amqp09_encoder_t::content_header ()
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
     assert (offset + sizeof (uint64_t) <= tmpbuf_size);
-    put_uint64 (tmpbuf + offset, msg_size (msg));
+    put_uint64 (tmpbuf + offset, message.size ());
     offset += sizeof (uint64_t);
     assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
@@ -234,7 +233,7 @@ bool zmq::amqp09_encoder_t::content_header ()
 bool zmq::amqp09_encoder_t::content_body_frame_header ()
 {
     //  Determine the size of data to transfer in the message body frame
-    size_t body_size = std::min (msg_size (msg) - body_offset,
+    size_t body_size = std::min (message.size () - body_offset,
         (size_t) (i_amqp09::frame_min_size - 8));
  
     //  Encode header of message body frame
@@ -256,11 +255,11 @@ bool zmq::amqp09_encoder_t::content_body_frame_header ()
 bool zmq::amqp09_encoder_t::content_body ()
 {
     //  Determine the size of data to transfer in the message body frame
-    size_t body_size = std::min (msg_size (msg) - body_offset,
+    size_t body_size = std::min (message.size () - body_offset,
         (size_t) (i_amqp09::frame_min_size - 8));
 
     //  Encode appropriate fragment of the message body fraction
-    next_step ((unsigned char*) msg_data (msg) + body_offset,
+    next_step ((unsigned char*) message.data () + body_offset,
         body_size, &amqp09_encoder_t::frame_end);
     body_offset += body_size;
     return true;
@@ -275,7 +274,7 @@ bool zmq::amqp09_encoder_t::frame_end ()
     //  If the message is transferred completely, start encoding new message,
     //  else start encoding the rest of the message into the next
     //  message body frame.
-    if (msg_size (msg) == body_offset)
+    if (message.size () == body_offset)
         next_step (tmpbuf, sizeof (uint8_t),
             &amqp09_encoder_t::message_ready);
     else

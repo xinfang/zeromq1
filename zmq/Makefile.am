@@ -49,7 +49,9 @@ pkginclude_HEADERS = \
     config.hpp \
     yqueue.hpp \
     tcp_listener.hpp \
-    i_locator.hpp
+    i_locator.hpp \
+    raw_message.hpp \
+    message.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

@@ -79,20 +79,20 @@ namespace zmq
         //  Send a message to specified exchange, 0MQ takes responsibility
         //  for deallocating the message. If there are any pendign pre-sent
         //  messages, flush them.
-        void send (int exchange_id_, void *value_);
+        void send (int exchange_id_, message_t *msg_);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        void presend (int exchange_id_, void *value_);
+        void presend (int exchange_id_, message_t *msg_);
 
         //  Flush all the pre-sent messages.
         void flush ();
 
         //  Receive a message, if 'block' argument is true, it'll block till
         //  message arrives. If it is false, it returns immediately. If no
-        //  message is available the return value is NULL.
-        void *receive (bool block_ = true);
+        //  message is available, the return value is false.
+        bool receive (message_t *msg_, bool block_ = true);
 
     private:
 
@@ -122,9 +122,6 @@ namespace zmq
         typedef std::vector <std::pair <std::string, mux_t> > queues_t;
         queues_t queues; 
         queues_t::size_type current_queue;    
-
-        //  True if there are unflushed messages to send
-        bool dirty;
     };
 
 }

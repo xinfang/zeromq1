@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_MESSAGE_HPP_INCLUDED__
-#define __ZMQ_MESSAGE_HPP_INCLUDED__
+#ifndef __ZMQ_MSG_HPP_INCLUDED__
+#define __ZMQ_MSG_HPP_INCLUDED__
 
 #include <assert.h>
 #include <stddef.h>
@@ -63,7 +63,7 @@ namespace zmq
     };
 
     //  Allocates a message of the specified size.
-    inline void *msg_alloc (size_t size_)
+    inline msg_t *msg_alloc (size_t size_)
     {
         msg_t *msg = (msg_t*) malloc (sizeof (msg_t) + size_);
         assert (msg);
@@ -73,7 +73,7 @@ namespace zmq
         msg->shared = false;
         msg->refcount.unsafe_set (1);
         msg->queue_id = 0;
-        return (void*) msg;
+        return msg;
     }
 
     //  Creates a message from the supplied buffer. From this point on
@@ -82,7 +82,7 @@ namespace zmq
     //  data in case you are dealing with legacy code and cannot se msg_alloc.
     //  In other cases, however, msg_alloc should be prefered as it is more
     //  efficient when compared to msg_attach.
-    inline void *msg_attach (void *data_, size_t size_, free_fn *ffn_)
+    inline msg_t *msg_attach (void *data_, size_t size_, free_fn *ffn_)
     {
         msg_t *msg = (msg_t*) malloc (sizeof (msg_t));
         assert (msg);
@@ -91,56 +91,56 @@ namespace zmq
         msg->ffn = ffn_;
         msg->shared = false;
         msg->refcount.unsafe_set (1);
-        return (void*) msg;
+        return msg;
     }
 
     //  Returns pointer to the message body
-    inline void *msg_data (void *msg_)
+    inline void *msg_data (msg_t *msg_)
     {
-        return ((msg_t*) msg_)->data;
+        return msg_->data;
     }
 
     //  Returns message body size
-    inline size_t msg_size (void *msg_)
+    inline size_t msg_size (msg_t *msg_)
     {
-        return ((msg_t*) msg_)->size;
+        return msg_->size;
     }
 
     //  Returns queue ID
-    inline int msg_queue_id (void *msg_)
+    inline int msg_queue_id (msg_t *msg_)
     {
-        return ((msg_t*) msg_)->queue_id;
+        return msg_->queue_id;
     }
 
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline void *msg_unsafe_copy (void *msg_)
+    inline void *msg_unsafe_copy (msg_t *msg_)
     {
-        ((msg_t*) msg_)->refcount.safe_add (1);
+        msg_->refcount.safe_add (1);
         return msg_;
     }
 
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline void *msg_safe_copy (void *msg_)
+    inline void *msg_safe_copy (msg_t *msg_)
     {
-        ((msg_t*) msg_)->refcount.safe_add (1);
-        ((msg_t*) msg_)->shared = true;
+        msg_->refcount.safe_add (1);
+        msg_->shared = true;
         return msg_;
     }
 
     //  Releases the particular copy of the message.
-    inline void msg_dealloc (void *msg_)
+    inline void msg_dealloc (msg_t *msg_)
     {
         if (!msg_)
             return;
-        msg_t *msg = (msg_t*) msg_;
-        if (!(msg->shared ? msg->refcount.safe_sub (1) :
-              msg->refcount.unsafe_sub (1))) {
-            if (msg->ffn)
-                msg->ffn (msg->data);
+
+        if (!(msg_->shared ? msg_->refcount.safe_sub (1) :
+              msg_->refcount.unsafe_sub (1))) {
+            if (msg_->ffn)
+                msg_->ffn (msg_->data);
             free (msg_);
         }
     }
@@ -148,10 +148,11 @@ namespace zmq
     //  Sets the queue ID of the message. This function is not intended to
     //  be used directly by the application developer. It is used by
     //  0MQ infrastructure instead.
-    inline void msg_set_queue_id (void *msg_, int queue_id_)
+    inline void msg_set_queue_id (msg_t *msg_, int queue_id_)
     {
-        ((msg_t*) msg_)->queue_id = queue_id_;
+        msg_->queue_id = queue_id_;
     }
+
 }
 
 #endif

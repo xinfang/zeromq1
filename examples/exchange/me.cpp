@@ -21,7 +21,7 @@
 #include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
-#include "../../zmq/msg.hpp"
+#include "../../zmq/message.hpp"
 
 #include "messages.hpp"
 #include "time.hpp"
@@ -61,9 +61,9 @@ public:
     {
         //  Message dispatch loop
         while (true) {
-            void *msg = api.receive ();
-            parse_message (msg, this);
-            zmq::msg_dealloc (msg);
+            zmq::message_t msg;
+            api.receive (&msg);
+            parse_message (&msg, this);
         }
     }
 
@@ -81,8 +81,9 @@ public:
 
 	//  If no trade was executed, send order confirmation
 	if (!trades_sent) {
-	    void *msg = make_order_confirmation (order_id);
-	    api.presend (te_id, msg);
+            zmq::message_t msg;
+	    make_order_confirmation (order_id, &msg);
+	    api.presend (te_id, &msg);
 	    out_meter.event (this);
 	}
 
@@ -119,24 +120,27 @@ public:
     inline void traded (order_id_t order_id, price_t price, volume_t volume)
     {
         //  Send trade back to the gateway
-        void *msg = make_trade (order_id, price, volume);
-        api.presend (te_id, msg);
+        zmq::message_t msg;
+        make_trade (order_id, price, volume, &msg);
+        api.presend (te_id, &msg);
 	out_meter.event (this);
     }
 
     inline void quoted (price_t bid, price_t ask)
     {
         //  Send quote back to the gateway
-        void *msg = make_quote (ask, bid);
-        api.presend (te_id, msg);
+        zmq::message_t msg;
+        make_quote (ask, bid, &msg);
+        api.presend (te_id, &msg);
 	out_meter.event (this);
     }
 
     inline void frequency (uint8_t meter_id, uint64_t frequency)
     {
         //  Send the throughput figure to the stat component
-        void *msg = make_throughput (meter_id, frequency);
-        api.presend (se_id, msg);
+        zmq::message_t msg;
+        make_throughput (meter_id, frequency, &msg);
+        api.presend (se_id, &msg);
     }
 
 private:

@@ -17,34 +17,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_ENCODER_HPP_INCLUDED__
-#define __ZMQ_BP_ENCODER_HPP_INCLUDED__
+#ifndef __ZMQ_RAW_MESSAGE_HPP_INCLUDED__
+#define __ZMQ_RAW_MESSAGE_HPP_INCLUDED__
 
-#include <stddef.h>
-#include <assert.h>
-
-#include "mux.hpp"
-#include "encoder.hpp"
-#include "message.hpp"
+#include "msg.hpp"
+#include "config.hpp"
 
 namespace zmq
 {
-    //  Encoder for 0MQ backend protocol
-    class bp_encoder_t : public encoder_t <bp_encoder_t>
+
+    //  POD version of message. The point is to avoid any implicit
+    //  construction/destruction/copying of the structure in the ypipe.
+    //  From user's point of view raw message is wrapped in message_t
+    //  class which makes its usage more convenient.
+
+    struct raw_message_t
     {
-    public:
+        enum {
+            delimiter_tag = 0,
+            vsm_tag = 1
+        };
 
-        bp_encoder_t (mux_t *mux_);
-        ~bp_encoder_t ();
-
-    protected:
-
-        bool size_ready ();
-        bool message_ready ();
-
-        mux_t *mux;
-        message_t message;
-        unsigned char tmpbuf [9];
+        msg_t *msg;
+        uint16_t vsm_size;
+        unsigned char vsm_data [max_vsm_size];
     };
 
 }

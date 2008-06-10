@@ -48,11 +48,11 @@ namespace exchange
     };
 
     //  Creates an 'order' message
-    void *make_order (order_id_t order_id, order_type_t type,
-        price_t price, volume_t volume)
+    void make_order (order_id_t order_id, order_type_t type,
+        price_t price, volume_t volume, zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (10);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (10);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_order);
         buff += sizeof (uint8_t);
         zmq::put_uint32 (buff, order_id);
@@ -62,25 +62,24 @@ namespace exchange
         zmq::put_uint16 (buff, price);
         buff += sizeof (uint16_t);
         zmq::put_uint16 (buff, volume);
-        return msg;
     }
 
     //  Creates an 'order confirmation' message
-    void *make_order_confirmation (order_id_t order_id)
+    void make_order_confirmation (order_id_t order_id, zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (5);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (5);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_order_confirmation);
         buff += sizeof (uint8_t);
         zmq::put_uint32 (buff, order_id);
-        return msg;
     }
 
     //  Create 'trade' message
-    void *make_trade (order_id_t order_id, price_t price, volume_t volume)
+    void make_trade (order_id_t order_id, price_t price, volume_t volume,
+        zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (9);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (9);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_trade);
         buff += sizeof (uint8_t);
         zmq::put_uint32 (buff, order_id);
@@ -88,41 +87,39 @@ namespace exchange
         zmq::put_uint16 (buff, price);
         buff += sizeof (uint16_t);
         zmq::put_uint16 (buff, volume);
-        return msg;
     }
 
     //  Create 'quote' message
-    void *make_quote (price_t bid, price_t ask)
+    void make_quote (price_t bid, price_t ask, zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (5);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (5);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_quote);
         buff += sizeof (uint8_t);
         zmq::put_uint16 (buff, bid);
         buff += sizeof (uint16_t);
         zmq::put_uint16 (buff, ask);
-        return msg;
     }
 
     //  Create 'throughput' message
-    void *make_throughput (uint8_t meter_id, uint64_t throughput)
+    void make_throughput (uint8_t meter_id, uint64_t throughput,
+        zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (10);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (10);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_throughput);
         buff += sizeof (uint8_t);
         zmq::put_uint8 (buff, meter_id);
         buff += sizeof (uint8_t);
         zmq::put_uint64 (buff, throughput);
-        return msg;
     }
 
     //  Create 'timestamp' message
-    void *make_timestamp (uint8_t meter_id, uint64_t correlation_id,
-        uint64_t timestamp)
+    void make_timestamp (uint8_t meter_id, uint64_t correlation_id,
+        uint64_t timestamp, zmq::message_t *msg)
     {
-        void *msg = zmq::msg_alloc (18);
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
+        msg->rebuild (18);
+        unsigned char *buff = (unsigned char*) msg->data ();
         zmq::put_uint8 (buff, msg_type_timestamp);
         buff += sizeof (uint8_t);
         zmq::put_uint8 (buff, meter_id);
@@ -130,14 +127,13 @@ namespace exchange
         zmq::put_uint64 (buff, correlation_id);
         buff += sizeof (uint64_t);
         zmq::put_uint64 (buff, timestamp);
-        return msg;
     }
 
     //  Parse a message and call the appropriate function the callback object
-    template <typename T> void parse_message (void *msg, T *callback)
+    template <typename T> void parse_message (zmq::message_t *msg, T *callback)
     {
-        unsigned char *buff = (unsigned char*) zmq::msg_data (msg);
-        size_t size = zmq::msg_size (msg);
+        unsigned char *buff = (unsigned char*) msg->data ();
+        size_t size = msg->size ();
 
         assert (size >= sizeof (uint8_t));
         message_type_t type = (message_type_t) zmq::get_uint8 (buff);

@@ -24,7 +24,7 @@
 #include "../../zmq/locator.hpp"
 #include "../../zmq/api_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
-#include "../../zmq/msg.hpp"
+#include "../../zmq/message.hpp"
 
 #include "messages.hpp"
 using namespace exchange;
@@ -123,9 +123,9 @@ int main (int argc, char *argv [])
 
     //  Message dispatch loop
     while (true) {
-        void *msg = api.receive ();
-        parse_message (msg, &handler);
-        zmq::msg_dealloc (msg);
+        zmq::message_t msg;
+        api.receive (&msg);
+        parse_message (&msg, &handler);
     } 
 
     return 0;

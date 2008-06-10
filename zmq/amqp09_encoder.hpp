@@ -63,7 +63,7 @@ namespace zmq
         size_t tmpbuf_size;
 
         amqp09_marshaller_t::command_t command;
-        void *msg;
+        message_t message;
         size_t body_offset;
 
         mux_t *mux;
