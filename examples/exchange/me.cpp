@@ -23,8 +23,10 @@
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
 
+#include "../../perf/helpers/time.hpp"
+using namespace perf;
+
 #include "messages.hpp"
-#include "time.hpp"
 #include "frequency_meter.hpp"
 #include "matching_engine.hpp"
 using namespace exchange;

@@ -9,15 +9,15 @@ int main (int argc, char *argv [])
 
     if (argc != 6) { 
         printf ("Usage: remote_thr <global_locator IP> <global_locator port> "
-            "<message size> <roundtrip count> <number of threads>\n"); 
+            "<message size> <message count> <number of threads>\n"); 
         return 1;
     }
-
 
     int thread_count = atoi (argv [5]);
 
     pthread_t *workers = new pthread_t [thread_count];
-    perf::thr_worker_args_t *w_args = new perf::thr_worker_args_t [thread_count];
+    perf::thr_worker_args_t *w_args =
+        new perf::thr_worker_args_t [thread_count];
 
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
@@ -54,9 +54,6 @@ int main (int argc, char *argv [])
 void *worker_function (void *args_)
 {
     perf::thr_worker_args_t *w_args = (perf::thr_worker_args_t*)args_;
-
-//    printf ("remote_thr, msg_size %i, roundtrip_count %i, thread no %i\n", 
-//        (int)w_args->msg_size, w_args->roundtrip_count, w_args->id); 
 
     char queue_name [32];
     char exchange_name [32];

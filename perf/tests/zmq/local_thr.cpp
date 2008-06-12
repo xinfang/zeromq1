@@ -32,15 +32,20 @@ int main (int argc, char *argv [])
 {
     if (argc != 8){
         printf ("Usage: local_thr <global_locator IP> <global_locator port> "
-            "<listen IP> <listen port> <message size> <roundtrip count> "
+            "<listen IP> <listen port> <message size> <message count> "
             "<number of threads>\n");
         return 1;
     }
 
+    printf ("estimating CPU frequency...\n");
+    uint64_t frq = perf::estimate_cpu_frequency ();
+    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
+
     int thread_count = atoi (argv [7]);
     
     pthread_t *workers = new pthread_t [thread_count];
-    perf::thr_worker_args_t *w_args = new perf::thr_worker_args_t [thread_count];
+    perf::thr_worker_args_t *w_args =
+        new perf::thr_worker_args_t [thread_count];
 
     printf ("threads: %i\n", thread_count);
     printf ("message size: %i\n", atoi (argv [5]));
@@ -86,16 +91,13 @@ int main (int argc, char *argv [])
 
     }
 
-//    printf ("min start_time %llu, max stop time %llu\n", 
-//        min_start_time, max_stop_time);
-    
     double test_time = (double)(max_stop_time - min_start_time) /
-        (double) 1000;
+        (double) 1000000;
 
     printf ("test time: %.2f [ms]\n", test_time);
 
     // throughput [msgs/s]
-    unsigned long msg_thput = ((long) 1000000 * 
+    unsigned long msg_thput = ((long) 1000000000 * 
         (unsigned long) atoi (argv [6]) * (unsigned long)thread_count ) / 
         (unsigned long)(max_stop_time - min_start_time);
 
@@ -122,9 +124,6 @@ void *worker_function (void *args_)
     // args struct
     perf::thr_worker_args_t *w_args = (perf::thr_worker_args_t*)args_;
    
-//    printf ("local_thr, msg_size %i, roundtrip_count %i, thread no %i\n", 
-//        (int)w_args->msg_size, w_args->roundtrip_count, w_args->id); 
-
     char queue_name [32];
     char exchange_name [32];
 
@@ -142,8 +141,5 @@ void *worker_function (void *args_)
     w_args->start_time = start_stop [0];
     w_args->stop_time = start_stop [1];
     
-//    printf ("thread id %i, start_time %llu, stop_time %llu\n", w_args->id,
-//        w_args->start_time, w_args->stop_time);
-
     return NULL;
 }

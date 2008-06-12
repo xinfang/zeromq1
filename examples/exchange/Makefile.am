@@ -5,12 +5,12 @@ noinst_PROGRAMS = gtw me stat
 
 gtw_SOURCES = gtw.cpp ../../zmq/dispatcher.hpp \
 ../../zmq/api_engine.hpp ../../zmq/poll_thread.hpp \
-../../zmq/msg.hpp ticker.hpp messages.hpp frequency_meter.hpp \
+../../zmq/msg.hpp messages.hpp frequency_meter.hpp \
 common.hpp
 
 me_SOURCES = me.cpp ../../zmq/dispatcher.hpp \
 ../../zmq/api_engine.hpp ../../zmq/poll_thread.hpp \
-../../zmq/msg.hpp messages.hpp time.hpp frequency_meter.hpp \
+../../zmq/msg.hpp messages.hpp frequency_meter.hpp \
 matching_engine.hpp common.hpp
 
 stat_SOURCES = stat.cpp ../../zmq/dispatcher.hpp \

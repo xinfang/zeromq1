@@ -27,14 +27,14 @@ int main (int argc, char *argv [])
 
     if (argc != 5) {
         printf ("Usage: remote <global_locator IP> <global_locator port> "
-            "<message size> <message count>\n");
+            "<message size> <roundtrip count>\n");
         return 1;
     }
 
     perf::zmq_t transport (true, "QIN", "EOUT", argv [1], atoi (argv [2]),
         NULL, 0);
 
-    perf::remote_lat ( &transport, atoi (argv [3]), atoi (argv [4])); 
+    perf::remote_lat (&transport, atoi (argv [3]), atoi (argv [4])); 
 
     return 0;
 }

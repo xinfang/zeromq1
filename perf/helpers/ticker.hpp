@@ -24,7 +24,7 @@
 
 #include "time.hpp"
 
-namespace exchange
+namespace perf
 {
 
     //  Class to produce ticks at specified frequency
@@ -33,17 +33,17 @@ namespace exchange
     {
     public:
 
-        //  Initialise ticker. Frequency of ticks (in Hz) should be supplied.
+        //  Initialise ticker. required frequency of ticks (in Hz)
+        //  should be supplied.
         ticker_t (uint64_t tick_frequency)
         {
             interval = estimate_cpu_frequency () / tick_frequency;
             next = now_ticks () + interval;
         }
 
-        //  Waits for next tick.
-        //  The ticks are "queued", meaning that is you miss the expected time
-        //  if the next tick and call wait_for_ticks, the function will return
-        //  immediately.
+        //  Waits for the next tick. The ticks are "queued", meaning that
+        //  if you miss the expected time, next call to the function will
+        //  return immediately.
         void wait_for_tick ()
         {
             while (now_ticks () < next);

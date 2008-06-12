@@ -32,6 +32,10 @@ int main (int argc, char *argv [])
         return 1;
     }
 
+    printf ("estimating CPU frequency...\n");
+    uint64_t frq = estimate_cpu_frequency ();
+    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
+
     printf ("message size: %i\n", atoi (argv [5]));
     printf ("roundtrip count: %i\n", atoi (argv [6]));
 

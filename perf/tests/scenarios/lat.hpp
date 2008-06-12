@@ -29,9 +29,6 @@ namespace perf
     void local_lat (i_transport *transport_, size_t msg_size_, 
         int roundtrip_count_)
     {
-//        printf ("local_lat, msg_size %i, roundtrip_count %i\n", (int)msg_size_,
-//            roundtrip_count_); 
-        
         // wait for 'remote' side 1B sync message
         size_t size = transport_->receive ();
         assert (size == 1);
@@ -50,7 +47,7 @@ namespace perf
         time_instant_t stop_time = now ();
         
         printf ("Your average latency is %.2f us\n", 
-            (double)((stop_time - start_time) / 2) / (double)roundtrip_count_);
+            (double)((stop_time - start_time) / 2000) / (double) roundtrip_count_);
 
         // send sync message
         transport_->send (1);

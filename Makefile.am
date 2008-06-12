@@ -3,6 +3,7 @@ SUBDIRS = zmq perf examples
 EXTRA_DIST = \
     ./perf/helpers/files.hpp \
     ./perf/helpers/time.hpp \
+    ./perf/helpers/ticker.hpp \
     ./perf/transports/openamq.hpp \
     ./perf/transports/sctp.hpp \
     ./perf/transports/tcp.hpp \

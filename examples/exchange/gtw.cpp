@@ -23,7 +23,9 @@
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
 
-#include "ticker.hpp"
+#include "../../perf/helpers/ticker.hpp"
+using namespace perf;
+
 #include "messages.hpp"
 #include "frequency_meter.hpp"
 using namespace exchange;
@@ -69,7 +71,7 @@ public:
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
-                make_timestamp (5, order_id, now_usec (), &msg);
+                make_timestamp (5, order_id, now () / 1000, &msg);
                 api.send (se_id, &msg);
             }
 
@@ -158,7 +160,7 @@ public:
         //  Taking timestamps
         if (order_id % 500000 == 0 && order_id > last_timestamp) {
             zmq::message_t msg;
-            make_timestamp (6, order_id, now_usec (), &msg);
+            make_timestamp (6, order_id, now () / 1000, &msg);
             api.send (se_id, &msg);
             last_timestamp = order_id;
         }

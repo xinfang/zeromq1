@@ -20,7 +20,7 @@
 #ifndef __EXCHANGE_FREQUENCY_METER_HPP_INCLUDED__
 #define __EXCHANGE_FREQUENCY_METER_HPP_INCLUDED__
 
-#include "time.hpp"
+#include "../../perf/helpers/time.hpp"
 
 namespace exchange
 {
@@ -51,13 +51,14 @@ namespace exchange
             if (current == window) {
 
                 //  Get current time
-                uint64_t now_time = now_ticks ();
+                uint64_t now_time = perf::now_ticks ();
 
                 //  If there've been previous measurement
                 if (last_time) {
 
                     //  Calculate and report the frequency
-                    uint64_t frequency = window * estimate_cpu_frequency () /
+                    uint64_t frequency = window *
+                        perf::estimate_cpu_frequency () /
                         (now_time - last_time);
                     callback->frequency (meter_id, frequency);
                 }
