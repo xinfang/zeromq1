@@ -49,6 +49,7 @@ void zmq::demux_t::write (message_t *msg_)
         message_t message;
         msg_->safe_copy (&message);
         (*it)->write ((raw_message_t*) &message);
+        message.detach ();
     }
 }
 
