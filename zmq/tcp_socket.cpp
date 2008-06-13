@@ -38,7 +38,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *address_, uint16_t port_)
     struct addrinfo *res;
     req.ai_family = AF_INET;
     int rc = getaddrinfo (address_, NULL, &req, &res);
-    assert (rc == 0);
+    gai_assert (rc);
     sockaddr_in ip_address = *((sockaddr_in *) res->ai_addr);
     freeaddrinfo (res);
     ip_address.sin_port = htons (port_);

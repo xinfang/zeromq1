@@ -43,16 +43,13 @@ void zmq::demux_t::write (message_t *msg_)
         return;
     }
 
-assert (false);
-/*
     //  TODO: optimise this to send the existing message to the first pipe
     //        and copies to the remaining pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
-        void *msg = msg_safe_copy (msg_); 
-        (*it)->write (msg);
+        message_t message;
+        msg_->safe_copy (&message);
+        (*it)->write ((raw_message_t*) &message);
     }
-    msg_dealloc (msg_);
-*/
 }
 
 void zmq::demux_t::flush ()

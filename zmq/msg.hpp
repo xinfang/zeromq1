@@ -115,7 +115,7 @@ namespace zmq
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline void *msg_unsafe_copy (msg_t *msg_)
+    inline msg_t *msg_unsafe_copy (msg_t *msg_)
     {
         msg_->refcount.safe_add (1);
         return msg_;
@@ -124,7 +124,7 @@ namespace zmq
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline void *msg_safe_copy (msg_t *msg_)
+    inline msg_t *msg_safe_copy (msg_t *msg_)
     {
         msg_->refcount.safe_add (1);
         msg_->shared = true;

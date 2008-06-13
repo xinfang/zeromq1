@@ -79,6 +79,18 @@ namespace zmq
                 msg = msg_alloc (size_);            
         }
 
+        void safe_copy (message_t *message_)
+        {
+            //  VSM are physically copied
+            if (!msg) {
+                *message_ = *this;
+                return;
+            }
+
+            //  Large messages are reference counted
+            message_->msg = msg_safe_copy (msg);
+        }
+
         inline void *data ()
         {
             if (msg != (void*) raw_message_t::vsm_tag)
