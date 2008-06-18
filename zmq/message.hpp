@@ -82,7 +82,7 @@ namespace zmq
         void safe_copy (message_t *message_)
         {
             //  VSM are physically copied
-            if (!msg) {
+            if (msg == (void*) raw_message_t::vsm_tag) {
                 *message_ = *this;
                 return;
             }
