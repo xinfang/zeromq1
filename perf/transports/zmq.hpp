@@ -35,11 +35,11 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (bool sender_, const char *queue_name_, const char *exchange_name_, 
+        zmq_t (bool bind_, const char *queue_name_, const char *exchange_name_, 
               const char *locator_ip_, unsigned short locator_port_,
               const char *listen_ip_, unsigned short listen_port_, 
               unsigned int thread_count_ = 2) :
-            thread_count (thread_count_), sender (sender_),
+            thread_count (thread_count_),
             dispatcher (thread_count),
             locator (locator_ip_, locator_port_),
             api (&dispatcher, &locator),
@@ -47,7 +47,7 @@ namespace perf
         {
             zmq::poll_thread_t *workers [] = {&worker};
 
-            if (sender) {
+            if (bind_) {
                 assert (!listen_ip_);
                 assert (!listen_port_);
 
@@ -63,11 +63,12 @@ namespace perf
                 assert (listen_ip_);
                 assert (listen_port_);
                 
-                api.create_queue (queue_name_, zmq::scope_global, listen_ip_, listen_port_,
-                    &worker, 1, workers);
+                api.create_queue (queue_name_, zmq::scope_global, listen_ip_, 
+                    listen_port_, &worker, 1, workers);
 
-                exchange_id = api.create_exchange (exchange_name_, zmq::scope_global, listen_ip_, listen_port_ + 1,
-                    &worker, 1, workers);
+                exchange_id = api.create_exchange (exchange_name_, 
+                    zmq::scope_global, listen_ip_, listen_port_ + 1, &worker, 
+                    1, workers);
 
             }
         }
@@ -98,7 +99,7 @@ namespace perf
     protected:
 
         unsigned int thread_count;
-        bool sender;
+//        bool sender;
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
         zmq::api_engine_t api;
