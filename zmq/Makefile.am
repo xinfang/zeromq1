@@ -55,7 +55,7 @@ pkginclude_HEADERS = \
 
 lib_LTLIBRARIES = libzmq.la
 
-libzmq_la_SOURCES = ${pkginclude_HEADERS} \
+libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_socket.cpp \
     ysocketpair.cpp \
     ypollset.cpp \

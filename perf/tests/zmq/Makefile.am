@@ -2,7 +2,7 @@ INCLUDES        = -I$(top_builddir) -I$(top_builddir)/zmq \
                 -I$(top_srcdir) -I$(top_srcdir)/zmq
 
 noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
-local_fo remote_fo
+local_fo remote_fo local_fi remote_fi
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq.hpp \
 ../../helpers/time.hpp ../../transports/i_transport.hpp \
@@ -24,6 +24,12 @@ local_fo_SOURCES = local_fo.cpp ../../transports/zmq.hpp \
 remote_fo_SOURCES = remote_fo.cpp ../../transports/zmq.hpp \
 ../../transports/i_transport.hpp ../scenarios/fo.hpp
 
+local_fi_SOURCES = local_fi.cpp ../../transports/zmq.hpp \
+../../transports/i_transport.hpp ../scenarios/fi.hpp
+
+remote_fi_SOURCES = remote_fi.cpp ../../transports/zmq.hpp \
+../../transports/i_transport.hpp ../scenarios/fi.hpp
+
 local_thr_LDADD = $(top_builddir)/zmq/libzmq.la
 local_thr_CXXFLAGS = -Wall -pedantic
 
@@ -41,4 +47,10 @@ local_fo_CXXFLAGS = -Wall -pedantic
 
 remote_fo_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_fo_CXXFLAGS = -Wall -pedantic
+
+local_fi_LDADD = $(top_builddir)/zmq/libzmq.la
+local_fi_CXXFLAGS = -Wall -pedantic
+
+remote_fi_LDADD = $(top_builddir)/zmq/libzmq.la
+remote_fi_CXXFLAGS = -Wall -pedantic
 

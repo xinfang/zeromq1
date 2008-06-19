@@ -17,33 +17,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
 #include <iostream>
+#include "../scenarios/fi.hpp"
 #include "../../transports/zmq.hpp"
-#include "../scenarios/fo.hpp"
+
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-    
-    if (argc != 8) {
-        std::cerr << "Usage: local_fo <global_locator IP> <global_locator port> ";
-        std::cerr << "<listen IP> <listen port> <message size> <message count> ";
-        std::cerr << "<number of subscribers>\n";
+    if (argc != 5) {
+        cerr << "Usage: remote_fi <global_locator IP> <global_locator port> ";
+        cerr << "<message size> <message count>\n";
         return 1;
     }
 
-    size_t msg_size = atoi (argv [5]);
-    int roundtrip_count = atoi (argv [6]);
-    int subs_count = atoi (argv [7]);
+    const char *g_locator = argv [1];
+    unsigned short g_locator_port = atoi (argv [2]);
 
-    printf ("subcribers: %i\n", subs_count);
-    printf ("message size: %i\n", (int)msg_size);
-    printf ("roundtrip count: %i\n", roundtrip_count);
+    size_t msg_size = atoi (argv [3]);
+    int roundtrip_count = atoi (argv [4]);
 
-    perf::zmq_t transport (false, "QIN", "EOUT", argv [1], atoi (argv [2]), 
-        argv [3], atoi (argv [4]));
-   
-    perf::local_fo (&transport, msg_size, roundtrip_count, subs_count);
+    cout << "message size: " << msg_size << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
+
+    perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
+
+    perf::remote_fi (&transport, msg_size, roundtrip_count);
 
     return 0;
 }
