@@ -43,7 +43,7 @@ namespace zmq
 
         //  Creates the local locator and connects it to the global locator
         //  identified by 'address' and 'port' paramters.
-        locator_t (const char *address_, uint16_t port_);
+        locator_t (const char *address_ = NULL, uint16_t port_ = 0);
         ~locator_t ();
 
         //  Creates exchange
@@ -99,7 +99,7 @@ namespace zmq
         //  passed through the system).
         pthread_mutex_t sync;
 
-        tcp_socket_t global_locator;
+        tcp_socket_t *global_locator;
     };
 
 }

@@ -24,9 +24,13 @@
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::locator_t::locator_t (const char *address_, uint16_t port_) :
-    global_locator (address_, port_)
+zmq::locator_t::locator_t (const char *address_, uint16_t port_)
 {
+    if (address_)
+        global_locator = new tcp_socket_t (address_, port_);
+    else
+        global_locator = NULL;
+
     int rc = pthread_mutex_init (&sync, NULL);
     errno_assert (rc == 0);
 }
@@ -35,6 +39,9 @@ zmq::locator_t::~locator_t ()
 {
     int rc = pthread_mutex_destroy (&sync);
     errno_assert (rc == 0);
+
+    if (global_locator)
+        delete global_locator;
 }
 
 void zmq::locator_t::create_exchange (const char *exchange_,
@@ -55,6 +62,7 @@ void zmq::locator_t::create_exchange (const char *exchange_,
     //  Add exchange to the global locator
     if (scope_ == scope_global) {
 
+         assert (global_locator);
          assert (strlen (address_) < 256);
 
          //  Create a listener for the exchange
@@ -64,18 +72,18 @@ void zmq::locator_t::create_exchange (const char *exchange_,
 
          //  Send to 'add exchange' command
          unsigned char cmd = create_exchange_id;
-         global_locator.blocking_write (&cmd, 1);
+         global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (exchange_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (exchange_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (exchange_, size);
          size = strlen (address_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (address_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (address_, size);
          uint16_t port = htons (port_);
-         global_locator.blocking_write (&port, 2);
+         global_locator->blocking_write (&port, 2);
 
          //  Read the response
-         global_locator.blocking_read (&cmd, 1);
+         global_locator->blocking_read (&cmd, 1);
          assert (cmd == create_exchange_ok_id);
     }
 
@@ -97,15 +105,25 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
     //  If the exchange is unknown, find it using global locator
     if (it == exchanges.end ()) {
 
+         //  If we are running without global locator, fail
+         if (!global_locator) {
+
+             //  Leave critical section
+             rc = pthread_mutex_unlock (&sync);
+             errno_assert (rc == 0);
+
+             return false;
+         }
+
          //  Send to 'get exchange' command
          unsigned char cmd = get_exchange_id;
-         global_locator.blocking_write (&cmd, 1);
+         global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (exchange_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (exchange_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (exchange_, size);
 
          //  Read the response
-         global_locator.blocking_read (&cmd, 1);
+         global_locator->blocking_read (&cmd, 1);
          if (cmd == fail_id) {
 
              //  Leave critical section
@@ -116,12 +134,12 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          }
 
          assert (cmd == get_exchange_ok_id);
-         global_locator.blocking_read (&size, 1);
+         global_locator->blocking_read (&size, 1);
          char address [256];
-         global_locator.blocking_read (address, size);
+         global_locator->blocking_read (address, size);
          address [size] = 0;
          uint16_t port;
-         global_locator.blocking_read (&port, 2);
+         global_locator->blocking_read (&port, 2);
          port = ntohs (port);
 
          //  Create the proxy engine for the exchange
@@ -162,6 +180,7 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
     //  Add queue to the global locator
     if (scope_ == scope_global) {
 
+         assert (global_locator);
          assert (strlen (address_) < 256);
 
          //  Create a listener for the exchange
@@ -171,18 +190,18 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
 
          //  Send to 'add queue' command
          unsigned char cmd = create_queue_id;
-         global_locator.blocking_write (&cmd, 1);
+         global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (queue_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (queue_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (queue_, size);
          size = strlen (address_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (address_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (address_, size);
          uint16_t port = htons (port_);
-         global_locator.blocking_write (&port, 2);
+         global_locator->blocking_write (&port, 2);
 
          //  Read the response
-         global_locator.blocking_read (&cmd, 1);
+         global_locator->blocking_read (&cmd, 1);
          assert (cmd == create_queue_ok_id);
     }
 
@@ -203,15 +222,25 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
     //  If the exchange is unknown, find it using global locator
     if (it == queues.end ()) {
 
+         //  If we are running without global locator, fail
+         if (!global_locator) {
+
+             //  Leave critical section
+             rc = pthread_mutex_unlock (&sync);
+             errno_assert (rc == 0);
+
+             return false;
+         }
+
          //  Send to 'get queue' command
          unsigned char cmd = get_queue_id;
-         global_locator.blocking_write (&cmd, 1);
+         global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (queue_);
-         global_locator.blocking_write (&size, 1);
-         global_locator.blocking_write (queue_, size);
+         global_locator->blocking_write (&size, 1);
+         global_locator->blocking_write (queue_, size);
 
          //  Read the response
-         global_locator.blocking_read (&cmd, 1);
+         global_locator->blocking_read (&cmd, 1);
          if (cmd == fail_id) {
 
              //  Leave critical section
@@ -222,12 +251,12 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
          }
 
          assert (cmd == get_queue_ok_id);
-         global_locator.blocking_read (&size, 1);
+         global_locator->blocking_read (&size, 1);
          char address [256];
-         global_locator.blocking_read (address, size);
+         global_locator->blocking_read (address, size);
          address [size] = 0;
          uint16_t port;
-         global_locator.blocking_read (&port, 2);
+         global_locator->blocking_read (&port, 2);
          port = ntohs (port);
 
          //  Create the proxy engine for the exchange
