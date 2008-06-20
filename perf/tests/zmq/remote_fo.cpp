@@ -21,11 +21,13 @@
 #include "../../transports/zmq.hpp"
 #include "../scenarios/fo.hpp"
 
+using namespace std;
+
 int main (int argc, char *argv [])
 {
     if (argc != 6) {
-        printf ("Usage: remote_fo <global_locator IP> <global_locator port> "
-            "<message size> <message count> <subscriber id>\n");
+        cerr << "Usage: remote_fo <global_locator IP> <global_locator port> "
+            << "<message size> <message count> <subscriber id>\n";
         return 1;
     }
 
@@ -36,17 +38,19 @@ int main (int argc, char *argv [])
     int roundtrip_count = atoi (argv [4]);
     const char *subs_id = argv [5];
 
+    cout << "subscriber ID: " << subs_id << endl;
+    cout << "message size: " << msg_size << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
 
-    printf ("subscriber ID: %s\n", subs_id);
-    printf ("message size: %i\n", (int)msg_size);
-    printf ("roundtrip count: %i\n", roundtrip_count);
+    cout.precision (2);
 
-    printf ("estimating CPU frequency...\n");
+    cout << "estimating CPU frequency...\n";
     uint64_t frq = perf::estimate_cpu_frequency ();
-    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
+    cout << "your CPU frequncy is " << frq / 1000000000 << " GHz\n";
 
     perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
 
     perf::remote_fo (&transport, msg_size, roundtrip_count, subs_id);
 
+    return 0;
 }

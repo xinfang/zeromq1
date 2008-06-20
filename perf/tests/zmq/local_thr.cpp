@@ -37,9 +37,9 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    printf ("estimating CPU frequency...\n");
-    uint64_t frq = perf::estimate_cpu_frequency ();
-    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
+//    printf ("estimating CPU frequency...\n");
+//    uint64_t frq = perf::estimate_cpu_frequency ();
+//    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
 
     int thread_count = atoi (argv [7]);
     

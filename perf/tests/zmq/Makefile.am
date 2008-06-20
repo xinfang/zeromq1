@@ -31,7 +31,7 @@ remote_fi_SOURCES = remote_fi.cpp ../../transports/zmq.hpp \
 ../../transports/i_transport.hpp ../scenarios/fi.hpp
 
 local_thr_LDADD = $(top_builddir)/zmq/libzmq.la
-local_thr_CXXFLAGS = -Wall -pedantic
+local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
 
 remote_thr_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_thr_CXXFLAGS = -Wall -pedantic

@@ -25,9 +25,9 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5) {
-        cerr << "Usage: remote_fi <global_locator IP> <global_locator port> ";
-        cerr << "<message size> <message count>\n";
+    if (argc != 6) {
+        cerr << "Usage: remote_fi <global_locator IP> <global_locator port> "
+            << "<message size> <message count> <publisher id>\n";
         return 1;
     }
 
@@ -36,11 +36,14 @@ int main (int argc, char *argv [])
 
     size_t msg_size = atoi (argv [3]);
     int roundtrip_count = atoi (argv [4]);
+    const char *pub_id = argv [5];
 
+    cout << "publisher ID: " << pub_id << endl;
     cout << "message size: " << msg_size << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
+    perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, 
+        NULL, 0);
 
     perf::remote_fi (&transport, msg_size, roundtrip_count);
 

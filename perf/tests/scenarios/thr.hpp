@@ -21,6 +21,7 @@
 #define __PERF_THR_HPP_INCLUDED__
 
 #include <vector>
+#include <iostream>
 
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"
@@ -63,6 +64,8 @@ namespace perf
 
         // send sync message
         transport_->send (1);
+
+        //std::cout << start_stop_time [0] << ", " << start_stop_time [1] << std::endl;
 
         return start_stop_time;
     }

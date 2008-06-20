@@ -28,9 +28,9 @@ using namespace std;
 int main (int argc, char *argv [])
 {
     if (argc != 8) {
-        cerr << "Usage: local_fi <global_locator IP> <global_locator port> ";
-        cerr << "<listen IP> <listen port> <message size> ";
-        cerr << "<message count per publisher> <number of publishers>\n";
+        cerr << "Usage: local_fi <global_locator IP> <global_locator port> "
+            << "<listen IP> <listen port> <message size> "
+            << "<message count per publisher> <number of publishers>\n";
         return 1;
     }
 
@@ -52,7 +52,7 @@ int main (int argc, char *argv [])
     
     cout << "estimating CPU frequency...\n";
     uint64_t frq = perf::estimate_cpu_frequency ();
-    cout << "your CPU frequncy is " << frq / 1000000000 << " GHz\n";//, ((double) frq) / 1000000000);
+    cout << "your CPU frequncy is " << frq / 1000000000 << " GHz\n";
 
     perf::zmq_t transport (false, "QIN", "EOUT", g_locator, g_locator_port, 
         listen_ip, listen_port);

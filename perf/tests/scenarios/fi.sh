@@ -1,12 +1,12 @@
 #!/bin/sh
 
 if [ $# -lt 2 ]; then
-    echo "Usage: fo.sh [local number_of_subscribers | remote subs_id]"
+    echo "Usage: fi.sh [local number_of_publishers | remote pub_id]"
     exit 1
 fi
 
 if [ $1 != "local" -a $1 != "remote" ]; then
-    echo "Usage: fo.sh [local number_of_subscribers |remote subs_id]"
+    echo "Usage: fi.sh [local number_of_publishers | remote pub_id]"
     exit 1
 fi
 
@@ -25,8 +25,8 @@ RUNS=5
 
 TEST_TIME=5000
 
-LOCAL_BIN="./local_fo"
-REMOTE_BIN="./remote_fo"
+LOCAL_BIN="./local_fi"
+REMOTE_BIN="./remote_fi"
 
 ##############################################################################
 
@@ -39,7 +39,7 @@ SYS_SLOPE_BIG=0.89
 SYS_OFF_BIG=0
 
 if [ $1 = "local" ]; then
-    echo "running local (sender)"    
+    echo "running local (receiver)"    
     while [ $RUNS -gt 0 ]; do
         for i in `seq 0 $MSG_SIZE_STEPS`;
         do
@@ -56,7 +56,7 @@ if [ $1 = "local" ]; then
         let RUNS=RUNS-1 
     done
 else
-    echo "running remote (receiver)"
+    echo "running remote (sender)"
     while [ $RUNS -gt 0 ]; do
         for i in `seq 0 $MSG_SIZE_STEPS`;
         do
@@ -69,7 +69,7 @@ else
             fi
 
             $REMOTE_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $2
-#            sleep 1
+            sleep 10
         done
         let RUNS=RUNS-1 
     done
