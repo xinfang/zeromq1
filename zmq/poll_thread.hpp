@@ -43,7 +43,7 @@ namespace zmq
     public:
 
         //  Create a poll thread
-        poll_thread_t (dispatcher_t *dispatcher_);
+        static poll_thread_t *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread
         ~poll_thread_t ();
@@ -57,6 +57,8 @@ namespace zmq
         void send_command (i_context *destination_, const command_t &command_);
 
     private:
+
+        poll_thread_t (dispatcher_t *dispatcher_);
 
         //  Main worker thread routing
         static void *worker_routine (void *arg_);

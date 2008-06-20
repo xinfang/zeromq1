@@ -41,21 +41,21 @@ public:
           const char *out_address) :
         dispatcher (3),
         locator (address, port),
-        api (&dispatcher, &locator),
-        pt_in (&dispatcher),
-        pt_out (&dispatcher),
 	in_meter (500000, 2),
 	out_meter (500000, 3)
     {
+        //  Initialise 0MQ infrastructure
+        api = zmq::api_engine_t::create (&dispatcher, &locator);
+        pt_in = zmq::poll_thread_t::create (&dispatcher);
+        pt_out = zmq::poll_thread_t::create (&dispatcher);
+
         //  Initialise the wiring
-        zmq::poll_thread_t *pt_out_array = {&pt_out};
-        te_id = api.create_exchange ("TE", zmq::scope_global,
-            out_address, 5556, &pt_out, 1, &pt_out_array);
-        zmq::poll_thread_t *pt_in_array = {&pt_in};
-        api.create_queue ("OQ", zmq::scope_global,
-            in_address, 5557, &pt_in, 1, &pt_in_array);
-        se_id = api.create_exchange ("SE");
-        bool rc = api.bind ("SE", "SQ", &pt_out, &pt_out);
+        te_id = api->create_exchange ("TE", zmq::scope_global,
+            out_address, 5556, pt_out, 1, &pt_out);
+        api->create_queue ("OQ", zmq::scope_global,
+            in_address, 5557, pt_in, 1, &pt_in);
+        se_id = api->create_exchange ("SE");
+        bool rc = api->bind ("SE", "SQ", pt_out, pt_out);
         assert (rc);
     }
 
@@ -64,7 +64,7 @@ public:
         //  Message dispatch loop
         while (true) {
             zmq::message_t msg;
-            api.receive (&msg);
+            api->receive (&msg);
             parse_message (&msg, this);
         }
     }
@@ -85,12 +85,12 @@ public:
 	if (!trades_sent) {
             zmq::message_t msg;
 	    make_order_confirmation (order_id, &msg);
-	    api.presend (te_id, &msg);
+	    api->presend (te_id, &msg);
 	    out_meter.event (this);
 	}
 
 	//  Flush the outgoing messages
-        api.flush ();
+        api->flush ();
     }
 
     inline void order_confirmation (order_id_t)
@@ -124,7 +124,7 @@ public:
         //  Send trade back to the gateway
         zmq::message_t msg;
         make_trade (order_id, price, volume, &msg);
-        api.presend (te_id, &msg);
+        api->presend (te_id, &msg);
 	out_meter.event (this);
     }
 
@@ -133,7 +133,7 @@ public:
         //  Send quote back to the gateway
         zmq::message_t msg;
         make_quote (ask, bid, &msg);
-        api.presend (te_id, &msg);
+        api->presend (te_id, &msg);
 	out_meter.event (this);
     }
 
@@ -142,7 +142,7 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id, frequency, &msg);
-        api.presend (se_id, &msg);
+        api->presend (se_id, &msg);
     }
 
 private:
@@ -150,9 +150,9 @@ private:
    matching_engine_t me;
    zmq::dispatcher_t dispatcher;
    zmq::locator_t locator;
-   zmq::api_engine_t api;
-   zmq::poll_thread_t pt_in;
-   zmq::poll_thread_t pt_out;
+   zmq::api_engine_t *api;
+   zmq::poll_thread_t *pt_in;
+   zmq::poll_thread_t *pt_out;
    int te_id;
    int se_id;
    frequency_meter_t in_meter;

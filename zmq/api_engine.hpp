@@ -1,4 +1,4 @@
-/*
+	/*
     Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
@@ -45,7 +45,8 @@ namespace zmq
     public:
         //  Creates API engine and attaches it to the command dispatcher and
         //  resource locator.
-        api_engine_t (dispatcher_t *dispatcher_, i_locator *locator_);
+        static api_engine_t *create (dispatcher_t *dispatcher_,
+            i_locator *locator_);
 
         //  Destroys API engine
         ~api_engine_t ();
@@ -95,6 +96,8 @@ namespace zmq
         bool receive (message_t *msg_, bool block_ = true);
 
     private:
+
+        api_engine_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
         //  i_context implementation
         int get_thread_id ();

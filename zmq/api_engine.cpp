@@ -19,6 +19,13 @@
 
 #include "api_engine.hpp"
 
+zmq::api_engine_t *zmq::api_engine_t::create (dispatcher_t *dispatcher_,
+    i_locator *locator_)
+{
+    return new api_engine_t (dispatcher_, locator_);
+}
+
+
 zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_,
       i_locator *locator_) :
     ticks (0),

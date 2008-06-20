@@ -38,16 +38,18 @@ class sender_t
 public:
 
     inline sender_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
-        api (dispatcher, locator),
-        pt (dispatcher),
         meter (500000, 1)
     {
+        //  Initialise 0MQ infrastructure
+        api = zmq::api_engine_t::create (dispatcher, locator);
+        pt = zmq::poll_thread_t::create (dispatcher);
+
         //  Initialise the wiring
-        oe_id = api.create_exchange ("OE");
-        bool rc = api.bind ("OE", "OQ", &pt, &pt);
+        oe_id = api->create_exchange ("OE");
+        bool rc = api->bind ("OE", "OQ", pt, pt);
         assert (rc);
-        se_id = api.create_exchange ("SE");
-        rc = api.bind ("SE", "SQ", &pt, &pt);
+        se_id = api->create_exchange ("SE");
+        rc = api->bind ("SE", "SQ", pt, pt);
         assert (rc);
     }
 
@@ -72,13 +74,13 @@ public:
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
                 make_timestamp (5, order_id, now () / 1000, &msg);
-                api.send (se_id, &msg);
+                api->send (se_id, &msg);
             }
 
             //  Send the order to the matching engine
             zmq::message_t msg;
             make_order (order_id, type, price, volume, &msg);
-            api.send (oe_id, &msg);
+            api->send (oe_id, &msg);
             meter.event (this);
         }
     }
@@ -98,14 +100,14 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id, frequency, &msg);
-        api.send (se_id, &msg);
+        api->send (se_id, &msg);
     }
 
 private:
 
     //  0MQ infrastructure
-    zmq::api_engine_t api;
-    zmq::poll_thread_t pt;
+    zmq::api_engine_t *api;
+    zmq::poll_thread_t *pt;
 
     //  Exchange IDs
     int oe_id;
@@ -122,17 +124,19 @@ class receiver_t
 public:
 
     receiver_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
-        api (dispatcher, locator),
-        pt (dispatcher),
         meter (500000, 4),
         last_timestamp (0)
     {
+        //  Initialise 0MQ infrastructure
+        api = zmq::api_engine_t::create (dispatcher, locator);
+        pt = zmq::poll_thread_t::create (dispatcher);
+
         //  Initialise the wiring
-        api.create_queue ("TQ");
-        bool rc = api.bind ("TE", "TQ", &pt, &pt);
+        api->create_queue ("TQ");
+        bool rc = api->bind ("TE", "TQ", pt, pt);
         assert (rc);
-        se_id = api.create_exchange ("SE");
-        rc = api.bind ("SE", "SQ", &pt, &pt);
+        se_id = api->create_exchange ("SE");
+        rc = api->bind ("SE", "SQ", pt, pt);
         assert (rc);
     }
 
@@ -141,7 +145,7 @@ public:
         //  Main message dispatch loop
         while (true) {
             zmq::message_t msg;
-            api.receive (&msg);
+            api->receive (&msg);
             parse_message (&msg, this);
         }
     }
@@ -161,7 +165,7 @@ public:
         if (order_id % 500000 == 0 && order_id > last_timestamp) {
             zmq::message_t msg;
             make_timestamp (6, order_id, now () / 1000, &msg);
-            api.send (se_id, &msg);
+            api->send (se_id, &msg);
             last_timestamp = order_id;
         }
     }
@@ -195,14 +199,14 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id, frequency, &msg);
-        api.send (se_id, &msg);
+        api->send (se_id, &msg);
     }
 
 private:
 
     //  0MQ infrastructure
-    zmq::api_engine_t api;
-    zmq::poll_thread_t pt;
+    zmq::api_engine_t *api;
+    zmq::poll_thread_t *pt;
 
     //  Exchange IDs
     int se_id;

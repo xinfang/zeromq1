@@ -110,13 +110,11 @@ int main (int argc, char *argv [])
     //  Initialise 0MQ infrastructure
     zmq::dispatcher_t dispatcher (2);
     zmq::locator_t locator (argv [1], atoi (argv [2]));
-    zmq::api_engine_t api (&dispatcher, &locator);
-    zmq::poll_thread_t pt (&dispatcher);
-    zmq::poll_thread_t *pt_array = {&pt};
+    zmq::api_engine_t *api = zmq::api_engine_t::create (&dispatcher, &locator);
+    zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
 
     //  Initialise the wiring
-    api.create_queue ("SQ", zmq::scope_global,
-        argv [3], 5558, &pt, 1, &pt_array);
+    api->create_queue ("SQ", zmq::scope_global, argv [3], 5558, pt, 1, &pt);
 
     //  Handler object
     handler_t handler;
@@ -124,7 +122,7 @@ int main (int argc, char *argv [])
     //  Message dispatch loop
     while (true) {
         zmq::message_t msg;
-        api.receive (&msg);
+        api->receive (&msg);
         parse_message (&msg, &handler);
     } 
 

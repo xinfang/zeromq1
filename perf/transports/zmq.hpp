@@ -41,34 +41,33 @@ namespace perf
               unsigned int thread_count_ = 2) :
             thread_count (thread_count_),
             dispatcher (thread_count),
-            locator (locator_ip_, locator_port_),
-            api (&dispatcher, &locator),
-            worker (&dispatcher)
+            locator (locator_ip_, locator_port_)
         {
-            zmq::poll_thread_t *workers [] = {&worker};
+            api = zmq::api_engine_t::create (&dispatcher, &locator);
+            worker = zmq::poll_thread_t::create (&dispatcher);
 
             if (bind_) {
                 assert (!listen_ip_);
                 assert (!listen_port_);
 
                 // create & bind local exchange
-                exchange_id = api.create_exchange ("E_LOCAL");
-                api.bind ("E_LOCAL", queue_name_, &worker, &worker);
+                exchange_id = api->create_exchange ("E_LOCAL");
+                api->bind ("E_LOCAL", queue_name_, worker, worker);
                 
                 // create & bind local queue
-                api.create_queue ("Q_LOCAL");
-                api.bind (exchange_name_, "Q_LOCAL", &worker, &worker);
+                api->create_queue ("Q_LOCAL");
+                api->bind (exchange_name_, "Q_LOCAL", worker, worker);
 
             } else {
                 assert (listen_ip_);
                 assert (listen_port_);
                 
-                api.create_queue (queue_name_, zmq::scope_global, listen_ip_, 
-                    listen_port_, &worker, 1, workers);
+                api->create_queue (queue_name_, zmq::scope_global, listen_ip_, 
+                    listen_port_, worker, 1, &worker);
 
-                exchange_id = api.create_exchange (exchange_name_, 
-                    zmq::scope_global, listen_ip_, listen_port_ + 1, &worker, 
-                    1, workers);
+                exchange_id = api->create_exchange (exchange_name_, 
+                    zmq::scope_global, listen_ip_, listen_port_ + 1, worker, 
+                    1, &worker);
 
             }
         }
@@ -83,7 +82,7 @@ namespace perf
             assert (thread_id_ < thread_count);
 
             zmq::message_t message (size_);
-            api.send (exchange_id, &message);
+            api->send (exchange_id, &message);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)
@@ -91,7 +90,7 @@ namespace perf
             assert (thread_id_ < thread_count);
 
             zmq::message_t message;
-            api.receive (&message);
+            api->receive (&message);
             
             return message.size ();
         }
@@ -99,11 +98,10 @@ namespace perf
     protected:
 
         unsigned int thread_count;
-//        bool sender;
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
-        zmq::api_engine_t api;
-        zmq::poll_thread_t worker;
+        zmq::api_engine_t *api;
+        zmq::poll_thread_t *worker;
 	int exchange_id;
     };
 

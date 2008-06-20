@@ -22,6 +22,11 @@
 #include "poll_thread.hpp"
 #include "err.hpp"
 
+zmq::poll_thread_t *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
+{
+    return new poll_thread_t (dispatcher_);
+}
+
 zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
     pollset (1)
