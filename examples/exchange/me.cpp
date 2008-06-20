@@ -37,10 +37,10 @@ class me_t
 {
 public:
 
-    inline me_t (const char *address, uint16_t port, const char *in_address,
-          const char *out_address) :
+    inline me_t (const char *address_, uint16_t port_, const char *in_address_,
+          const char *out_address_) :
         dispatcher (3),
-        locator (address, port),
+        locator (address_, port_),
 	in_meter (500000, 2),
 	out_meter (500000, 3)
     {
@@ -51,9 +51,9 @@ public:
 
         //  Initialise the wiring
         te_id = api->create_exchange ("TE", zmq::scope_global,
-            out_address, 5556, pt_out, 1, &pt_out);
+            out_address_, 5556, pt_out, 1, &pt_out);
         api->create_queue ("OQ", zmq::scope_global,
-            in_address, 5557, pt_in, 1, &pt_in);
+            in_address_, 5557, pt_in, 1, &pt_in);
         se_id = api->create_exchange ("SE");
         bool rc = api->bind ("SE", "SQ", pt_out, pt_out);
         assert (rc);
@@ -69,22 +69,22 @@ public:
         }
     }
 
-    inline void order (order_id_t order_id, order_type_t type,
-        price_t price, volume_t volume)
+    inline void order (order_id_t order_id_, order_type_t type_,
+        price_t price_, volume_t volume_)
     {
         in_meter.event (this);
 
         //  Pass the order to matching engine
 	bool trades_sent;
-        if (type == ask)
-            trades_sent = me.ask (this, order_id, price, volume);
+        if (type_ == ask)
+            trades_sent = me.ask (this, order_id_, price_, volume_);
         else
-            trades_sent = me.bid (this, order_id, price, volume);
+            trades_sent = me.bid (this, order_id_, price_, volume_);
 
 	//  If no trade was executed, send order confirmation
 	if (!trades_sent) {
             zmq::message_t msg;
-	    make_order_confirmation (order_id, &msg);
+	    make_order_confirmation (order_id_, &msg);
 	    api->presend (te_id, &msg);
 	    out_meter.event (this);
 	}
@@ -93,55 +93,55 @@ public:
         api->flush ();
     }
 
-    inline void order_confirmation (order_id_t)
+    inline void order_confirmation (order_id_t order_id_)
     {
         assert (false);
     }
 
-    inline void trade (order_id_t, price_t, volume_t)
+    inline void trade (order_id_t order_id_, price_t price_, volume_t volume_)
     {
         assert (false);
     }
 
-    inline void quote (price_t bid, price_t ask)
+    inline void quote (price_t bid_, price_t ask_)
     {
         assert (false);
     }
 
-    inline void throughput (uint8_t meter_id, uint64_t throughput)
+    inline void throughput (uint8_t meter_id_, uint64_t throughput_)
     {
         assert (false);
     }
 
-    inline void timestamp (uint8_t meter_id, uint64_t correlation_id,
-        uint64_t timestamp)
+    inline void timestamp (uint8_t meter_id_, uint64_t correlation_id_,
+        uint64_t timestamp_)
     {
         assert (false);
     }
 
-    inline void traded (order_id_t order_id, price_t price, volume_t volume)
+    inline void traded (order_id_t order_id_, price_t price_, volume_t volume_)
     {
         //  Send trade back to the gateway
         zmq::message_t msg;
-        make_trade (order_id, price, volume, &msg);
+        make_trade (order_id_, price_, volume_, &msg);
         api->presend (te_id, &msg);
 	out_meter.event (this);
     }
 
-    inline void quoted (price_t bid, price_t ask)
+    inline void quoted (price_t bid_, price_t ask_)
     {
         //  Send quote back to the gateway
         zmq::message_t msg;
-        make_quote (ask, bid, &msg);
+        make_quote (ask_, bid_, &msg);
         api->presend (te_id, &msg);
 	out_meter.event (this);
     }
 
-    inline void frequency (uint8_t meter_id, uint64_t frequency)
+    inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
-        make_throughput (meter_id, frequency, &msg);
+        make_throughput (meter_id_, frequency_, &msg);
         api->presend (se_id, &msg);
     }
 

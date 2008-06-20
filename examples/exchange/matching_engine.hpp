@@ -59,11 +59,11 @@ namespace exchange
         {
         }
 
-        template <typename T> bool ask (T *callback, order_id_t order_id,
-            price_t price, volume_t volume)
+        template <typename T> bool ask (T *callback_, order_id_t order_id_,
+            price_t price_, volume_t volume_)
         {
-            assert (price > lower_limit && price < upper_limit);
-            assert (volume > 0);
+            assert (price_ > lower_limit && price_ < upper_limit);
+            assert (volume_ > 0);
 
             //  Remember the original max_bid & min_ask so that we can
             //  generate the quote if they are changed
@@ -76,10 +76,10 @@ namespace exchange
             while (true) {
 
                 //  If there's no matching bid, store the order and return
-                if (price > max_bid) {
-                    entry_t entry = {volume, order_id};
-                    orderbook [price - lower_limit - 1].push_back (entry);
-                    min_ask = std::min (min_ask, price);
+                if (price_ > max_bid) {
+                    entry_t entry = {volume_, order_id_};
+                    orderbook [price_ - lower_limit - 1].push_back (entry);
+                    min_ask = std::min (min_ask, price_);
                     break;
                 }
 
@@ -95,10 +95,10 @@ namespace exchange
                     entry_t &entry = entries.front ();
 
                     //  Determine trade volume
-                    volume_t trade_volume = std::min (volume, entry.volume);
+                    volume_t trade_volume = std::min (volume_, entry.volume);
 
                     //  Execute the trade on bid
-                    callback->traded (entry.order_id, max_bid, trade_volume);
+                    callback_->traded (entry.order_id, max_bid, trade_volume);
                     traded += trade_volume;
 		    trades_sent = true;
 
@@ -108,19 +108,19 @@ namespace exchange
                         entries.pop_front ();
 
                     //  Adjust the ask: If it's fully executed, exit
-                    volume -= trade_volume;
-                    if (volume == 0) 
+                    volume_ -= trade_volume;
+                    if (volume_ == 0) 
                         break;
                 }
 
                 //  Execute the trade on ask
                 if (traded) {
-                    callback->traded (order_id, max_bid, traded);
+                    callback_->traded (order_id_, max_bid, traded);
                     trades_sent = true;
                 }
 
                 //  If order is fully executed, exit the loop
-                if (volume == 0)
+                if (volume_ == 0)
                     break;
 
                 //  We have executed all the bids with best price at this point
@@ -130,8 +130,9 @@ namespace exchange
 
             //  Now we find the max_bid. The algorithm seems unefficient as it
             //  performs linear search - O(n) - however:
+            //
             //  1. The prices tend to be packed around the market price,
-            //     conequently n is most probably 0 or 1 (thus we are in fact
+            //     consequently n is most probably 0 or 1 (thus we are in fact
             //     getting constant-time algorithm )
             //  2. We would have to find actual max_bid anyway after the arrival
             //     of next ask order, so the search is inevitable.
@@ -140,16 +141,16 @@ namespace exchange
 
             //  Generate the quote if needed
             if (max_bid != old_max_bid || min_ask != old_min_ask)
-                callback->quoted (max_bid, min_ask);
+                callback_->quoted (max_bid, min_ask);
 
             return trades_sent;
         }
 
-        template <typename T> bool bid (T *callback, order_id_t order_id,
-            price_t price, volume_t volume)
+        template <typename T> bool bid (T *callback_, order_id_t order_id_,
+            price_t price_, volume_t volume_)
         {
-            assert (price > lower_limit && price < upper_limit);
-            assert (volume > 0);
+            assert (price_ > lower_limit && price_ < upper_limit);
+            assert (volume_ > 0);
 
             //  Remember the original max_bid & min_ask so that we can
             //  generate the quote if they are changed
@@ -162,10 +163,10 @@ namespace exchange
             while (true) {
 
                 //  If there's no matching ask, store the order and return
-                if (price < min_ask) {
-                    entry_t entry = {volume, order_id};
-                    orderbook [price - lower_limit - 1].push_back (entry);
-                    max_bid = std::max (max_bid, price);
+                if (price_ < min_ask) {
+                    entry_t entry = {volume_, order_id_};
+                    orderbook [price_ - lower_limit - 1].push_back (entry);
+                    max_bid = std::max (max_bid, price_);
                     break;
                 }
 
@@ -181,10 +182,10 @@ namespace exchange
                     entry_t &entry = entries.front ();
 
                     //  Determine trade volume
-                    volume_t trade_volume = std::min (volume, entry.volume);
+                    volume_t trade_volume = std::min (volume_, entry.volume);
 
                     //  Execute the trade on ask
-                    callback->traded (entry.order_id, min_ask, trade_volume);
+                    callback_->traded (entry.order_id, min_ask, trade_volume);
                     traded += trade_volume;
                     trades_sent = true;
 
@@ -194,19 +195,19 @@ namespace exchange
                         entries.pop_front ();
 
                     //  Adjust the bid: If it's fully executed, exit
-                    volume -= trade_volume;
-                    if (volume == 0)
+                    volume_ -= trade_volume;
+                    if (volume_ == 0)
                         break;
                 }
 
                 //  Execute the trade on bid
                 if (traded) {
-                    callback->traded (order_id, min_ask, traded);
+                    callback_->traded (order_id_, min_ask, traded);
                     trades_sent = true;
                 }
 
                 //  If order is fully executed, exit the loop
-                if (volume == 0)
+                if (volume_ == 0)
                     break;
 
                 //  We have executed all the asks with best price at this point
@@ -216,8 +217,9 @@ namespace exchange
 
             //  Now we find the min_ask. The algorithm seems unefficient as it
             //  performs linear search - O(n) - however:
+            //
             //  1. The prices tend to be packed around the market price,
-            //     conequently n is most probably 0 or 1 (thus we are in fact
+            //     consequently n is most probably 0 or 1 (thus we are in fact
             //     getting constant-time algorithm )
             //  2. We would have to find actual min_ask anyway after the arrival
             //     of next bid order, so the search is inevitable.
@@ -226,7 +228,7 @@ namespace exchange
 
             //  Generate the quote if needed
             if (max_bid != old_max_bid || min_ask != old_min_ask)
-                callback->quoted (max_bid, min_ask);
+                callback_->quoted (max_bid, min_ask);
 
             return trades_sent;
         }

@@ -38,57 +38,58 @@ public:
     {
     }
 
-    inline void order (order_id_t order_id, order_type_t type,
-        price_t price, volume_t volume)
+    inline void order (order_id_t order_id_, order_type_t type_,
+        price_t price_, volume_t volume_)
     {
         assert (false);
     }
 
-    inline void order_confirmation (order_id_t)
+    inline void order_confirmation (order_id_t order_id_)
     {
         assert (false);
     }
 
-    inline void trade (order_id_t, price_t, volume_t)
+    inline void trade (order_id_t order_id_, price_t price_, volume_t volume_)
     {
         assert (false);
     }
 
-    inline void quote (price_t bid, price_t ask)
+    inline void quote (price_t bid_, price_t ask_)
     {
         assert (false);
     }
 
-    inline void throughput (uint8_t meter_id, uint64_t throughput)
+    inline void throughput (uint8_t meter_id_, uint64_t throughput_)
     {
-        printf ("%1d:%08lu\n", (int) meter_id, (unsigned long) throughput);
+        printf ("%1d:%08lu\n", (int) meter_id_, (unsigned long) throughput_);
         fflush (stdout);
     }
 
-    inline void timestamp (uint8_t meter_id, uint64_t correlation_id,
-        uint64_t timestamp)
+    inline void timestamp (uint8_t meter_id_, uint64_t correlation_id_,
+        uint64_t timestamp_)
     {
-        if (meter_id == 5) {
+        if (meter_id_ == 5) {
             if (!confirmation_timestamps.empty ()) {
                 printf ("l:%08lu\n",
-                    (unsigned long) (confirmation_timestamps.front () - timestamp));
+                    (unsigned long) (confirmation_timestamps.front () -
+                    timestamp_));
                 fflush (stdout);
                 confirmation_timestamps.pop ();
             }
             else
-                order_timestamps.push (timestamp);
+                order_timestamps.push (timestamp_);
             return;
         }
 
-        if (meter_id == 6) {
+        if (meter_id_ == 6) {
             if (!order_timestamps.empty ()) {
                 printf ("l:%08lu\n",
-                    ((unsigned long) (timestamp - order_timestamps.front ())));
+                    ((unsigned long) (timestamp_ - order_timestamps.front ())));
                 fflush (stdout);
                 order_timestamps.pop ();
             }
             else
-                confirmation_timestamps.push (timestamp);
+                confirmation_timestamps.push (timestamp_);
             return;
         }
     }

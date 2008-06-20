@@ -37,12 +37,12 @@ class sender_t
 {
 public:
 
-    inline sender_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
+    inline sender_t (zmq::dispatcher_t *dispatcher_, zmq::locator_t *locator_) :
         meter (500000, 1)
     {
         //  Initialise 0MQ infrastructure
-        api = zmq::api_thread_t::create (dispatcher, locator);
-        pt = zmq::poll_thread_t::create (dispatcher);
+        api = zmq::api_thread_t::create (dispatcher_, locator_);
+        pt = zmq::poll_thread_t::create (dispatcher_);
 
         //  Initialise the wiring
         oe_id = api->create_exchange ("OE");
@@ -53,10 +53,10 @@ public:
         assert (rc);
     }
 
-    void run (uint64_t frequency)
+    void run (uint64_t frequency_)
     {
         //  Initialise the ticker
-        ticker_t ticker (frequency);
+        ticker_t ticker (frequency_);
 
         order_id_t order_id = 0;
         while (true) {
@@ -85,21 +85,21 @@ public:
         }
     }
 
-    inline void quote (price_t bid, price_t ask)
+    inline void quote (price_t bid_, price_t ask_)
     {
         assert (false);
     }
 
-    inline void throughput (uint8_t meter_id, uint64_t frequency)
+    inline void throughput (uint8_t meter_id_, uint64_t frequency_)
     {
         assert (false);
     }
 
-    inline void frequency (uint8_t meter_id, uint64_t frequency)
+    inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
-        make_throughput (meter_id, frequency, &msg);
+        make_throughput (meter_id_, frequency_, &msg);
         api->send (se_id, &msg);
     }
 
@@ -123,13 +123,13 @@ class receiver_t
 {
 public:
 
-    receiver_t (zmq::dispatcher_t *dispatcher, zmq::locator_t *locator) :
+    receiver_t (zmq::dispatcher_t *dispatcher_, zmq::locator_t *locator_) :
         meter (500000, 4),
         last_timestamp (0)
     {
         //  Initialise 0MQ infrastructure
-        api = zmq::api_thread_t::create (dispatcher, locator);
-        pt = zmq::poll_thread_t::create (dispatcher);
+        api = zmq::api_thread_t::create (dispatcher_, locator_);
+        pt = zmq::poll_thread_t::create (dispatcher_);
 
         //  Initialise the wiring
         api->create_queue ("TQ");
@@ -150,55 +150,55 @@ public:
         }
     }
 
-    inline void order (order_id_t order_id, order_type_t type,
-        price_t price, volume_t volume)
+    inline void order (order_id_t order_id_, order_type_t type_,
+        price_t price_, volume_t volume_)
     {
         assert (false);
     }
 
-    inline void order_confirmation (order_id_t order_id)
+    inline void order_confirmation (order_id_t order_id_)
     {
         //  Measuring throughput
         meter.event (this);
 
         //  Taking timestamps
-        if (order_id % 500000 == 0 && order_id > last_timestamp) {
+        if (order_id_ % 500000 == 0 && order_id_ > last_timestamp) {
             zmq::message_t msg;
-            make_timestamp (6, order_id, now () / 1000, &msg);
+            make_timestamp (6, order_id_, now () / 1000, &msg);
             api->send (se_id, &msg);
-            last_timestamp = order_id;
+            last_timestamp = order_id_;
         }
     }
 
-    inline void trade (order_id_t order_id, price_t price, volume_t volume)
+    inline void trade (order_id_t order_id_, price_t price_, volume_t volume_)
     {
         //  As we are doing to business logic with trades and
         //  order confirmations we can handle them in the same manner.
-        order_confirmation (order_id);
+        order_confirmation (order_id_);
     }
 
-    inline void quote (price_t bid, price_t ask)
+    inline void quote (price_t bid_, price_t ask_)
     {
         //  Measuring throughput
         meter.event (this);
     }
 
-    inline void throughput (uint8_t meter_id, uint64_t frequency)
+    inline void throughput (uint8_t meter_id_, uint64_t frequency_)
     {
         assert (false);
     }
 
-    inline void timestamp (uint8_t meter_id, uint64_t correlation_id,
-        uint64_t frequency)
+    inline void timestamp (uint8_t meter_id_, uint64_t correlation_id_,
+        uint64_t frequency_)
     {
         assert (false);
     }
 
-    inline void frequency (uint8_t meter_id, uint64_t frequency)
+    inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
-        make_throughput (meter_id, frequency, &msg);
+        make_throughput (meter_id_, frequency_, &msg);
         api->send (se_id, &msg);
     }
 
@@ -227,10 +227,10 @@ struct sender_routine_args_t
 };
 
 //  Main routine for the sender thread
-void *sender_routine (void *arg)
+void *sender_routine (void *arg_)
 {
     //  Start the sender with the rate of X orders per second
-    sender_routine_args_t *args = (sender_routine_args_t*) arg;
+    sender_routine_args_t *args = (sender_routine_args_t*) arg_;
     sender_t sender (args->dispatcher, args->locator);
     sender.run (args->order_rate);
     return NULL;

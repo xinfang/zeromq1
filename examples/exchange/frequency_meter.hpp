@@ -45,7 +45,7 @@ namespace exchange
 
         //  Measured event occured. If actual mesurement is made, callback
         //  fuction is invoked on the supplied object
-        template <typename T> inline void event (T *callback)
+        template <typename T> inline void event (T *callback_)
         {
             //  Once we've reached the end of the window...
             if (current == window) {
@@ -60,7 +60,7 @@ namespace exchange
                     uint64_t frequency = window *
                         perf::estimate_cpu_frequency () /
                         (now_time - last_time);
-                    callback->frequency (meter_id, frequency);
+                    callback_->frequency (meter_id, frequency);
                 }
 
                 //  Remember the current time and start filling the window anew
