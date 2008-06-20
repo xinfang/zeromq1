@@ -67,7 +67,7 @@ namespace perf
     //  in the middle of your program. To get rid of the CPU frequency
     //  computation altogether you can force the framework to use the value
     //  you'll supply. To do so, define PERF_CPU_FREQUENCY macro. It's value
-    //  should by CPU frequency (in Hz).
+    //  should be CPU frequency (in Hz).
     uint64_t estimate_cpu_frequency ()
     {
 #ifdef PERF_CPU_FREQUENCY
