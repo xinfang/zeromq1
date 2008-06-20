@@ -36,7 +36,8 @@ namespace perf
     //  Time interval in nanoseconds.
     typedef uint64_t time_interval_t;
 
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+#if (!defined (PERF_FORCE_GETTIMEOFDAY) &&\
+    (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__))))
     //  Retrieves current time in processor ticks. This function is intended
     //  for internal usage - use 'now' function instead.
     static uint64_t now_ticks ()
@@ -59,6 +60,8 @@ namespace perf
         return ((time_t) tv.tv_sec) * 1000000000 + tv.tv_usec * 1000;
     }
 
+#if (!defined (PERF_FORCE_GETTIMEOFDAY) &&\
+    (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__))))
     //  Precomputes CPU frequency (in Hz). Run this function at the beginning
     //  of your program, otherwise the computation (several seconds) will occur
     //  in the middle of your program. To get rid of the CPU frequency
@@ -107,11 +110,13 @@ namespace perf
         return cpu_frequency;
 #endif
     }
+#endif
 
     //  Get current time
     inline time_instant_t now ()
     {
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+#if (!defined (PERF_FORCE_GETTIMEOFDAY) &&\
+    (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__))))
 
         //  When function is called for the first time, set timestamps to zero
         //  so that they'll be recomputed below.
