@@ -17,16 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "api_engine.hpp"
+#include "api_thread.hpp"
 
-zmq::api_engine_t *zmq::api_engine_t::create (dispatcher_t *dispatcher_,
+zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
 {
-    return new api_engine_t (dispatcher_, locator_);
+    return new api_thread_t (dispatcher_, locator_);
 }
 
 
-zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_,
+zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
       i_locator *locator_) :
     ticks (0),
     dispatcher (dispatcher_),
@@ -37,13 +37,13 @@ zmq::api_engine_t::api_engine_t (dispatcher_t *dispatcher_,
     thread_id = dispatcher->allocate_thread_id (&pollset);
 }
 
-zmq::api_engine_t::~api_engine_t ()
+zmq::api_thread_t::~api_thread_t ()
 {
     //  Unregister the thread from the command dispatcher
     dispatcher->deallocate_thread_id (thread_id);
 }
 
-int zmq::api_engine_t::create_exchange (const char *exchange_,
+int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *address_, uint16_t port_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
@@ -68,7 +68,7 @@ int zmq::api_engine_t::create_exchange (const char *exchange_,
     return exchanges.size () - 1;
 }
 
-int zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
+int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
@@ -92,7 +92,7 @@ int zmq::api_engine_t::create_queue (const char *queue_, scope_t scope_,
     return queues.size () - 1;
 }
 
-bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
+bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
 {
     //  Find the exchange
@@ -163,7 +163,7 @@ bool zmq::api_engine_t::bind (const char *exchange_, const char *queue_,
     return true;
 }
 
-void zmq::api_engine_t::send (int exchange_id_, message_t *msg_)
+void zmq::api_thread_t::send (int exchange_id_, message_t *msg_)
 {
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
@@ -175,13 +175,13 @@ void zmq::api_engine_t::send (int exchange_id_, message_t *msg_)
     exchanges [exchange_id_].second.flush ();
 }
 
-void zmq::api_engine_t::presend (int exchange_id_, message_t *msg_)
+void zmq::api_thread_t::presend (int exchange_id_, message_t *msg_)
 {
     //  Pass the message to the demux
     exchanges [exchange_id_].second.write (msg_);
 }
 
-void zmq::api_engine_t::flush ()
+void zmq::api_thread_t::flush ()
 {
     //  Check the signals and process the commands if there are any
     ypollset_t::integer_t signals = pollset.check ();
@@ -194,7 +194,7 @@ void zmq::api_engine_t::flush ()
         it->second.flush ();
 }
 
-bool zmq::api_engine_t::receive (message_t *msg_, bool block_)
+bool zmq::api_thread_t::receive (message_t *msg_, bool block_)
 {
     bool retrieved = false;
 
@@ -265,18 +265,18 @@ bool zmq::api_engine_t::receive (message_t *msg_, bool block_)
     return retrieved;
 }
 
-int zmq::api_engine_t::get_thread_id ()
+int zmq::api_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::api_engine_t::send_command (i_context *destination_,
+void zmq::api_thread_t::send_command (i_context *destination_,
     const command_t &command_)
 {
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-void zmq::api_engine_t::process_command (const engine_command_t &command_)
+void zmq::api_thread_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {
     case engine_command_t::revive:
@@ -332,7 +332,7 @@ void zmq::api_engine_t::process_command (const engine_command_t &command_)
      }
 }
 
-void zmq::api_engine_t::process_commands (ypollset_t::integer_t signals_)
+void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
 {
     for (int source_thread_id = 0;
           source_thread_id != dispatcher->get_thread_count ();

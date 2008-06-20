@@ -24,7 +24,7 @@
 
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/locator.hpp"
-#include "../../zmq/api_engine.hpp"
+#include "../../zmq/api_thread.hpp"
 #include "../../zmq/bp_engine.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
@@ -43,7 +43,7 @@ namespace perf
             dispatcher (thread_count),
             locator (locator_ip_, locator_port_)
         {
-            api = zmq::api_engine_t::create (&dispatcher, &locator);
+            api = zmq::api_thread_t::create (&dispatcher, &locator);
             worker = zmq::poll_thread_t::create (&dispatcher);
 
             if (bind_) {
@@ -100,7 +100,7 @@ namespace perf
         unsigned int thread_count;
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
-        zmq::api_engine_t *api;
+        zmq::api_thread_t *api;
         zmq::poll_thread_t *worker;
 	int exchange_id;
     };

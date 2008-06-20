@@ -19,7 +19,7 @@
 
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/locator.hpp"
-#include "../../zmq/api_engine.hpp"
+#include "../../zmq/api_thread.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
 
@@ -45,7 +45,7 @@ public:
 	out_meter (500000, 3)
     {
         //  Initialise 0MQ infrastructure
-        api = zmq::api_engine_t::create (&dispatcher, &locator);
+        api = zmq::api_thread_t::create (&dispatcher, &locator);
         pt_in = zmq::poll_thread_t::create (&dispatcher);
         pt_out = zmq::poll_thread_t::create (&dispatcher);
 
@@ -150,7 +150,7 @@ private:
    matching_engine_t me;
    zmq::dispatcher_t dispatcher;
    zmq::locator_t locator;
-   zmq::api_engine_t *api;
+   zmq::api_thread_t *api;
    zmq::poll_thread_t *pt_in;
    zmq::poll_thread_t *pt_out;
    int te_id;

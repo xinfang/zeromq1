@@ -1,4 +1,4 @@
-	/*
+/*
     Copyright (c) 2007-2008 FastMQ Inc.
 
     This file is part of 0MQ.
@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_API_ENGINE_HPP_INCLUDED__
-#define __ZMQ_API_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
+#define __ZMQ_API_THREAD_HPP_INCLUDED__
 
 #include <vector>
 #include <string>
@@ -38,18 +38,18 @@ namespace zmq
 {
     //  Engine to be used from client application thread. NB it is not
     //  thread-safe. In case you want to use 0MQ from several client threads
-    //  create api_engine for each of them.
+    //  create api_thread for each of them.
 
-    class api_engine_t : private i_context, private i_engine
+    class api_thread_t : private i_context, private i_engine
     {
     public:
         //  Creates API engine and attaches it to the command dispatcher and
         //  resource locator.
-        static api_engine_t *create (dispatcher_t *dispatcher_,
+        static api_thread_t *create (dispatcher_t *dispatcher_,
             i_locator *locator_);
 
         //  Destroys API engine
-        ~api_engine_t ();
+        ~api_thread_t ();
 
         //  Creates new exchange, returns exchange ID
         int create_exchange (
@@ -97,7 +97,7 @@ namespace zmq
 
     private:
 
-        api_engine_t (dispatcher_t *dispatcher_, i_locator *locator_);
+        api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
         //  i_context implementation
         int get_thread_id ();

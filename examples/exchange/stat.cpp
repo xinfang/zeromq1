@@ -22,7 +22,7 @@
 
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/locator.hpp"
-#include "../../zmq/api_engine.hpp"
+#include "../../zmq/api_thread.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
 
@@ -110,7 +110,7 @@ int main (int argc, char *argv [])
     //  Initialise 0MQ infrastructure
     zmq::dispatcher_t dispatcher (2);
     zmq::locator_t locator (argv [1], atoi (argv [2]));
-    zmq::api_engine_t *api = zmq::api_engine_t::create (&dispatcher, &locator);
+    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
 
     //  Initialise the wiring

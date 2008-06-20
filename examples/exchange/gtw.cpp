@@ -19,7 +19,7 @@
 
 #include "../../zmq/dispatcher.hpp"
 #include "../../zmq/locator.hpp"
-#include "../../zmq/api_engine.hpp"
+#include "../../zmq/api_thread.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
 
@@ -41,7 +41,7 @@ public:
         meter (500000, 1)
     {
         //  Initialise 0MQ infrastructure
-        api = zmq::api_engine_t::create (dispatcher, locator);
+        api = zmq::api_thread_t::create (dispatcher, locator);
         pt = zmq::poll_thread_t::create (dispatcher);
 
         //  Initialise the wiring
@@ -106,7 +106,7 @@ public:
 private:
 
     //  0MQ infrastructure
-    zmq::api_engine_t *api;
+    zmq::api_thread_t *api;
     zmq::poll_thread_t *pt;
 
     //  Exchange IDs
@@ -128,7 +128,7 @@ public:
         last_timestamp (0)
     {
         //  Initialise 0MQ infrastructure
-        api = zmq::api_engine_t::create (dispatcher, locator);
+        api = zmq::api_thread_t::create (dispatcher, locator);
         pt = zmq::poll_thread_t::create (dispatcher);
 
         //  Initialise the wiring
@@ -205,7 +205,7 @@ public:
 private:
 
     //  0MQ infrastructure
-    zmq::api_engine_t *api;
+    zmq::api_thread_t *api;
     zmq::poll_thread_t *pt;
 
     //  Exchange IDs

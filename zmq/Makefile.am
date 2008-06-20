@@ -1,7 +1,7 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
 pkginclude_HEADERS = \
-    api_engine.hpp \
+    api_thread.hpp \
     atomic_ptr.hpp \
     atomic_bitmap.hpp \
     atomic_counter.hpp \
@@ -63,7 +63,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     dispatcher.cpp \
     bp_decoder.cpp \
     bp_encoder.cpp \
-    api_engine.cpp \
+    api_thread.cpp \
     poll_thread.cpp \
     bp_engine.cpp \
     amqp09_encoder.cpp \
