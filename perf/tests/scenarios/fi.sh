@@ -69,7 +69,7 @@ else
             fi
 
             $REMOTE_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $2
-            sleep 10
+            sleep 1
         done
         let RUNS=RUNS-1 
     done

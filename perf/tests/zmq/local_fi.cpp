@@ -44,15 +44,9 @@ int main (int argc, char *argv [])
     int roundtrip_count = atoi (argv [6]);
     int pubs_count = atoi (argv [7]);
 
-    cout << "publishers: " << pubs_count << std::endl;
-    cout << "message size: " << msg_size << std::endl;
+    cout << "publishers: " << pubs_count << endl;
+    cout << "message size: " << msg_size << endl;
     cout << "roundtrip count: " << roundtrip_count << std::endl;
-
-    cout.precision (2);
-    
-    cout << "estimating CPU frequency...\n";
-    uint64_t frq = perf::estimate_cpu_frequency ();
-    cout << "your CPU frequncy is " << frq / 1000000000 << " GHz\n";
 
     perf::zmq_t transport (false, "QIN", "EOUT", g_locator, g_locator_port, 
         listen_ip, listen_port);

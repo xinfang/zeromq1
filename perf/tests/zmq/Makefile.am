@@ -46,10 +46,10 @@ local_fo_LDADD = $(top_builddir)/zmq/libzmq.la
 local_fo_CXXFLAGS = -Wall -pedantic
 
 remote_fo_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_fo_CXXFLAGS = -Wall -pedantic
+remote_fo_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
 
 local_fi_LDADD = $(top_builddir)/zmq/libzmq.la
-local_fi_CXXFLAGS = -Wall -pedantic
+local_fi_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
 
 remote_fi_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_fi_CXXFLAGS = -Wall -pedantic

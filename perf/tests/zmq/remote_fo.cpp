@@ -42,12 +42,6 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    cout.precision (2);
-
-    cout << "estimating CPU frequency...\n";
-    uint64_t frq = perf::estimate_cpu_frequency ();
-    cout << "your CPU frequncy is " << frq / 1000000000 << " GHz\n";
-
     perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
 
     perf::remote_fo (&transport, msg_size, roundtrip_count, subs_id);

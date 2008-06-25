@@ -15,7 +15,7 @@ fi
 GL_IP="62.176.172.203"
 GL_PORT=5555
 
-REC_IP="10.0.0.1"
+REC_IP="10.0.0.2"
 REC_PORT=5672
 
 MSG_SIZE_START=1
@@ -69,7 +69,7 @@ else
             fi
 
             $REMOTE_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $2
-#            sleep 1
+            sleep 1
         done
         let RUNS=RUNS-1 
     done

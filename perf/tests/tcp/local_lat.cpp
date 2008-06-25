@@ -23,16 +23,18 @@
 #include <limits>
 
 #include "../../transports/tcp.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
-#include "../../workers/raw_ping_pong.hpp"
+//#include "../../helpers/time.hpp"
+//#include "../../helpers/files.hpp"
+//#include "../../workers/raw_ping_pong.hpp"
 
-#include "./test.hpp"
+//#include "./test.hpp"
 
-void *worker_function (void *);
+//void *worker_function (void *);
 
 int main (int argc, char *argv [])
 {
+
+/*
     if (argc != 1){
         printf ("Usage: local\n");
         exit (0);
@@ -115,10 +117,10 @@ int main (int argc, char *argv [])
     }
 
     fclose (output);
-
+*/
     return 0;
 }
-
+/*
 void *worker_function (void *args_)
 {
     // args struct
@@ -136,4 +138,4 @@ void *worker_function (void *args_)
 
     delete w_args;
 }
-
+*/

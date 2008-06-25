@@ -82,4 +82,4 @@ AC_CHECK_FUNCS(perror gettimeofday memset socket)
 
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
-examples/exchange/Makefile)
+examples/exchange/Makefile perf/tests/tcp/Makefile)

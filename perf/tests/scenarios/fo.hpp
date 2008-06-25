@@ -88,7 +88,7 @@ namespace perf
             (unsigned long) 1000000;
                 
         std::cout << std::noshowpoint << "Your average throughput is "
-            << msg_thput << " [msgs/s]\n";
+            << msg_thput << " [msg/s]\n";
         std::cout << std::noshowpoint << "Your average throughput is "
             << tcp_thput << " [Mb/s]\n\n";
            

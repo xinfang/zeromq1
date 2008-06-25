@@ -20,8 +20,9 @@
 #ifndef __PERF_THR_HPP_INCLUDED__
 #define __PERF_THR_HPP_INCLUDED__
 
-#include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"
@@ -30,58 +31,169 @@ namespace perf
 {
     struct thr_worker_args_t
     {
-        int id;
-        int msg_size;
+        i_transport *transport;
+        size_t msg_size;
         int roundtrip_count;
-        const char *listen_ip;
-        unsigned short listen_port_base;
-        const char *locator_ip;
-        unsigned short locator_port;
 
         time_instant_t start_time;
         time_instant_t stop_time;
     };
 
-
-    std::vector<time_instant_t> local_thr (i_transport *transport_, 
-        size_t msg_size_, int roundtrip_count_)
-    {
-
-        std::vector<time_instant_t> start_stop_time (2, 0);
-
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+    template <typename T> 
+        inline std::string to_string (const T &input_)
         {
-            
-            size_t size = transport_->receive ();
-            if (msg_nbr == 0)
-                start_stop_time [0] = now ();
-            
-            // check incomming message size
-            assert (size == msg_size_);
+            std::stringstream string_stream;
+            string_stream << input_;
+            return string_stream.str ();
         }
 
-        start_stop_time [1] = now(); 
+    void *local_worker_function (void *worker_args_)
+    {
+        thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
+
+        for (int msg_nbr = 0; msg_nbr < args->roundtrip_count; msg_nbr++)
+        {
+            
+            size_t size = args->transport->receive ();
+            if (msg_nbr == 0)
+                args->start_time  = now ();
+            
+            // check incomming message size
+            assert (size == args->msg_size);
+        }
+
+        args->stop_time = now();
 
         // send sync message
-        transport_->send (1);
+        args->transport->send (1);
 
-        //std::cout << start_stop_time [0] << ", " << start_stop_time [1] << std::endl;
-
-        return start_stop_time;
+        return NULL;
     }
 
-
-    void remote_thr (i_transport *transport_, size_t msg_size_, int roundtrip_count_)
+    void *remote_worker_function (void *worker_args_)
     {
-        
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+
+        perf::thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
+
+        for (int msg_nbr = 0; msg_nbr < args->roundtrip_count; msg_nbr++)
         {
-            transport_->send (msg_size_);
+            args->transport->send (args->msg_size);
         }
 
         // wait for sync message
-        size_t size = transport_->receive ();
+        size_t size = args->transport->receive ();
         assert (size == 1);
+
+        return NULL;
     }
+
+    void local_thr (i_transport **transports_, size_t msg_size_, 
+        int roundtrip_count_, int thread_count_)
+    {
+
+        pthread_t *workers = new pthread_t [thread_count_];
+        perf::thr_worker_args_t *workers_args = 
+            new perf::thr_worker_args_t [thread_count_];
+
+        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
+
+            workers_args [thread_nbr].transport = transports_ [thread_nbr];
+            workers_args [thread_nbr].msg_size = msg_size_;
+            workers_args [thread_nbr].roundtrip_count = roundtrip_count_;
+            workers_args [thread_nbr].start_time = 0;
+            workers_args [thread_nbr].stop_time = 0;
+            
+            int rc = pthread_create (&workers [thread_nbr], NULL, 
+                local_worker_function, (void *)&workers_args [thread_nbr]);
+            assert (rc == 0);
+        }
+
+        // gather results from thr_worker_args_t structures
+        perf::time_instant_t min_start_time  = 
+            std::numeric_limits<uint64_t>::max ();
+        perf::time_instant_t max_stop_time = 0;
+
+        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
+            int rc = pthread_join (workers [thread_nbr], NULL);
+            assert (rc == 0);
+
+            std::cout << workers_args [thread_nbr].start_time << " "
+                << workers_args [thread_nbr].stop_time << std::endl;
+
+            if (workers_args [thread_nbr].start_time < min_start_time)
+                min_start_time = workers_args [thread_nbr].start_time;
+
+            if (workers_args [thread_nbr].stop_time > max_stop_time)
+                max_stop_time = workers_args [thread_nbr].stop_time;
+
+        }
+
+        delete [] workers_args;
+        delete [] workers;
+
+        std::cout << min_start_time << " " << max_stop_time << std::endl;
+
+        double test_time = (double)(max_stop_time - min_start_time) /
+            (double) 1000000;
+
+        std::cout.precision (2);
+
+        std::cout << std::fixed << std::noshowpoint <<  "test time: " 
+            << test_time << " [ms]\n";
+
+        // throughput [msgs/s]
+        unsigned long msg_thput = ((long) 1000000000 *
+            (unsigned long) roundtrip_count_ * (unsigned long) thread_count_)/
+            (unsigned long)(max_stop_time - min_start_time);
+            
+        unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
+            (unsigned long) 1000000;
+                
+        std::cout << std::noshowpoint << "Your average throughput is " 
+            << msg_thput << " [msg/s]\n";
+        std::cout << std::noshowpoint << "Your average throughput is " 
+            << tcp_thput << " [Mb/s]\n\n";
+ 
+        // save the results
+        std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
+        assert (outf.is_open ());
+        
+        outf.precision (2);
+
+        outf << std::fixed << std::noshowpoint << "1," << roundtrip_count_ 
+            << "," << msg_size_ << "," << test_time << "," << msg_thput << "," 
+            << tcp_thput << std::endl;
+        
+        outf.close ();
+
+    }
+
+
+    void remote_thr (i_transport **transports_, size_t msg_size_, 
+        int roundtrip_count_, int thread_count_)
+    {
+        pthread_t *workers = new pthread_t [thread_count_];
+        perf::thr_worker_args_t *workers_args = 
+            new perf::thr_worker_args_t [thread_count_];
+
+        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
+
+            workers_args [thread_nbr].transport = transports_ [thread_nbr];
+            workers_args [thread_nbr].msg_size = msg_size_;
+            workers_args [thread_nbr].roundtrip_count = roundtrip_count_;
+            workers_args [thread_nbr].start_time = 0;
+            workers_args [thread_nbr].stop_time = 0;
+            
+            int rc = pthread_create (&workers [thread_nbr], NULL, 
+                remote_worker_function, (void *)&workers_args [thread_nbr]);
+            assert (rc == 0);
+        }
+
+        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
+            int rc = pthread_join (workers [thread_nbr], NULL);
+            assert (rc == 0);
+        }
+    }
+
 }
 #endif

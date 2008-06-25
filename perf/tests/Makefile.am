@@ -1,1 +1,1 @@
-SUBDIRS = zmq
+SUBDIRS = zmq tcp
