@@ -162,7 +162,7 @@ namespace perf
         
         outf.precision (2);
 
-        outf << std::fixed << std::noshowpoint << "1," << roundtrip_count_ 
+        outf << std::fixed << std::noshowpoint << thread_count_ << "," << roundtrip_count_ 
             << "," << msg_size_ << "," << test_time << "," << msg_thput << "," 
             << tcp_thput << std::endl;
         

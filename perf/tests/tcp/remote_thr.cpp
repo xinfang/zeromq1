@@ -53,6 +53,8 @@ int main (int argc, char *argv [])
 
         transports [thread_nbr] = new perf::tcp_t (false, peer_ip, 
             peer_port + thread_nbr, false);
+        // give time to local to start to listen
+        sleep (1);
     }
 
     perf::remote_thr (transports, msg_size, roundtrip_count, thread_count);
