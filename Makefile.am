@@ -1,7 +1,6 @@
 SUBDIRS = zmq perf examples
 
 EXTRA_DIST = \
-    ./perf/helpers/files.hpp \
     ./perf/helpers/time.hpp \
     ./perf/helpers/ticker.hpp \
     ./perf/transports/openamq.hpp \
@@ -11,5 +10,6 @@ EXTRA_DIST = \
     ./perf/transports/zmq.hpp \
 	./perf/tests/scenarios/thr.sh \
 	./perf/tests/scenarios/fo.sh \
+	./perf/tests/scenarios/fi.sh \
     ./examples/exchange/graph.pl
 

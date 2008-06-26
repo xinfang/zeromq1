@@ -1,12 +1,12 @@
 noinst_PROGRAMS = local_thr remote_thr
 
 local_thr_SOURCES = local_thr.cpp ../../transports/tcp.hpp \
-../../helpers/time.hpp ../../interfaces/i_transport.hpp \
-../../scenarios/thr.hpp
+../../helpers/time.hpp ../../transports/i_transport.hpp \
+../scenarios/thr.hpp
 
 remote_thr_SOURCES = remote_thr.cpp ../../transports/tcp.hpp \
-../../helpers/time.hpp ../../interfaces/i_transport.hpp \
-../../scenarios/thr.hpp 
+../../helpers/time.hpp ../../transports/i_transport.hpp \
+../scenarios/thr.hpp 
 
 local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
 

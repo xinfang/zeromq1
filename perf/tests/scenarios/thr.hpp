@@ -117,8 +117,8 @@ namespace perf
             int rc = pthread_join (workers [thread_nbr], NULL);
             assert (rc == 0);
 
-            std::cout << workers_args [thread_nbr].start_time << " "
-                << workers_args [thread_nbr].stop_time << std::endl;
+//            std::cout << workers_args [thread_nbr].start_time << " "
+//                << workers_args [thread_nbr].stop_time << std::endl;
 
             if (workers_args [thread_nbr].start_time < min_start_time)
                 min_start_time = workers_args [thread_nbr].start_time;
@@ -131,7 +131,7 @@ namespace perf
         delete [] workers_args;
         delete [] workers;
 
-        std::cout << min_start_time << " " << max_stop_time << std::endl;
+//        std::cout << min_start_time << " " << max_stop_time << std::endl;
 
         double test_time = (double)(max_stop_time - min_start_time) /
             (double) 1000000;

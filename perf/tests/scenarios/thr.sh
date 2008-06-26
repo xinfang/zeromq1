@@ -1,14 +1,20 @@
 #!/bin/sh
 
-if [ $# -ne 1 ]; then
-    echo "Usage: thr.sh [local | remote]"
+if [ $# -ne 2 ]; then
+    echo "Usage: thr.sh [tcp | zmq] [local | remote]"
     exit 1
 fi
 
-if [ $1 != "local" -a $1 != "remote" ]; then
-    echo "Usage: thr.sh [local | remote]"
+if [ $2 != "local" -a $2 != "remote" ]; then
+    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
     exit 1
 fi
+
+if [ $1 != "zmq" -a $1 != "tcp" ]; then
+    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
+    exit 1
+fi
+
 ##############################################################################
 
 GL_IP="62.176.172.203"
@@ -38,7 +44,7 @@ SYS_BREAK=1024
 SYS_SLOPE_BIG=0.89
 SYS_OFF_BIG=0
 
-if [ $1 = "local" ]; then
+if [ $2 = "local" ]; then
     echo "running local (receiver)"    
     while [ $RUNS -gt 0 ]; do
         for i in `seq 0 $MSG_SIZE_STEPS`;
@@ -51,7 +57,13 @@ if [ $1 = "local" ]; then
                 MSG_COUNT=`echo "($TEST_TIME * 100000 ) / ($SYS_SLOPE_BIG * $MSG_SIZE + $SYS_OFF_BIG)" | bc`
             fi
 
-            $LOCAL_THR_BIN $GL_IP $GL_PORT $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+            if [ $1 = "zmq" ]; then
+                $LOCAL_THR_BIN $GL_IP $GL_PORT $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+            else
+                echo $LOCAL_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+                $LOCAL_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+                let REC_PORT=REC_PORT+THREADS
+            fi
         done
         let RUNS=RUNS-1 
     done
@@ -68,7 +80,13 @@ else
                 MSG_COUNT=`echo "($TEST_TIME * 100000 ) / ($SYS_SLOPE_BIG * $MSG_SIZE + $SYS_OFF_BIG)" | bc`
             fi
 
-            $REMOTE_THR_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $THREADS
+            if [ $1 = "zmq" ]; then
+                $REMOTE_THR_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $THREADS
+            else
+                echo $REMOTE_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+                $REMOTE_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS                
+                let REC_PORT=REC_PORT+THREADS
+            fi
             sleep 1
         done
         let RUNS=RUNS-1 
