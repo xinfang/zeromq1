@@ -23,6 +23,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <limits>
+#include <pthread.h>
 
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"

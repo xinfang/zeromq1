@@ -20,8 +20,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <vector>
-#include <limits>
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/thr.hpp"

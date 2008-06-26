@@ -19,7 +19,7 @@
 
 #include <cstdlib>
 #include <cstdio>
-#include <pthread.h>
+#include <iostream>
 
 #include "../../transports/tcp.hpp"
 #include "../scenarios/thr.hpp"
