@@ -1,0 +1,18 @@
+This directory contains a simple example of sending raw video from a webcam
+over 0MQ.
+
+To build the code you need to have the SDL development libraries
+(libsdl1.2-dev in Debian) and the Unicap library from
+http://www.unicap-imaging.org/ installed. This example does not use
+autoconf at the moment, so to build just type "make".
+
+You also need to have 0MQ installed in /usr/local (or modify the Makefile 
+to point to it's libraries/header files).
+
+TODO:
+
+- sender/display: Perform colorspace conversion if required
+- sender: Don't die if a receiver goes away
+- receiver: Use double buffering, or some other way to reduce flicker?
+- figure out why unicap sometimes fails to open the video device
+- autoconf
