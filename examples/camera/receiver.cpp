@@ -88,6 +88,8 @@ int main (int argc, char *argv [])
                SDL_Quit ();
                exit (1);
             }
+
+            sdl_initialised = true;
         }
 
         //  Create RGB surface
