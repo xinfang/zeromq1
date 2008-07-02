@@ -52,9 +52,16 @@ namespace zmq
 
         inline ~message_t ()
         {
+            destroy ();
+        }
+
+        inline void destroy ()
+        {
             if (msg != (msg_t*) raw_message_t::delimiter_tag &&
-                  msg != (msg_t*) raw_message_t::vsm_tag)
+                  msg != (msg_t*) raw_message_t::vsm_tag) {
                 msg_dealloc (msg);
+                msg = NULL;
+            }
         }
 
         inline void detach ()

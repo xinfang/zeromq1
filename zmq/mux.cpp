@@ -35,6 +35,10 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
 
 bool zmq::mux_t::read (message_t *msg_)
 {
+    //  Deallocate old content of the message.
+    msg_->destroy ();
+
+    //  Round-robin over the pipes to get next message.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
 
         bool retrieved = pipes [current]->read ((raw_message_t*) msg_);
@@ -50,6 +54,8 @@ bool zmq::mux_t::read (message_t *msg_)
         if (retrieved)
             return true;
     }
+
+    //  No message is available.
     return false;
 }
 
