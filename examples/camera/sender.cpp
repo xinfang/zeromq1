@@ -34,6 +34,12 @@
 
 #define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+(((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
 
+bool error_handler (const char*)
+{
+    //  We don't want sender to fail when receiver disconnects
+    return true;
+}
+
 int main (int argc, char *argv [])
 {
     unicap_handle_t handle;
@@ -50,6 +56,7 @@ int main (int argc, char *argv [])
     }
 
     //  Initialise 0MQ infrastructure
+    zmq::set_error_handler (error_handler);
     zmq::dispatcher_t dispatcher (4);
     zmq::locator_t locator (argv [1], atoi (argv [2]));
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
