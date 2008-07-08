@@ -11,8 +11,7 @@ to point to it's libraries/header files).
 
 TODO:
 
-- sender/display: Perform colorspace conversion if required
-- sender: Don't die if a receiver goes away
-- receiver: Use double buffering, or some other way to reduce flicker?
 - figure out why unicap sometimes fails to open the video device
+- figure out why ucil_convert_buffer sometimes fails
+- send patch to upstream to fix ucil.h for C++
 - autoconf

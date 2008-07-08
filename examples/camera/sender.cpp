@@ -24,6 +24,7 @@
 #include <sys/types.h>
 
 #include <unicap.h>
+#include "./ucil.h"
 
 #include <zmq/dispatcher.hpp>
 #include <zmq/api_thread.hpp>
@@ -44,9 +45,10 @@ int main (int argc, char *argv [])
 {
     unicap_handle_t handle;
     unicap_device_t device;
-    unicap_format_t format_spec;
-    unicap_format_t format;
-    unicap_data_buffer_t buffer;
+    unicap_format_t src_format;
+    unicap_format_t dest_format;
+    unicap_data_buffer_t src_buffer;
+    unicap_data_buffer_t dest_buffer;
     unicap_data_buffer_t *returned_buffer;
 
     if (argc != 6) {
@@ -75,26 +77,48 @@ int main (int argc, char *argv [])
     }
     printf( "Opened video capture device: %s\n", device.identifier );
 
-    //  Get available RGB24 video formats and use the first one found
-    unicap_void_format (&format_spec);
-    format_spec.fourcc = FOURCC ('B', 'G', 'R', '3');
-    if (!SUCCESS (unicap_enumerate_formats (handle, &format_spec, &format, 0))) {
-        fprintf (stderr, "Could not enumerate video formats\n");
+    //  Find a suitable video format that we can convert to RGB24
+    bool conversion_found = false;
+    int index = 0;
+    while (SUCCESS (unicap_enumerate_formats (handle, NULL, &src_format, index))) {
+        printf ("Trying video format: %s\n", src_format.identifier);
+        if (ucil_conversion_supported (FOURCC ('R', 'G', 'B', '3'), 
+            src_format.fourcc)) {
+            conversion_found = true;
+            break;
+        }
+        index++;
+    }
+    if (!conversion_found) {
+        fprintf (stderr, "Could not find a suitable video format\n");
         exit (1);
     }
-    if (!SUCCESS (unicap_set_format (handle, &format))) {
+    src_format.buffer_type = UNICAP_BUFFER_TYPE_USER;
+    if (!SUCCESS (unicap_set_format (handle, &src_format))) {
         fprintf (stderr, "Failed to set video format\n");
         exit (1);
     }
     printf ("Using video format: %s [%dx%d]\n", 
-        format.identifier, 
-        format.size.width, 
-        format.size.height);
+        src_format.identifier, 
+        src_format.size.width, 
+        src_format.size.height);
 
-    //  Initialise image buffer
-    memset (&buffer, 0, sizeof (unicap_data_buffer_t));
-    buffer.data = (unsigned char *)malloc (format.buffer_size);
-   
+    //  Clone destination format with equal dimensions, but RGB24 colorspace
+    unicap_copy_format (&dest_format, &src_format);
+    strcpy (dest_format.identifier, "RGB 24bpp");
+    dest_format.fourcc = FOURCC ('R', 'G', 'B', '3');
+    dest_format.bpp = 24;
+    dest_format.buffer_size = dest_format.size.width * dest_format.size.height * 3;
+    
+    //  Initialise image buffers
+    memset (&src_buffer, 0, sizeof (unicap_data_buffer_t));
+    src_buffer.data = (unsigned char *)malloc (src_format.buffer_size);
+    src_buffer.buffer_size = src_format.buffer_size;
+    memset (&dest_buffer, 0, sizeof (unicap_data_buffer_t));
+    dest_buffer.data = (unsigned char *)malloc (dest_format.buffer_size);
+    dest_buffer.buffer_size = dest_format.buffer_size;
+    dest_buffer.format = dest_format;
+
     //  Start video capture
     if (!SUCCESS (unicap_start_capture (handle))) {
         fprintf (stderr, "Failed to start capture on device: %s\n", device.identifier);
@@ -104,25 +128,31 @@ int main (int argc, char *argv [])
     //  Loop, sending video to defined exchange
     while (1) {
         //  Queue buffer for video capture
-        if (!SUCCESS (unicap_queue_buffer (handle, &buffer))) {
+        if (!SUCCESS (unicap_queue_buffer (handle, &src_buffer))) {
             fprintf (stderr, "Failed to queue a buffer on device: %s\n", device.identifier);
             exit (1);
         }
         //  Wait until buffer is ready
         if (!SUCCESS (unicap_wait_buffer (handle, &returned_buffer))) {
             fprintf (stderr, "Failed to wait for buffer on device: %s\n", device.identifier);
+            exit (1);
+        }
+        //  Convert colorspace
+        if (!SUCCESS (ucil_convert_buffer (&dest_buffer, &src_buffer))) {
+            // XXX This fails sometimes for unknown reasons, just skip the frame for now
+            fprintf (stderr, "Failed to convert video buffer\n");
         }
         //  Create ZMQ message
-        zmq::message_t msg (format.buffer_size + (2 * sizeof (uint32_t)));
+        zmq::message_t msg (dest_format.buffer_size + (2 * sizeof (uint32_t)));
         unsigned char *data = (unsigned char *)msg.data();
         //  Image width in pixels
-        zmq::put_uint32 (data, (uint32_t)format.size.width);
+        zmq::put_uint32 (data, (uint32_t)dest_format.size.width);
         data += sizeof (uint32_t);
         //  Image height in pixels
-        zmq::put_uint32 (data, (uint32_t)format.size.height);
+        zmq::put_uint32 (data, (uint32_t)dest_format.size.height);
         data += sizeof (uint32_t);
         //  RGB24 image data
-        memcpy (data, buffer.data, format.buffer_size);
+        memcpy (data, dest_buffer.data, dest_format.buffer_size);
         //  Send message 
         api->send (e_id, &msg);
     }

@@ -20,10 +20,10 @@
 all: display sender receiver
 
 display: display.c
-	$(CC) -g -o $@ $^ `pkg-config libunicap --cflags --libs` `sdl-config --cflags --libs`
+	$(CC) -g -o $@ $^ `pkg-config libunicap --cflags --libs` `pkg-config libucil --cflags --libs` `sdl-config --cflags --libs`
 
 sender: sender.cpp
-	$(CXX) -pthread -g -o $@ $^ `pkg-config libunicap --cflags --libs` -I/usr/local/include -lzmq
+	$(CXX) -pthread -g -o $@ $^ `pkg-config libunicap --cflags --libs` `pkg-config libucil --cflags --libs` -I/usr/local/include -lzmq
 
 receiver: receiver.cpp
 	$(CXX) -pthread -g -o $@ $^ `sdl-config --cflags --libs` -I/usr/local/include -lzmq
