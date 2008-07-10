@@ -51,7 +51,8 @@ pkginclude_HEADERS = \
     tcp_listener.hpp \
     i_locator.hpp \
     raw_message.hpp \
-    message.hpp
+    message.hpp \
+    time.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

@@ -26,7 +26,7 @@
 #include <fstream>
 #include <assert.h>
 #include "../../transports/i_transport.hpp"
-#include "../../helpers/time.hpp"
+#include "../../../zmq/time.hpp"
 
 namespace perf
 {
@@ -57,19 +57,19 @@ namespace perf
     {
         transport_->send (1);
 
-        time_instant_t start_time = 0;
+        zmq::time_instant_t start_time = 0;
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
 
             size_t size = transport_->receive ();
             if (msg_nbr == 0)
-                start_time = now();
+                start_time = zmq::now();
 
-            // check incomming message size
+            //  Check incomming message size
             assert (size == msg_size_);
         }
 
-        time_instant_t stop_time = now();
+        zmq::time_instant_t stop_time = zmq::now();
 
         double test_time = (double)(stop_time - start_time) /
             (double) 1000000;
@@ -79,7 +79,7 @@ namespace perf
         std::cout << std::fixed << std::noshowpoint <<  "test time: "
             << test_time << " [ms]\n";
 
-        // throughput [msgs/s]
+        //  Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
             (unsigned long) roundtrip_count_) /
             (unsigned long)(stop_time - start_time);
@@ -92,7 +92,7 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is "
             << tcp_thput << " [Mb/s]\n\n";
            
-        // save the results
+        //  Save the results
         std::string _filename (subs_id_);
         _filename += "_tests.dat";
 
@@ -109,7 +109,7 @@ namespace perf
 
         transport_->send (1);    
 
-        // all consumers finished, now we can shutdown
+        //  All consumers finished, now we can shutdown
         size_t size = transport_->receive ();
         assert (size == 1);
     }

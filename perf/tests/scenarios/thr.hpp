@@ -27,7 +27,7 @@
 #include <pthread.h>
 
 #include "../../transports/i_transport.hpp"
-#include "../../helpers/time.hpp"
+#include "../../../zmq/time.hpp"
 
 namespace perf
 {
@@ -37,17 +37,16 @@ namespace perf
         size_t msg_size;
         int roundtrip_count;
 
-        time_instant_t start_time;
-        time_instant_t stop_time;
+        zmq::time_instant_t start_time;
+        zmq::time_instant_t stop_time;
     };
 
-    template <typename T> 
-        inline std::string to_string (const T &input_)
-        {
-            std::stringstream string_stream;
-            string_stream << input_;
-            return string_stream.str ();
-        }
+    template <typename T> inline std::string to_string (const T &input_)
+    {
+        std::stringstream string_stream;
+        string_stream << input_;
+        return string_stream.str ();
+    }
 
     void *local_worker_function (void *worker_args_)
     {
@@ -58,15 +57,15 @@ namespace perf
             
             size_t size = args->transport->receive ();
             if (msg_nbr == 0)
-                args->start_time  = now ();
+                args->start_time  = zmq::now ();
             
-            // check incomming message size
+            //  Check incomming message size
             assert (size == args->msg_size);
         }
 
-        args->stop_time = now();
+        args->stop_time = zmq::now();
 
-        // send sync message
+        //  Send sync message
         args->transport->send (1);
 
         return NULL;
@@ -82,7 +81,7 @@ namespace perf
             args->transport->send (args->msg_size);
         }
 
-        // wait for sync message
+        //  Wait for sync message
         size_t size = args->transport->receive ();
         assert (size == 1);
 
@@ -110,17 +109,14 @@ namespace perf
             assert (rc == 0);
         }
 
-        // gather results from thr_worker_args_t structures
-        perf::time_instant_t min_start_time  = 
+        //  Gather results from thr_worker_args_t structures
+        zmq::time_instant_t min_start_time  = 
             std::numeric_limits<uint64_t>::max ();
-        perf::time_instant_t max_stop_time = 0;
+        zmq::time_instant_t max_stop_time = 0;
 
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
             int rc = pthread_join (workers [thread_nbr], NULL);
             assert (rc == 0);
-
-//            std::cout << workers_args [thread_nbr].start_time << " "
-//                << workers_args [thread_nbr].stop_time << std::endl;
 
             if (workers_args [thread_nbr].start_time < min_start_time)
                 min_start_time = workers_args [thread_nbr].start_time;
@@ -133,8 +129,6 @@ namespace perf
         delete [] workers_args;
         delete [] workers;
 
-//        std::cout << min_start_time << " " << max_stop_time << std::endl;
-
         double test_time = (double)(max_stop_time - min_start_time) /
             (double) 1000000;
 
@@ -143,7 +137,7 @@ namespace perf
         std::cout << std::fixed << std::noshowpoint <<  "test time: " 
             << test_time << " [ms]\n";
 
-        // throughput [msgs/s]
+        //  Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
             (unsigned long) roundtrip_count_ * (unsigned long) thread_count_)/
             (unsigned long)(max_stop_time - min_start_time);
@@ -156,7 +150,7 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
  
-        // save the results
+        //  Save the results
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
@@ -169,7 +163,6 @@ namespace perf
         outf.close ();
 
     }
-
 
     void remote_thr (i_transport **transports_, size_t msg_size_, 
         int roundtrip_count_, int thread_count_)

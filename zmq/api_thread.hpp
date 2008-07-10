@@ -124,7 +124,10 @@ namespace zmq
         //  message next time it is required
         typedef std::vector <std::pair <std::string, mux_t> > queues_t;
         queues_t queues; 
-        queues_t::size_type current_queue;    
+        queues_t::size_type current_queue; 
+
+        //  Time when last command processing was performed (in ticks)
+        uint64_t last_command_time;   
     };
 
 }

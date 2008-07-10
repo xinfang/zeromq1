@@ -73,7 +73,7 @@ public:
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
-                make_timestamp (5, order_id, now () / 1000, &msg);
+                make_timestamp (5, order_id, zmq::now () / 1000, &msg);
                 api->send (se_id, &msg);
             }
 
@@ -164,7 +164,7 @@ public:
         //  Taking timestamps
         if (order_id_ % 500000 == 0 && order_id_ > last_timestamp) {
             zmq::message_t msg;
-            make_timestamp (6, order_id_, now () / 1000, &msg);
+            make_timestamp (6, order_id_, zmq::now () / 1000, &msg);
             api->send (se_id, &msg);
             last_timestamp = order_id_;
         }
@@ -245,7 +245,7 @@ int main (int argc, char *argv [])
     }
 
     //  Precompute the CPU frequency
-    estimate_cpu_frequency ();
+    zmq::estimate_cpu_frequency ();
 
     //  Create the shared message dispatcher
     zmq::dispatcher_t dispatcher (4);

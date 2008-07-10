@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PERF_TIME_HPP_INCLUDED__
-#define __PERF_TIME_HPP_INCLUDED__
+#ifndef __ZMQ_TIME_HPP_INCLUDED__
+#define __ZMQ_TIME_HPP_INCLUDED__
 
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
 
-namespace perf
+namespace zmq
 {
     //  Time instance in nanoseconds.
     //  For measurement purposes the exact point when the timer started

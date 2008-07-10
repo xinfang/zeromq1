@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include "../../transports/i_transport.hpp"
-#include "../../helpers/time.hpp"
+#include "../../../zmq/time.hpp"
 
 namespace perf
 {
@@ -32,29 +32,29 @@ namespace perf
           int roundtrip_count_, int pubs_count_)
     {
 
-        // wait for sync messages from publishers
+        //  Wait for sync messages from publishers
         for (int pubs_nbr = 0; pubs_nbr < pubs_count_; pubs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);
         }
 
-        // send sync message to publishers (they can start to send messages)
+        //  Send sync message to publishers (they can start to send messages)
         transport_->send (1);
        
-        time_instant_t start_time = 0;
+        zmq::time_instant_t start_time = 0;
 
-        // receive messages from all publishers
+        //  Receive messages from all publishers
         for (int msg_nbr = 0; msg_nbr < pubs_count_ * roundtrip_count_; 
             msg_nbr++) {
             
             size_t size = transport_->receive ();
             if (msg_nbr == 0)
-                start_time = now ();
+                start_time = zmq::now ();
                 
             assert (size == msg_size_);
         }
 
-        time_instant_t stop_time = now (); 
+        zmq::time_instant_t stop_time = zmq::now (); 
     
         double test_time = (double)(stop_time - start_time) /
             (double) 1000000;
@@ -64,7 +64,7 @@ namespace perf
         std::cout << std::fixed << std::noshowpoint <<  "test time: " 
             << test_time << " [ms]\n";
 
-        // throughput [msgs/s]
+        //  Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
             (unsigned long) roundtrip_count_) /
             (unsigned long)(stop_time - start_time);
@@ -77,7 +77,7 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
  
-        // save the results
+        //  Save the results
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
@@ -89,26 +89,26 @@ namespace perf
         
         outf.close ();
 
-        // send sysnc message to publishers
+        //  Send sysnc message to publishers
         transport_->send (1);
     }
 
     void remote_fi (i_transport *transport_, size_t msg_size_, 
           int roundtrip_count_)
     {
-        // send sync message to subscriber
+        //  Send sync message to subscriber
         transport_->send (1); 
 
-        // wait for sync message
+        //  Wait for sync message
         size_t size = transport_->receive ();
         assert (size == 1);
 
-        // send bunch of messages
+        //  Send a bunch of messages
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
             transport_->send (msg_size_);
         }
 
-        // wait for sync message
+        //  Wait for sync message
         size = transport_->receive ();
         assert (size == 1);
     }

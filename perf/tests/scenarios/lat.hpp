@@ -22,7 +22,7 @@
 
 #include <cstdio>
 #include "../../transports/i_transport.hpp"
-#include "../../helpers/time.hpp"
+#include "../../../zmq/time.hpp"
 
 namespace perf
 {
@@ -33,7 +33,7 @@ namespace perf
         size_t size = transport_->receive ();
         assert (size == 1);
 
-        time_instant_t start_time = now ();
+        zmq::time_instant_t start_time = zmq::now ();
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
 
@@ -44,7 +44,7 @@ namespace perf
             assert (size == msg_size_);
         }
 
-        time_instant_t stop_time = now ();
+        zmq::time_instant_t stop_time = zmq::now ();
         
         printf ("Your average latency is %.2f us\n", 
             (double)((stop_time - start_time) / 2000) / (double) roundtrip_count_);

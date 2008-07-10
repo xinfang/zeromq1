@@ -22,9 +22,7 @@
 #include "../../zmq/api_thread.hpp"
 #include "../../zmq/poll_thread.hpp"
 #include "../../zmq/message.hpp"
-
-#include "../../perf/helpers/time.hpp"
-using namespace perf;
+#include "../../zmq/time.hpp"
 
 #include "messages.hpp"
 #include "frequency_meter.hpp"
@@ -168,7 +166,7 @@ int main (int argc, char *argv [])
     }
 
     //  Precompute CPU frequency
-    estimate_cpu_frequency ();
+    zmq::estimate_cpu_frequency ();
 
     //  Run the matching engine
     me_t me (argv [1], atoi (argv [2]), argv [3], argv [4]);
