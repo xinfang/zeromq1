@@ -43,12 +43,12 @@ int main (int argc, char *argv [])
 
     if (argc != 4) {
         fprintf (stderr, "Usage: receiver <locator address> <locator port> "
-            "<exchange>\n");
+            "<camera name>\n");
         exit (1);
     }
 
     //  Initialise 0MQ infrastructure
-    zmq::dispatcher_t dispatcher (4);
+    zmq::dispatcher_t dispatcher (2);
     zmq::locator_t locator (argv [1], atoi (argv [2]));
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
@@ -63,28 +63,35 @@ int main (int argc, char *argv [])
         //  Receive single message
         zmq::message_t msg;
         api->receive (&msg);
+
         //  Parse message
         unsigned char *data = (unsigned char *)msg.data();
+
         //  Image width in pixels
         image_width = (int)zmq::get_uint32 (data);
         data += sizeof (uint32_t);
+
         //  Image height in pixels
         image_height = (int)zmq::get_uint32 (data);
         data += sizeof (uint32_t);
         //  data now points to RGB24 pixel data
 
         if (!sdl_initialised) {
+
             //  Initialise SDL if not already done
             //  We need to have received at least one message, so that we
             //  know what the image size being sent is
             if (SDL_Init (SDL_INIT_VIDEO) < 0)
             {
-                fprintf (stderr, "Failed to initialize SDL:  %s\n", SDL_GetError());
+                fprintf (stderr, "Failed to initialize SDL:  %s\n",
+                    SDL_GetError());
                 exit (1);
             }
-            screen = SDL_SetVideoMode (image_width, image_height, 32, SDL_HWSURFACE);
+            screen = SDL_SetVideoMode (image_width, image_height, 32,
+                SDL_HWSURFACE);
             if (screen == NULL) {
-               fprintf (stderr, "Unable to set video mode: %s\n", SDL_GetError ());
+               fprintf (stderr, "Unable to set video mode: %s\n",
+                   SDL_GetError ());
                SDL_Quit ();
                exit (1);
             }

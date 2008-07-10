@@ -9,6 +9,12 @@ autoconf at the moment, so to build just type "make".
 You also need to have 0MQ installed in /usr/local (or modify the Makefile 
 to point to it's libraries/header files).
 
+The wire format for messages sent from sender to receiver is:
+<width, height, frame data>
+width:      uint32_t: frame width in pixels (network byte order)
+height:     uint32_t: frame height in pixels (network byte order)
+frame data: RGB24 frame data (R, G, B: 3 octets per pixel)
+
 TODO:
 
 - figure out why unicap sometimes fails to open the video device

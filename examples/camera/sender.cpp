@@ -26,14 +26,15 @@
 #include <unicap.h>
 #include "./ucil.h"
 
-#include <zmq/dispatcher.hpp>
-#include <zmq/api_thread.hpp>
-#include <zmq/poll_thread.hpp>
-#include <zmq/locator.hpp>
-#include <zmq/message.hpp>
-#include <zmq/wire.hpp>
+#include "../../zmq/dispatcher.hpp"
+#include "../../zmq/api_thread.hpp"
+#include "../../zmq/poll_thread.hpp"
+#include "../../zmq/locator.hpp"
+#include "../../zmq/message.hpp"
+#include "../../zmq/wire.hpp"
 
-#define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+(((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
+#define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+\
+    (((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
 
 bool error_handler (const char*)
 {
@@ -53,13 +54,13 @@ int main (int argc, char *argv [])
 
     if (argc != 6) {
         fprintf (stderr, "Usage: sender <locator address> <locator port> "
-            "<exchange> <interface> <port>\n");
+            "<camera name> <interface> <port>\n");
         exit (1);
     }
 
     //  Initialise 0MQ infrastructure
     zmq::set_error_handler (error_handler);
-    zmq::dispatcher_t dispatcher (4);
+    zmq::dispatcher_t dispatcher (2);
     zmq::locator_t locator (argv [1], atoi (argv [2]));
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
@@ -80,7 +81,8 @@ int main (int argc, char *argv [])
     //  Find a suitable video format that we can convert to RGB24
     bool conversion_found = false;
     int index = 0;
-    while (SUCCESS (unicap_enumerate_formats (handle, NULL, &src_format, index))) {
+    while (SUCCESS (unicap_enumerate_formats (handle, NULL, &src_format,
+          index))) {
         printf ("Trying video format: %s\n", src_format.identifier);
         if (ucil_conversion_supported (FOURCC ('R', 'G', 'B', '3'), 
             src_format.fourcc)) {
@@ -108,7 +110,8 @@ int main (int argc, char *argv [])
     strcpy (dest_format.identifier, "RGB 24bpp");
     dest_format.fourcc = FOURCC ('R', 'G', 'B', '3');
     dest_format.bpp = 24;
-    dest_format.buffer_size = dest_format.size.width * dest_format.size.height * 3;
+    dest_format.buffer_size = dest_format.size.width *
+        dest_format.size.height * 3;
     
     //  Initialise image buffers
     memset (&src_buffer, 0, sizeof (unicap_data_buffer_t));
@@ -121,38 +124,50 @@ int main (int argc, char *argv [])
 
     //  Start video capture
     if (!SUCCESS (unicap_start_capture (handle))) {
-        fprintf (stderr, "Failed to start capture on device: %s\n", device.identifier);
+        fprintf (stderr, "Failed to start capture on device: %s\n",
+            device.identifier);
         exit (1);
     }
 
     //  Loop, sending video to defined exchange
     while (1) {
+
         //  Queue buffer for video capture
         if (!SUCCESS (unicap_queue_buffer (handle, &src_buffer))) {
-            fprintf (stderr, "Failed to queue a buffer on device: %s\n", device.identifier);
+            fprintf (stderr, "Failed to queue a buffer on device: %s\n",
+                device.identifier);
             exit (1);
         }
+
         //  Wait until buffer is ready
         if (!SUCCESS (unicap_wait_buffer (handle, &returned_buffer))) {
-            fprintf (stderr, "Failed to wait for buffer on device: %s\n", device.identifier);
+            fprintf (stderr, "Failed to wait for buffer on device: %s\n",
+                device.identifier);
             exit (1);
         }
+
         //  Convert colorspace
         if (!SUCCESS (ucil_convert_buffer (&dest_buffer, &src_buffer))) {
-            // XXX This fails sometimes for unknown reasons, just skip the frame for now
+            //  TODO: This fails sometimes for unknown reasons,
+            //  just skip the frame for now
             fprintf (stderr, "Failed to convert video buffer\n");
         }
+
         //  Create ZMQ message
         zmq::message_t msg (dest_format.buffer_size + (2 * sizeof (uint32_t)));
         unsigned char *data = (unsigned char *)msg.data();
+
         //  Image width in pixels
         zmq::put_uint32 (data, (uint32_t)dest_format.size.width);
         data += sizeof (uint32_t);
+
         //  Image height in pixels
         zmq::put_uint32 (data, (uint32_t)dest_format.size.height);
         data += sizeof (uint32_t);
+
         //  RGB24 image data
         memcpy (data, dest_buffer.data, dest_format.buffer_size);
+
         //  Send message 
         api->send (e_id, &msg);
     }
