@@ -40,7 +40,7 @@ namespace zmq
     (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__))))
     //  Retrieves current time in processor ticks. This function is intended
     //  for internal usage - use 'now' function instead.
-    static uint64_t now_ticks ()
+    inline uint64_t now_ticks ()
     {
         uint32_t low;
         uint32_t high;
@@ -52,7 +52,7 @@ namespace zmq
 
     //  Retrieves current time in nanoseconds. This function is intended
     //  for internal usage - use 'now' function instead.
-    static uint64_t now_nsecs ()
+    inline uint64_t now_nsecs ()
     {
         timeval tv;
         int rc = gettimeofday (&tv, NULL);
@@ -68,7 +68,7 @@ namespace zmq
     //  computation altogether you can force the framework to use the value
     //  you'll supply. To do so, define PERF_CPU_FREQUENCY macro. It's value
     //  should be CPU frequency (in Hz).
-    uint64_t estimate_cpu_frequency ()
+    inline uint64_t estimate_cpu_frequency ()
     {
 #ifdef PERF_CPU_FREQUENCY
         return (PERF_CPU_FREQUENCY);
