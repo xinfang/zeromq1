@@ -48,11 +48,28 @@ int main (int argc, char *argv [])
     }
 
     //  Initialise 0MQ infrastructure
+
+    //  1. Initialise basic infrastructure for 2 threads
     zmq::dispatcher_t dispatcher (2);
+
+    //  2. Initialise local locator (to connect to global locator)
     zmq::locator_t locator (argv [1], atoi (argv [2]));
-    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
+
+    //  3. Start one working thread (to receive data from the sender)
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
-    api->create_queue ("Q");
+
+    //  5. Register one API thread (the application thread - the one that
+    //     is being executed at the moment)
+    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
+
+    //  6. Declare an exit point for the messages. It's called "Q" and it's
+    //     declared as local - i.e. only this thread will be able to access
+    //     this exit point.
+    api->create_queue ("Q", zmq::scope_local);
+
+    //  7. Bind our local exit point (queue) to a globally visible message entry
+    //     point (exchange identified by "camera name"). Specify that the
+    //     connection created should be handled by worker thread "pt".
     bool rc = api->bind (argv [3], "Q", pt, pt);
     assert (rc);
 

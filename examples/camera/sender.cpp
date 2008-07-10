@@ -26,12 +26,12 @@
 #include <unicap.h>
 #include "./ucil.h"
 
-#include "../../zmq/dispatcher.hpp"
-#include "../../zmq/api_thread.hpp"
-#include "../../zmq/poll_thread.hpp"
-#include "../../zmq/locator.hpp"
-#include "../../zmq/message.hpp"
-#include "../../zmq/wire.hpp"
+#include <zmq/dispatcher.hpp>
+#include <zmq/api_thread.hpp>
+#include <zmq/poll_thread.hpp>
+#include <zmq/locator.hpp>
+#include <zmq/message.hpp>
+#include <zmq/wire.hpp>
 
 #define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+\
     (((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
@@ -59,11 +59,27 @@ int main (int argc, char *argv [])
     }
 
     //  Initialise 0MQ infrastructure
+
+    //  1. Set error handler function (to ignore disconnected receivers)
     zmq::set_error_handler (error_handler);
+
+    //  2. Initialise basic infrastructure for 2 threads
     zmq::dispatcher_t dispatcher (2);
+
+    //  3. Initialise local locator (to connect to global locator)
     zmq::locator_t locator (argv [1], atoi (argv [2]));
-    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
+
+    //  4. Start one working thread (to send data to receivers)
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
+
+    //  5. Register one API thread (the application thread - the one that
+    //     is being executed at the moment)
+    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
+
+    //  6.  Define an entry point for the messages. The name of the entry point
+    //      is user-defined ("camera name"). Specify that working thread "pt"
+    //      will be used to listen to new connections being created as well as
+    //      to send frames to existing connections.
     int e_id = api->create_exchange (argv [3], zmq::scope_global, argv [4], 
         atoi (argv [5]), pt, 1, &pt);
     
