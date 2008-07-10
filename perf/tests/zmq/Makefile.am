@@ -5,14 +5,14 @@ noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
 local_fo remote_fo local_fi remote_fi
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq.hpp \
-../../helpers/time.hpp ../../transports/i_transport.hpp \
+../../transports/i_transport.hpp \
 ../scenarios/thr.hpp
 
 remote_thr_SOURCES = remote_thr.cpp ../../transports/zmq.hpp \
 ../scenarios/thr.hpp ../../transports/i_transport.hpp 
 
 local_lat_SOURCES = local_lat.cpp ../../transports/zmq.hpp \
-../../helpers/time.hpp ../../transports/i_transport.hpp \
+../../transports/i_transport.hpp \
 ../scenarios/lat.hpp
 
 remote_lat_SOURCES = remote_lat.cpp ../../transports/zmq.hpp \
