@@ -53,14 +53,24 @@ namespace zmq
         //  index 2 to value 4 etc.
         inline integer_t poll ()
         {
-            integer_t result = bits.izte (integer_t (1) << wait_signal, 0);
-            if (!result) {
-                sem.wait ();
-                result = bits.xchg (0);
-                assert (result);
+            integer_t result = 0;
+            while (!result) {
+                result = bits.izte (integer_t (1) << wait_signal, 0);
+                if (!result) {
+                    sem.wait ();
+                    result = bits.xchg (0);
+                }
+
+                //  If btsr was really atomic, result would never be 0 at this
+                //  point, i.e. no looping would be possible. This is the case
+                //  when mutexes are used instead of x86 atomic operations.
+                //  However, on x86 platform btsr is composed of two atomic
+                //  operations: bts and btr. If reader thread processes the
+                //  signals between bts and btr (this can happen because another
+                //  writing thread can unlock writer thread in the meantime)
+                //  the result may actually be 0. Thus looping can occur
+                //  sporadically.
             }
-            else
-                assert (result);
             return result;      
         }
 
