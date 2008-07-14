@@ -91,9 +91,9 @@ namespace zmq
         void flush ();
 
         //  Receive a message, if 'block' argument is true, it'll block till
-        //  message arrives. If it is false, it returns immediately. If no
-        //  message is available, the return value is false.
-        bool receive (message_t *msg_, bool block_ = true);
+        //  message arrives. It returns ID of the queue message was retrieved
+        //  from, 0 is no message was retrieved.
+        int receive (message_t *msg_, bool block_ = true);
 
     private:
 

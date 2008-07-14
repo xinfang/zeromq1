@@ -85,14 +85,14 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     queues.push_back (queues_t::value_type (queue_, mux_t ()));
 
     if (scope_ == scope_local)
-        return queues.size () - 1;
+        return queues.size ();
 
     //  Register the queue with the locator.
     locator->create_queue (queue_, this, this, scope_,
         address_, port_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
-    return queues.size () - 1;
+    return queues.size ();
 }
 
 bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
@@ -203,9 +203,10 @@ void zmq::api_thread_t::flush ()
         it->second.flush ();
 }
 
-bool zmq::api_thread_t::receive (message_t *msg_, bool block_)
+int zmq::api_thread_t::receive (message_t *msg_, bool block_)
 {
     bool retrieved = false;
+    int qid = 0;
 
     //  Remember the original current queue position. We'll use this value
     //  as a marker for identifying whether we've inspected all the queues.
@@ -225,7 +226,7 @@ bool zmq::api_thread_t::receive (message_t *msg_, bool block_)
                //  Get a message.
                retrieved = queues [current_queue].second.read (msg_);
                if (retrieved)
-                   msg_->set_queue_id (current_queue);
+                   qid = current_queue + 1;
 
                //  Move to the next queue.
                current_queue ++;
@@ -271,7 +272,7 @@ bool zmq::api_thread_t::receive (message_t *msg_, bool block_)
         ticks = 0;
     }
 
-    return retrieved;
+    return qid;
 }
 
 int zmq::api_thread_t::get_thread_id ()

@@ -114,11 +114,6 @@ namespace zmq
                 return vsm_size;
         }
 
-        inline void set_queue_id (int queue_id_)
-        {
-            //  TODO: implement it!
-        }
-
         //  TODO: copying the message
     };
 
