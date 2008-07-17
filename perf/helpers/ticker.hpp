@@ -38,8 +38,6 @@ namespace perf
         ticker_t (uint64_t tick_frequency) : first_tick (true), next (0)
         {
             interval = zmq::estimate_cpu_frequency () / tick_frequency;
-//            next = 0;
-//            first_tick = true;
         }
 
         //  Waits for the next tick. The ticks are "queued", meaning that
