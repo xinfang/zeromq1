@@ -1,4 +1,9 @@
-SUBDIRS = zmq perf examples
+if BUILD_PERF
+DIR_PERF = perf
+endif
+
+SUBDIRS = zmq $(DIR_PERF) examples
+DIST_SUBDIRS = zmq perf examples
 
 EXTRA_DIST = \
     ./perf/helpers/ticker.hpp \

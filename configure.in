@@ -51,6 +51,44 @@ AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
 AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
+# Optional stuff
+AC_ARG_WITH([perf], [AS_HELP_STRING([--with-perf], [builds performance tests [default=no]])], [], [with_perf=no])
+perf="no"
+if test "x$with_perf" != "xno"; then
+    perf="yes"
+fi
+
+camera="no"
+AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [builds camera example [default=no]])], [], [with_camera=no])
+if test "x$with_camera" != "xno"; then
+    AC_PROG_CC
+
+    PKG_CHECK_MODULES([SDL], [sdl]) 
+    AC_SUBST(SDL_LIBS)
+    AC_SUBST(SDL_CFLAGS)
+
+    PKG_CHECK_MODULES([UNICAP], [libunicap]) 
+    AC_SUBST(UNICAP_LIBS)
+    AC_SUBST(UNICAP_CFLAGS)
+
+    PKG_CHECK_MODULES([UCIL], [libucil]) 
+    AC_SUBST(UCIL_LIBS)
+    AC_SUBST(UCIL_CFLAGS)
+
+    camera="yes"
+fi
+
+
+AC_ARG_WITH([exchange], [AS_HELP_STRING([--with-exchange], [builds exchange example [default=no]])], [], [with_exchange=no])
+exchange="no"
+if test "x$with_exchange" != "xno"; then
+    exchange="yes"
+fi
+
+AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
+AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
+AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_CONST
@@ -82,4 +120,4 @@ AC_CHECK_FUNCS(perror gettimeofday memset socket)
 
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
-examples/exchange/Makefile perf/tests/tcp/Makefile)
+examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile)
