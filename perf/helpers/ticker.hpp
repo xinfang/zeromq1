@@ -35,10 +35,11 @@ namespace perf
 
         //  Initialise ticker. required frequency of ticks (in Hz)
         //  should be supplied.
-        ticker_t (uint64_t tick_frequency)
+        ticker_t (uint64_t tick_frequency) : first_tick (true), next (0)
         {
             interval = zmq::estimate_cpu_frequency () / tick_frequency;
-            next = zmq::now_ticks () + interval;
+//            next = 0;
+//            first_tick = true;
         }
 
         //  Waits for the next tick. The ticks are "queued", meaning that
@@ -46,11 +47,29 @@ namespace perf
         //  return immediately.
         void wait_for_tick ()
         {
-            while (zmq::now_ticks () < next);
-            next += interval;
+            if (first_tick) {
+                next = zmq::now_ticks () + interval;
+                first_tick = false;
+                return;
+            }
+
+            while (true) {
+                uint64_t ticks = zmq::now_ticks ();
+
+                assert (ticks < next + interval);
+
+                if (ticks >= next ) {
+                    next += interval;
+                    break;
+                }
+            }
+
         }
 
     public:
+
+        // first run
+        bool first_tick;
 
         //  Next time (in processor ticks) to issue an event on
         uint64_t next;

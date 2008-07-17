@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <limits>
 #include <pthread.h>
 
@@ -40,13 +39,6 @@ namespace perf
         zmq::time_instant_t start_time;
         zmq::time_instant_t stop_time;
     };
-
-    template <typename T> inline std::string to_string (const T &input_)
-    {
-        std::stringstream string_stream;
-        string_stream << input_;
-        return string_stream.str ();
-    }
 
     void *local_worker_function (void *worker_args_)
     {

@@ -23,6 +23,7 @@
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/thr.hpp"
+#include "../../helpers/functions.hpp"
 
 using namespace std;
 
