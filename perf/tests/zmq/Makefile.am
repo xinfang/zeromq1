@@ -31,11 +31,11 @@ remote_fi_SOURCES = remote_fi.cpp ../../transports/zmq.hpp \
 ../../transports/i_transport.hpp ../scenarios/fi.hpp
 
 local_thr_lat_SOURCES = local_thr_lat.cpp ../../transports/zmq.hpp \
-../../helpers/time.hpp ../../helpers/functions.hpp \
+../../../zmq/time.hpp ../../helpers/functions.hpp \
 ../../transports/i_transport.hpp ../scenarios/thr_lat.hpp
 
 remote_thr_lat_SOURCES = remote_thr_lat.cpp ../../transports/zmq.hpp \
-../../helpers/time.hpp ../../helpers/functions.hpp \
+../../../zmq/time.hpp ../../helpers/functions.hpp \
 ../../transports/i_transport.hpp ../scenarios/thr_lat.hpp
 
 local_thr_LDADD = $(top_builddir)/zmq/libzmq.la

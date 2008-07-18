@@ -9,7 +9,7 @@ receiver_LDADD = $(top_builddir)/zmq/libzmq.la
 receiver_LDFLAGS = @SDL_LIBS@
 receiver_CXXFLAGS = -Wall @SDL_CFLAGS@
 
-sender_SOURCES = sender.cpp
+sender_SOURCES = sender.cpp ./ucil.h
 sender_LDADD = $(top_builddir)/zmq/libzmq.la
 sender_LDFLAGS = @UNICAP_LIBS@ @UCIL_LIBS@
 sender_CXXFLAGS = -Wall @UNICAP_CFLAGS@ @UCIL_CFLAGS@
