@@ -62,6 +62,7 @@ camera="no"
 AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [builds camera example [default=no]])], [], [with_camera=no])
 if test "x$with_camera" != "xno"; then
     AC_PROG_CC
+    AM_PROG_CC_C_O
 
     PKG_CHECK_MODULES([SDL], [sdl]) 
     AC_SUBST(SDL_LIBS)
@@ -121,3 +122,21 @@ AC_CHECK_FUNCS(perror gettimeofday memset socket)
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
 examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile)
+
+AC_MSG_RESULT([])
+AC_MSG_RESULT([ ******************************************************** ])
+AC_MSG_RESULT([                         0MQ     ])
+AC_MSG_RESULT([ ******************************************************** ])
+AC_MSG_RESULT([  This software is distributed under the terms and ])
+AC_MSG_RESULT([  conditions of the GNU GENERAL PUBLIC LICENSE version 3. ])
+AC_MSG_RESULT([  See the file COPYING for the full license text. ])
+AC_MSG_RESULT([ ******************************************************** ])
+AC_MSG_RESULT([])
+AC_MSG_RESULT([ 0MQ install dir: $prefix])
+AC_MSG_RESULT([])
+AC_MSG_RESULT([ Addons:])
+AC_MSG_RESULT([   performance tests: $perf]) 
+AC_MSG_RESULT([   camera example: $camera])
+AC_MSG_RESULT([   stock exchange example: $exchange])
+AC_MSG_RESULT([])
+
