@@ -31,7 +31,7 @@ int main (int argc, char *argv [])
 
     if (argc != 6) { 
         cerr << "Usage: remote_thr <IP address of \'local\'> <\'local\' port> "
-            << "<message size> <message count> <number of threads>\n"; 
+            << "<message size> <roundtrip count> <number of threads>\n"; 
         return 1;
     }
  
@@ -47,7 +47,7 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    // Create transpotrs array
+    // Create transports array
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
     // Create as many transports as threads, each worker thread uses own transport 
@@ -56,7 +56,8 @@ int main (int argc, char *argv [])
     {
         transports [thread_nbr] = new perf::tcp_t (false, peer_ip, 
             peer_port + thread_nbr, false);
-        // give time to the peer to start to listen
+
+        // Give time to the peer to start to listen
         sleep (1);
     }
 

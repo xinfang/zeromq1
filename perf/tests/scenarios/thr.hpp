@@ -114,7 +114,8 @@ namespace perf
         return NULL;
     }
 
-    
+    // Function initializes parameter structure for each thread and starts
+    // local_worker_function(s) in separate thread(s).
     void local_thr (i_transport **transports_, size_t msg_size_, 
         int roundtrip_count_, int thread_count_)
     {
@@ -184,7 +185,7 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
  
-        //  Save the results
+        //  Save the results into tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
@@ -193,8 +194,8 @@ namespace perf
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
-        // thread count, roundtrip count, msg size, test time, \
-        // throughput [msg/s],throughput [B/s]
+        // thread count, roundtrip count, msg size, test time, 
+        //   throughput [msg/s],throughput [B/s]
         //
         outf << std::fixed << std::noshowpoint << thread_count_ << "," 
             << roundtrip_count_ << "," << msg_size_ << "," << test_time << "," 
@@ -204,6 +205,8 @@ namespace perf
 
     }
 
+    // Function initializes parameter structure for each thread and starts
+    // remote_worker_function(s) in separate thread(s).
     void remote_thr (i_transport **transports_, size_t msg_size_, 
         int roundtrip_count_, int thread_count_)
     {

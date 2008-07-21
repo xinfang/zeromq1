@@ -17,62 +17,110 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+
+    Message flow diagram
+
+          'local'                   'remote'
+      (started first)          (started second)
+             |
+             |                        
+             |                         |
+             | sync message (size 1B)  | 
+             |<------------------------|
+             |                         |
+             |      message (size)     |
+             |------------------------>|
+             |<------------------------|
+             |                         |
+             |      message (size)     |
+             |------------------------>|
+             |<------------------------|
+             |                         |
+             ...    message count
+             |                         |
+             | sync message (size 1B)  |
+             |------------------------>|
+      resuls gathering                 v
+        computations
+             |
+             v
+*/
+
 #ifndef __PERF_LAT_HPP_INCLUDED__
 #define __PERF_LAT_HPP_INCLUDED__
 
 #include <cstdio>
+#include <iostream>
 #include "../../transports/i_transport.hpp"
 #include "../../../zmq/time.hpp"
 
 namespace perf
 {
+    // Function sends roundtrip_count messages of msg_size and
+    // receives them back, one by one eg. send-receive, send-receive.
+    // Peer has to echo messages of the same size. Timestamp 
+    // at the beginign and the end of transport is captured and
+    // therefore transport latency can be calculated.
     void local_lat (i_transport *transport_, size_t msg_size_, 
         int roundtrip_count_)
     {
-        // wait for 'remote' side 1B sync message
+        // Wait for 'remote' side 1B sync message
         size_t size = transport_->receive ();
         assert (size == 1);
 
+        // Capture timestamp at the begining of the test
         zmq::time_instant_t start_time = zmq::now ();
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
-
+            // Send test message
             transport_->send (msg_size_);
+
+            // Receive echoed message
             size_t size = transport_->receive ();
 
             // check incomming message size
             assert (size == msg_size_);
         }
-
-        zmq::time_instant_t stop_time = zmq::now ();
         
-        printf ("Your average latency is %.2f us\n", 
-            (double)((stop_time - start_time) / 2000) / (double) roundtrip_count_);
+        // Capture the end timestamp of the test
+        zmq::time_instant_t stop_time = zmq::now ();
 
-        // send sync message
+        // Set 2 fixed decimal places
+        std::cout.setf(std::ios::fixed);
+        std::cout.precision (2);
+
+        // Calculate & print one way latency
+        double latency = (double)((stop_time - start_time) / 2000) / 
+            (double)roundtrip_count_;
+
+        std::cout <<  "Your average latency is " << latency << std::endl;
+
+        // Send sync message to the peer
         transport_->send (1);
-
     }
 
-
+    // Function recevies messages and sends the same size messages back.
+    // Receive-send (echo) procedure is performed roundtrip_count times.
     void remote_lat (i_transport *transport_, size_t msg_size_, 
         int roundtrip_count_)
     {
-//        printf ("remote_lat, msg_size %i, roundtrip_count %i\n", 
-//            (int)msg_size_, roundtrip_count_);
-
-        // send sync message to 'local'
+        // Send sync message to peer
         transport_->send (1);
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
         {
+            // Receive message 
             size_t size = transport_->receive ();
-            assert (size == msg_size_);
 
+            // Check incomming message size
+            assert (size == msg_size_);
+            
+            // Send it back
             transport_->send (size); 
         }
         
-        // wait for sync message
+        // Wait for sync message
         size_t size = transport_->receive ();
         assert (size == 1);
     }
