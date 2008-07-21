@@ -194,8 +194,8 @@ namespace perf
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
-        // thread count, roundtrip count, msg size, test time, 
-        //   throughput [msg/s],throughput [B/s]
+        // thread count, roundtrip count, msg size [B], test time [ms],
+        //   throughput [msg/s],throughput [b/s]
         //
         outf << std::fixed << std::noshowpoint << thread_count_ << "," 
             << roundtrip_count_ << "," << msg_size_ << "," << test_time << "," 

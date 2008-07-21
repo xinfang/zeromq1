@@ -50,8 +50,8 @@
 #ifndef __PERF_LAT_HPP_INCLUDED__
 #define __PERF_LAT_HPP_INCLUDED__
 
-#include <cstdio>
 #include <iostream>
+#include <fstream>
 #include "../../transports/i_transport.hpp"
 #include "../../../zmq/time.hpp"
 
@@ -90,11 +90,29 @@ namespace perf
         std::cout.setf(std::ios::fixed);
         std::cout.precision (2);
 
-        // Calculate & print one way latency
-        double latency = (double)((stop_time - start_time) / 2000) / 
-            (double)roundtrip_count_;
+        // Calculate & print results 
+        double test_time = (double)(stop_time - start_time);
+        double latency = (double)(test_time / 2000) / (double)roundtrip_count_;
 
-        std::cout <<  "Your average latency is " << latency << std::endl;
+        std::cout <<  "Your average latency is " << latency 
+            << " [us]" << std::endl;
+
+        //  Save the results into tests.dat file
+        std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
+        assert (outf.is_open ());
+        
+        outf.precision (2);
+
+        // Output file format, separate line for each run is appended 
+        // to the tests.dat file
+        //
+        // roundtrip count, msg size [B], test time [ms], latency [us]
+        //
+        outf << std::fixed << std::noshowpoint  
+            << roundtrip_count_ << "," << msg_size_ << "," 
+            << test_time /(double)1000000<< "," << latency << std::endl;
+        
+        outf.close ();
 
         // Send sync message to the peer
         transport_->send (1);

@@ -40,7 +40,7 @@ int main (int argc, char *argv [])
     size_t msg_size = atoi (argv [3]);
     int roundtrip_count = atoi (argv [4]);
 
-    cout << "message size: " << msg_size << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
     // Create tcp transport
