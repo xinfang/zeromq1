@@ -168,9 +168,6 @@ namespace perf
 
         std::cout.precision (2);
 
-        std::cout << std::fixed << std::noshowpoint <<  "test time: " 
-            << test_time << " [ms]\n";
-
         // Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
             (unsigned long) roundtrip_count_ * (unsigned long) thread_count_)/

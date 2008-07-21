@@ -60,7 +60,6 @@ if [ $2 = "local" ]; then
             if [ $1 = "zmq" ]; then
                 $LOCAL_THR_BIN $GL_IP $GL_PORT $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
             else
-                echo $LOCAL_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
                 $LOCAL_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
                 let REC_PORT=REC_PORT+THREADS
             fi
@@ -83,7 +82,6 @@ else
             if [ $1 = "zmq" ]; then
                 $REMOTE_THR_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $THREADS
             else
-                echo $REMOTE_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
                 $REMOTE_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS                
                 let REC_PORT=REC_PORT+THREADS
             fi

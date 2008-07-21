@@ -106,9 +106,9 @@ namespace perf
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
-        // roundtrip count, msg size [B], test time [ms], latency [us]
+        // 0, roundtrip count, msg size [B], test time [ms], latency [us]
         //
-        outf << std::fixed << std::noshowpoint  
+        outf << std::fixed << std::noshowpoint << "0,"
             << roundtrip_count_ << "," << msg_size_ << "," 
             << test_time /(double)1000000<< "," << latency << std::endl;
         

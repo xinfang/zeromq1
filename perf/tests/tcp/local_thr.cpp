@@ -31,7 +31,7 @@ int main (int argc, char *argv [])
     
     if (argc != 6) {
         cerr << "Usage: local_thr <listen IP> <listen port> <message size> "
-            <<  "<message count> <number of threads>\n";
+            <<  "<roundtrip count> <number of threads>\n";
         return 1;
     }
 
