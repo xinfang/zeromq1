@@ -34,7 +34,8 @@ int main (int argc, char *argv [])
             << "<message size> <message count> <number of threads>\n"; 
         return 1;
     }
-    
+ 
+    // Parse & print arguments
     const char *peer_ip = argv [1];
     unsigned short peer_port = atoi (argv [2]);
 
@@ -46,26 +47,29 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
+    // Create transpotrs array
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
+    // Create as many transports as threads, each worker thread uses own transport 
+    // listen port increases by 1
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
-
         transports [thread_nbr] = new perf::tcp_t (false, peer_ip, 
             peer_port + thread_nbr, false);
-        // give time to local to start to listen
+        // give time to the peer to start to listen
         sleep (1);
     }
 
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
     perf::remote_thr (transports, msg_size, roundtrip_count, thread_count);
-    
+   
+    // Cleanup
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
         delete transports [thread_nbr];
     }
     
     delete [] transports;
-
 
     return 0;
 }
