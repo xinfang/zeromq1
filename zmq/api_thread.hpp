@@ -24,6 +24,7 @@
 #include <string>
 #include <utility>
 
+#include "config.hpp"
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "msg.hpp"
@@ -108,8 +109,6 @@ namespace zmq
 
         void process_commands (ypollset_t::integer_t signals_);
         void process_engine_command (engine_command_t &command_);
-
-        enum {max_ticks = 100};
 
         int ticks;
         dispatcher_t *dispatcher;

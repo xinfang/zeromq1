@@ -57,7 +57,15 @@ namespace zmq
         max_vsm_size = 62,
 
         //  Maximal time (in microseconds) that a command can be delayed
-        max_command_delay = 1000
+        max_command_delay = 1000,
+
+        //  Determines how often does api_thread poll for new messages when it
+        //  still has unprocessed messages to handle. Thus, if it is set to 100,
+        //  api_thread will process 100 messages before doing the poll. If there
+        //  are no unprocessed messages available, poll is done immediately.
+        //  Decreasing the value trades overall latency for more real-time
+        //  behaviour (less latency peaks).
+        api_thread_poll_rate = 100
     };
 
 }

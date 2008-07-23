@@ -261,11 +261,11 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
         ticks = 0;
     }
 
-    //  Once every max_ticks messages check for signals and process incoming
-    //  commands. This happens only if we are not polling altogether because
-    //  there are messages available all the time. If poll occurs, ticks is
-    //  set to zero and thus we avoid this code.
-    if (++ ticks == max_ticks) {
+    //  Once every api_thread_poll_rate messages check for signals and process
+    //  incoming commands. This happens only if we are not polling altogether
+    //  because there are messages available all the time. If poll occurs,
+    //  ticks is set to zero and thus we avoid this code.
+    if (++ ticks == api_thread_poll_rate) {
         ypollset_t::integer_t signals = pollset.check ();
         if (signals)
             process_commands (signals);
