@@ -17,32 +17,42 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
 #include <cstdio>
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/lat.hpp"
 
-using namespace perf;
+using namespace std;
 
 int main (int argc, char *argv [])
 {
     if (argc != 7){
-        printf ("Usage: local <global_locator IP> <global_locator port> "
-        "<listen IP> <listen port> <message size> <roundtrip count>\n");
+        cerr << "Usage: local <global_locator IP> <global_locator port> "
+            << "<listen IP> <listen port> <message size> "
+            << "<roundtrip count>" << endl;
         return 1;
     }
 
-    printf ("estimating CPU frequency...\n");
-    uint64_t frq = zmq::estimate_cpu_frequency ();
-    printf ("your CPU frequncy is %.2f GHz\n", ((double) frq) / 1000000000);
+    // Parse & print command line arguments 
+    const char *g_locator_ip = argv [1];
+    unsigned short g_locator_port = atoi (argv [2]);
 
-    printf ("message size: %i\n", atoi (argv [5]));
-    printf ("roundtrip count: %i\n", atoi (argv [6]));
+    const char *listen_ip = argv [3];
+    unsigned short listen_port = atoi (argv [4]);
 
-    zmq_t transport (false, "QIN", "EOUT", argv [1], atoi (argv [2]), argv [3],
-        atoi (argv [4]));
+    size_t msg_size = atoi (argv [5]);
+    int roundtrip_count = atoi (argv [6]);
 
-    local_lat (&transport, atoi (argv [5]), atoi (argv [6]));
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
+
+    // Create zmq transport
+    perf::zmq_t transport (false, "QIN", "EOUT", g_locator_ip, g_locator_port,
+        listen_ip, listen_port);
+
+    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    local_lat (&transport, msg_size, roundtrip_count);
 
     return 0;
 }

@@ -45,7 +45,7 @@ remote_thr_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_thr_CXXFLAGS = -Wall -pedantic -Werror
 
 local_lat_LDADD = $(top_builddir)/zmq/libzmq.la
-local_lat_CXXFLAGS = -Wall -pedantic -Werror
+local_lat_CXXFLAGS = -Wall -pedantic -Werror -DPERF_FORCE_GETTIMEOFDAY
 
 remote_lat_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_lat_CXXFLAGS = -Wall -pedantic -Werror

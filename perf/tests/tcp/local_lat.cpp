@@ -33,18 +33,18 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print arguments
-    const char *peer_ip = argv [1];
-    unsigned short peer_port = atoi (argv [2]);
+    // Parse & print command line arguments
+    const char *listen_ip = argv [1];
+    unsigned short listen_port = atoi (argv [2]);
 
-    int msg_size = atoi (argv [3]);
+    size_t msg_size = atoi (argv [3]);
     int roundtrip_count = atoi (argv [4]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
     // Create tcp transport
-    perf::tcp_t transport (true, peer_ip, peer_port, false);
+    perf::tcp_t transport (true, listen_ip, listen_port, false);
 
     // Do the job, for more detailed info refer to ../scenarios/lat.hpp
     perf::local_lat (&transport, msg_size, roundtrip_count);

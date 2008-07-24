@@ -28,10 +28,9 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-
     if (argc != 6) { 
         cerr << "Usage: remote_thr <IP address of \'local\'> <\'local\' port> "
-            << "<message size> <roundtrip count> <number of threads>\n"; 
+            << "<message size> <message count> <number of threads>\n"; 
         return 1;
     }
  
@@ -41,13 +40,13 @@ int main (int argc, char *argv [])
 
     int thread_count = atoi (argv [5]);
     size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
+    int msg_count = atoi (argv [4]);
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "message count: " << msg_count << endl;
 
-    // Create transports array
+    // Create *transports array
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
     // Create as many transports as threads, each worker thread uses own transport 
@@ -62,7 +61,7 @@ int main (int argc, char *argv [])
     }
 
     // Do the job, for more detailed info refer to ../scenarios/thr.hpp
-    perf::remote_thr (transports, msg_size, roundtrip_count, thread_count);
+    perf::remote_thr (transports, msg_size, msg_count, thread_count);
    
     // Cleanup
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)

@@ -29,40 +29,53 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-
     if (argc != 6) { 
         cerr << "Usage: remote_thr <global_locator IP> <global_locator port> "
             << "<message size> <message count> <number of threads>\n"; 
         return 1;
     }
+
+    // Parse & print command line arguments
     const char *g_locator = argv [1];
     unsigned short g_locator_port = atoi (argv [2]);
 
     int thread_count = atoi (argv [5]);
     size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
+    int msg_count = atoi (argv [4]);
 
     cout << "threads: " << thread_count << endl;
-    cout << "message size: " << msg_size << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
 
+    // Create *transports array
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
+    // Create as many transports as threads, each worker thread uses own transport 
+    // names for queues and exchanges are Q0 and E0, Q1 and E1 ...
+    // listen port increased by 2
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
+        // Create queue name Q0, Q1, ...
         string queue_name ("Q");
         queue_name += perf::to_string (thread_nbr);
 
+        // Create exchange name E0, E1, ...
         string exchange_name ("E");
         exchange_name += perf::to_string (thread_nbr);
 
+        // Create zmq transport with bind = true. It means that local exchange 
+        // will be created and binded to the global queue QX and created local queue 
+        // will be binded to global exchange EX. Global queue and exchange have to 
+        // be created before (by the local_thr).
         transports [thread_nbr] = new perf::zmq_t (true, queue_name.c_str (), 
             exchange_name.c_str (), g_locator,g_locator_port, 
             NULL, 0);
     }
 
-    perf::remote_thr (transports, msg_size, roundtrip_count, thread_count);
-    
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    perf::remote_thr (transports, msg_size, msg_count, thread_count);
+   
+    // Cleanup
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
         delete transports [thread_nbr];

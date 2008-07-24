@@ -30,10 +30,10 @@ int main (int argc, char *argv [])
     if (argc != 5) {
         cerr << "Usage: remote <IP address of \'local\'> <\'local\' port> "
             << "<message size> <roundtrip count>" << endl;
-        exit (0);
+        return 1;
     }
     
-    // Parse & print arguments
+    // Parse & print command line arguments
     const char *peer_ip = argv [1];
     unsigned short peer_port = atoi (argv [2]);
 

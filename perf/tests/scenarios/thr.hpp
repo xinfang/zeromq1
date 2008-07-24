@@ -61,7 +61,7 @@ namespace perf
         // Size of the message being transported in the test
         size_t msg_size;
         // Number of the messages in the test
-        int roundtrip_count;
+        int msg_count;
 
         // Timestamps captured by the worker thread at the beggining & end 
         // of the test
@@ -75,7 +75,7 @@ namespace perf
         thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
 
         // Receive msg_nbr messages of msg_size
-        for (int msg_nbr = 0; msg_nbr < args->roundtrip_count; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < args->msg_count; msg_nbr++)
         {
             size_t size = args->transport->receive ();
 
@@ -102,7 +102,7 @@ namespace perf
         perf::thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
 
         // Send msg_nbr messages of msg_size
-        for (int msg_nbr = 0; msg_nbr < args->roundtrip_count; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < args->msg_count; msg_nbr++)
         {
             args->transport->send (args->msg_size);
         }
@@ -117,7 +117,7 @@ namespace perf
     // Function initializes parameter structure for each thread and starts
     // local_worker_function(s) in separate thread(s).
     void local_thr (i_transport **transports_, size_t msg_size_, 
-        int roundtrip_count_, int thread_count_)
+        int msg_count_, int thread_count_)
     {
         pthread_t *workers = new pthread_t [thread_count_];
 
@@ -130,7 +130,7 @@ namespace perf
             // by worker thread at the begining & end of the test
             workers_args [thread_nbr].transport = transports_ [thread_nbr];
             workers_args [thread_nbr].msg_size = msg_size_;
-            workers_args [thread_nbr].roundtrip_count = roundtrip_count_;
+            workers_args [thread_nbr].msg_count = msg_count_;
             workers_args [thread_nbr].start_time = 0;
             workers_args [thread_nbr].stop_time = 0;
             
@@ -170,7 +170,7 @@ namespace perf
 
         // Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) roundtrip_count_ * (unsigned long) thread_count_)/
+            (unsigned long) msg_count_ * (unsigned long) thread_count_)/
             (unsigned long)(max_stop_time - min_start_time);
 
         // Throughput [B/s]
@@ -191,11 +191,11 @@ namespace perf
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
-        // thread count, roundtrip count, msg size [B], test time [ms],
+        // thread count, message count, msg size [B], test time [ms],
         //   throughput [msg/s],throughput [b/s]
         //
         outf << std::fixed << std::noshowpoint << thread_count_ << "," 
-            << roundtrip_count_ << "," << msg_size_ << "," << test_time << "," 
+            << msg_count_ << "," << msg_size_ << "," << test_time << "," 
             << msg_thput << "," << tcp_thput << std::endl;
         
         outf.close ();
@@ -205,7 +205,7 @@ namespace perf
     // Function initializes parameter structure for each thread and starts
     // remote_worker_function(s) in separate thread(s).
     void remote_thr (i_transport **transports_, size_t msg_size_, 
-        int roundtrip_count_, int thread_count_)
+        int msg_count_, int thread_count_)
     {
         pthread_t *workers = new pthread_t [thread_count_];
 
@@ -218,7 +218,7 @@ namespace perf
             // Fill structures
             workers_args [thread_nbr].transport = transports_ [thread_nbr];
             workers_args [thread_nbr].msg_size = msg_size_;
-            workers_args [thread_nbr].roundtrip_count = roundtrip_count_;
+            workers_args [thread_nbr].msg_count = msg_count_;
             workers_args [thread_nbr].start_time = 0;
             workers_args [thread_nbr].stop_time = 0;
          

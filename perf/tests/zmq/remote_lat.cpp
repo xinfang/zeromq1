@@ -18,23 +18,38 @@
 */
 
 #include <cstdio>
+#include <iostream>
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/lat.hpp"
+
+using namespace std;
 
 int main (int argc, char *argv [])
 {
 
     if (argc != 5) {
-        printf ("Usage: remote <global_locator IP> <global_locator port> "
-            "<message size> <roundtrip count>\n");
+        cerr << "Usage: remote <global_locator IP> <global_locator port> "
+            << "<message size> <roundtrip count>" << endl;
         return 1;
     }
 
-    perf::zmq_t transport (true, "QIN", "EOUT", argv [1], atoi (argv [2]),
+    // Parse & print command line arguments
+    const char *g_locator_ip = argv [1];
+    unsigned short g_locator_port = atoi (argv [2]);
+
+    size_t msg_size = atoi (argv [3]);
+    int roundtrip_count = atoi (argv [4]);
+
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
+
+    // Create zmq transport
+    perf::zmq_t transport (true, "QIN", "EOUT", g_locator_ip, g_locator_port,
         NULL, 0);
 
-    perf::remote_lat (&transport, atoi (argv [3]), atoi (argv [4])); 
+    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    perf::remote_lat (&transport, msg_size, roundtrip_count); 
 
     return 0;
 }
