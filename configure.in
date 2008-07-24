@@ -61,8 +61,8 @@ fi
 camera="no"
 AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [builds camera example [default=no]])], [], [with_camera=no])
 if test "x$with_camera" != "xno"; then
-    AC_PROG_CC
-    AM_PROG_CC_C_O
+#    AC_PROG_CC
+#    AM_PROG_CC_C_O
 
     PKG_CHECK_MODULES([SDL], [sdl]) 
     AC_SUBST(SDL_LIBS)

@@ -34,8 +34,8 @@
 
 int main (int argc, char *argv [])
 {
-    SDL_Surface *screen;
-    SDL_Surface *rgb_surface;
+    SDL_Surface *screen = NULL;
+    SDL_Surface *rgb_surface = NULL;
     int image_width, image_height;
 
     int quit = 0;

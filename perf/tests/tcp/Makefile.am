@@ -6,9 +6,9 @@ local_thr_SOURCES = local_thr.cpp ../../transports/tcp.hpp \
 remote_thr_SOURCES = remote_thr.cpp ../../transports/tcp.hpp \
 ../../transports/i_transport.hpp ../scenarios/thr.hpp 
 
-local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
+local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY -Werror
 
-remote_thr_CXXFLAGS = -Wall -pedantic
+remote_thr_CXXFLAGS = -Wall -pedantic -Werror
 
 local_lat_SOURCES = local_lat.cpp ../../transports/tcp.hpp  \
 ../../transports/i_transport.hpp ../scenarios/lat.hpp
@@ -16,7 +16,7 @@ local_lat_SOURCES = local_lat.cpp ../../transports/tcp.hpp  \
 remote_lat_SOURCES = remote_lat.cpp ../../transports/tcp.hpp \
 ../../transports/i_transport.hpp ../scenarios/lat.hpp
 
-local_lat_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
+local_lat_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY -Werror
 
-remote_lat_CXXFLAGS = -Wall -pedantic
+remote_lat_CXXFLAGS = -Wall -pedantic -Werror
 

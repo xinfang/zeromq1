@@ -82,10 +82,11 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_listener.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
-libzmq_la_CXXFLAGS = -Wall -pedantic
+libzmq_la_CXXFLAGS = -Wall -pedantic -Werror
 
 bin_PROGRAMS = global_locator
 global_locator_SOURCES = global_locator.cpp stdint.hpp err.hpp
+global_locator_CXXFLAGS = -Wall -pedantic -Werror
 
 dist-hook:
 		-rm $(distdir)/stdint.hpp

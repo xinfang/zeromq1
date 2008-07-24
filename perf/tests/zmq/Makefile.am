@@ -39,32 +39,32 @@ remote_thr_lat_SOURCES = remote_thr_lat.cpp ../../transports/zmq.hpp \
 ../../transports/i_transport.hpp ../scenarios/thr_lat.hpp
 
 local_thr_LDADD = $(top_builddir)/zmq/libzmq.la
-local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
+local_thr_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY -Werror
 
 remote_thr_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_thr_CXXFLAGS = -Wall -pedantic
+remote_thr_CXXFLAGS = -Wall -pedantic -Werror
 
 local_lat_LDADD = $(top_builddir)/zmq/libzmq.la
-local_lat_CXXFLAGS = -Wall -pedantic
+local_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 remote_lat_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_lat_CXXFLAGS = -Wall -pedantic
+remote_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 local_fo_LDADD = $(top_builddir)/zmq/libzmq.la
-local_fo_CXXFLAGS = -Wall -pedantic
+local_fo_CXXFLAGS = -Wall -pedantic -Werror
 
 remote_fo_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_fo_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
+remote_fo_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY -Werror
 
 local_fi_LDADD = $(top_builddir)/zmq/libzmq.la
-local_fi_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY
+local_fi_CXXFLAGS = -Wall -pedantic -DPERF_FORCE_GETTIMEOFDAY -Werror
 
 remote_fi_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_fi_CXXFLAGS = -Wall -pedantic
+remote_fi_CXXFLAGS = -Wall -pedantic -Werror
 
 local_thr_lat_LDADD = $(top_builddir)/zmq/libzmq.la
-local_thr_lat_CXXFLAGS = -Wall -pedantic
+local_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 remote_thr_lat_LDADD = $(top_builddir)/zmq/libzmq.la
-remote_thr_lat_CXXFLAGS = -Wall -pedantic
+remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 

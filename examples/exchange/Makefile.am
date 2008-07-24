@@ -18,10 +18,10 @@ stat_SOURCES = stat.cpp ../../zmq/dispatcher.hpp \
 ../../zmq/msg.hpp messages.hpp common.hpp 
 
 gtw_LDADD = $(top_builddir)/zmq/libzmq.la
-gtw_CXXFLAGS = -Wall -pedantic
+gtw_CXXFLAGS = -Wall -pedantic -Werror
 
 me_LDADD = $(top_builddir)/zmq/libzmq.la
-me_CXXFLAGS = -Wall -pedantic
+me_CXXFLAGS = -Wall -pedantic -Werror
 
 stat_LDADD = $(top_builddir)/zmq/libzmq.la
-stat_CXXFLAGS = -Wall -pedantic
+stat_CXXFLAGS = -Wall -pedantic -Werror

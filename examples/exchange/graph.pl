@@ -81,7 +81,7 @@ sub draw_graph {
         -dots        => 1,
         -look        => 20, 
         -wire        => "#2c5c1d",
-        -max	     => 1000000,
+        -max	     => 3000000,
         -ytick       => 10,
         -xtick       => 20,
         -config      => { 
@@ -112,7 +112,7 @@ sub draw_graph {
         -dots        => 1,
         -look        => 20, 
         -wire        => "#2c5c1d",
-        -max	     => 10000,
+        -max	     => 5000,
         -ytick       => 10,
         -xtick       => 20,
         -config      => { 
