@@ -74,7 +74,7 @@ namespace zmq
         msg->size = size_;
         msg->ffn = NULL;
         msg->shared = false;
-        msg->refcount.unsafe_set (1);
+        msg->refcount.set (1);
         return msg;
     }
 
@@ -92,7 +92,7 @@ namespace zmq
         msg->size = size_;
         msg->ffn = ffn_;
         msg->shared = false;
-        msg->refcount.unsafe_set (1);
+        msg->refcount.set (1);
         return msg;
     }
 
@@ -113,7 +113,7 @@ namespace zmq
     //  in the future.
     inline msg_t *msg_unsafe_copy (msg_t *msg_)
     {
-        msg_->refcount.safe_add (1);
+        msg_->refcount.add (1);
         return msg_;
     }
 
@@ -122,7 +122,7 @@ namespace zmq
     //  in the future.
     inline msg_t *msg_safe_copy (msg_t *msg_)
     {
-        msg_->refcount.safe_add (1);
+        msg_->refcount.add (1);
         msg_->shared = true;
         return msg_;
     }
@@ -133,8 +133,8 @@ namespace zmq
         if (!msg_)
             return;
 
-        if (!(msg_->shared ? msg_->refcount.safe_sub (1) :
-              msg_->refcount.unsafe_sub (1))) {
+        if (!(msg_->shared ? msg_->refcount.sub (1) :
+              msg_->refcount.sub (1))) {
             if (msg_->ffn)
                 msg_->ffn (msg_->data);
             free (msg_);

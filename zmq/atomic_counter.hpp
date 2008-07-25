@@ -28,6 +28,9 @@
 namespace zmq
 {
 
+    //  This class represents an integer that can be incremented/decremented
+    //  in atomic fashion.
+
     class atomic_counter_t
     {
     public:
@@ -53,20 +56,15 @@ namespace zmq
 #endif
         }
 
-        //  Set counter value (not thread-safe)
-        inline void unsafe_set (integer_t value_)
+        //  Set counter value (not thread-safe).
+        inline void set (integer_t value_)
         {
             value = value_;
         }
 
-        //  Non-atomic addition
-        inline void unsafe_add (integer_t increment)
-        {
-            value += increment;
-        }
-
-        //  Atomic addition
-        inline void safe_add (integer_t increment)
+        //  Atomic addition. Returns false if counter was zero
+        //  before the operation.
+        inline bool add (integer_t increment)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
@@ -75,24 +73,20 @@ namespace zmq
                 : "=r" (increment), "=m" (*val)
                 : "0" (increment), "m" (*val)
                 : "memory", "cc");
+            return increment;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
+            bool result = value;
             value += increment;
             rc = pthread_mutex_unlock (&mutex);
             errno_assert (rc == 0);
+            return result;
 #endif
         }
 
-        //  Non-atomic subtraction. Returns false if the counter drops to zero.
-        inline bool unsafe_sub (integer_t decrement)
-        {
-            value -= decrement;
-            return value;
-        }
-
         //  Atomic subtraction. Returns false if the counter drops to zero.
-        inline bool safe_sub (integer_t decrement)
+        inline bool sub (integer_t decrement)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
