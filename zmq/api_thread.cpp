@@ -166,7 +166,7 @@ bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     return true;
 }
 
-void zmq::api_thread_t::send (int exchange_id_, message_t *msg_)
+void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
 {
     //  If max_command_delay microseconds already elapsed since last
     //  command processing, check the signals and process the commands.
@@ -184,7 +184,7 @@ void zmq::api_thread_t::send (int exchange_id_, message_t *msg_)
     exchanges [exchange_id_].second.flush ();
 }
 
-void zmq::api_thread_t::presend (int exchange_id_, message_t *msg_)
+void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_)
 {
     //  Pass the message to the demux.
     exchanges [exchange_id_].second.write (msg_);

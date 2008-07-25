@@ -82,7 +82,7 @@ namespace perf
             assert (thread_id_ < thread_count);
 
             zmq::message_t message (size_);
-            api->send (exchange_id, &message);
+            api->send (exchange_id, message);
         }
 
         inline virtual size_t receive (unsigned int thread_id_ = 0)

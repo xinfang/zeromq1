@@ -83,7 +83,7 @@ public:
 	if (!trades_sent) {
             zmq::message_t msg;
 	    make_order_confirmation (order_id_, &msg);
-	    api->presend (te_id, &msg);
+	    api->presend (te_id, msg);
 	    out_meter.event (this);
 	}
 
@@ -122,7 +122,7 @@ public:
         //  Send trade back to the gateway
         zmq::message_t msg;
         make_trade (order_id_, price_, volume_, &msg);
-        api->presend (te_id, &msg);
+        api->presend (te_id, msg);
 	out_meter.event (this);
     }
 
@@ -131,7 +131,7 @@ public:
         //  Send quote back to the gateway
         zmq::message_t msg;
         make_quote (ask_, bid_, &msg);
-        api->presend (te_id, &msg);
+        api->presend (te_id, msg);
 	out_meter.event (this);
     }
 
@@ -140,7 +140,7 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
-        api->presend (se_id, &msg);
+        api->presend (se_id, msg);
     }
 
 private:

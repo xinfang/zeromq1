@@ -185,7 +185,7 @@ int main (int argc, char *argv [])
         memcpy (data, dest_buffer.data, dest_format.buffer_size);
 
         //  Send message 
-        api->send (e_id, &msg);
+        api->send (e_id, msg);
     }
     
     return 0;

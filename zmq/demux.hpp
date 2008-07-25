@@ -41,7 +41,7 @@ namespace zmq
         void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush)
-        void write (message_t *msg_);
+        void write (message_t &msg_);
 
         //  Flush the messages
         void flush ();

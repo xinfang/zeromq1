@@ -148,7 +148,7 @@ void zmq::amqp09_decoder_t::content_body_frame_end_ready ()
     assert (tmpbuf [0] == i_amqp09::frame_end);
 
     if (msg_data_off == message.size ()) {
-        demux->write (&message);
+        demux->write (message);
         next_step (tmpbuf, 7, &amqp09_decoder_t::method_frame_header_ready);
     }
     else

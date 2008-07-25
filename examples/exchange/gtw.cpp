@@ -74,13 +74,13 @@ public:
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
                 make_timestamp (5, order_id, zmq::now () / 1000, &msg);
-                api->send (se_id, &msg);
+                api->send (se_id, msg);
             }
 
             //  Send the order to the matching engine
             zmq::message_t msg;
             make_order (order_id, type, price, volume, &msg);
-            api->send (oe_id, &msg);
+            api->send (oe_id, msg);
             meter.event (this);
         }
     }
@@ -100,7 +100,7 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
-        api->send (se_id, &msg);
+        api->send (se_id, msg);
     }
 
 private:
@@ -165,7 +165,7 @@ public:
         if (order_id_ % 500000 == 0 && order_id_ > last_timestamp) {
             zmq::message_t msg;
             make_timestamp (6, order_id_, zmq::now () / 1000, &msg);
-            api->send (se_id, &msg);
+            api->send (se_id, msg);
             last_timestamp = order_id_;
         }
     }
@@ -199,7 +199,7 @@ public:
         //  Send the throughput figure to the stat component
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
-        api->send (se_id, &msg);
+        api->send (se_id, msg);
     }
 
 private:

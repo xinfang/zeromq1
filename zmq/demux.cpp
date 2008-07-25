@@ -32,14 +32,14 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
     pipes.push_back (pipe_);
 }
 
-void zmq::demux_t::write (message_t *msg_)
+void zmq::demux_t::write (message_t &msg_)
 {
     //  Optimisation for the case where's there only a single pipe
     //  to send the message to - no refcount adjustment (i.e. atomic
     //  operations) needed.
     if (pipes.size () == 1) {
-        (*pipes.begin ())->write ((raw_message_t*) msg_);
-        msg_->detach ();
+        (*pipes.begin ())->write ((raw_message_t*) &msg_);
+        msg_.detach ();
         return;
     }
 
@@ -47,7 +47,7 @@ void zmq::demux_t::write (message_t *msg_)
     //        and copies to the remaining pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
         message_t message;
-        msg_->safe_copy (&message);
+        msg_.safe_copy (&message);
         (*it)->write ((raw_message_t*) &message);
         message.detach ();
     }
