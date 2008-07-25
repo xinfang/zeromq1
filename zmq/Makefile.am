@@ -21,7 +21,6 @@ pkginclude_HEADERS = \
     encoder.hpp \
     platform.hpp \
     stdint.hpp \
-    free_fn.hpp \
     bp_engine.hpp \
     i_pollable.hpp \
     amqp09_encoder.hpp \
@@ -35,7 +34,6 @@ pkginclude_HEADERS = \
     command.hpp \
     mux.hpp \
     demux.hpp \
-    msg.hpp \
     i_context.hpp \
     pipe.hpp \
     bp_listener.hpp \

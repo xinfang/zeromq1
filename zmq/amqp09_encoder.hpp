@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "msg.hpp"
+#include "message.hpp"
 #include "encoder.hpp"
 #include "mux.hpp"
 #include "amqp09_marshaller.hpp"

@@ -20,7 +20,7 @@
 #ifndef __EXCHANGE_MESSAGES_HPP_INCLUDED__
 #define __EXCHANGE_MESSAGES_HPP_INCLUDED__
 
-#include "../../zmq/msg.hpp"
+#include "../../zmq/message.hpp"
 #include "../../zmq/wire.hpp"
 
 #include "common.hpp"

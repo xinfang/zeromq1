@@ -20,7 +20,7 @@
 #ifndef __ZMQ_AMQP09_DECODER_HPP_INCLUDED__
 #define __ZMQ_AMQP09_DECODER_HPP_INCLUDED__
 
-#include "msg.hpp"
+#include "message.hpp"
 #include "decoder.hpp"
 #include "demux.hpp"
 #include "amqp09_unmarshaller.hpp"

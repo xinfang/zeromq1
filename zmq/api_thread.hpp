@@ -27,7 +27,7 @@
 #include "config.hpp"
 #include "i_context.hpp"
 #include "i_engine.hpp"
-#include "msg.hpp"
+#include "message.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
