@@ -112,6 +112,7 @@ int main (int argc, char *argv [])
                SDL_Quit ();
                exit (1);
             }
+            SDL_WM_SetCaption (argv[3], argv[3]);
 
             sdl_initialised = true;
         }
