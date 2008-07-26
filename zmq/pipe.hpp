@@ -46,7 +46,7 @@ namespace zmq
         inline void write_delimiter ()
         {
             raw_message_t delimiter;
-            delimiter.msg = (msg_t*) raw_message_t::delimiter_tag;
+            delimiter.msg = (message_content_t*) raw_message_t::delimiter_tag;
             pipe.write (delimiter);
             flush ();
         }

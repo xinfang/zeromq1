@@ -25,20 +25,24 @@
 namespace zmq
 {
 
+    //  0MQ message. Don't change the body of the message once you've
+    //  copied it - the behaviour would be undefined. Don't change the body
+    //  of the message received.
+
     class message_t : private raw_message_t
     {
     public:
 
         inline message_t ()
         {
-            msg = (msg_t*) raw_message_t::vsm_tag;
+            msg = (message_content_t*) raw_message_t::vsm_tag;
             vsm_size = 0;
         }
 
         inline message_t (size_t size_)
         {
             if (size_ <= max_vsm_size) {
-                msg = (msg_t*) raw_message_t::vsm_tag;
+                msg = (message_content_t*) raw_message_t::vsm_tag;
                 vsm_size = size_;
             }
             else
@@ -57,8 +61,8 @@ namespace zmq
 
         inline void destroy ()
         {
-            if (msg != (msg_t*) raw_message_t::delimiter_tag &&
-                  msg != (msg_t*) raw_message_t::vsm_tag) {
+            if (msg != (message_content_t*) raw_message_t::delimiter_tag &&
+                  msg != (message_content_t*) raw_message_t::vsm_tag) {
                 msg_dealloc (msg);
                 msg = NULL;
             }
@@ -66,7 +70,7 @@ namespace zmq
 
         inline void detach ()
         {
-            msg = (msg_t*) raw_message_t::vsm_tag;
+            msg = (message_content_t*) raw_message_t::vsm_tag;
             vsm_size = 0;
         }
 
@@ -74,12 +78,12 @@ namespace zmq
         //  new message body.
         inline void rebuild (size_t size_)
         {
-            if (msg != (msg_t*) raw_message_t::delimiter_tag &&
-                  msg != (msg_t*) raw_message_t::vsm_tag)
+            if (msg != (message_content_t*) raw_message_t::delimiter_tag &&
+                  msg != (message_content_t*) raw_message_t::vsm_tag)
                 msg_dealloc (msg);
 
             if (size_ <= max_vsm_size) {
-                msg = (msg_t*) raw_message_t::vsm_tag;
+                msg = (message_content_t*) raw_message_t::vsm_tag;
                 vsm_size = size_;
             }
             else
@@ -114,7 +118,11 @@ namespace zmq
                 return vsm_size;
         }
 
-        //  TODO: copying the message
+    private:
+
+        //  Disable implicit message copying, so that users won't use shared
+        //  messages (less efficient) without being aware of the fact.
+        message_t (const message_t&);
     };
 
 }

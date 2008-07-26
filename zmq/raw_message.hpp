@@ -33,30 +33,13 @@ namespace zmq
     //  It is deliberately defined in the way to comply with standard C free.
     typedef void (free_fn) (void *data_);
 
-    //  Set of functions for smart allocation/deallocation of messages.
-    //  The interface is a little more complex than needed - this is done
-    //  so that we can experiment with more sophisticated allocation
-    //  mechanisms later on (e.g. separate refcount per thread, actual
-    //  copying of small messages etc.)
-    //
-    //  The idea is that message is created filled-in and copied in a single
-    //  thread, then passed to different threads. Therefore, you shouldn't
-    //  change the body of the message once you've copied it - the behaviour
-    //  would be undefined. Also, you shouldn't copy the message in different
-    //  threads than the one that created it.
-    //
-    //  This particular implementation uses reference counting rather than
-    //  actual copying to copy the message. As an optimisation, if message
-    //  is copied only in usafe manner (to be used in a single thread) the
-    //  manipulation of the reference count is done in non-atomic manner.
-    //  Increasing the reference count is done in non-atomic *always* given
-    //  that is done before the message is passed to any other thread.
-    //
-    //  Note that message allocated is represented by opaque handle (void*).
-    //  NULL can be used to represent 'no message'. The actual buffer of the
-    //  message can be retrieved using msg_data function.
 
-    struct msg_t
+    //  Shared message buffer. Message data are either allocated in one block
+    //  with this structure - thus avoiding one malloc/free pair - or they are
+    //  stored in used-supplied memory. In the latter case, ffn member stores
+    //  pointer to the function to be used to deallocate the data.
+
+    struct message_content_t
     {
         void *data;
         size_t size;
@@ -65,10 +48,28 @@ namespace zmq
         atomic_counter_t refcount;
     };
 
-    //  Allocates a message of the specified size.
-    inline msg_t *msg_alloc (size_t size_)
+    //  POD version of 0MQ message. The point is to avoid any implicit
+    //  construction/destruction/copying of the structure.
+    //  From user's point of view raw message is wrapped in message_t
+    //  class which makes its usage more convenient.
+
+    struct raw_message_t
     {
-        msg_t *msg = (msg_t*) malloc (sizeof (msg_t) + size_);
+        enum {
+            delimiter_tag = 0,
+            vsm_tag = 1
+        };
+
+        message_content_t *msg;
+        uint16_t vsm_size;
+        unsigned char vsm_data [max_vsm_size];
+    };
+
+    //  Allocates a message of the specified size.
+    inline message_content_t *msg_alloc (size_t size_)
+    {
+        message_content_t *msg =
+            (message_content_t*) malloc (sizeof (message_content_t) + size_);
         assert (msg);
         msg->data = (void*) (msg + 1);
         msg->size = size_;
@@ -84,9 +85,11 @@ namespace zmq
     //  data in case you are dealing with legacy code and cannot se msg_alloc.
     //  In other cases, however, msg_alloc should be prefered as it is more
     //  efficient when compared to msg_attach.
-    inline msg_t *msg_attach (void *data_, size_t size_, free_fn *ffn_)
+    inline message_content_t *msg_attach (void *data_, size_t size_,
+        free_fn *ffn_)
     {
-        msg_t *msg = (msg_t*) malloc (sizeof (msg_t));
+        message_content_t *msg =
+            (message_content_t*) malloc (sizeof (message_content_t));
         assert (msg);
         msg->data = data_;
         msg->size = size_;
@@ -97,13 +100,13 @@ namespace zmq
     }
 
     //  Returns pointer to the message body
-    inline void *msg_data (msg_t *msg_)
+    inline void *msg_data (message_content_t *msg_)
     {
         return msg_->data;
     }
 
     //  Returns message body size
-    inline size_t msg_size (msg_t *msg_)
+    inline size_t msg_size (message_content_t *msg_)
     {
         return msg_->size;
     }
@@ -111,7 +114,7 @@ namespace zmq
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline msg_t *msg_unsafe_copy (msg_t *msg_)
+    inline message_content_t *msg_unsafe_copy (message_content_t *msg_)
     {
         msg_->refcount.add (1);
         return msg_;
@@ -120,7 +123,7 @@ namespace zmq
     //  Don't rely on the function returning same pointer that was passed as
     //  an argument. This is implementation-specific and may change
     //  in the future.
-    inline msg_t *msg_safe_copy (msg_t *msg_)
+    inline message_content_t *msg_safe_copy (message_content_t *msg_)
     {
         msg_->refcount.add (1);
         msg_->shared = true;
@@ -128,7 +131,7 @@ namespace zmq
     }
 
     //  Releases the particular copy of the message.
-    inline void msg_dealloc (msg_t *msg_)
+    inline void msg_dealloc (message_content_t *msg_)
     {
         if (!msg_)
             return;
@@ -140,23 +143,6 @@ namespace zmq
             free (msg_);
         }
     }
-
-    //  POD version of message. The point is to avoid any implicit
-    //  construction/destruction/copying of the structure in the ypipe.
-    //  From user's point of view raw message is wrapped in message_t
-    //  class which makes its usage more convenient.
-
-    struct raw_message_t
-    {
-        enum {
-            delimiter_tag = 0,
-            vsm_tag = 1
-        };
-
-        msg_t *msg;
-        uint16_t vsm_size;
-        unsigned char vsm_data [max_vsm_size];
-    };
 
 }
 
