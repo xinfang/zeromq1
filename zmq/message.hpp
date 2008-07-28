@@ -35,42 +35,34 @@ namespace zmq
 
         inline message_t ()
         {
-            msg = (message_content_t*) raw_message_t::vsm_tag;
+            content = (message_content_t*) raw_message_t::vsm_tag;
             vsm_size = 0;
         }
 
         inline message_t (size_t size_)
         {
-            if (size_ <= max_vsm_size) {
-                msg = (message_content_t*) raw_message_t::vsm_tag;
-                vsm_size = size_;
-            }
-            else
-                msg = msg_alloc (size_);
+            raw_message_init (this, size_);
         }
 
         inline message_t (void *data_, size_t size_, free_fn *ffn_)
         {
-            msg = msg_attach (data_, size_, ffn_);
+            raw_message_init (this, data_, size_, ffn_);
         }
 
         inline ~message_t ()
         {
-            destroy ();
+            raw_message_destroy (this);
         }
 
         inline void destroy ()
         {
-            if (msg != (message_content_t*) raw_message_t::delimiter_tag &&
-                  msg != (message_content_t*) raw_message_t::vsm_tag) {
-                msg_dealloc (msg);
-                msg = NULL;
-            }
+            raw_message_destroy (this);
+            raw_message_init_delimiter (this);
         }
 
         inline void detach ()
         {
-            msg = (message_content_t*) raw_message_t::vsm_tag;
+            content = (message_content_t*) raw_message_t::vsm_tag;
             vsm_size = 0;
         }
 
@@ -78,44 +70,18 @@ namespace zmq
         //  new message body.
         inline void rebuild (size_t size_)
         {
-            if (msg != (message_content_t*) raw_message_t::delimiter_tag &&
-                  msg != (message_content_t*) raw_message_t::vsm_tag)
-                msg_dealloc (msg);
-
-            if (size_ <= max_vsm_size) {
-                msg = (message_content_t*) raw_message_t::vsm_tag;
-                vsm_size = size_;
-            }
-            else
-                msg = msg_alloc (size_);            
-        }
-
-        void safe_copy (message_t *message_)
-        {
-            //  VSM are physically copied
-            if (msg == (void*) raw_message_t::vsm_tag) {
-                *message_ = *this;
-                return;
-            }
-
-            //  Large messages are reference counted
-            message_->msg = msg_safe_copy (msg);
+            raw_message_destroy (this);
+            raw_message_init (this, size_);            
         }
 
         inline void *data ()
         {
-            if (msg != (void*) raw_message_t::vsm_tag)
-                return msg_data (msg);
-            else
-                return vsm_data;
+            return raw_message_data (this);
         }
 
         inline size_t size ()
         {
-            if (msg != (void*) raw_message_t::vsm_tag)
-                return msg_size (msg);
-            else
-                return vsm_size;
+            return raw_message_size (this);
         }
 
     private:

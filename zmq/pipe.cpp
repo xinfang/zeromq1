@@ -38,7 +38,7 @@ zmq::pipe_t::~pipe_t ()
     raw_message_t message;
     pipe.flush ();
     while (pipe.read (&message))
-        msg_dealloc (message.msg);
+        raw_message_destroy (&message);
 }
 
 void zmq::pipe_t::revive ()
@@ -68,7 +68,7 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
     }
 
     //  If delimiter is read from the pipe, mark the pipe as ended
-    if (msg_->msg == (void*) raw_message_t::delimiter_tag) {
+    if (msg_->content == (void*) raw_message_t::delimiter_tag) {
         endofpipe = true;
         return false;
     }

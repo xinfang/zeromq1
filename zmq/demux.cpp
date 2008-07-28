@@ -34,23 +34,34 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
 
 void zmq::demux_t::write (message_t &msg_)
 {
+    int pipes_count = pipes.size ();
+
     //  Optimisation for the case where's there only a single pipe
     //  to send the message to - no refcount adjustment (i.e. atomic
     //  operations) needed.
-    if (pipes.size () == 1) {
+    if (pipes_count == 1) {
         (*pipes.begin ())->write ((raw_message_t*) &msg_);
         msg_.detach ();
         return;
     }
 
+    //  If there is no destination to send the message to,
+    //  destroy it straight away.
+    if (pipes_count == 0) {
+        msg_.destroy ();
+        return;
+    }
+
+    assert (false);
+
     //  TODO: optimise this to send the existing message to the first pipe
     //        and copies to the remaining pipes.
-    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
-        message_t message;
-        msg_.safe_copy (&message);
-        (*it)->write ((raw_message_t*) &message);
-        message.detach ();
-    }
+    //for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
+    //    message_t message;
+    //    msg_.safe_copy (&message);
+    //    (*it)->write ((raw_message_t*) &message);
+    //    message.detach ();
+    //}
 }
 
 void zmq::demux_t::flush ()
