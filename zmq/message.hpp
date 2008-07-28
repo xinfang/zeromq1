@@ -54,31 +54,46 @@ namespace zmq
             raw_message_destroy (this);
         }
 
-        inline void destroy ()
-        {
-            raw_message_destroy (this);
-            raw_message_init_delimiter (this);
-        }
-
-        inline void detach ()
-        {
-            content = (message_content_t*) raw_message_t::vsm_tag;
-            vsm_size = 0;
-        }
-
         //  Destroys old content of the message and allocates buffer for the
-        //  new message body.
+        //  new message body. Having this as a separate function allows user
+        //  to reuse once-allocated message for multiple times.
         inline void rebuild (size_t size_)
         {
             raw_message_destroy (this);
             raw_message_init (this, size_);            
         }
 
+        //  Same as above.
+        inline void rebuild (void *data_, size_t size_, free_fn *ffn_)
+        {
+            raw_message_destroy (this);
+            raw_message_init (this, data_, size_, ffn_);            
+        }
+
+        //  Moves the message content from one message to the another. If the
+        //  destination message have contained data prior to the operation
+        //  these get deallocated. The source message will contain 0 bytes
+        //  of data after the operation.
+        inline void move_to (message_t *msg_)
+        {
+            raw_message_move (this, (raw_message_t*) msg_);
+        }
+
+        //  Copies the message content from one message to the another. If the
+        //  destination message have contained data prior to the operation
+        //  these get deallocated.
+        inline void copy_to (message_t *msg_)
+        {
+            raw_message_copy (this, (raw_message_t*) msg_);
+        }
+
+        //  Returns pointer to message's data buffer.
         inline void *data ()
         {
             return raw_message_data (this);
         }
 
+        //  Returns the size of message data buffer.
         inline size_t size ()
         {
             return raw_message_size (this);

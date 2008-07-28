@@ -18,6 +18,7 @@
 */
 
 #include "mux.hpp"
+#include "raw_message.hpp"
 
 zmq::mux_t::mux_t () :
     current (0)
@@ -35,8 +36,12 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
 
 bool zmq::mux_t::read (message_t *msg_)
 {
+    //  Underlying layers work with raw_message_t, layers above use messge_t.
+    //  Mux is the component that translates between the two.
+    raw_message_t *msg = (raw_message_t*) msg_;
+
     //  Deallocate old content of the message.
-    msg_->destroy ();
+    raw_message_destroy (msg);
 
     //  Round-robin over the pipes to get next message.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
@@ -55,7 +60,9 @@ bool zmq::mux_t::read (message_t *msg_)
             return true;
     }
 
-    //  No message is available.
+    //  No message is available. Initialise the output parameter
+    //  to be a 0-byte message.
+    raw_message_init (msg, 0);
     return false;
 }
 

@@ -37,13 +37,14 @@ namespace zmq
     //  with this structure - thus avoiding one malloc/free pair - or they are
     //  stored in used-supplied memory. In the latter case, ffn member stores
     //  pointer to the function to be used to deallocate the data.
+    //  If the buffer is actually shared (there are at least 2 references to it)
+    //  refcount member contains number of references.
 
     struct message_content_t
     {
         void *data;
         size_t size;
         free_fn *ffn;
-        bool shared;
         atomic_counter_t refcount;
     };
 
@@ -51,6 +52,9 @@ namespace zmq
     //  construction/destruction/copying of the structure.
     //  From user's point of view raw message is wrapped in message_t
     //  class which makes its usage more convenient.
+    //  If 'shared' is true, message content pointed to by 'content' is shared,
+    //  i.e. you have to use reference counting to manage its lifetime
+    //  rather than straighforward malloc/free.
 
     struct raw_message_t
     {
@@ -60,6 +64,7 @@ namespace zmq
         };
 
         message_content_t *content;
+        bool shared;
         uint16_t vsm_size;
         unsigned char vsm_data [max_vsm_size];
     };
@@ -72,14 +77,13 @@ namespace zmq
             msg_->vsm_size = size_;
         }
         else {
+            msg_->shared = false;
             msg_->content = (message_content_t*) malloc (
                 sizeof (message_content_t) + size_);
             assert (msg_->content);
             msg_->content->data = (void*) (msg_->content + 1);
             msg_->content->size = size_;
             msg_->content->ffn = NULL;
-            msg_->content->shared = false;
-            msg_->content->refcount.set (1);
         }
 
     }
@@ -93,14 +97,13 @@ namespace zmq
     inline void raw_message_init (raw_message_t *msg_,
         void *data_, size_t size_, free_fn *ffn_)
     {
+        msg_->shared = false;
         msg_->content = (message_content_t*) malloc (
             sizeof (message_content_t) + size_);
         assert (msg_->content);
         msg_->content->data = data_;
         msg_->content->size = size_;
         msg_->content->ffn = ffn_;
-        msg_->content->shared = false;
-        msg_->content->refcount.set (1);
     }
 
     //  Initialises raw_message_t to be a pipe delimiter.
@@ -114,16 +117,55 @@ namespace zmq
     //  the content only if there is no reference left.
     inline void raw_message_destroy (raw_message_t *msg_)
     {
+        //  For VSMs and delimiters there are no resources to free
         if (msg_->content ==
               (message_content_t*) raw_message_t::delimiter_tag ||
               msg_->content == (message_content_t*) raw_message_t::vsm_tag)
             return;
 
-        if (!msg_->content->refcount.sub (1)) {
+        //  If the content is not shared, or if it is shared and the reference
+        //  count has dropped to zero, deallocate it.
+        if (!msg_->shared || !msg_->content->refcount.sub (1)) {
             if (msg_->content->ffn)
                 msg_->content->ffn (msg_->content->data);
             free (msg_->content);
         }
+    }
+
+    //  Moves the message content from one message to the another. If the
+    //  destination message have contained data prior to the operation
+    //  these get deallocated. The source message will contain 0 bytes of data
+    //  after the operation.
+    inline void raw_message_move (raw_message_t *src_, raw_message_t *dest_)
+    {
+        raw_message_destroy (dest_);
+        *dest_ = *src_;
+        raw_message_init (src_, 0);
+    }
+
+    //  Copies the message content from one message to the another. If the
+    //  destination message have contained data prior to the operation
+    //  these get deallocated.
+    inline void raw_message_copy (raw_message_t *src_, raw_message_t *dest_)
+    {
+        raw_message_destroy (dest_);
+
+        //  VSMs and delimiters require no special handling.
+        if (src_->content !=
+              (message_content_t*) raw_message_t::delimiter_tag &&
+              src_->content != (message_content_t*) raw_message_t::vsm_tag) {
+
+            //  One reference is added to shared messages. Non-shared messages
+            //  are turned into shared messages and reference count is set to 2.
+            if (src_->shared)
+               src_->content->refcount.add (1);
+            else {
+               src_->shared = true;
+               src_->content->refcount.set (2);
+            }
+        }
+
+        *dest_ = *src_;
     }
 
     //  Returns pointer to the message body.
