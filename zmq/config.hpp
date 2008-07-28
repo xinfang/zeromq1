@@ -26,12 +26,6 @@ namespace zmq
     //  Compile-time settings for 0MQ
     enum
     {
-        //  CPU frequency in MHz - the number doesn't have to be precise -
-        //  incorrectly set CPU frequency will result in different timeouts
-        //  at various places in the code, however, none of them is critical
-        //  unless the discrepancy is in whole orders of magnitude
-        cpu_frequency = 3000,
-
         //  Maximal batching size for incoming backend protocol messages.
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be read by a single 'read' system call, thus avoiding
@@ -55,9 +49,6 @@ namespace zmq
         //  Maximal size of "Very Small Message". VSMs are passed by value
         //  to avoid excessive allocation/deallocation.
         max_vsm_size = 62,
-
-        //  Maximal time (in microseconds) that a command can be delayed
-        max_command_delay = 1000,
 
         //  Determines how often does api_thread poll for new messages when it
         //  still has unprocessed messages to handle. Thus, if it is set to 100,

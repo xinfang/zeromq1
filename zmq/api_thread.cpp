@@ -19,7 +19,6 @@
 
 #include "api_thread.hpp"
 #include "config.hpp"
-#include "time.hpp"
 
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
@@ -168,16 +167,29 @@ bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
 void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
 {
-    //  If max_command_delay microseconds already elapsed since last
-    //  command processing, check the signals and process the commands.
-    //  TODO: This won't work on non-x86 microarchs and non-gcc compilers!
-    uint64_t current_time = now_ticks ();
-    if (current_time - last_command_time > cpu_frequency * max_command_delay) {
+#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+
+    //  Optimised version of send doesn't have to check for incoming commands
+    //  each time send is called. It does so onlt if certain time elapsed since
+    //  last command processing. Command delay varies depending on CPU speed:
+    //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
+    uint32_t low;
+    uint32_t high;
+    __asm__ volatile ("rdtsc"
+        : "=a" (low), "=d" (high));
+    uint64_t current_time = (uint64_t) high << 32 | low;
+
+    if (current_time - last_command_time > 3000000) {
         ypollset_t::integer_t signals = pollset.check ();
         if (signals)
             process_commands (signals);
         last_command_time = current_time;
     }
+#else
+    ypollset_t::integer_t signals = pollset.check ();
+    if (signals)
+        process_commands (signals);
+#endif
 
     //  Pass the message to the demux.
     exchanges [exchange_id_].second.write (msg_);
