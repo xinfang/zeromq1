@@ -22,7 +22,7 @@
 
 #include <assert.h>
 
-#include "../../zmq/time.hpp"
+#include "./time.hpp"
 
 namespace perf
 {
@@ -37,7 +37,7 @@ namespace perf
         //  should be supplied.
         ticker_t (uint64_t tick_frequency) : first_tick (true), next (0)
         {
-            interval = zmq::estimate_cpu_frequency () / tick_frequency;
+            period_ns = 1000000000 / tick_frequency;
         }
 
         //  Waits for the next tick. The ticks are "queued", meaning that
@@ -45,23 +45,23 @@ namespace perf
         //  return immediately.
         void wait_for_tick ()
         {
+
             if (first_tick) {
-                next = zmq::now_ticks () + interval;
+                next = now () + period_ns;
                 first_tick = false;
                 return;
             }
 
             while (true) {
-                uint64_t ticks = zmq::now_ticks ();
+                uint64_t now_ns = now ();
 
-                assert (ticks < next + interval);
+                assert (now_ns <= next + 1000 * period_ns);
 
-                if (ticks >= next ) {
-                    next += interval;
+                if (now_ns >= next ) {
+                    next += period_ns;
                     break;
                 }
             }
-
         }
 
     public:
@@ -69,11 +69,11 @@ namespace perf
         // first run
         bool first_tick;
 
-        //  Next time (in processor ticks) to issue an event on
+        //  Next time (in ns) to issue an event on
         uint64_t next;
 
-        //  Interval between individual events (in processor ticks)
-        uint64_t interval;
+        // Interval between events in ns
+        uint64_t period_ns;
     };
 
 }

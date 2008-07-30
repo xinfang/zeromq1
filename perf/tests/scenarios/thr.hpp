@@ -19,7 +19,7 @@
 
 /*
 
-    Message flow diagram
+    Message flow diagram for throughput scenario
 
           'local'                   'remote'
       (started first)          (started second)
@@ -49,7 +49,7 @@
 #include <pthread.h>
 
 #include "../../transports/i_transport.hpp"
-#include "../../../zmq/time.hpp"
+#include "../../helpers/time.hpp"
 
 namespace perf
 {
@@ -65,8 +65,8 @@ namespace perf
 
         // Timestamps captured by the worker thread at the beggining & end 
         // of the test
-        zmq::time_instant_t start_time;
-        zmq::time_instant_t stop_time;
+        time_instant_t start_time;
+        time_instant_t stop_time;
     };
 
     // 'local' worker thread function
@@ -81,14 +81,14 @@ namespace perf
 
             // Capture arrival timestamp of the first message (test start)
             if (msg_nbr == 0)
-                args->start_time  = zmq::now ();
+                args->start_time  = now ();
             
             //  Check incomming message size
             assert (size == args->msg_size);
         }
 
         // Capture test stop timestamp
-        args->stop_time = zmq::now();
+        args->stop_time = now();
 
         //  Send sync message to the peer
         args->transport->send (1);
@@ -99,7 +99,7 @@ namespace perf
     // 'remote' worker thread function
     void *remote_worker_function (void *worker_args_)
     {
-        perf::thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
+        thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
 
         // Send msg_nbr messages of msg_size
         for (int msg_nbr = 0; msg_nbr < args->msg_count; msg_nbr++)
@@ -122,8 +122,8 @@ namespace perf
         pthread_t *workers = new pthread_t [thread_count_];
 
         // Array of thr_worker_args_t structures for worker threads
-        perf::thr_worker_args_t *workers_args = 
-            new perf::thr_worker_args_t [thread_count_];
+        thr_worker_args_t *workers_args = 
+            new thr_worker_args_t [thread_count_];
 
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
             // Fill structure, note that start_time & stop_time is filled 
@@ -141,9 +141,9 @@ namespace perf
         }
 
         //  Gather results from thr_worker_args_t structures
-        zmq::time_instant_t min_start_time  = 
+        time_instant_t min_start_time  = 
             std::numeric_limits<uint64_t>::max ();
-        zmq::time_instant_t max_stop_time = 0;
+        time_instant_t max_stop_time = 0;
 
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
             // Wait for worker threads to finish
@@ -173,14 +173,14 @@ namespace perf
             (unsigned long) msg_count_ * (unsigned long) thread_count_)/
             (unsigned long)(max_stop_time - min_start_time);
 
-        // Throughput [B/s]
+        // Throughput [b/s]
         unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
             (unsigned long) 1000000;
                 
         std::cout << std::noshowpoint << "Your average throughput is " 
-            << msg_thput << " [msg/s]\n";
+            << msg_thput << " [msg/s]" << std::endl;
         std::cout << std::noshowpoint << "Your average throughput is " 
-            << tcp_thput << " [Mb/s]\n\n";
+            << tcp_thput << " [Mb/s]" << std::endl << std::endl;
  
         //  Save the results into tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
@@ -192,7 +192,7 @@ namespace perf
         // to the tests.dat file
         //
         // thread count, message count, msg size [B], test time [ms],
-        //   throughput [msg/s],throughput [b/s]
+        //   throughput [msg/s],throughput [Mb/s]
         //
         outf << std::fixed << std::noshowpoint << thread_count_ << "," 
             << msg_count_ << "," << msg_size_ << "," << test_time << "," 
@@ -210,8 +210,8 @@ namespace perf
         pthread_t *workers = new pthread_t [thread_count_];
 
         // Array of thr_worker_args_t structures for worker threads
-        perf::thr_worker_args_t *workers_args = 
-            new perf::thr_worker_args_t [thread_count_];
+        thr_worker_args_t *workers_args = 
+            new thr_worker_args_t [thread_count_];
 
 
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {

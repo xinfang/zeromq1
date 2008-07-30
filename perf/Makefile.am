@@ -1,1 +1,1 @@
-SUBDIRS = tests
+SUBDIRS = tests helpers

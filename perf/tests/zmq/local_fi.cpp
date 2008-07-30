@@ -21,7 +21,6 @@
 
 #include "../scenarios/fi.hpp"
 #include "../../transports/zmq.hpp"
-#include "../../../zmq/time.hpp"
 
 using namespace std;
 
@@ -34,6 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
+    // Parse & print command line arguments
     const char *g_locator = argv [1];
     unsigned short g_locator_port = atoi (argv [2]);
 
@@ -41,17 +41,20 @@ int main (int argc, char *argv [])
     unsigned short listen_port = atoi (argv [4]);
 
     size_t msg_size = atoi (argv [5]);
-    int roundtrip_count = atoi (argv [6]);
+    int msg_count = atoi (argv [6]);
     int pubs_count = atoi (argv [7]);
 
     cout << "publishers: " << pubs_count << endl;
-    cout << "message size: " << msg_size << endl;
-    cout << "roundtrip count: " << roundtrip_count << std::endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count (per publisher): " << msg_count << std::endl;
 
+    // Create zmq transport with bind = false. It means that global queue
+    // QIN and global exchange EOUT will be created without any bindings.
     perf::zmq_t transport (false, "QIN", "EOUT", g_locator, g_locator_port, 
         listen_ip, listen_port);
    
-    perf::local_fi (&transport, msg_size, roundtrip_count, pubs_count);
+   // Do the job, for more detailed info refer to ../scenarios/fo.hpp
+    perf::local_fi (&transport, msg_size, msg_count, pubs_count);
 
     return 0;
 }

@@ -44,7 +44,7 @@ int main (int argc, char *argv [])
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "message count: " << msg_count << endl;
+    cout << "message count: " << msg_count << endl << endl;
 
     // Create *transports array
     perf::i_transport **transports = new perf::i_transport* [thread_count];

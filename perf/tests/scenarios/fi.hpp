@@ -17,6 +17,38 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+    Message flow diagram - fan in scenario
+
+          'local'                 'remote 1'               'remote 2'
+         subscriber               publisher                 publisher
+      (started first)          (started second)         (started third)
+             |
+             |  sync message (size 1B) |
+             |<------------------------|                        |       
+             |                         | sync message (size 1B  |
+             |<-------------------------------------------------|
+             |                         |                        |
+             |  sync message (size 1B) |                        |
+             |------------------------>| sync message (size 1B) |
+             |------------------------------------------------->|
+             |                         |                        | 
+             |  messages (size,count)  |                        |
+             |<========================|                        |
+             |                         |  messages (size,count) |                      
+             |<=================================================|
+             |                         |                        |
+     resuls gathering                  |                        |
+       computations                    |                        |
+             |                         |                        | 
+             |  sync message (size 1B) |                        |
+             |------------------------>| sync message (size 1B) |
+             |------------------------------------------------->|
+             |                         |                        |
+             v                         v                        v
+
+*/
+
 #ifndef __FI_HPP_INCLUDED__
 #define __FI_HPP_INCLUDED__
 
@@ -24,12 +56,13 @@
 #include <iostream>
 #include <fstream>
 #include "../../transports/i_transport.hpp"
-#include "../../../zmq/time.hpp"
+#include "../../helpers/time.hpp"
 
 namespace perf
 {
+    // Subscriber function
     void local_fi (i_transport *transport_, size_t msg_size_, 
-          int roundtrip_count_, int pubs_count_)
+          int msg_count_, int pubs_count_)
     {
 
         //  Wait for sync messages from publishers
@@ -41,34 +74,36 @@ namespace perf
         //  Send sync message to publishers (they can start to send messages)
         transport_->send (1);
        
-        zmq::time_instant_t start_time = 0;
+        time_instant_t start_time = 0;
 
         //  Receive messages from all publishers
-        for (int msg_nbr = 0; msg_nbr < pubs_count_ * roundtrip_count_; 
+        for (int msg_nbr = 0; msg_nbr < pubs_count_ * msg_count_; 
             msg_nbr++) {
             
             size_t size = transport_->receive ();
+
+            // Capture timestamp of the first arrived message
             if (msg_nbr == 0)
-                start_time = zmq::now ();
-                
+                start_time = now ();
+            
+            // Check incomming message size
             assert (size == msg_size_);
         }
 
-        zmq::time_instant_t stop_time = zmq::now (); 
+        // Capture test ent timestamp 
+        time_instant_t stop_time = now (); 
     
         double test_time = (double)(stop_time - start_time) /
             (double) 1000000;
 
         std::cout.precision (2);
 
-        std::cout << std::fixed << std::noshowpoint <<  "test time: " 
-            << test_time << " [ms]\n";
-
-        //  Throughput [msgs/s]
+        // Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) roundtrip_count_) /
+            (unsigned long) msg_count_ * (unsigned long)pubs_count_) /
             (unsigned long)(stop_time - start_time);
-            
+          
+        // Throughput [b/s]
         unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
             (unsigned long) 1000000;
                 
@@ -77,15 +112,22 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
  
-        //  Save the results
+        //  Save the results into tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
         outf.precision (2);
 
-        outf << std::fixed << std::noshowpoint << "1," << roundtrip_count_ 
-            << "," << msg_size_ << "," << test_time << "," << msg_thput << "," 
-            << tcp_thput << std::endl;
+        // Output file format, separate line for each run is appended 
+        // to the tests.dat file
+        //
+        // 1, message count, msg size [B], test time [ms],
+        //   throughput [msg/s],throughput [Mb/s]
+        //
+
+        outf << std::fixed << std::noshowpoint << "1," 
+            << msg_count_ * pubs_count_ << "," << msg_size_ << "," 
+            << test_time << "," << msg_thput << "," << tcp_thput << std::endl;
         
         outf.close ();
 
@@ -93,6 +135,7 @@ namespace perf
         transport_->send (1);
     }
 
+    // Publisher function
     void remote_fi (i_transport *transport_, size_t msg_size_, 
           int roundtrip_count_)
     {

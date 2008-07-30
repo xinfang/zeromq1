@@ -23,55 +23,35 @@
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/thr_lat.hpp"
-#include "../../helpers/functions.hpp"
 
 using namespace std;
 
 int main (int argc, char *argv [])
 {
 
-    if (argc != 7) { 
+    if (argc != 6) { 
         cerr << "Usage: remote_thr <global_locator IP> <global_locator port> "
-            << "<message size> <message count> <number of threads> <msgs per sec>\n"; 
+            << "<message size> <message count> <msgs per sec>\n"; 
         return 1;
     }
+
     const char *g_locator = argv [1];
     unsigned short g_locator_port = atoi (argv [2]);
 
-    int thread_count = atoi (argv [5]);
     size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
-    int msgs_per_sec = atoi (argv [6]);
+    int msg_count = atoi (argv [4]);
+    int msgs_per_sec = atoi (argv [5]);
 
-    assert (thread_count == 1);
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
+    cout << "messages per second: " << msgs_per_sec << " [msg/s]" << endl;
 
-    cout << "threads: " << thread_count << endl;
-    cout << "message size: " << msg_size << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
-    cout << "messages per second: " << msgs_per_sec << endl;
 
-    perf::i_transport **transports = new perf::i_transport* [thread_count];
+    perf::zmq_t transport  (true, "Q0", "E0", g_locator, g_locator_port, 
+        NULL, 0);
 
-    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
-        string queue_name ("Q");
-        queue_name += perf::to_string (thread_nbr);
-
-        string exchange_name ("E");
-        exchange_name += perf::to_string (thread_nbr);
-
-        transports [thread_nbr] = new perf::zmq_t (true, queue_name.c_str (), 
-            exchange_name.c_str (), g_locator,g_locator_port, 
-            NULL, 0);
-    }
-
-    perf::remote_thr_lat (transports, msg_size, roundtrip_count, thread_count, msgs_per_sec);
+    perf::remote_thr_lat (&transport, msg_size, msg_count, msgs_per_sec);
     
-    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
-        delete transports [thread_nbr];
-    }
-
     return 0;
 }
 

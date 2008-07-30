@@ -17,6 +17,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+    Message flow diagram for throuthput - latancy scenario
+
+          'local'                   'remote'
+      (started first)          (started second)
+             |
+             |                        
+             |                         |
+             |  messages (size,count)  | 
+             |<========================|
+         compute, save               save
+          results                   results
+             |                         |
+             | sync message (size 1B)  |
+             |------------------------>|
+             |                         |
+             | sync message (size 1B)  |
+             |<------------------------|
+             |                         |
+             |                         v
+             v
+*/
+
 #ifndef __PERF_THR_LAT_HPP_INCLUDED__
 #define __PERF_THR_LAT_HPP_INCLUDED__
 
@@ -29,98 +52,101 @@
 namespace perf
 {
 
-    void local_thr_lat (i_transport **transports_, size_t msg_size_, 
-        int roundtrip_count_, int thread_count_)
+    void local_thr_lat (i_transport *transport_, size_t msg_size_, 
+        int msg_count_)
     {
-        
-        zmq::estimate_cpu_frequency ();
-        std::cout << "ready" << std::endl;
+       
+        // Allocate array for timestamps captured after receive message.
+        // Note that it is neessary to keep time between peers in sync wiht
+        // accuracy in orders of 10th us. 
+        perf::time_instant_t *stop_times = new perf::time_instant_t [msg_count_];
 
-        zmq::time_instant_t *stop_times = new zmq::time_instant_t [roundtrip_count_];
-
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
         {
-            
-            size_t size = transports_[0]->receive ();
-            stop_times [msg_nbr] = zmq::now ();
+            // Receive test message from peer
+            size_t size = transport_->receive ();
+            // Capture timestamp
+            stop_times [msg_nbr] = perf::now ();
 
-            // check incomming message size
+            // Check incomming message size
             assert (size == msg_size_);
         }
 
-        std::cout << "writting results..." << std::flush;
-
-        // write stop_times into the file
+        // Write stop_times into the stop_times.dat file
         std::ofstream outf ("stop_times.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
 
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
         {
             outf << stop_times [msg_nbr] << std::endl;
         }
 
         outf.close ();
-        std::cout << "done" << std::endl;
 
-        // calculate and display throughput
+        // calculate incomming throughput [msg/s]
         unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) roundtrip_count_ * (unsigned long) thread_count_)/
-            (unsigned long)(stop_times [roundtrip_count_ - 1] - stop_times [0]);
-            
+            (unsigned long) msg_count_)/
+            (unsigned long)(stop_times [msg_count_ - 1] - stop_times [0]);
+           
+        // Calculate throughput [Mb/s]
         unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
             (unsigned long) 1000000;
                 
-        std::cout << std::noshowpoint << "Your average throughput is " 
+        std::cout << "Your average throughput is " 
             << msg_thput << " [msg/s]\n";
-        std::cout << std::noshowpoint << "Your average throughput is " 
+        std::cout << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
 
-        // send sync message
-        transports_[0]->send (1);
+        // Send sync message
+        transport_->send (1);
 
-        // wait for peer to write start_times
-        size_t size = transports_[0]->receive ();
+        // Wait for peer to write start_times
+        size_t size = transport_->receive ();
         assert (size == 1);
 
+        // Cleanup
         delete [] stop_times;
     }
 
-    void remote_thr_lat (i_transport **transports_, size_t msg_size_, 
-        int roundtrip_count_, int thread_count_, int msgs_per_second_)
+    void remote_thr_lat (i_transport *transport_, size_t msg_size_, 
+        int msg_count_, int msgs_per_second_)
     {
-
+        // Initialize ticker with msgs_per_second ticks frequency
         ticker_t ticker (msgs_per_second_); 
 
-        zmq::time_instant_t *start_times = new zmq::time_instant_t [roundtrip_count_];
+        // Allocate array for timestamps captured before sending message.
+        perf::time_instant_t *start_times = new perf::time_instant_t [msg_count_];
 
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
         { 
+            // Wait for specific ammount of time to 
+            // achieve msgs_per_second_ freq
             ticker.wait_for_tick ();
-            start_times [msg_nbr] = zmq::now ();
-            transports_[0]->send (msg_size_);
+
+            // Capture timestamp
+            start_times [msg_nbr] = perf::now ();
+
+            // Sent test message to the peer
+            transport_->send (msg_size_);
         }
 
-        // wait for sync message
-        size_t size = transports_[0]->receive ();
-        assert (size == 1);
-
-
-        // write start_times into the file
-        std::cout << "writting results..." << std::flush;
+        // Write start_times into the start_times.dat file
         std::ofstream outf ("start_times.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
 
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
         {
             outf << start_times [msg_nbr] << std::endl;
         }
 
         outf.close ();
 
-        std::cout << "done" << std::endl;
+        // Wait for sync message from peer
+        size_t size = transport_->receive ();
+        assert (size == 1);
 
         // send sync message
-        transports_[0]->send (1);
+        transport_->send (1);
 
         delete [] start_times;
     }

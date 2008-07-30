@@ -35,17 +35,22 @@ int main (int argc, char *argv [])
     unsigned short g_locator_port = atoi (argv [2]);
 
     size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
+    int msg_count = atoi (argv [4]);
     const char *pub_id = argv [5];
 
     cout << "publisher ID: " << pub_id << endl;
-    cout << "message size: " << msg_size << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
 
+    // Create zmq transport with bind = true. It means that local 
+    // exchange will be created and binded to the global queue QIN and created 
+    // local queue will be binded to global exchange EOUT. 
+    // Global queue and exchange have to be created before (by the local_fi).
     perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, 
         NULL, 0);
 
-    perf::remote_fi (&transport, msg_size, roundtrip_count);
+    // Do the job, for more detailed info refer to ../scenarios/fi.hpp
+    perf::remote_fi (&transport, msg_size, msg_count);
 
     return 0;
 }

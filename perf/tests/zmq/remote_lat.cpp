@@ -42,7 +42,7 @@ int main (int argc, char *argv [])
     int roundtrip_count = atoi (argv [4]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
     // Create zmq transport
     perf::zmq_t transport (true, "QIN", "EOUT", g_locator_ip, g_locator_port,

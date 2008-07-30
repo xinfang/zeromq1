@@ -53,7 +53,7 @@
 #include <iostream>
 #include <fstream>
 #include "../../transports/i_transport.hpp"
-#include "../../../zmq/time.hpp"
+#include "../../helpers/time.hpp"
 
 namespace perf
 {
@@ -70,7 +70,7 @@ namespace perf
         assert (size == 1);
 
         // Capture timestamp at the begining of the test
-        zmq::time_instant_t start_time = zmq::now ();
+        time_instant_t start_time = now ();
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
             // Send test message
@@ -84,7 +84,7 @@ namespace perf
         }
         
         // Capture the end timestamp of the test
-        zmq::time_instant_t stop_time = zmq::now ();
+        time_instant_t stop_time = now ();
 
         // Set 2 fixed decimal places
         std::cout.setf(std::ios::fixed);
@@ -95,7 +95,7 @@ namespace perf
         double latency = (double)(test_time / 2000) / (double)roundtrip_count_;
 
         std::cout <<  "Your average latency is " << latency 
-            << " [us]" << std::endl;
+            << " [us]" << std::endl << std::endl;
 
         //  Save the results into tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);

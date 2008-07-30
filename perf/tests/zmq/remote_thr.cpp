@@ -45,7 +45,7 @@ int main (int argc, char *argv [])
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "message count: " << msg_count << endl;
+    cout << "message count: " << msg_count << endl << endl;
 
     // Create *transports array
     perf::i_transport **transports = new perf::i_transport* [thread_count];
@@ -63,10 +63,10 @@ int main (int argc, char *argv [])
         string exchange_name ("E");
         exchange_name += perf::to_string (thread_nbr);
 
-        // Create zmq transport with bind = true. It means that local exchange 
-        // will be created and binded to the global queue QX and created local queue 
-        // will be binded to global exchange EX. Global queue and exchange have to 
-        // be created before (by the local_thr).
+        // Create zmq transport with bind = true. It means that created local 
+        // exchange will be created and binded to the global queue QX 
+        // and created local queue will be binded to global exchange EX. 
+        // Global queue and exchange have to be created before (by the local_thr).
         transports [thread_nbr] = new perf::zmq_t (true, queue_name.c_str (), 
             exchange_name.c_str (), g_locator,g_locator_port, 
             NULL, 0);

@@ -20,7 +20,7 @@
 #ifndef __EXCHANGE_FREQUENCY_METER_HPP_INCLUDED__
 #define __EXCHANGE_FREQUENCY_METER_HPP_INCLUDED__
 
-#include "../../zmq/time.hpp"
+#include "../../perf/helpers/time.hpp"
 
 namespace exchange
 {
@@ -50,15 +50,14 @@ namespace exchange
             //  Once we've reached the end of the window...
             if (current == window) {
 
-                //  Get current time
-                uint64_t now_time = zmq::now_ticks ();
+                //  Get current time [ns]
+                uint64_t now_time = perf::now ();
 
                 //  If there've been previous measurement
                 if (last_time) {
 
                     //  Calculate and report the frequency
-                    uint64_t frequency = window *
-                        zmq::estimate_cpu_frequency () /
+                    uint64_t frequency = window * 1000000000 / 
                         (now_time - last_time);
                     callback_->frequency (meter_id, frequency);
                 }

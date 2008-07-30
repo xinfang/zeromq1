@@ -41,7 +41,7 @@ int main (int argc, char *argv [])
     int roundtrip_count = atoi (argv [4]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
     // Create tcp transport
     perf::tcp_t transport (false, peer_ip, peer_port, false);

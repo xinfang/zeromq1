@@ -17,6 +17,38 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+    Message flow diagram - fan out scenario
+
+          'local'                  'remote 1'             'remote 2'
+         publisher                 subscriber             subscriber
+      (started first)          (started second)         (started third)
+             |
+             |  sync message (size 1B) |
+             |<------------------------|                        |       
+             |                         | sync message (size 1B  |
+             |<-------------------------------------------------|
+             |                         |                        |
+             |  messages (size,count)  |                        |
+             |========================>| messages (size,count)  |
+             |=================================================>|
+             |                         |                        |
+             |                  resuls gathering        resuls gathering 
+             |                    computations            computations
+             |                         |                        | 
+             |  sync message (size 1B) |                        |
+             |<------------------------|                        |       
+             |                         | sync message (size 1B) |
+             |<-------------------------------------------------|
+             |                         |                        |
+             |  sync message (size 1B) |                        |
+             |------------------------>| sync message (size 1B) |
+             |------------------------------------------------->|
+             |                         |                        |
+             v                         v                        v
+
+*/
+
 #ifndef __FO_HPP_INCLUDED__
 #define __FO_HPP_INCLUDED__
 
@@ -25,74 +57,84 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
+
 #include "../../transports/i_transport.hpp"
-#include "../../../zmq/time.hpp"
+#include "../../helpers/time.hpp"
 
 namespace perf
 {
+    // Publisher function
     void local_fo (i_transport *transport_, size_t msg_size_, 
-        int roundtrip_count_, int subs_count)
+        int msg_count_, int subs_count)
     {
 
+        // Receive sync message from each subscriber that they are rady 
         for (int subs_nbr = 0; subs_nbr < subs_count; subs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);
         }
 
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
+        // Send test messages of msg_size_ msg_count_ times
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++) {
             transport_->send (msg_size_);
         }
         
+        // Receive synnc message from each subscriber that they 
+        // received msg_count_ of messages
         for (int subs_nbr = 0; subs_nbr < subs_count; subs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);
         }
         
+        // Send sync message that subscribers can exit
         transport_->send (1);
-
     }
 
+    // Subscriber function
     void remote_fo (i_transport *transport_, size_t msg_size_,
-        int roundtrip_count_, const char *subs_id_)
+        int msg_count_, const char *subs_id_)
     {
+
+        // Send sync message that we are ready to receive test messages
         transport_->send (1);
 
-        zmq::time_instant_t start_time = 0;
+        time_instant_t start_time = 0;
 
-        for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++) {
 
             size_t size = transport_->receive ();
+            // Capture test start timestamp
             if (msg_nbr == 0)
-                start_time = zmq::now();
+                start_time = now();
 
             //  Check incomming message size
             assert (size == msg_size_);
         }
 
-        zmq::time_instant_t stop_time = zmq::now();
+        // Capture test end timestamp
+        time_instant_t stop_time = now();
 
         double test_time = (double)(stop_time - start_time) /
             (double) 1000000;
 
         std::cout.precision (2);
 
-        std::cout << std::fixed << std::noshowpoint <<  "test time: "
-            << test_time << " [ms]\n";
-
         //  Throughput [msgs/s]
         unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) roundtrip_count_) /
+            (unsigned long) msg_count_) /
             (unsigned long)(stop_time - start_time);
-            
+        
+        // Throughput [b/s]
         unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
             (unsigned long) 1000000;
-                
-        std::cout << std::noshowpoint << "Your average throughput is "
-            << msg_thput << " [msg/s]\n";
-        std::cout << std::noshowpoint << "Your average throughput is "
-            << tcp_thput << " [Mb/s]\n\n";
+ 
+        //  Save the results into tests.dat file       
+        std::cout << std::noshowpoint << subs_id_ 
+            << ": Your average throughput is " << msg_thput << " [msg/s]\n";
+        std::cout << std::noshowpoint << subs_id_ 
+            << "Your average throughput is " << tcp_thput << " [Mb/s]\n\n";
            
-        //  Save the results
+        //  Save the results into ${subs_id}_tests.dat file
         std::string _filename (subs_id_);
         _filename += "_tests.dat";
 
@@ -101,15 +143,22 @@ namespace perf
         
         outf.precision (2);
 
-        outf << std::fixed << std::noshowpoint << "1," << roundtrip_count_ 
+        // Output file format, separate line for each run is appended 
+        // to the ${subs_id}_tests.dat file
+        //
+        // 1, message count, msg size [B], test time [ms],
+        //   throughput [msg/s],throughput [Mb/s]
+        //
+        outf << std::fixed << std::noshowpoint << "1," << msg_count_ 
             << "," << msg_size_ << "," << test_time << "," 
             << msg_thput << "," << tcp_thput << std::endl;
         
         outf.close ();
 
+        // Send sync message
         transport_->send (1);    
 
-        //  All consumers finished, now we can shutdown
+        //  All subscribers finished, now we can shutdown
         size_t size = transport_->receive ();
         assert (size == 1);
     }

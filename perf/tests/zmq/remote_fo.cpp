@@ -18,6 +18,8 @@
 */
 
 #include <cstdlib>
+#include <iostream>
+
 #include "../../transports/zmq.hpp"
 #include "../scenarios/fo.hpp"
 
@@ -31,20 +33,26 @@ int main (int argc, char *argv [])
         return 1;
     }
 
+    // Parse & print command line arguments
     const char *g_locator = argv [1];
     unsigned short g_locator_port = atoi (argv [2]);
 
     size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
+    int msg_count = atoi (argv [4]);
     const char *subs_id = argv [5];
 
     cout << "subscriber ID: " << subs_id << endl;
-    cout << "message size: " << msg_size << endl;
-    cout << "roundtrip count: " << roundtrip_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
 
+    // Create zmq transport with bind = true. It means that local 
+    // exchange will be created and binded to the global queue QIN and created 
+    // local queue will be binded to global exchange EOUT. 
+    // Global queue and exchange have to be created before (by the local_fo).
     perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
 
-    perf::remote_fo (&transport, msg_size, roundtrip_count, subs_id);
+    // Do the job, for more detailed info refer to ../scenarios/fo.hpp
+    perf::remote_fo (&transport, msg_size, msg_count, subs_id);
 
     return 0;
 }

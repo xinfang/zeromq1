@@ -51,18 +51,65 @@ AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
 AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
+# Check for librt needed by perf and estimate_cpu_freq
+AC_CHECK_LIB(rt, clock_gettime, HAVE_LIBRT="yes", HAVE_LIBRT="no")
+
+# Use c++ in subsequent tests
+AC_LANG(C++)
+
 # Optional stuff
 AC_ARG_WITH([perf], [AS_HELP_STRING([--with-perf], [builds performance tests [default=no]])], [], [with_perf=no])
 perf="no"
+cpu_estimator="no"
+time_measure="gettime"
+
 if test "x$with_perf" != "xno"; then
+    if test "x$HAVE_LIBRT_H" = "xno"; then
+        AC_MSG_ERROR([To compile perf you need to have librt installed!])
+    fi
     perf="yes"
+
+    # Test for __GNUC__ && (__i386__ || __x86_64__) macros
+    AC_MSG_CHECKING([wheter rtdsc can be used])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+        [[#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+            //OK we can use rtdsc
+          #else
+            error: we can not use rtdsc
+          #endif
+        ]])],
+            [rtdsc=yes],
+            [rtdcs=no])
+    AC_MSG_RESULT([$rtdsc])
+
+    # To built cpu frequency estimator we need librt && rtdsc
+    cpu_estimator="no"
+    if test "x$rtdsc" = "xyes" -a "x$HAVE_LIBRT" = "xyes"; then
+        cpu_estimator="yes"
+    fi
+
+    # Test for PERF_CPU_FREQUENCY macro
+    AC_MSG_CHECKING([wheter PERF_CPU_FREQUENCY is defined])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+        [[#ifdef PERF_CPU_FREQUENCY
+            //OK
+          #else
+            error: PERF_CPU_FREQUENCY is not defined
+          #endif
+        ]])],
+            [perf_cpu_freq=yes],
+            [perf_cpu_freq=no])
+    AC_MSG_RESULT([$perf_cpu_freq])
+
+    if test "x$perf_cpu_freq" = "xyes" -a "x$rtdsc" = "xyes"; then
+        time_measure="rtdsc"
+    fi
+
 fi
 
 camera="no"
 AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [builds camera example [default=no]])], [], [with_camera=no])
 if test "x$with_camera" != "xno"; then
-#    AC_PROG_CC
-#    AM_PROG_CC_C_O
 
     PKG_CHECK_MODULES([SDL], [sdl]) 
     AC_SUBST(SDL_LIBS)
@@ -79,16 +126,19 @@ if test "x$with_camera" != "xno"; then
     camera="yes"
 fi
 
-
 AC_ARG_WITH([exchange], [AS_HELP_STRING([--with-exchange], [builds exchange example [default=no]])], [], [with_exchange=no])
 exchange="no"
 if test "x$with_exchange" != "xno"; then
+    if test "x$HAVE_LIBRT_H" = "xno"; then
+        AC_MSG_ERROR([To compile exchange example you need to have librt installed!])
+    fi
     exchange="yes"
 fi
 
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
+AM_CONDITIONAL(BUILD_CPU_ESTIMATOR, test "x$cpu_estimator" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -121,7 +171,8 @@ AC_CHECK_FUNCS(perror gettimeofday memset socket)
 
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
-examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile)
+examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile \
+perf/helpers/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -134,8 +185,11 @@ AC_MSG_RESULT([ ******************************************************** ])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ 0MQ install dir: $prefix])
 AC_MSG_RESULT([])
+AC_MSG_RESULT([ Helpers:])
+AC_MSG_RESULT([   cpu frequency estimator: $cpu_estimator])
+AC_MSG_RESULT([])
 AC_MSG_RESULT([ Addons:])
-AC_MSG_RESULT([   performance tests: $perf]) 
+AC_MSG_RESULT([   performance tests: $perf ($time_measure)]) 
 AC_MSG_RESULT([   camera example: $camera])
 AC_MSG_RESULT([   stock exchange example: $exchange])
 AC_MSG_RESULT([])
