@@ -163,43 +163,37 @@ namespace perf
         delete [] workers;
 
         // Calculate results
-        double test_time = (double)(max_stop_time - min_start_time) /
-            (double) 1000000;
-
-        std::cout.precision (2);
+        uint64_t test_time = uint64_t (max_stop_time - min_start_time) /
+            (uint64_t) 1000000;
 
         // Throughput [msgs/s]
-        unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) msg_count_ * (unsigned long) thread_count_)/
-            (unsigned long)(max_stop_time - min_start_time);
+        uint64_t msg_thput = ((uint64_t) 1000000000 *
+            (uint64_t) msg_count_ * (uint64_t) thread_count_) /
+            (uint64_t) (max_stop_time - min_start_time);
 
         // Throughput [b/s]
-        unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
-            (unsigned long) 1000000;
+        uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
+            (uint64_t) 1000000;
                 
-        std::cout << std::noshowpoint << "Your average throughput is " 
-            << msg_thput << " [msg/s]" << std::endl;
-        std::cout << std::noshowpoint << "Your average throughput is " 
-            << tcp_thput << " [Mb/s]" << std::endl << std::endl;
+        std::cout << "Your average throughput is " << msg_thput 
+            << " [msg/s]" << std::endl;
+        std::cout << "Your average throughput is " << tcp_thput 
+            << " [Mb/s]" << std::endl << std::endl;
  
         //  Save the results into tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
-        outf.precision (2);
-
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
         // thread count, message count, msg size [B], test time [ms],
         //   throughput [msg/s],throughput [Mb/s]
         //
-        outf << std::fixed << std::noshowpoint << thread_count_ << "," 
-            << msg_count_ << "," << msg_size_ << "," << test_time << "," 
-            << msg_thput << "," << tcp_thput << std::endl;
+        outf << thread_count_ << "," << msg_count_ << "," << msg_size_ << "," 
+            << test_time << "," << msg_thput << "," << tcp_thput << std::endl;
         
         outf.close ();
-
     }
 
     // Function initializes parameter structure for each thread and starts
@@ -234,6 +228,5 @@ namespace perf
             assert (rc == 0);
         }
     }
-
 }
 #endif

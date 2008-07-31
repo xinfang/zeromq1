@@ -91,8 +91,9 @@ namespace perf
         std::cout.precision (2);
 
         // Calculate & print results 
-        double test_time = (double)(stop_time - start_time);
-        double latency = (double)(test_time / 2000) / (double)roundtrip_count_;
+        uint64_t test_time = (uint64_t) (stop_time - start_time);
+        double latency = (double) (test_time / 2000) / 
+            (double) roundtrip_count_;
 
         std::cout <<  "Your average latency is " << latency 
             << " [us]" << std::endl << std::endl;
@@ -110,7 +111,7 @@ namespace perf
         //
         outf << std::fixed << std::noshowpoint << "0,"
             << roundtrip_count_ << "," << msg_size_ << "," 
-            << test_time /(double)1000000<< "," << latency << std::endl;
+            << test_time / (uint64_t) 1000000<< "," << latency << std::endl;
         
         outf.close ();
 

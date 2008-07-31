@@ -79,7 +79,7 @@ if test "x$with_perf" != "xno"; then
           #endif
         ]])],
             [rtdsc=yes],
-            [rtdcs=no])
+            [rtdsc=no])
     AC_MSG_RESULT([$rtdsc])
 
     # To built cpu frequency estimator we need librt && rtdsc

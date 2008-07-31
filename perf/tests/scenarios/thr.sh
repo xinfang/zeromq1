@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# GL_* only for zmq transport test
 GL_IP="127.0.0.1"
 GL_PORT=5555
 

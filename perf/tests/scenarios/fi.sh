@@ -1,4 +1,39 @@
 #!/bin/sh
+#
+# Copyright (c) 2007-2008 FastMQ Inc.
+#
+# This file is part of 0MQ.
+#
+# 0MQ is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# 0MQ is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+GL_IP="127.0.0.1"
+GL_PORT=5555
+
+REC_IP="127.0.0.1"
+REC_PORT=5672
+
+MSG_SIZE_START=1
+MSG_SIZE_STEPS=10
+
+RUNS=3
+
+TEST_TIME=5000
+
+LOCAL_BIN="./local_fi"
+REMOTE_BIN="./remote_fi"
+
+######################## Do not edit below this line ##########################
 
 if [ $# -lt 2 ]; then
     echo "Usage: fi.sh [local number_of_publishers | remote pub_id]"
@@ -10,25 +45,6 @@ if [ $1 != "local" -a $1 != "remote" ]; then
     exit 1
 fi
 
-##############################################################################
-
-GL_IP="62.176.172.203"
-GL_PORT=5555
-
-REC_IP="10.0.0.1"
-REC_PORT=5672
-
-MSG_SIZE_START=1
-MSG_SIZE_STEPS=10
-
-RUNS=5
-
-TEST_TIME=5000
-
-LOCAL_BIN="./local_fi"
-REMOTE_BIN="./remote_fi"
-
-##############################################################################
 
 SYS_LAT_DEN=100
 SYS_SLOPE=0.55

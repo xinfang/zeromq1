@@ -48,7 +48,7 @@ namespace zmq
 
         //  Maximal size of "Very Small Message". VSMs are passed by value
         //  to avoid excessive allocation/deallocation.
-        max_vsm_size = 62,
+        max_vsm_size = 30,
 
         //  Determines how often does api_thread poll for new messages when it
         //  still has unprocessed messages to handle. Thus, if it is set to 100,

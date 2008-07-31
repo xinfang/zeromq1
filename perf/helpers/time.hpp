@@ -53,8 +53,8 @@ namespace perf
     {
         struct timespec ts;
         int rc = clock_gettime (CLOCK_MONOTONIC, &ts);
-        assert (rc ==0);
-        return ts.tv_sec * 1000000000 + ts.tv_nsec;
+        assert (rc == 0);
+        return ts.tv_sec * (uint64_t) 1000000000 + ts.tv_nsec;
     }
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))

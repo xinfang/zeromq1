@@ -121,11 +121,9 @@ namespace perf
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
-        // 1, message count, msg size [B], test time [ms],
-        //   throughput [msg/s],throughput [Mb/s]
-        //
-
-        outf << std::fixed << std::noshowpoint << "1," 
+        // pulishers count, message count (per publisher), msg size [B], 
+        // test time [ms], throughput [msg/s],throughput [Mb/s]
+        outf << std::fixed << std::noshowpoint << pubs_count_ << "," 
             << msg_count_ * pubs_count_ << "," << msg_size_ << "," 
             << test_time << "," << msg_thput << "," << tcp_thput << std::endl;
         

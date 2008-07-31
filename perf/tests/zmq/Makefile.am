@@ -48,13 +48,15 @@ remote_fi_CXXFLAGS = -Wall -pedantic -Werror
 
 local_thr_lat_SOURCES = local_thr_lat.cpp ../../transports/zmq.hpp \
 ../../helpers/time.hpp ../../helpers/functions.hpp \
-../../transports/i_transport.hpp ../scenarios/thr_lat.hpp
+../../transports/i_transport.hpp ../scenarios/thr_lat.hpp \
+../../helpers/ticker.hpp
 local_thr_lat_LDADD = $(top_builddir)/zmq/libzmq.la -lrt
 local_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 remote_thr_lat_SOURCES = remote_thr_lat.cpp ../../transports/zmq.hpp \
 ../../helpers/time.hpp ../../helpers/functions.hpp \
-../../transports/i_transport.hpp ../scenarios/thr_lat.hpp
+../../transports/i_transport.hpp ../scenarios/thr_lat.hpp \
+../../helpers/ticker.hpp
 remote_thr_lat_LDADD = $(top_builddir)/zmq/libzmq.la -lrt
 remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
