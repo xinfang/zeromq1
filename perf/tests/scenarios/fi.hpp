@@ -92,20 +92,19 @@ namespace perf
 
         // Capture test ent timestamp 
         time_instant_t stop_time = now (); 
-    
-        double test_time = (double)(stop_time - start_time) /
-            (double) 1000000;
-
-        std::cout.precision (2);
+ 
+        // Test time in [ms] with [ms] resolution, do not use for math!!!
+        uint64_t test_time = (uint64_t) (stop_time - start_time) /
+            (uint64_t) 1000000;
 
         // Throughput [msgs/s]
-        unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) msg_count_ * (unsigned long)pubs_count_) /
-            (unsigned long)(stop_time - start_time);
+        uint64_t msg_thput = ((uint64_t) 1000000000 *
+            (uint64_t) msg_count_ * (uint64_t) pubs_count_) /
+            (uint64_t) (stop_time - start_time);
           
-        // Throughput [b/s]
-        unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
-            (unsigned long) 1000000;
+        // Throughput [Mb/s]
+        uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
+            (uint64_t) 1000000;
                 
         std::cout << std::noshowpoint << "Your average throughput is " 
             << msg_thput << " [msg/s]\n";
@@ -116,16 +115,15 @@ namespace perf
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
-        outf.precision (2);
-
         // Output file format, separate line for each run is appended 
         // to the tests.dat file
         //
         // pulishers count, message count (per publisher), msg size [B], 
         // test time [ms], throughput [msg/s],throughput [Mb/s]
-        outf << std::fixed << std::noshowpoint << pubs_count_ << "," 
-            << msg_count_ * pubs_count_ << "," << msg_size_ << "," 
-            << test_time << "," << msg_thput << "," << tcp_thput << std::endl;
+        //
+        outf << pubs_count_ << "," << msg_count_ * pubs_count_ << "," 
+            << msg_size_ << "," << test_time << "," << msg_thput << "," 
+            << tcp_thput << std::endl;
         
         outf.close ();
 

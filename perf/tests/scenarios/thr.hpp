@@ -163,6 +163,8 @@ namespace perf
         delete [] workers;
 
         // Calculate results
+
+        // Test time in [ms] with [ms] resolution, do not use for math!!!
         uint64_t test_time = uint64_t (max_stop_time - min_start_time) /
             (uint64_t) 1000000;
 
@@ -171,7 +173,7 @@ namespace perf
             (uint64_t) msg_count_ * (uint64_t) thread_count_) /
             (uint64_t) (max_stop_time - min_start_time);
 
-        // Throughput [b/s]
+        // Throughput [Mb/s]
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
             (uint64_t) 1000000;
                 

@@ -84,13 +84,13 @@ namespace perf
         outf.close ();
 
         // calculate incomming throughput [msg/s]
-        unsigned long msg_thput = ((long) 1000000000 *
-            (unsigned long) msg_count_)/
-            (unsigned long)(stop_times [msg_count_ - 1] - stop_times [0]);
+        uint64_t msg_thput = ((uint64_t) 1000000000 *
+            (uint64_t) msg_count_)/
+            (uint64_t) (stop_times [msg_count_ - 1] - stop_times [0]);
            
         // Calculate throughput [Mb/s]
-        unsigned long tcp_thput = (msg_thput * msg_size_ * 8) /
-            (unsigned long) 1000000;
+        uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
+            (uint64_t) 1000000;
                 
         std::cout << "Your average throughput is " 
             << msg_thput << " [msg/s]\n";
