@@ -13,6 +13,7 @@ EXTRA_DIST = \
     ./perf/transports/ysuite.hpp \
     ./perf/transports/zmq.hpp \
     ./perf/tests/scenarios/thr.sh \
+    ./perf/tests/scenarios/lat.sh \
     ./perf/tests/scenarios/fo.sh \
     ./perf/tests/scenarios/fi.sh \
     ./examples/exchange/graph.pl

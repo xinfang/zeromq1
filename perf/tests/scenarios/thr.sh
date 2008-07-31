@@ -17,23 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if [ $# -ne 2 ]; then
-    echo "Usage: thr.sh [tcp | zmq] [local | remote]"
-    exit 1
-fi
-
-if [ $2 != "local" -a $2 != "remote" ]; then
-    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
-    exit 1
-fi
-
-if [ $1 != "zmq" -a $1 != "tcp" ]; then
-    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
-    exit 1
-fi
-
-##############################################################################
-
 GL_IP="127.0.0.1"
 GL_PORT=5555
 
@@ -51,7 +34,24 @@ TEST_TIME=5000
 LOCAL_THR_BIN="./local_thr"
 REMOTE_THR_BIN="./remote_thr"
 
-##############################################################################
+################### Do not edit below this line ###############################
+
+
+if [ $# -ne 2 ]; then
+    echo "Usage: thr.sh [tcp | zmq] [local | remote]"
+    exit 1
+fi
+
+if [ $2 != "local" -a $2 != "remote" ]; then
+    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
+    exit 1
+fi
+
+if [ $1 != "zmq" -a $1 != "tcp" ]; then
+    echo "Usage: thr.sh [tcp | zmq ] [local | remote]"
+    exit 1
+fi
+
 
 SYS_LAT_DEN=100
 SYS_SLOPE=0.55

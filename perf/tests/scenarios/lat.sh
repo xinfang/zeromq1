@@ -18,23 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-if [ $# -ne 2 ]; then
-    echo "Usage: lat.sh [tcp | zmq] [local | remote]"
-    exit 1
-fi
-
-if [ $2 != "local" -a $2 != "remote" ]; then
-    echo "Usage: lat.sh [tcp | zmq ] [local | remote]"
-    exit 1
-fi
-
-if [ $1 != "zmq" -a $1 != "tcp" ]; then
-    echo "Usage: lat.sh [tcp | zmq ] [local | remote]"
-    exit 1
-fi
-
-##############################################################################
-
 GL_IP="127.0.0.1"
 GL_PORT=5555
 
@@ -51,7 +34,24 @@ TEST_TIME=250
 LOCAL_LAT_BIN="./local_lat"
 REMOTE_LAT_BIN="./remote_lat"
 
-##############################################################################
+######################## Do not edit below this line ##########################
+
+
+if [ $# -ne 2 ]; then
+    echo "Usage: lat.sh [tcp | zmq] [local | remote]"
+    exit 1
+fi
+
+if [ $2 != "local" -a $2 != "remote" ]; then
+    echo "Usage: lat.sh [tcp | zmq ] [local | remote]"
+    exit 1
+fi
+
+if [ $1 != "zmq" -a $1 != "tcp" ]; then
+    echo "Usage: lat.sh [tcp | zmq ] [local | remote]"
+    exit 1
+fi
+
 
 SYS_LAT_DEN=100
 SYS_SLOPE=0.55
