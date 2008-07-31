@@ -23,24 +23,13 @@ pkginclude_HEADERS = \
     stdint.hpp \
     bp_engine.hpp \
     i_pollable.hpp \
-    amqp09_encoder.hpp \
-    amqp09_decoder.hpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
-    amqp09_server_fsm.hpp \
-    i_amqp09.hpp \
-    amqp09_marshaller.hpp \
-    amqp09_unmarshaller.hpp \
     command.hpp \
     mux.hpp \
     demux.hpp \
     i_context.hpp \
     pipe.hpp \
     bp_listener.hpp \
-    amqp09_listener.hpp \
     locator.hpp \
-    amqp09_client_engine.hpp \
-    amqp09_server_engine.hpp \
     i_engine.hpp \
     scope.hpp \
     global_locator.hpp \
@@ -64,17 +53,10 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     api_thread.cpp \
     poll_thread.cpp \
     bp_engine.cpp \
-    amqp09_encoder.cpp \
-    amqp09_decoder.cpp \
-    amqp09_client_fsm.cpp \
-    amqp09_server_fsm.cpp \
-    amqp09_marshaller.cpp \
-    amqp09_unmarshaller.cpp \
     mux.cpp \
     demux.cpp \
     pipe.cpp \
     bp_listener.cpp \
-    amqp09_listener.cpp \
     locator.cpp \
     tcp_listener.cpp
 
