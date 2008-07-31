@@ -31,6 +31,11 @@
 
 namespace perf
 {
+    bool error_handler (const char*)
+    {
+        //  We don't want to fail when peer disconnects
+        return true;
+    }
 
     class zmq_t : public i_transport
     {
@@ -43,6 +48,10 @@ namespace perf
             dispatcher (thread_count),
             locator (locator_ip_, locator_port_)
         {
+
+            //  Set error handler function (to ignore disconnected receivers)
+            zmq::set_error_handler (error_handler);
+
             api = zmq::api_thread_t::create (&dispatcher, &locator);
             worker = zmq::poll_thread_t::create (&dispatcher);
 
