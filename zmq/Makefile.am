@@ -32,7 +32,7 @@ pkginclude_HEADERS = \
     locator.hpp \
     i_engine.hpp \
     scope.hpp \
-    global_locator.hpp \
+    zmq_server.hpp \
     config.hpp \
     yqueue.hpp \
     tcp_listener.hpp \
@@ -63,9 +63,9 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror
 
-bin_PROGRAMS = global_locator
-global_locator_SOURCES = global_locator.cpp stdint.hpp err.hpp
-global_locator_CXXFLAGS = -Wall -pedantic -Werror
+bin_PROGRAMS = zmq_server
+zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
+zmq_server_CXXFLAGS = -Wall -pedantic -Werror
 
 dist-hook:
 		-rm $(distdir)/stdint.hpp

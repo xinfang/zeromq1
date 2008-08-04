@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_AMQP09_CLIENT_ENGINE_HPP_INCLUDED__
-#define __ZMQ_AMQP09_CLIENT_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
+#define __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 
 namespace zmq
 {

@@ -28,7 +28,7 @@
 #include "i_context.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
-#include "global_locator.hpp"
+#include "zmq_server.hpp"
 
 namespace zmq
 {

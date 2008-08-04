@@ -33,11 +33,8 @@ using namespace std;
 
 #include "stdint.hpp"
 #include "err.hpp"
-#include "global_locator.hpp"
+#include "zmq_server.hpp"
 using namespace zmq;
-
-
-#define ZMQ_DEBUG
 
 struct exchange_info_t
 {
@@ -89,7 +86,7 @@ void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
 int main (int argc, char *argv [])
 {
     if (argc != 3) {
-        printf ("usage: global_locator <inteface> <port>\n");
+        printf ("usage: zmq_server <inteface> <port>\n");
         return 1;
     }
 
