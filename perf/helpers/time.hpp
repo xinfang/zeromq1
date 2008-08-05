@@ -101,9 +101,9 @@ namespace perf
         if (busy_frq > sleep_frq * 1.1 && sleep_frq < busy_frq * 1.1) {
             std::cerr << "Difference more than +-10%!" << std::endl;
             std::cerr << "It looks like while your CPU is in idle, frequency "
-                << "is being lowered. Probably \nby some power saving enhancement. "
-                << "Please turn off all cpu frequency lowering\nleverages "
-                << "and rerun the program." << std::endl;
+                << "is being lowered. Probably \nby some power saving "
+                << "enhancement. Please turn off all cpu frequency "
+                << "lowering\nleverages and rerun the program." << std::endl;
             return 0;
         }
 

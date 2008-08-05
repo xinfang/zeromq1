@@ -84,7 +84,6 @@ if test "x$with_perf" != "xno"; then
     AC_MSG_RESULT([$rtdsc])
 
     # To built cpu frequency estimator we need librt && rtdsc
-    cpu_estimator="no"
     if test "x$rtdsc" = "xyes" -a "x$HAVE_LIBRT" = "xyes"; then
         cpu_estimator="yes"
     fi

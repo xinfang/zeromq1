@@ -35,9 +35,9 @@ namespace perf
 
         //  Initialise ticker. required frequency of ticks (in Hz)
         //  should be supplied.
-        ticker_t (uint64_t tick_frequency) : first_tick (true), next (0)
+        ticker_t (uint64_t tick_frequency_) : first_tick (true), next (0)
         {
-            period_ns = 1000000000 / tick_frequency;
+            period_ns = 1000000000 / tick_frequency_;
         }
 
         //  Waits for the next tick. The ticks are "queued", meaning that
