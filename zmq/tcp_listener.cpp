@@ -56,7 +56,7 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
             port = default_port_;
         }
         else
-            port = host.c_str () + pos;
+            port = host.c_str () + pos + 1;
 
         //  Determine IP address to use.
         if (pos == 0) {
@@ -74,7 +74,6 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
     memset (&req, 0, sizeof req);
     struct addrinfo *res;
     req.ai_family = AF_INET;
-printf ("resolving %s %s\n", address, port);
     int rc = getaddrinfo (address, port, &req, &res);
     gai_assert (rc);
     *address_ = *((sockaddr_in *) res->ai_addr);
