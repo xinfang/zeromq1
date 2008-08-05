@@ -36,6 +36,7 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
 {
     const char *port;
     const char *address;
+    std::string host;
 
     if (!host_) {
         assert (default_port_);
@@ -45,7 +46,6 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
     }
     else {
 
-        std::string host;
         if (host_)
             host = host_;
         std::string::size_type pos = host.find (':');

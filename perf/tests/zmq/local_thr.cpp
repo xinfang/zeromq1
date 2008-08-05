@@ -29,7 +29,7 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5){
+    if (argc != 6) {
         cerr << "Usage: local_thr <hostname> <interface> <message size> "
             "<message count> <number of threads>" << endl;
         return 1;
