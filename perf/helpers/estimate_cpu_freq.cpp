@@ -38,8 +38,8 @@ int main (void)
 
     // If PERF_CPU_FREQUENCY macro is defined while compiling perf on 
     // i386 and x86_64 platforms rtdsc will be used for time measuring.
-    cout << "Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=" << cpu_freq << endl
-        << " and run configure and make in the top of the source tree again." 
+    cout << "Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=" << cpu_freq 
+        << " and run\nconfigure and make in the top of the source tree again."
         << endl;
 
     return 0;

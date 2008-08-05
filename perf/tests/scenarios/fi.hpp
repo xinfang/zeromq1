@@ -111,7 +111,7 @@ namespace perf
         std::cout << std::noshowpoint << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
  
-        //  Save the results into tests.dat file
+        //  Save the results into the tests.dat file
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         

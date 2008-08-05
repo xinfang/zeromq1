@@ -39,7 +39,7 @@ int main (int argc, char *argv [])
 
     cout << "publisher ID: " << pub_id << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "message count: " << msg_count << endl;
+    cout << "message count: " << msg_count << endl << endl;
 
     // Create zmq transport with bind = true. It means that local 
     // exchange will be created and binded to the global queue QIN and created 

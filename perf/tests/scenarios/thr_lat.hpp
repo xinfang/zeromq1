@@ -23,7 +23,7 @@
           'local'                   'remote'
       (started first)          (started second)
              |
-             |                        
+             |                         | 
              |                         |
              |  messages (size,count)  | 
              |<========================|
@@ -57,8 +57,9 @@ namespace perf
     {
        
         // Allocate array for timestamps captured after receive message.
-        // Note that it is neessary to keep time between peers in sync wiht
-        // accuracy in orders of 10th us. 
+        // Note that it is neessary to keep time between peers in sync with
+        // accuracy in orders of us.
+        // Precision Time protocol (PTP) as defined by the IEEE 1588 can be used. 
         perf::time_instant_t *stop_times = new perf::time_instant_t [msg_count_];
 
         for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
@@ -92,9 +93,9 @@ namespace perf
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
             (uint64_t) 1000000;
                 
-        std::cout << "Your average throughput is " 
+        std::cout << "Your average throughput (incomming) is " 
             << msg_thput << " [msg/s]\n";
-        std::cout << "Your average throughput is " 
+        std::cout << "Your average throughput (incomming) is " 
             << tcp_thput << " [Mb/s]\n\n";
 
         // Send sync message
@@ -115,6 +116,9 @@ namespace perf
         ticker_t ticker (msgs_per_second_); 
 
         // Allocate array for timestamps captured before sending message.
+        // Note that it is neessary to keep time between peers in sync with
+        // accuracy in orders of us.
+        // Precision Time protocol (PTP) as defined by the IEEE 1588 can be used. 
         perf::time_instant_t *start_times = new perf::time_instant_t [msg_count_];
 
         for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)

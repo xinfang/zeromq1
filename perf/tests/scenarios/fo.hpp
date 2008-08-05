@@ -68,7 +68,7 @@ namespace perf
         int msg_count_, int subs_count)
     {
 
-        // Receive sync message from each subscriber that they are rady 
+        // Receive sync message from each subscriber (they are ready now)
         for (int subs_nbr = 0; subs_nbr < subs_count; subs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);

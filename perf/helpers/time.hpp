@@ -22,7 +22,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -51,10 +51,10 @@ namespace perf
     //  for internal usage - use 'now' function instead.
     inline uint64_t now_nsecs ()
     {
-        struct timespec ts;
-        int rc = clock_gettime (CLOCK_MONOTONIC, &ts);
+        struct timeval tv;
+        int rc = gettimeofday (&tv, NULL);
         assert (rc == 0);
-        return ts.tv_sec * (uint64_t) 1000000000 + ts.tv_nsec;
+        return tv.tv_sec * (uint64_t) 1000000000 + tv.tv_usec * 1000;
     }
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
