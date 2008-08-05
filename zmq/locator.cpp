@@ -24,10 +24,13 @@
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::locator_t::locator_t (const char *address_, uint16_t port_)
+zmq::locator_t::locator_t (const char *host_)
 {
-    if (address_)
-        global_locator = new tcp_socket_t (address_, port_);
+    if (host_) {
+        char buff [32];
+        snprintf (buff, 32, "%d", (int) default_locator_port);
+        global_locator = new tcp_socket_t (host_, NULL, buff);
+    }
     else
         global_locator = NULL;
 
@@ -46,7 +49,7 @@ zmq::locator_t::~locator_t ()
 
 void zmq::locator_t::create_exchange (const char *exchange_,
     i_context *context_, i_engine *engine_, scope_t scope_,
-    const char *address_, uint16_t port_, poll_thread_t *listener_thread_,
+    const char *interface_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
     assert (strlen (exchange_) < 256);
@@ -63,10 +66,10 @@ void zmq::locator_t::create_exchange (const char *exchange_,
     if (scope_ == scope_global) {
 
          assert (global_locator);
-         assert (strlen (address_) < 256);
+         assert (strlen (interface_) < 256);
 
          //  Create a listener for the exchange
-         bp_listener_t::create (listener_thread_, address_, port_,
+         bp_listener_t::create (listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
             false, context_, engine_, exchange_);
 
@@ -76,11 +79,9 @@ void zmq::locator_t::create_exchange (const char *exchange_,
          unsigned char size = strlen (exchange_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (exchange_, size);
-         size = strlen (address_);
+         size = strlen (interface_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (address_, size);
-         uint16_t port = htons (port_);
-         global_locator->blocking_write (&port, 2);
+         global_locator->blocking_write (interface_, size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);
@@ -135,16 +136,13 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 
          assert (cmd == get_exchange_ok_id);
          global_locator->blocking_read (&size, 1);
-         char address [256];
-         global_locator->blocking_read (address, size);
-         address [size] = 0;
-         uint16_t port;
-         global_locator->blocking_read (&port, 2);
-         port = ntohs (port);
+         char interface [256];
+         global_locator->blocking_read (interface, size);
+         interface [size] = 0;
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             address, port, bp_out_batch_size, bp_in_batch_size,
+             interface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into exchange repository
@@ -164,7 +162,7 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
 }
 
 void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
-    i_engine *engine_, scope_t scope_, const char *address_, uint16_t port_,
+    i_engine *engine_, scope_t scope_, const char *interface_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
 {
@@ -181,10 +179,10 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
     if (scope_ == scope_global) {
 
          assert (global_locator);
-         assert (strlen (address_) < 256);
+         assert (strlen (interface_) < 256);
 
          //  Create a listener for the exchange
-         bp_listener_t::create (listener_thread_, address_, port_,
+         bp_listener_t::create (listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
             true, context_, engine_, queue_);
 
@@ -194,11 +192,9 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          unsigned char size = strlen (queue_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (queue_, size);
-         size = strlen (address_);
+         size = strlen (interface_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (address_, size);
-         uint16_t port = htons (port_);
-         global_locator->blocking_write (&port, 2);
+         global_locator->blocking_write (interface_, size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);
@@ -252,16 +248,13 @@ bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
 
          assert (cmd == get_queue_ok_id);
          global_locator->blocking_read (&size, 1);
-         char address [256];
-         global_locator->blocking_read (address, size);
-         address [size] = 0;
-         uint16_t port;
-         global_locator->blocking_read (&port, 2);
-         port = ntohs (port);
+         char interface [256];
+         global_locator->blocking_read (interface, size);
+         interface [size] = 0;
 
          //  Create the proxy engine for the exchange
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             address, port, bp_out_batch_size, bp_in_batch_size,
+             interface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into queue repository

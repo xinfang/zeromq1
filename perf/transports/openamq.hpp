@@ -75,7 +75,7 @@ namespace perf
             icl_system_terminate ();
         }
 
-        inline virtual void send (size_t size_, unsigned int = 0)
+        inline virtual void send (size_t size_)
         {
             //  Create the message body
             void *message_body = malloc (size_);
@@ -93,7 +93,7 @@ namespace perf
             amq_content_basic_unlink (&content);
         }
 
-        inline virtual size_t receive (unsigned int = 0)
+        inline virtual size_t receive ()
         {
             //  Get next message; if none is available wait for it
             amq_content_basic_t *content =

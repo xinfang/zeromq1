@@ -41,15 +41,14 @@ namespace zmq
     {
     public:
 
-        //  Creates the local locator and connects it to the global locator
-        //  identified by 'address' and 'port' paramters.
-        locator_t (const char *address_ = NULL, uint16_t port_ = 0);
+        //  Creates the local locator and connects it to the global locator.
+        locator_t (const char *host_ = NULL);
         ~locator_t ();
 
         //  Creates exchange
         void create_exchange (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *address_, uint16_t port_,
+            const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_);
 
@@ -62,7 +61,7 @@ namespace zmq
         //  Creates queue
         void create_queue (const char *queue_,
             i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *address_, uint16_t port_,
+            const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_);
 

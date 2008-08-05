@@ -34,20 +34,18 @@ using namespace zmq;
 int main (int argc, const char *argv [])
 {
     //  Check the command line syntax.
-    if (argc != 4) {
-        cout << "usage: display <locator IP> <locator port> <chatroom name>\n"
-            << endl;
+    if (argc != 3) {
+        cerr << "usage: display <host> <chatroom name>" << endl;
         return 1;
     }
 
     //  Retrieve command line arguments
-    const char *locator_ip = argv [1];
-    uint16_t locator_port = atoi (argv [2]);
-    const char *chatroom_name = argv [3];
+    const char *host = argv [1];
+    const char *chatroom_name = argv [2];
 
     //  Initialise 0MQ infrastructure.
     dispatcher_t dispatcher (2);
-    locator_t locator (locator_ip, locator_port);
+    locator_t locator (host);
     poll_thread_t *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 

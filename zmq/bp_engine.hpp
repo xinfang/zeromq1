@@ -44,10 +44,10 @@ namespace zmq
     public:
 
         //  Creates bp_engine. Underlying TCP connection is initialised using
-        //  listen, address and port parameters. writebuf_size
-        //  and readbuf_size determine the amount of batching to use.
+        //  host parameter. writebuf_size and readbuf_size determine
+        //  the amount of batching to use.
         static bp_engine_t *create (poll_thread_t *thread_,
-            const char *address_, uint16_t port_, size_t writebuf_size_,
+            const char *host_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object
@@ -66,7 +66,7 @@ namespace zmq
     private:
 
         bp_engine_t (poll_thread_t *thread_,
-            const char *address_, uint16_t port_,
+            const char *host_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
         bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,

@@ -37,7 +37,7 @@ namespace zmq
         //  Creates an exchange
         virtual void create_exchange (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *address_, uint16_t port_,
+            const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_) = 0;
 
@@ -50,7 +50,7 @@ namespace zmq
         //  Creates a queue
         virtual void create_queue (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *address_, uint16_t port_,
+            const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_) = 0;
 

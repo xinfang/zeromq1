@@ -102,20 +102,19 @@ private:
 
 int main (int argc, char *argv [])
 {
-    if (argc != 4) {
-        printf ("Usage: stat <locator address> <locator port> "
-            "<statistics interface>\n");
+    if (argc != 3) {
+        printf ("Usage: stat <hostname> <interface>\n");
         return 1;
     }
 
     //  Initialise 0MQ infrastructure
     zmq::dispatcher_t dispatcher (2);
-    zmq::locator_t locator (argv [1], atoi (argv [2]));
+    zmq::locator_t locator (argv [1]);
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
 
     //  Initialise the wiring
-    api->create_queue ("SQ", zmq::scope_global, argv [3], 5558, pt, 1, &pt);
+    api->create_queue ("SQ", zmq::scope_global, argv [2], pt, 1, &pt);
 
     //  Handler object
     handler_t handler;

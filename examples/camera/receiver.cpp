@@ -41,9 +41,8 @@ int main (int argc, char *argv [])
     int quit = 0;
     bool sdl_initialised = false;
 
-    if (argc != 4) {
-        fprintf (stderr, "Usage: receiver <locator address> <locator port> "
-            "<camera name>\n");
+    if (argc != 3) {
+        fprintf (stderr, "Usage: receiver <hostname> <camera name>\n");
         exit (1);
     }
 
@@ -53,7 +52,7 @@ int main (int argc, char *argv [])
     zmq::dispatcher_t dispatcher (2);
 
     //  2. Initialise local locator (to connect to global locator)
-    zmq::locator_t locator (argv [1], atoi (argv [2]));
+    zmq::locator_t locator (argv [1]);
 
     //  3. Start one working thread (to receive data from the sender)
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
@@ -70,7 +69,7 @@ int main (int argc, char *argv [])
     //  7. Bind our local exit point (queue) to a globally visible message entry
     //     point (exchange identified by "camera name"). Specify that the
     //     connection created should be handled by worker thread "pt".
-    bool rc = api->bind (argv [3], "Q", pt, pt);
+    bool rc = api->bind (argv [2], "Q", pt, pt);
     assert (rc);
 
     //  Display video until user asks to quit
@@ -112,7 +111,7 @@ int main (int argc, char *argv [])
                SDL_Quit ();
                exit (1);
             }
-            SDL_WM_SetCaption (argv[3], argv[3]);
+            SDL_WM_SetCaption (argv[2], argv[2]);
 
             sdl_initialised = true;
         }

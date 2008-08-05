@@ -22,11 +22,11 @@
 #include "bp_engine.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    const char *address_, uint16_t port_, size_t writebuf_size_,
+    const char *host_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (
-        thread_, address_, port_, writebuf_size_, readbuf_size_, local_object_);
+        thread_, host_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
@@ -43,8 +43,8 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *address_,
-      uint16_t port_, size_t writebuf_size_, size_t readbuf_size_,
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *host_,
+      size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
     writebuf_size (writebuf_size_),
@@ -53,7 +53,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *address_,
     write_pos (0),
     encoder (&mux),
     decoder (&demux),
-    socket (address_, port_),
+    socket (host_, NULL, NULL),
     events (POLLIN),
     socket_error (false),
     local_object (local_object_)

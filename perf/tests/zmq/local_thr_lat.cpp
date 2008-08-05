@@ -28,26 +28,24 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 7){
-        cerr << "Usage: local_thr <global_locator IP> <global_locator port> "
-            << "<listen IP> <listen port> <message size> <message count>" << endl;
+    if (argc != 6) {
+        cerr << "Usage: local_thr_lat <hostname> <exchange interface> "
+            "<queue interface> <message size> <message count>" << endl;
         return 1;
     }
 
-    const char *g_locator = argv [1];
-    unsigned short g_locator_port = atoi (argv [2]);
-
-    const char *listen_ip = argv [3];
-    unsigned short listen_port = atoi (argv [4]);
-
-    size_t msg_size = atoi (argv [5]);
-    int msg_count = atoi (argv [6]);
+    // Parse & print command line arguments
+    const char *host = argv [1];
+    const char *exchange_interface = argv [2];
+    const char *queue_interface = argv [3];
+    size_t msg_size = atoi (argv [4]);
+    int msg_count = atoi (argv [5]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 
-    perf::zmq_t transport (false, "Q0", "E0", g_locator,g_locator_port, 
-        listen_ip, listen_port);
+    perf::zmq_t transport (host, false, "E0", "Q0",
+        exchange_interface, queue_interface);
 
     perf::local_thr_lat (&transport, msg_size, msg_count);
     

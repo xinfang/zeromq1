@@ -238,9 +238,8 @@ void *sender_routine (void *arg_)
 
 int main (int argc, char *argv [])
 {
-    if (argc != 4) {
-        printf ("Usage: gtw <locator address> <locator port> "
-            "<orders per second>\n");
+    if (argc != 3) {
+        printf ("Usage: gtw <hostname> <orders per second>\n");
         return 1;
     }
 
@@ -248,7 +247,7 @@ int main (int argc, char *argv [])
     zmq::dispatcher_t dispatcher (4);
 
     //  Create a resource locator
-    zmq::locator_t locator (argv [1], atoi (argv [2]));
+    zmq::locator_t locator (argv [1]);
 
     //  Run the sender thread
     pthread_t sender_thread;

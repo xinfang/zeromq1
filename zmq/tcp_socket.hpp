@@ -34,9 +34,9 @@ namespace zmq
     {
     public:
 
-        //  Opens TCP socket. Connects to the host specified by
-        //  'address' and 'port' arguments. 
-        tcp_socket_t (const char *address_, uint16_t port_);
+        //  Opens TCP socket. Host should be in form of "127.0.0.1:5555".
+        tcp_socket_t (const char *host_, const char *default_address_,
+            const char *default_port_);
 
         //  Opens a socket by accepting a connection from TCP listener object
         tcp_socket_t (tcp_listener_t &listener);

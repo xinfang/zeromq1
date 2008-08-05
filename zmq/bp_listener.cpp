@@ -22,12 +22,12 @@
 #include "config.hpp"
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
-    const char *interface_, uint16_t port_, int handler_thread_count_,
+    const char *interface_, int handler_thread_count_,
     poll_thread_t **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
     const char *peer_name_)
 {
-    bp_listener_t *instance = new bp_listener_t (thread_, interface_, port_,
+    bp_listener_t *instance = new bp_listener_t (thread_, interface_,
         handler_thread_count_, handler_threads_, source_, peer_context_,
         peer_engine_, peer_name_);
     assert (instance);
@@ -36,7 +36,7 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
 }
 
 zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
-      const char *interface_, uint16_t port_, int handler_thread_count_,
+      const char *interface_, int handler_thread_count_,
       poll_thread_t **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
       const char *peer_name_) :
@@ -44,7 +44,7 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
     context (thread_),
     peer_context (peer_context_),
     peer_engine (peer_engine_),
-    listener (interface_, port_)
+    listener (interface_, NULL, NULL)
 {
     //  Copy the peer name
     assert (strlen (peer_name_) < 16);

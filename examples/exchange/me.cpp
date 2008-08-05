@@ -35,10 +35,10 @@ class me_t
 {
 public:
 
-    inline me_t (const char *address_, uint16_t port_, const char *in_address_,
-          const char *out_address_) :
+    inline me_t (const char *host_, const char *in_interface_,
+          const char *out_interface_) :
         dispatcher (3),
-        locator (address_, port_),
+        locator (host_),
 	in_meter (500000, 2),
 	out_meter (500000, 3)
     {
@@ -49,9 +49,9 @@ public:
 
         //  Initialise the wiring
         te_id = api->create_exchange ("TE", zmq::scope_global,
-            out_address_, 5556, pt_out, 1, &pt_out);
+            out_interface_, pt_out, 1, &pt_out);
         api->create_queue ("OQ", zmq::scope_global,
-            in_address_, 5557, pt_in, 1, &pt_in);
+            in_interface_, pt_in, 1, &pt_in);
         se_id = api->create_exchange ("SE");
         bool rc = api->bind ("SE", "SQ", pt_out, pt_out);
         assert (rc);
@@ -159,14 +159,13 @@ private:
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5) {
-        printf ("Usage: me <locator address> <locator port> <in interface> "
-            "<out interface>\n");
+    if (argc != 4) {
+        printf ("Usage: me <hostname> <in interface> <out interface>\n");
         return 1;
     }
 
     //  Run the matching engine
-    me_t me (argv [1], atoi (argv [2]), argv [3], argv [4]);
+    me_t me (argv [1], argv [2], argv [3]);
     me.run (); 
     return 0;
 }

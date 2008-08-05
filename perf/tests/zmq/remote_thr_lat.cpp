@@ -30,25 +30,22 @@ int main (int argc, char *argv [])
 {
 
     if (argc != 6) { 
-        cerr << "Usage: remote_thr <global_locator IP> <global_locator port> "
-            << "<message size> <message count> <msgs per sec>\n"; 
+        cerr << "Usage: remote_thr_lat <hostname> <message size> "
+            "<message count> <msgs per sec>" << endl; 
         return 1;
     }
 
-    const char *g_locator = argv [1];
-    unsigned short g_locator_port = atoi (argv [2]);
-
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
-    int msgs_per_sec = atoi (argv [5]);
+    // Parse & print command line arguments
+    const char *host = argv [1];
+    size_t msg_size = atoi (argv [2]);
+    int msg_count = atoi (argv [3]);
+    int msgs_per_sec = atoi (argv [4]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
     cout << "messages per second: " << msgs_per_sec << " [msg/s]" << endl;
 
-
-    perf::zmq_t transport  (true, "Q0", "E0", g_locator, g_locator_port, 
-        NULL, 0);
+    perf::zmq_t transport  (host, true, "E0", "Q0", NULL, NULL);
 
     perf::remote_thr_lat (&transport, msg_size, msg_count, msgs_per_sec);
     

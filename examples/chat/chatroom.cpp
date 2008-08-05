@@ -41,20 +41,20 @@ int main (int argc, const char *argv [])
 {
     //  Check the command line syntax
     if (argc != 5) {
-        cout << "usage: chatroom <locator IP> <locator port> <chatroom name> "
-                "<IP address of NIC to use>\n" << endl;
+        cerr << "usage: chatroom <hostname> <chatroom name> "
+            "<in interface> <out interface>" << endl;
         return 1;
     }
 
     //  Retrieve command line arguments
-    const char *locator_ip = argv [1];
-    short locator_port = atoi (argv [2]);
-    const char *chatroom_name = argv [3];
-    const char *ip = argv [4];
+    const char *host = argv [1];
+    const char *chatroom_name = argv [2];
+    const char *in_interface = argv [3];
+    const char *out_interface = argv [4];
 
     //  Initialise 0MQ infrastructure
     set_error_handler (error_handler);
-    locator_t locator (locator_ip, locator_port);
+    locator_t locator (host);
     dispatcher_t dispatcher (2);
     poll_thread_t *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
@@ -62,11 +62,12 @@ int main (int argc, const char *argv [])
     //  Create a queue to receive messages sent to the chatroom
     char tmp [16];
     snprintf (tmp, 16, "Q_%s", chatroom_name);
-    api->create_queue (tmp, scope_global, ip, 5556, pt, 1, &pt);
+    api->create_queue (tmp, scope_global, in_interface, pt, 1, &pt);
 
     //  Create an exchange to send messages from the chatroom
     snprintf (tmp, 16, "E_%s", chatroom_name);
-    int eid = api->create_exchange (tmp, scope_global, ip, 5557, pt, 1, &pt);
+    int eid = api->create_exchange (tmp, scope_global, out_interface,
+        pt, 1, &pt);
 
     while (true) {
 

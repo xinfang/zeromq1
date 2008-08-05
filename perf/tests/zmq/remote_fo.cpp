@@ -27,19 +27,17 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 6) {
-        cerr << "Usage: remote_fo <global_locator IP> <global_locator port> "
-            << "<message size> <message count> <subscriber id>\n";
+    if (argc != 5) {
+        cerr << "Usage: remote_fo <hostname> <message size> <message count> "
+            "<subscriber id>" << endl;
         return 1;
     }
 
     // Parse & print command line arguments
-    const char *g_locator = argv [1];
-    unsigned short g_locator_port = atoi (argv [2]);
-
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
-    const char *subs_id = argv [5];
+    const char *host = argv [1];
+    size_t msg_size = atoi (argv [2]);
+    int msg_count = atoi (argv [3]);
+    const char *subs_id = argv [4];
 
     cout << "subscriber ID: " << subs_id << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -49,7 +47,7 @@ int main (int argc, char *argv [])
     // exchange will be created and binded to the global queue QIN and created 
     // local queue will be binded to global exchange EOUT. 
     // Global queue and exchange have to be created before (by the local_fo).
-    perf::zmq_t transport (true, "QIN", "EOUT", g_locator, g_locator_port, NULL, 0);
+    perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
 
     // Do the job, for more detailed info refer to ../scenarios/fo.hpp
     perf::remote_fo (&transport, msg_size, msg_count, subs_id);

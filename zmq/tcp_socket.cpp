@@ -30,25 +30,19 @@
 
 #include "err.hpp"
 
-zmq::tcp_socket_t::tcp_socket_t (const char *address_, uint16_t port_)
+zmq::tcp_socket_t::tcp_socket_t (const char *host_,
+    const char *default_address_, const char *default_port_)
 {
-    //  Create IP addess
-    struct addrinfo req;
-    memset (&req, 0, sizeof req);
-    struct addrinfo *res;
-    req.ai_family = AF_INET;
-    int rc = getaddrinfo (address_, NULL, &req, &res);
-    gai_assert (rc);
-    sockaddr_in ip_address = *((sockaddr_in *) res->ai_addr);
-    freeaddrinfo (res);
-    ip_address.sin_port = htons (port_);
+    //  Convert the hostname into sockaddr_in structure.
+    sockaddr_in ip_address;
+    resolve_ip_address (&ip_address, host_, default_address_, default_port_);
 
     //  Create the socket
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
 
     //  Connect to the remote peer
-    rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
     errno_assert (rc != -1);
 
     //  Disable Nagle's algorithm

@@ -20,10 +20,20 @@
 #ifndef __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 #define __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 
+#include <netinet/in.h>
+
 #include "stdint.hpp"
 
 namespace zmq
 {
+
+    //  This function resolves a string in <host-name>:<port-number> format.
+    //  If port number is not specified, default_port_ is used instead. If
+    //  IP address is not specified (e.g. ":80"), default address is used
+    //  instead.
+    //  TODO: This function should be moved to a separate file.
+    void resolve_ip_address (sockaddr_in *address_, const char *host_,
+        const char *default_address_, const char* default_port_);
 
     //  The class encapsulating simple TCP listening socket.
 
@@ -31,7 +41,8 @@ namespace zmq
     {
     public:
 
-        tcp_listener_t (const char *interface_, uint16_t port_);
+        tcp_listener_t (const char *host_, const char *default_address_,
+            const char *default_port_);
 
         inline int get_fd ()
         {
@@ -42,7 +53,7 @@ namespace zmq
 
     private:
 
-        //  Underlying socket
+        //  Underlying socket.
         int s;
     };
 

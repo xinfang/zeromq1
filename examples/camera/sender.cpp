@@ -52,9 +52,9 @@ int main (int argc, char *argv [])
     unicap_data_buffer_t dest_buffer;
     unicap_data_buffer_t *returned_buffer;
 
-    if (argc != 6) {
-        fprintf (stderr, "Usage: sender <locator address> <locator port> "
-            "<camera name> <interface> <port>\n");
+    if (argc != 4) {
+        fprintf (stderr, "Usage: sender <hostname> <camera name> "
+            "<interface>\n");
         exit (1);
     }
 
@@ -67,7 +67,7 @@ int main (int argc, char *argv [])
     zmq::dispatcher_t dispatcher (2);
 
     //  3. Initialise local locator (to connect to global locator)
-    zmq::locator_t locator (argv [1], atoi (argv [2]));
+    zmq::locator_t locator (argv [1]);
 
     //  4. Start one working thread (to send data to receivers)
     zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
@@ -80,8 +80,8 @@ int main (int argc, char *argv [])
     //      is user-defined ("camera name"). Specify that working thread "pt"
     //      will be used to listen to new connections being created as well as
     //      to send frames to existing connections.
-    int e_id = api->create_exchange (argv [3], zmq::scope_global, argv [4], 
-        atoi (argv [5]), pt, 1, &pt);
+    int e_id = api->create_exchange (argv [2], zmq::scope_global, argv [3],
+        pt, 1, &pt);
     
     //  Open first available video capture device
     if (!SUCCESS (unicap_enumerate_devices (NULL, &device, 0))) {

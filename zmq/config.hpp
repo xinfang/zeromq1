@@ -26,6 +26,9 @@ namespace zmq
     //  Compile-time settings for 0MQ
     enum
     {
+        //  Port to use to connect to global locator (zmq_server).
+        default_locator_port = 5682,
+
         //  Maximal batching size for incoming backend protocol messages.
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be read by a single 'read' system call, thus avoiding

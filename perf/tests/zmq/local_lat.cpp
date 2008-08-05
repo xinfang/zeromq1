@@ -27,29 +27,25 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 7){
-        cerr << "Usage: local <global_locator IP> <global_locator port> "
-            << "<listen IP> <listen port> <message size> "
-            << "<roundtrip count>" << endl;
+    if (argc != 6) {
+        cerr << "Usage: local_lat <hostname> <exchange interface> "
+            "<queue interface> <message size> <roundtrip count>" << endl;
         return 1;
     }
 
     // Parse & print command line arguments 
-    const char *g_locator_ip = argv [1];
-    unsigned short g_locator_port = atoi (argv [2]);
-
-    const char *listen_ip = argv [3];
-    unsigned short listen_port = atoi (argv [4]);
-
-    size_t msg_size = atoi (argv [5]);
-    int roundtrip_count = atoi (argv [6]);
+    const char *host = argv [1];
+    const char *exchange_interface = argv [2];
+    const char *queue_interface = argv [3];
+    size_t msg_size = atoi (argv [4]);
+    int roundtrip_count = atoi (argv [5]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
     // Create zmq transport
-    perf::zmq_t transport (false, "QIN", "EOUT", g_locator_ip, g_locator_port,
-        listen_ip, listen_port);
+    perf::zmq_t transport (host, false, "EOUT", "QIN", exchange_interface,
+        queue_interface);
 
     // Do the job, for more detailed info refer to ../scenarios/lat.hpp
     local_lat (&transport, msg_size, roundtrip_count);

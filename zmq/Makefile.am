@@ -64,6 +64,7 @@ libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror
 
 bin_PROGRAMS = zmq_server
+zmq_server_LDADD = $(top_builddir)/zmq/libzmq.la
 zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
 zmq_server_CXXFLAGS = -Wall -pedantic -Werror
 

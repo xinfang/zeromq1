@@ -27,23 +27,20 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 8) {
-        cerr << "Usage: local_fo <global_locator IP> <global_locator port> "
-            << "<listen IP> <listen port> <message size> <message count> "
-            << "<number of subscribers>\n";
+    if (argc != 7) {
+        cerr << "Usage: local_fo <hostname> <exchange interface> "
+            "<queue interface> <message size> <message count> "
+            "<number of subscribers>" << endl;
         return 1;
     }
 
     // Parse & print command line arguments
-    const char *g_locator = argv [1];
-    unsigned short g_locator_port = atoi (argv [2]);
-
-    const char *listen_ip = argv [3];
-    unsigned short listen_port = atoi (argv [4]);
-
-    size_t msg_size = atoi (argv [5]);
-    int msg_count = atoi (argv [6]);
-    int subs_count = atoi (argv [7]);
+    const char *host = argv [1];
+    const char *exchange_interface = argv [2];
+    const char *queue_interface = argv [3];
+    size_t msg_size = atoi (argv [4]);
+    int msg_count = atoi (argv [5]);
+    int subs_count = atoi (argv [6]);
 
     cout << "subcribers: " << subs_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -51,8 +48,8 @@ int main (int argc, char *argv [])
 
     // Create zmq transport with bind = false. It means that global queue
     // QIN and global exchange EOUT will be created without any bindings.
-    perf::zmq_t transport (false, "QIN", "EOUT", g_locator, g_locator_port, 
-        listen_ip, listen_port);
+    perf::zmq_t transport (host, false, "EOUT", "QIN", exchange_interface,
+        queue_interface);
    
     // Do the job, for more detailed info refer to ../scenarios/fo.hpp
     perf::local_fo (&transport, msg_size, msg_count, subs_count);

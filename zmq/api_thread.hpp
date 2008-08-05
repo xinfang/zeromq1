@@ -56,8 +56,7 @@ namespace zmq
         int create_exchange (
             const char *exchange_,
             scope_t scope_ = scope_local,
-            const char *address = NULL,
-            uint16_t port_ = 0,
+            const char *interface_ = NULL,
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);
@@ -66,8 +65,7 @@ namespace zmq
         int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
-            const char *address_ = NULL,
-            uint16_t port_ = 0,
+            const char *interface_ = NULL,
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);

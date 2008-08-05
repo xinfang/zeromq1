@@ -27,44 +27,89 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
+#include <string>
 
 #include "err.hpp"
 
-zmq::tcp_listener_t::tcp_listener_t (const char *interface_, uint16_t port_)
+void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
+    const char *default_address_, const char* default_port_)
 {
-    //  Create IP address of the network interface
+    const char *port;
+    const char *address;
+
+    if (!host_) {
+        assert (default_port_);
+        assert (default_address_);
+        port = default_port_;
+        address = default_address_;
+    }
+    else {
+
+        std::string host;
+        if (host_)
+            host = host_;
+        std::string::size_type pos = host.find (':');
+
+        //  Determine port to use.
+        if (pos == std::string::npos) {
+            assert (default_port_);
+            port = default_port_;
+        }
+        else
+            port = host.c_str () + pos;
+
+        //  Determine IP address to use.
+        if (pos == 0) {
+            assert (default_address_);
+            address = default_address_;
+        }
+        else {
+            host [pos] = 0;
+            address = host.c_str ();
+        }
+    }
+
+    //  Resolve the host name and service name.
     struct addrinfo req;
     memset (&req, 0, sizeof req);
     struct addrinfo *res;
     req.ai_family = AF_INET;
-    int rc = getaddrinfo (interface_, NULL, &req, &res);
+printf ("resolving %s %s\n", address, port);
+    int rc = getaddrinfo (address, port, &req, &res);
     gai_assert (rc);
-    sockaddr_in ip_address = *((sockaddr_in *) res->ai_addr);
+    *address_ = *((sockaddr_in *) res->ai_addr);
     freeaddrinfo (res);
-    ip_address.sin_port = htons (port_);
+}
 
-    //  Create a listening socket
+zmq::tcp_listener_t::tcp_listener_t (const char *host_,
+    const char *default_address_, const char *default_port_)
+{
+    //  Convert the hostname into sockaddr_in structure.
+    sockaddr_in ip_address;
+    resolve_ip_address (&ip_address, host_, default_address_, default_port_);
+
+    //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
 
-    //  Allow reusing of the address
+    //  Allow reusing of the address.
     int flag = 1;
-    rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 
-    //  Bind the socket to the network interface and port
+    //  Bind the socket to the network interface and port.
     rc = bind (s, (struct sockaddr*) &ip_address, 
         sizeof (ip_address));
     errno_assert (rc == 0);
               
-    //  Listen for incomming connections
+    //  Listen for incomming connections.
     rc = listen (s, 1);
     errno_assert (rc == 0);
 }
 
 int zmq::tcp_listener_t::accept ()
 {
-    //  Accept one incoming connection
+    //  Accept one incoming connection.
     int res = ::accept (s, NULL, NULL);
     errno_assert (res != -1);
     return res;
