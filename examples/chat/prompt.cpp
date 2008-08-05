@@ -47,11 +47,13 @@ int main (int argc, const char *argv [])
     //  Initialise 0MQ infrastructure.
     dispatcher_t dispatcher (2);
     locator_t locator (host);
+
+    //  Initialise the thread layout
     poll_thread_t *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Create local exchange to send messages to.
-    int eid = api->create_exchange ("E", scope_local);
+    int eid = api->create_exchange ("E");
 
     //  Bind the exchange to globally accessible queue exposed by chatroom.
     //  If the queue is not available, assert.

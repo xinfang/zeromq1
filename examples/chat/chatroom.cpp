@@ -54,8 +54,10 @@ int main (int argc, const char *argv [])
 
     //  Initialise 0MQ infrastructure
     set_error_handler (error_handler);
-    locator_t locator (host);
     dispatcher_t dispatcher (2);
+    locator_t locator (host);
+
+    //  Initialise the thread layout
     poll_thread_t *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
