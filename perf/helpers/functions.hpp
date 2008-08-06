@@ -24,12 +24,11 @@
 
 namespace perf
 {
-    template <typename T> 
-        inline std::string to_string (const T &input_)
-        {
-            std::stringstream string_stream;
-            string_stream << input_;
-            return string_stream.str ();
-        }
+    template <typename T> inline std::string to_string (const T &input_)
+    {
+        std::stringstream string_stream;
+        string_stream << input_;
+        return string_stream.str ();
+    }
 }
 #endif

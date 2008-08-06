@@ -96,20 +96,20 @@ void zmq::demux_t::flush ()
 
 void zmq::demux_t::terminate_pipes () 
 {
-    //  Write delimiters to the pipes
+    //  Write delimiters to the pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->write_delimiter ();
 
-    //  Remove all pointers to pipes
+    //  Remove all pointers to pipes.
     pipes.clear ();
 }
 
 void zmq::demux_t::destroy_pipe (pipe_t *pipe_)
 {
-    //  Find the pipe
+    //  Find the pipe.
     pipes_t::iterator it = std::find (pipes.begin (), pipes.end (), pipe_);
 
-    //  Send delimiter to the pipe and drop the pointer
+    //  Send delimiter to the pipe and drop the pointer.
     if (it != pipes.end ()) {
         pipe_->write_delimiter ();
         pipes.erase (it);

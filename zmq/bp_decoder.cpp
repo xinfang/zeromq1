@@ -23,14 +23,15 @@
 zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
     demux (demux_)
 {
+    //  At the beginning, read one byte and go to one_byte_size_ready state.
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 
 void zmq::bp_decoder_t::one_byte_size_ready ()
 {
     //  First byte of size is read. If it is 0xff read 8-byte size.
-    //  Otherwise allocate the buffer for message data and
-    //  read the data into it.
+    //  Otherwise allocate the buffer for message data and read the
+    //  message data into it.
     if (*tmpbuf == 0xff)
         next_step (tmpbuf, 8, &bp_decoder_t::eight_byte_size_ready);
     else {
@@ -42,7 +43,7 @@ void zmq::bp_decoder_t::one_byte_size_ready ()
 void zmq::bp_decoder_t::eight_byte_size_ready ()
 {
     //  8-byte size is read. Allocate the buffer for message body and
-    //  read data into it.
+    //  read the message data into it.
     message.rebuild (get_uint64 (tmpbuf));
     next_step (message.data (), message.size (), &bp_decoder_t::message_ready);
 }
@@ -50,8 +51,7 @@ void zmq::bp_decoder_t::eight_byte_size_ready ()
 void zmq::bp_decoder_t::message_ready ()
 {
     //  Message is completely read. Push it to the dispatcher and start reading
-    //  new message. Note that BP uses unnamed exchange to dispatch
-    //  the messages.
+    //  new message.
     demux->write (message);
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }

@@ -158,7 +158,7 @@ void zmq::bp_engine_t::close_event ()
 
         //  Report connection failure to the client.
         //  If there is no error handler, application crashes immediately.
-        //  If the error handler returns false, it crahses as well.
+        //  If the error handler returns false, it crashes as well.
         //  If error handler returns true, the error is ignored.       
         error_handler_t *eh = get_error_handler ();
         assert (eh);
@@ -191,8 +191,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
 
         //  Start sending messages to a pipe.
         if (!socket_error)
-            demux.send_to (
-                command_.args.send_to.pipe);
+            demux.send_to (command_.args.send_to.pipe);
         break;
 
     case engine_command_t::receive_from:

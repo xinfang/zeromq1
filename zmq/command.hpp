@@ -30,6 +30,8 @@
 namespace zmq
 {
 
+    //  This structure defines all the commands that can be sent to an engine.
+
     struct engine_command_t
     {
         enum type_t
@@ -57,6 +59,9 @@ namespace zmq
             } destroy_pipe;
         } args;   
     };
+
+    //  This structure defines all the commands that can be sent to a thread.
+    //  It also provides 'constructors' for all the commands.
 
     struct command_t
     {

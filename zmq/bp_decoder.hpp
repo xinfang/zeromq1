@@ -26,7 +26,8 @@
 
 namespace zmq
 {
-    //  Decoder for 0MQ backend protocol
+    //  Decoder for 0MQ backend protocol. Converts data batches into messages.
+
     class bp_decoder_t : public decoder_t <bp_decoder_t>
     {
     public:

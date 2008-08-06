@@ -37,19 +37,19 @@ namespace zmq
         demux_t ();
         ~demux_t ();
 
-        //  Start sending messages to the specified pipe
+        //  Start sending messages to the specified pipe.
         void send_to (pipe_t *pipe_);
 
-        //  Send the message (actual send is delayed till next flush)
+        //  Send the message (actual send is delayed till next flush).
         void write (message_t &msg_);
 
-        //  Flush the messages
+        //  Flush the messages.
         void flush ();
 
-        //  Write a delimiter to each pipe
+        //  Write a delimiter to each pipe.
         void terminate_pipes ();
 
-        //  Write a delimiter to the specified pipe
+        //  Write a delimiter to the specified pipe.
         void destroy_pipe (pipe_t *pipe_);
 
     private:

@@ -23,6 +23,7 @@
 zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
     mux (mux_)
 {
+    //  Write 0 bytes to the batch and go to message_ready state.
     next_step (NULL, 0, &bp_encoder_t::message_ready);
 }
 
@@ -32,26 +33,25 @@ zmq::bp_encoder_t::~bp_encoder_t ()
 
 bool zmq::bp_encoder_t::size_ready ()
 {
-    //  Write message content
+    //  Write message body into the buffer.
     next_step (message.data (), message.size (), &bp_encoder_t::message_ready);
     return true;
 }
 
 bool zmq::bp_encoder_t::message_ready ()
 {
-    //  Read new message from the dispatcher, if there is none, return false.
+    //  Read new message from the dispatcher. If there is none, return false.
     if (!mux->read (&message))
         return false;
 
+    //  For messages less than 255 bytes long, write one byte of message size.
+    //  For longer messages write 0xff escape character followed by 8-byte
+    //  message size.
     if (message.size () < 255) {
-
-        //  Write one-byte length
         tmpbuf [0] = (unsigned char) message.size ();
         next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
     }
     else {
-
-        //  Write 0xff escape character & 8-byte length
         tmpbuf [0] = 0xff;
         put_uint64 (tmpbuf + 1, message.size ());
         next_step (tmpbuf, 9, &bp_encoder_t::size_ready);

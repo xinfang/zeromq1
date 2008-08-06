@@ -29,6 +29,9 @@
 namespace zmq
 {
 
+    //  BP (backend protocol) listener. Listens on a specified network
+    //  interface and port and creates a BP engine for every new connection.
+
     class bp_listener_t : public i_pollable
     {
     public:
@@ -41,7 +44,7 @@ namespace zmq
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
             const char *peer_name_);
 
-        //  i_pollable implementation
+        //  i_pollable implementation.
         int get_fd ();
         short get_events ();
         bool in_event ();
@@ -60,10 +63,10 @@ namespace zmq
         //  Determines whether the engine serves as a local source of messages
         //  (i.e. reads them from the sockets and makes them available) or
         //  a local destination of messages (i.e. gathers the messages and
-        //  sends them to the socket)
+        //  sends them to the socket).
         bool source;
 
-        //  The context listener is running in
+        //  The context listener is running in.
         i_context *context;
 
         //  Determine the engine and the object (either exchange or queue)
@@ -72,10 +75,10 @@ namespace zmq
         i_engine *peer_engine;
         char peer_name [16];
 
-        //  Listening socket
+        //  Listening socket.
         tcp_listener_t listener;
 
-        //  The thread array to manage newly-created BP engines
+        //  The thread array to manage newly-created BP engines.
         typedef std::vector <poll_thread_t*> handler_threads_t;
         handler_threads_t handler_threads;
         handler_threads_t::size_type current_handler_thread;

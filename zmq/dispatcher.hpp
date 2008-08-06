@@ -56,10 +56,10 @@ namespace zmq
         //  thread whatsoever.
         dispatcher_t (int thread_count_);
 
-        //  Destroy the dispatcher object
+        //  Destroy the dispatcher object.
         ~dispatcher_t ();
 
-        //  Returns number of threads dispatcher is preconfigured for
+        //  Returns number of threads dispatcher is preconfigured for.
         inline int get_thread_count ()
         {
             return thread_count;
@@ -116,7 +116,6 @@ namespace zmq
         //  to sync the commands from the administrative context.
         std::vector <bool> used;
         pthread_mutex_t mutex;
-
     };
 
     //  Prototype of the error handling function.

@@ -35,9 +35,11 @@
 namespace zmq
 {
 
-    //  bp_engine uses TCP to transport messages in 0MQ backen protocol format.
-    //  Event handling is done via poll - i.e. bp_engine should be used with
-    //  poll_thread.
+    //  BP engine is defined by follwowing properties:
+    //
+    //  1. Underlying transport is TCP.
+    //  2. Wire-level protocol is 0MQ backend protocol.
+    //  3. Polling is done using POSIX poll function.
 
     class bp_engine_t : public i_engine, public i_pollable
     {
@@ -45,7 +47,8 @@ namespace zmq
 
         //  Creates bp_engine. Underlying TCP connection is initialised using
         //  host parameter. writebuf_size and readbuf_size determine
-        //  the amount of batching to use.
+        //  the amount of batching to use. Local object name is simply stored
+        //  and passed to error handler function when connection breaks.
         static bp_engine_t *create (poll_thread_t *thread_,
             const char *host_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
@@ -96,8 +99,7 @@ namespace zmq
         short events;
         bool socket_error;
 
-        //  Name of the object on this side of the connection
-        //  (exchange or queue).
+        //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
     };
 
