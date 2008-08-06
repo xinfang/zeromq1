@@ -28,10 +28,9 @@
 namespace zmq
 {
 
-    //  This class encapuslates several atomic operations on unsigned
-    //  integer. Aside of simple atomic operations, selection of the provided
-    //  instructions is driven specifically by the needs of ypollset
-    //  implementation.
+    //  This class encapuslates several bitwise atomic operations on unsigned
+    //  integer. Selection of operations is driven specifically by the needs
+    //  of ypollset implementation.
 
     class atomic_bitmap_t
     {

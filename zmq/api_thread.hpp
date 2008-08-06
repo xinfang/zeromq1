@@ -37,14 +37,15 @@
 
 namespace zmq
 {
-    //  Engine to be used from client application thread. NB it is not
-    //  thread-safe. In case you want to use 0MQ from several client threads
-    //  create api_thread for each of them.
+    //  Thread object to be used as a proxy for client application thread.
+    //  It is not thread-safe. In case you want to use 0MQ from several
+    //  client threads create api_thread for each of them.
 
     class api_thread_t : private i_context, private i_engine
     {
     public:
-        //  Creates API engine and attaches it to the command dispatcher and
+
+        //  Creates API thread and attaches it to the command dispatcher and
         //  resource locator.
         static api_thread_t *create (dispatcher_t *dispatcher_,
             i_locator *locator_);
@@ -70,13 +71,13 @@ namespace zmq
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);
 
-        //  Binds the exchange to the queue.
+        //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,
             poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
 
-        //  Send a message to specified exchange, 0MQ takes responsibility
-        //  for deallocating the message. If there are any pendign pre-sent
-        //  messages, flush them.
+        //  Send a message to specified exchange. 0MQ takes responsibility
+        //  for deallocating the message. If there are any pending pre-sent
+        //  messages, flush them immediately.
         void send (int exchange_id_, message_t &msg_);
 
         //  Presend the message. The message will be stored internally and
@@ -87,7 +88,7 @@ namespace zmq
         //  Flush all the pre-sent messages.
         void flush ();
 
-        //  Receive a message, if 'block' argument is true, it'll block till
+        //  Receive a message. If 'block' argument is true, it'll block till
         //  message arrives. It returns ID of the queue message was retrieved
         //  from, 0 is no message was retrieved.
         int receive (message_t *msg_, bool block_ = true);
@@ -103,26 +104,45 @@ namespace zmq
         //  i_engine implementation.
         void process_command (const engine_command_t &command_);
 
-        void process_commands (ypollset_t::integer_t signals_);
-        void process_engine_command (engine_command_t &command_);
+        //  Checks for signals and processes available commands.
+        void process_commands ();
 
+        //  Processes available commands. Signals are supplied by the caller.
+        void process_commands (ypollset_t::integer_t signals_);
+
+        //  Determines when we are going to poll in 'receive' function. See
+        //  api_thread_poll_rate's description in config.hpp to get better
+        //  understanding of the algorithm used.
         int ticks;
+
+        //  Stored pointer to the dispatcher.
         dispatcher_t *dispatcher;
+
+        //  Stored pointer to the locator.
         i_locator *locator;
+
+        //  Thread ID assigned to this thread by dispatcher.
         int thread_id;
+
+        //  Used to poll for signals coming from other threads.
         ypollset_t pollset;
 
+        //  List of exchanges belonging to the API thread.
         typedef std::vector <std::pair <std::string, demux_t> > exchanges_t;
         exchanges_t exchanges;
 
-        //  Current queue points to the queue to be used for retrieving the
-        //  message next time it is required.
+        //  List of queues belonging to the API thread.
         typedef std::vector <std::pair <std::string, mux_t> > queues_t;
-        queues_t queues; 
+        queues_t queues;
+
+        //  Current queue points to the queue to be used to retrieving
+        //  next message.
         queues_t::size_type current_queue; 
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
         //  Time when last command processing was performed (in ticks).
+        //  This optimisation requires RDTSC instruction and is thus
+        //  available only on x86 platforms.
         uint64_t last_command_time;   
 #endif
     };

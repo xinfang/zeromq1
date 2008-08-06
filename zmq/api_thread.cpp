@@ -53,15 +53,16 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
     poll_thread_t **handler_threads_)
 {
-    //  Insert the exchange to the local list of exchanges
+    //  Insert the exchange to the local list of exchanges.
     //  If the exchange is already present, return immediately.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
         if (it->first == exchange_)
             return it - exchanges.begin ();
-
     exchanges.push_back (exchanges_t::value_type (exchange_, demux_t ()));
 
+    //  If the scope of the exchange is local, we won't register it
+    //  with the locator.
     if (scope_ == scope_local)
         return exchanges.size () - 1;
 
@@ -77,15 +78,16 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     const char *interface_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
-    //  Insert the queue to the local list of queues
+    //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
         if (it->first == queue_)
             return it - queues.begin ();
-
     queues.push_back (queues_t::value_type (queue_, mux_t ()));
 
+    //  If the scope of the queue is local, we won't register it
+    //  with the locator.
     if (scope_ == scope_local)
         return queues.size ();
 
@@ -172,31 +174,10 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
 void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
 {
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+    //  Process pending commands, if any.
+    process_commands ();
 
-    //  Optimised version of send doesn't have to check for incoming commands
-    //  each time send is called. It does so onlt if certain time elapsed since
-    //  last command processing. Command delay varies depending on CPU speed:
-    //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
-    uint32_t low;
-    uint32_t high;
-    __asm__ volatile ("rdtsc"
-        : "=a" (low), "=d" (high));
-    uint64_t current_time = (uint64_t) high << 32 | low;
-
-    if (current_time - last_command_time > 3000000) {
-        ypollset_t::integer_t signals = pollset.check ();
-        if (signals)
-            process_commands (signals);
-        last_command_time = current_time;
-    }
-#else
-    ypollset_t::integer_t signals = pollset.check ();
-    if (signals)
-        process_commands (signals);
-#endif
-
-    //  Pass the message to the demux.
+    //  Pass the message to the demux and flush it to the dispatcher.
     exchanges [exchange_id_].second.write (msg_);
     exchanges [exchange_id_].second.flush ();
 }
@@ -209,10 +190,8 @@ void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_)
 
 void zmq::api_thread_t::flush ()
 {
-    //  Check the signals and process the commands if there are any.
-    ypollset_t::integer_t signals = pollset.check ();
-    if (signals)
-        process_commands (signals);
+    //  Process pending commands, if any.
+    process_commands ();
 
     //  Flush all the exchanges.
     for (exchanges_t::iterator it = exchanges.begin ();
@@ -386,4 +365,32 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
             }
         }
     }
+}
+
+void zmq::api_thread_t::process_commands ()
+{
+#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+
+    //  Optimised version of send doesn't have to check for incoming commands
+    //  each time send is called. It does so onlt if certain time elapsed since
+    //  last command processing. Command delay varies depending on CPU speed:
+    //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
+    uint32_t low;
+    uint32_t high;
+    __asm__ volatile ("rdtsc"
+        : "=a" (low), "=d" (high));
+    uint64_t current_time = (uint64_t) high << 32 | low;
+
+    ypollset_t::integer_t signals = 0;
+    if (current_time - last_command_time > 3000000) {
+        last_command_time = current_time;
+#endif
+        signals = pollset.check ();
+        if (!signals)
+            return;        
+#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+    }
+#endif
+
+    process_commands (signals);
 }

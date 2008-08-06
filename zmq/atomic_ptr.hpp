@@ -27,8 +27,7 @@
 namespace zmq
 {
 
-    //  This class stores a single pointer and allows you to perform
-    //  atomic operations on the pointer.
+    //  This class encapsulates several atomic operations on pointers.
 
     template <typename T> class atomic_ptr_t
     {
@@ -97,7 +96,7 @@ namespace zmq
         //  Perform atomic 'compare and swap' operation on the pointer.
         //  The pointer is compared to 'cmp' argument and if they are
         //  equal, its value is set to 'val'. Old value of the pointer
-        //  is returned in any case.
+        //  is returned.
         T *cas (T *cmp_, T *val_)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
