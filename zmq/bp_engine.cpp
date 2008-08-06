@@ -107,12 +107,12 @@ short zmq::bp_engine_t::get_events ()
 
 bool zmq::bp_engine_t::in_event ()
 {
-    //  Read as much data as possible to the read buffer
+    //  Read as much data as possible to the read buffer.
     size_t nbytes = socket.read (readbuf, readbuf_size);
 
     if (!nbytes) {
 
-        //  If the other party closed the connection, stop polling
+        //  If the other party closed the connection, stop polling.
         //  TODO: handle the event more gracefully
         events ^= POLLIN;
         return false;
@@ -121,20 +121,20 @@ bool zmq::bp_engine_t::in_event ()
     //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
 
-    //  Flush any messages decoder may have produced
+    //  Flush any messages decoder may have produced.
     demux.flush ();
     return true;
 }
 
 bool zmq::bp_engine_t::out_event ()
 {
-    //  If write buffer is empty, try to read new data from the encoder
+    //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
 
         write_size = encoder.read (writebuf, writebuf_size);
         write_pos = 0;
 
-        //  If there are no data to write stop polling for output
+        //  If there are no data to write stop polling for output.
         if (!write_size)
             events ^= POLLOUT;
     }
@@ -151,24 +151,24 @@ bool zmq::bp_engine_t::out_event ()
     return true;
 }
 
-void zmq::bp_engine_t::close_event()
+void zmq::bp_engine_t::close_event ()
 {
     if (!socket_error) {
         socket_error = true;
 
-        //  Hack to report connection breakages to the client 
-        //  If there is no error handler, application crashes immediately
-        //  If the error handler returns false, it crahses as well
-        //  If error handler returns true, the error is ignored           
+        //  Report connection failure to the client.
+        //  If there is no error handler, application crashes immediately.
+        //  If the error handler returns false, it crahses as well.
+        //  If error handler returns true, the error is ignored.       
         error_handler_t *eh = get_error_handler ();
         assert (eh);
         if (!eh (local_object.c_str ()))
             assert (false);
 
-        //  Notify all our receivers that this engine is shutting down
+        //  Notify all our receivers that this engine is shutting down.
         demux.terminate_pipes ();
 
-        //  Notify senders that this engine is shutting down
+        //  Notify senders that this engine is shutting down.
         mux.terminate_pipes ();
     }
 }
@@ -178,7 +178,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     switch (command_.type) {
     case engine_command_t::revive:
 
-        //  Forward the revive command to the pipe
+        //  Forward the revive command to the pipe.
         if (!socket_error)
             command_.args.revive.pipe->revive ();
 
@@ -189,7 +189,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::send_to:
 
-        //  Start sending messages to a pipe
+        //  Start sending messages to a pipe.
         if (!socket_error)
             demux.send_to (
                 command_.args.send_to.pipe);
@@ -197,7 +197,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::receive_from:
 
-        //  Start receiving messages from a pipe
+        //  Start receiving messages from a pipe.
         if (!socket_error) {
             mux.receive_from (command_.args.receive_from.pipe);
             events |= POLLOUT;

@@ -69,8 +69,7 @@ int main (int argc, char *argv [])
     //  7. Bind our local exit point (queue) to a globally visible message entry
     //     point (exchange identified by "camera name"). Specify that the
     //     connection created should be handled by worker thread "pt".
-    bool rc = api->bind (argv [2], "Q", pt, pt);
-    assert (rc);
+    api->bind (argv [2], "Q", pt, pt);
 
     //  Display video until user asks to quit
     while (!quit) {

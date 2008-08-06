@@ -58,8 +58,7 @@ int main (int argc, const char *argv [])
     //  If the exchange is not available, assert.
     char tmp [16];
     snprintf (tmp, 16, "E_%s", chatroom_name);
-    bool ok = api->bind (tmp, "Q", pt, pt);
-    assert (ok);
+    api->bind (tmp, "Q", pt, pt);
     
     while (true) {
 

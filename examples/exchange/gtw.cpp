@@ -46,11 +46,9 @@ public:
 
         //  Initialise the wiring
         oe_id = api->create_exchange ("OE");
-        bool rc = api->bind ("OE", "OQ", pt, pt);
-        assert (rc);
+        api->bind ("OE", "OQ", pt, pt);
         se_id = api->create_exchange ("SE");
-        rc = api->bind ("SE", "SQ", pt, pt);
-        assert (rc);
+        api->bind ("SE", "SQ", pt, pt);
     }
 
     void run (uint64_t frequency_)
@@ -133,11 +131,9 @@ public:
 
         //  Initialise the wiring
         api->create_queue ("TQ");
-        bool rc = api->bind ("TE", "TQ", pt, pt);
-        assert (rc);
+        api->bind ("TE", "TQ", pt, pt);
         se_id = api->create_exchange ("SE");
-        rc = api->bind ("SE", "SQ", pt, pt);
-        assert (rc);
+        api->bind ("SE", "SQ", pt, pt);
     }
 
     void run ()

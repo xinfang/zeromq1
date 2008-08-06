@@ -32,9 +32,12 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     ticks (0),
     dispatcher (dispatcher_),
     locator (locator_),
-    current_queue (0),
-    last_command_time (0)
+    current_queue (0)
 {
+#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+    last_command_time = 0;
+#endif
+
     //  Register the thread with the command dispatcher.
     thread_id = dispatcher->allocate_thread_id (&pollset);
 }
@@ -94,7 +97,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     return queues.size ();
 }
 
-bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
+void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
 {
     //  Find the exchange.
@@ -111,10 +114,12 @@ bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     else {
         if (!(locator->get_exchange (exchange_,
               &exchange_context, &exchange_engine, exchange_thread_, queue_))) {
-#ifdef ZMQ_DEBUG
-            printf ("Exchange %s cannot be found.\n", exchange_);
-#endif
-            return false;
+
+            //  If the exchange cannot be found, report connection error.
+            error_handler_t *eh = get_error_handler ();
+            assert (eh);
+            if (!eh (exchange_))
+                assert (false);
         }
     }
 
@@ -132,10 +137,12 @@ bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     else {
         if (!(locator->get_queue (queue_,
               &queue_context, &queue_engine, queue_thread_, exchange_))) {
-#ifdef ZMQ_DEBUG
-            printf ("Queue %s cannot be found.\n", queue_);
-#endif
-            return false;
+
+            //  If the queue cannot be found, report connection error.
+            error_handler_t *eh = get_error_handler ();
+            assert (eh);
+            if (!eh (exchange_))
+                assert (false);
         }
     }
 
@@ -161,8 +168,6 @@ bool zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         cmd.init_engine_receive_from (queue_engine, queue_, pipe);
         send_command (queue_context, cmd);
     }
-
-    return true;
 }
 
 void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)

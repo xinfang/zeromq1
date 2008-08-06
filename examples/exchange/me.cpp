@@ -53,8 +53,7 @@ public:
         api->create_queue ("OQ", zmq::scope_global,
             in_interface_, pt_in, 1, &pt_in);
         se_id = api->create_exchange ("SE");
-        bool rc = api->bind ("SE", "SQ", pt_out, pt_out);
-        assert (rc);
+        api->bind ("SE", "SQ", pt_out, pt_out);
     }
 
     void run ()

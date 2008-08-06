@@ -49,10 +49,10 @@ namespace zmq
         static api_thread_t *create (dispatcher_t *dispatcher_,
             i_locator *locator_);
 
-        //  Destroys API engine
+        //  Destroys API engine.
         ~api_thread_t ();
 
-        //  Creates new exchange, returns exchange ID
+        //  Creates new exchange, returns exchange ID.
         int create_exchange (
             const char *exchange_,
             scope_t scope_ = scope_local,
@@ -61,7 +61,7 @@ namespace zmq
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);
 
-        //  Creates new queue, returns queue ID
+        //  Creates new queue, returns queue ID.
         int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
@@ -70,10 +70,8 @@ namespace zmq
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL);
 
-        //  Binds the exchange to the queue
-        //  If one of the objects cannot be found, function returns false
-        //  and no binding is created.
-        bool bind (const char *exchange_, const char *queue_,
+        //  Binds the exchange to the queue.
+        void bind (const char *exchange_, const char *queue_,
             poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
 
         //  Send a message to specified exchange, 0MQ takes responsibility
@@ -98,11 +96,11 @@ namespace zmq
 
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
-        //  i_context implementation
+        //  i_context implementation.
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
 
-        //  i_engine implementation
+        //  i_engine implementation.
         void process_command (const engine_command_t &command_);
 
         void process_commands (ypollset_t::integer_t signals_);
@@ -118,13 +116,15 @@ namespace zmq
         exchanges_t exchanges;
 
         //  Current queue points to the queue to be used for retrieving the
-        //  message next time it is required
+        //  message next time it is required.
         typedef std::vector <std::pair <std::string, mux_t> > queues_t;
         queues_t queues; 
         queues_t::size_type current_queue; 
 
-        //  Time when last command processing was performed (in ticks)
+#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+        //  Time when last command processing was performed (in ticks).
         uint64_t last_command_time;   
+#endif
     };
 
 }

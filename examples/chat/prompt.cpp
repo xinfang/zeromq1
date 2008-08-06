@@ -59,8 +59,7 @@ int main (int argc, const char *argv [])
     //  If the queue is not available, assert.
     char tmp [16];
     snprintf (tmp, 16, "Q_%s", chatroom_name);
-    bool ok = api->bind ("E", tmp, pt, pt);
-    assert (ok);
+    api->bind ("E", tmp, pt, pt);
     
     while (true) {
 

@@ -147,7 +147,7 @@ void zmq::poll_thread_t::loop ()
     }
 }
 
-void zmq::poll_thread_t::unregister_engine(i_pollable* engine_)
+void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
 {
     //  Find the engine in the list
     std::vector <i_pollable*>::iterator it =std::find (
