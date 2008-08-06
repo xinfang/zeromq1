@@ -119,15 +119,20 @@ namespace zmq
 
     };
 
-    //  Hack to report connection breakages to the client
+    //  Prototype of the error handling function.
     typedef bool (error_handler_t) (const char *local_object_);
 
+    //  Returns pointer to the current error handling function.
     inline error_handler_t *&get_error_handler ()
     {
         static error_handler_t *eh = NULL;
         return eh;
     }
 
+    //  Sets error function. Error function will be called when a connection
+    //  breaks. Name of the object (exchange or queue) on the local side
+    //  of the connection is passed to the function, so that client is able
+    //  to determine which connection was broken.
     inline void set_error_handler (error_handler_t *eh_)
     {
         get_error_handler () = eh_;

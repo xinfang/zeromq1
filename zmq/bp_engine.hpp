@@ -50,12 +50,12 @@ namespace zmq
             const char *host_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
-        //  Creates bp_engine from supplied listener object
+        //  Creates bp_engine from supplied listener object.
         static bp_engine_t *create (poll_thread_t *thread_,
             tcp_listener_t &listener_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
-        //  i_pollable interface implementation
+        //  i_pollable interface implementation.
         int get_fd ();
         short get_events ();
         bool in_event ();
@@ -74,7 +74,7 @@ namespace zmq
             const char *local_object_);
         ~bp_engine_t ();
 
-        //  Thread context the engine belongs to
+        //  Thread context the engine belongs to.
         i_context *context;
 
         mux_t mux;
@@ -97,7 +97,7 @@ namespace zmq
         bool socket_error;
 
         //  Name of the object on this side of the connection
-        //  (exchange or queue)
+        //  (exchange or queue).
         std::string local_object;
     };
 
