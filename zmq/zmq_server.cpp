@@ -85,8 +85,9 @@ void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
 
 int main (int argc, char *argv [])
 {
-    if (argc != 1 && argc != 2) {
-        printf ("Usage: zmq_server [<interface>]\n");
+    if ((argc != 1 && argc != 2) || (argc == 2 &&
+          strcmp (argv [1], "--help") == 0)) {
+        printf ("Usage: zmq_server [<network-interface-IP-address:port>]\n");
         return 1;
     }
 
