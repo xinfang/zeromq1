@@ -56,8 +56,10 @@ namespace zmq
     //  i.e. you have to use reference counting to manage its lifetime
     //  rather than straighforward malloc/free.
 
-    struct raw_message_t
+    class raw_message_t
     {
+    public:
+
         enum {
             delimiter_tag = 0,
             vsm_tag = 1
@@ -67,6 +69,37 @@ namespace zmq
         bool shared;
         uint16_t vsm_size;
         unsigned char vsm_data [max_vsm_size];
+
+        inline raw_message_t ()
+        {
+        };
+
+        inline void operator = (const raw_message_t &src_)
+        {
+            //  Content pointer is valid for any type of message and thus must
+            //  be always copied.
+            content = src_.content;
+
+            //  Nothing more to copy for pipe delimiters.
+            if (content == (message_content_t*) delimiter_tag)
+                return;
+
+            //  Standard message requires it's 'shared' flag to be copied.
+            if (content != (message_content_t*) vsm_tag) {
+                shared = src_.shared;
+                return;
+            }
+
+            //  At this point we are sure that message is a VSM - copy
+            //  the appropriate part of the buffer.
+            vsm_size = src_.vsm_size;
+            memcpy (vsm_data, src_.vsm_data, vsm_size);
+        }
+
+    private:
+
+        //  Disable copy construction (operator = should be used instead).
+        raw_message_t (const raw_message_t&);
     };
 
     //  Initialises a message of the specified size.
@@ -165,6 +198,7 @@ namespace zmq
             }
         }
 
+        //  Do the actual copying.
         *dest_ = *src_;
     }
 
