@@ -31,34 +31,34 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
     pollset (1)
 {
-    //  Initialise the pollset
+    //  Initialise the pollset.
     pollset [0].fd = signaler.get_fd ();
     pollset [0].events = POLLIN;
 
-    //  Register the thread with command dispatcher
+    //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (&signaler);
 
-    //  Create the worker thread
+    //  Create the worker thread.
     int rc = pthread_create (&worker, NULL, worker_routine, this);
     errno_assert (rc == 0);
 }
 
 zmq::poll_thread_t::~poll_thread_t ()
 {
-    //  Send a 'stop' event ot the worker thread
+    //  Send a 'stop' event ot the worker thread.
     //  TODO: Analyse whether using the to-self command pipe here is appropriate
     command_t cmd;
     cmd.init_stop ();
     dispatcher->write (thread_id, thread_id, cmd);
 
-    //  Wait till worker thread terminates
+    //  Wait till worker thread terminates.
     int rc = pthread_join (worker, NULL);
     errno_assert (rc == 0);
 }
 
 void zmq::poll_thread_t::register_engine (i_pollable *engine_)
 {
-    //  Plug the engine to the poll thread (via admin context)
+    //  Plug the engine to the poll thread (via admin context).
     command_t command;
     command.init_register_engine (engine_);
     dispatcher->send_command (this, command);
@@ -86,7 +86,7 @@ void zmq::poll_thread_t::loop ()
 {
     while (true)
     {
-        //  Adjust the events to wait - the engine chooses the events
+        //  Adjust the events to wait - the engine chooses the events.
         for (engines_t::size_type engine_nbr = 0;
               engine_nbr != engines.size (); engine_nbr ++)
             pollset [engine_nbr + 1].events =
@@ -101,7 +101,7 @@ void zmq::poll_thread_t::loop ()
         int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
 
-        //  First of all, process socket errors
+        //  First of all, process socket errors.
         for (pollset_t::size_type pollset_index = 1;
               pollset_index != pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents &
@@ -112,7 +112,7 @@ void zmq::poll_thread_t::loop ()
             }
         }
 
-        //  Process commands from other threads
+        //  Process commands from other threads.
         if (pollset [0].revents & POLLIN) {
             uint32_t signals = signaler.check ();
             assert (signals);
@@ -120,7 +120,7 @@ void zmq::poll_thread_t::loop ()
                 return;
         }
 
-        //  Process out events from the engines
+        //  Process out events from the engines.
         for (pollset_t::size_type pollset_index = 1;
               pollset_index != pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents & POLLOUT) {
@@ -132,7 +132,7 @@ void zmq::poll_thread_t::loop ()
             }
         }
 
-        //  Process in events from the engines
+        //  Process in events from the engines.
         for (pollset_t::size_type pollset_index = 1;
               pollset_index != pollset.size (); pollset_index ++) {
 
@@ -149,14 +149,13 @@ void zmq::poll_thread_t::loop ()
 
 void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
 {
-    //  Find the engine in the list
+    //  Find the engine in the list.
     std::vector <i_pollable*>::iterator it =std::find (
         engines.begin (), engines.end (),
         engine_);
     assert (it != engines.end ());
 
-    //  Remove the engine from the engine list and
-    //  the pollset
+    //  Remove the engine from the engine list and the pollset.
     int pos = it - engines.begin ();
     engines.erase (it);
     pollset.erase (pollset.begin () + 1 + pos);
@@ -176,38 +175,38 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 switch (command.type) {
 
-                //  Exit the working thread
+                //  Exit the working thread.
                 case command_t::stop:
                     return false;
 
-                //  Register the engine supplied with the poll thread
+                //  Register the engine supplied with the poll thread.
                 case command_t::register_engine:
                     {
-                        //  Add the engine to the engine list
+                        //  Add the engine to the engine list.
                         i_pollable *engine =
                             command.args.register_engine.engine;
 
-                        //  Store the engine pointer
+                        //  Store the engine pointer.
                         engines.push_back (engine);
 
-                        //  Add the engine to the pollset
+                        //  Add the engine to the pollset.
                         pollfd pfd = {engine->get_fd (),
                             engine->get_events (), 0};
                         pollset.push_back (pfd);
                     }
                     break;
 
-                //  Unregister the engine
+                //  Unregister the engine.
                 case command_t::unregister_engine:
                     {
-                        //  Find the engine in the list
+                        //  Find the engine in the list.
                         std::vector <i_pollable*>::iterator it =std::find (
                             engines.begin (), engines.end (),
                             command.args.unregister_engine.engine);
                         assert (it != engines.end ());
 
                         //  Remove the engine from the engine list and
-                        //  the pollset
+                        //  the pollset.
                         int pos = it - engines.begin ();
                         engines.erase (it);
                         pollset.erase (pollset.begin () + 1 + pos);
@@ -215,16 +214,16 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                     break;
 
 
-                //  Forward the command to the specified engine
+                //  Forward the command to the specified engine.
                 case command_t::engine_command:
 
-                    //  TODO: check whether the engine still exists
-                    //  Otherwise drop the command
+                    //  TODO: check whether the engine still exists,
+                    //  Otherwise drop the command.
                     command.args.engine_command.engine->process_command (
                         command.args.engine_command.command);
                     break;
 
-                //  Unknown command
+                //  Unknown command.
                 default:
 
                     assert (false);
