@@ -369,6 +369,7 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
 
 void zmq::api_thread_t::process_commands ()
 {
+    ypollset_t::integer_t signals = 0;
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
 
     //  Optimised version of send doesn't have to check for incoming commands
@@ -381,7 +382,6 @@ void zmq::api_thread_t::process_commands ()
         : "=a" (low), "=d" (high));
     uint64_t current_time = (uint64_t) high << 32 | low;
 
-    ypollset_t::integer_t signals = 0;
     if (current_time - last_command_time > 3000000) {
         last_command_time = current_time;
 #endif
