@@ -74,9 +74,10 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
     memset (&req, 0, sizeof req);
     struct addrinfo *res;
     req.ai_family = AF_INET;
-    int rc = getaddrinfo (address, port, &req, &res);
+    int rc = getaddrinfo (address, NULL, &req, &res);
     gai_assert (rc);
     *address_ = *((sockaddr_in *) res->ai_addr);
+    address_->sin_port = htons (atoi (port));
     freeaddrinfo (res);
 }
 

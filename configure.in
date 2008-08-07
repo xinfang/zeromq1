@@ -10,7 +10,6 @@ AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
 # Checks for programs.
 AC_PROG_CXX
-#AC_PROG_CC
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
@@ -51,9 +50,6 @@ AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
 AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
-# Check for librt needed by perf and estimate_cpu_freq
-AC_CHECK_LIB(rt, clock_gettime, HAVE_LIBRT="yes", HAVE_LIBRT="no")
-
 # Use c++ in subsequent tests
 AC_LANG(C++)
 
@@ -65,9 +61,6 @@ time_measure="gettime"
 
 # performance measuring framework (perf)
 if test "x$with_perf" != "xno"; then
-    if test "x$HAVE_LIBRT_H" = "xno"; then
-        AC_MSG_ERROR([To compile perf you need to have librt installed!])
-    fi
     perf="yes"
 
     # Test for __GNUC__ && (__i386__ || __x86_64__) macros
@@ -84,7 +77,7 @@ if test "x$with_perf" != "xno"; then
     AC_MSG_RESULT([$rtdsc])
 
     # To built cpu frequency estimator we need librt && rtdsc
-    if test "x$rtdsc" = "xyes" -a "x$HAVE_LIBRT" = "xyes"; then
+    if test "x$rtdsc" = "xyes"; then
         cpu_estimator="yes"
     fi
 
@@ -131,9 +124,6 @@ fi
 AC_ARG_WITH([exchange], [AS_HELP_STRING([--with-exchange], [build exchange example [default=no]])], [], [with_exchange=no])
 exchange="no"
 if test "x$with_exchange" != "xno"; then
-    if test "x$HAVE_LIBRT_H" = "xno"; then
-        AC_MSG_ERROR([To compile exchange example you need to have librt installed!])
-    fi
     exchange="yes"
 fi
 

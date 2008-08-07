@@ -4,5 +4,4 @@ noinst_PROGRAMS = estimate_cpu_freq
 
 estimate_cpu_freq_SOURCES = estimate_cpu_freq.cpp
 estimate_cpu_freq_CXXFLAGS = -Wall -pedantic -Werror
-estimate_cpu_freq_LDADD = -lrt
 endif
