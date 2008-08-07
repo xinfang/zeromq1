@@ -18,17 +18,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # GL_* only for zmq transport test
-GL_IP="127.0.0.1"
-GL_PORT=5555
+GL_IP="10.0.0.1"
+GL_PORT=5682
 
-REC_IP="127.0.0.1"
+REC_IP="10.0.0.1"
 REC_PORT=5672
 
 MSG_SIZE_START=1
 MSG_SIZE_STEPS=10
 
 THREADS=1
-RUNS=3
+RUNS=1
 
 TEST_TIME=5000
 
@@ -76,7 +76,7 @@ if [ $2 = "local" ]; then
             fi
 
             if [ $1 = "zmq" ]; then
-                $LOCAL_THR_BIN $GL_IP $GL_PORT $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
+                $LOCAL_THR_BIN $GL_IP:$GL_PORT $REC_IP $MSG_SIZE $MSG_COUNT $THREADS
             else
                 $LOCAL_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS
                 let REC_PORT=REC_PORT+THREADS
@@ -98,7 +98,7 @@ else
             fi
 
             if [ $1 = "zmq" ]; then
-                $REMOTE_THR_BIN $GL_IP $GL_PORT $MSG_SIZE $MSG_COUNT $THREADS
+                $REMOTE_THR_BIN $GL_IP:$GL_PORT $MSG_SIZE $MSG_COUNT $THREADS
             else
                 $REMOTE_THR_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT $THREADS                
                 let REC_PORT=REC_PORT+THREADS

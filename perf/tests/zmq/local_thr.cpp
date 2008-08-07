@@ -64,10 +64,12 @@ int main (int argc, char *argv [])
 
         // Add port number to the interface to get full exchange interface
         string exchange_interface (interface);
+        exchange_interface += ":";
         exchange_interface += perf::to_string (5556 + thread_nbr * 2);
 
         // Add port number to the interface to get full queue interface
         string queue_interface (interface);
+        queue_interface += ":";
         queue_interface += perf::to_string (5557 + thread_nbr * 2);
 
         // Create zmq transport with bind = false. It means that global queue

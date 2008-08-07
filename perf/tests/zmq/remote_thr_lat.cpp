@@ -29,7 +29,7 @@ using namespace std;
 int main (int argc, char *argv [])
 {
 
-    if (argc != 6) { 
+    if (argc != 5) { 
         cerr << "Usage: remote_thr_lat <hostname> <message size> "
             "<message count> <msgs per sec>" << endl; 
         return 1;

@@ -47,9 +47,6 @@ namespace perf
             locator (host_)
         {
 
-            //  Set error handler function (to ignore disconnected receivers)
-            zmq::set_error_handler (error_handler);
-
             api = zmq::api_thread_t::create (&dispatcher, &locator);
             worker = zmq::poll_thread_t::create (&dispatcher);
 
@@ -76,6 +73,9 @@ namespace perf
                     zmq::scope_global, exchange_interface_, worker, 
                     1, &worker);
             }
+            //  Set error handler function (to ignore disconnected receivers)
+            zmq::set_error_handler (error_handler);
+
         }
 
         inline ~zmq_t ()
