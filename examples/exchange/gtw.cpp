@@ -247,7 +247,7 @@ int main (int argc, char *argv [])
 
     //  Run the sender thread
     pthread_t sender_thread;
-    sender_routine_args_t args = {&dispatcher, &locator, atoi (argv [3])};
+    sender_routine_args_t args = {&dispatcher, &locator, atoi (argv [2])};
     int rc = pthread_create (&sender_thread, NULL, sender_routine, &args);
     assert (rc == 0);
 
