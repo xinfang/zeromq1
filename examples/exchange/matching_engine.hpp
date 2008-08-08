@@ -43,7 +43,7 @@ namespace exchange
         //  Lower limit is the maximal out-of-range price
         //  Upper limit is the minimal out-of-range price
         //  If we later choose to adjust the price range dynamically,
-        //these should be standard member variables rather than constants.
+        //  these should be standard member variables rather than constants.
         enum
         {
             lower_limit = 0,
@@ -136,7 +136,8 @@ namespace exchange
             //     getting constant-time algorithm )
             //  2. We would have to find actual max_bid anyway after the arrival
             //     of next ask order, so the search is inevitable.
-            while (orderbook [max_bid - lower_limit - 1].empty ())
+            while (max_bid != lower_limit &&
+                  orderbook [max_bid - lower_limit - 1].empty ())
                 max_bid --;
 
             //  Generate the quote if needed
@@ -223,7 +224,8 @@ namespace exchange
             //     getting constant-time algorithm )
             //  2. We would have to find actual min_ask anyway after the arrival
             //     of next bid order, so the search is inevitable.
-            while (orderbook [min_ask - lower_limit - 1].empty ())
+            while (min_ask != upper_limit &&
+                  orderbook [min_ask - lower_limit - 1].empty ())
                 min_ask ++;
 
             //  Generate the quote if needed
