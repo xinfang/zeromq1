@@ -27,6 +27,7 @@ namespace zmq
 
     //  Virtual interface to be exposed by engines so that they can receive
     //  commands from other engines.
+
     struct i_engine
     {
         //  The destructor shouldn't be virtual, however, not defining it as

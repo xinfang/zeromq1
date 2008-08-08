@@ -35,7 +35,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     size_t msg_size = atoi (argv [2]);
     int msg_count = atoi (argv [3]);
@@ -45,33 +45,34 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl << endl;
 
-    // Create *transports array
+    //  Create *transports array.
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
-    // Create as many transports as threads, each worker thread uses its own
-    // names for queues and exchanges (Q0 and E0, Q1 and E1 ...)
+    //  Create as many transports as threads, each worker thread uses its own
+    //  names for queues and exchanges (Q0 and E0, Q1 and E1 ...)
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
-        // Create queue name Q0, Q1, ...
+        //  Create queue name Q0, Q1, ...
         string queue_name ("Q");
         queue_name += perf::to_string (thread_nbr);
 
-        // Create exchange name E0, E1, ...
+        //  Create exchange name E0, E1, ...
         string exchange_name ("E");
         exchange_name += perf::to_string (thread_nbr);
 
-        // Create zmq transport with bind = true. It means that created local 
-        // exchange will be created and binded to the global queue QX 
-        // and created local queue will be binded to global exchange EX. 
-        // Global queue and exchange have to be created before by the local_thr.
+        //  Create zmq transport with bind = true. It means that created local 
+        //  exchange will be created and binded to the global queue QX 
+        //  and created local queue will be binded to global exchange EX. 
+        //  Global queue and exchange have to be created before
+        //  by the local_thr.
         transports [thread_nbr] = new perf::zmq_t (host, true,
             exchange_name.c_str (), queue_name.c_str (), NULL, NULL);
     }
 
-    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
     perf::remote_thr (transports, msg_size, msg_count, thread_count);
    
-    // Cleanup
+    //  Cleanup.
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
         delete transports [thread_nbr];

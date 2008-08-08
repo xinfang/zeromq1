@@ -30,7 +30,7 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_signaler () {};
 
-        //  Send a signal
+        //  Send a signal with a specific ID.
         virtual void signal (int signal_) = 0;
     };
 

@@ -32,17 +32,20 @@ namespace zmq
     {
     public:
 
+        //  Initialise the pipe.
         pipe_t (struct i_context *source_context_,
             struct i_engine *source_engine_,
             struct i_context *destination_context_,
             struct i_engine *destination_engine_);
         ~pipe_t ();
 
+        //  Write a message to the pipe.
         inline void write (raw_message_t *msg_)
         {
             pipe.write (*msg_);
         }
 
+        //  Write pipe delimiter to the pipe.
         inline void write_delimiter ()
         {
             raw_message_t delimiter;
@@ -51,19 +54,26 @@ namespace zmq
             flush ();
         }
 
+        //  Flush all the written messages to be accessible for reading.
         inline void flush ()
         {
             if (!pipe.flush ())
                 send_revive ();
         }
 
+        //  Returns true, if pipe delimiter was already received.
         bool eop ()
         {
             return endofpipe;
         }
 
+        //  Reads a message from the pipe.
         bool read (raw_message_t *msg);
+
+        //  Make the dead pipe alive once more.
         void revive ();
+
+        //  Notify the other end of the pipe that pipe is to be destroyed.
         void send_destroy_pipe ();
 
     private:
@@ -83,7 +93,11 @@ namespace zmq
         i_context *destination_context;
         i_engine *destination_engine;
 
+        //  If true we can read messages from the underlying ypipe.
         bool alive; 
+
+        //  True if we've already read the pipe delimiter from
+        //  the underlying pipe.
         bool endofpipe;
     }; 
 

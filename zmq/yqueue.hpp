@@ -43,6 +43,7 @@ namespace zmq
     {
     public:
 
+        //  Create the queue.
         inline yqueue_t ()
         {
              begin_chunk = new chunk_t;
@@ -54,6 +55,7 @@ namespace zmq
              end_pos = 0;
         }
 
+        //  Destroy the queue.
         inline ~yqueue_t ()
         {
             while (true) {
@@ -79,7 +81,7 @@ namespace zmq
             return back_chunk->values [back_pos];
         }
 
-        //  Adds an element to the back end of the queue
+        //  Adds an element to the back end of the queue.
         void push ()
         {
             back_chunk = end_chunk;
@@ -94,7 +96,7 @@ namespace zmq
             end_pos = 0;
         }
 
-        //  Removes an element from the front end of the queue
+        //  Removes an element from the front end of the queue.
         inline void pop ()
         {
             if (++ begin_pos == N) {
@@ -107,7 +109,7 @@ namespace zmq
 
     private:
 
-        //  Individual memory chunk to hold N elements
+        //  Individual memory chunk to hold N elements.
         struct chunk_t
         {
              T values [N];

@@ -38,22 +38,28 @@ using namespace std;
 #include "zmq_server.hpp"
 using namespace zmq;
 
+//  Info about a single exchange.
 struct exchange_info_t
 {
     string interface;
     int fd;
 };
 
+//  Maps exchange name to exchange info.
 typedef map <string, exchange_info_t> exchanges_t;
 
+//  Info about a single queue.
 struct queue_info_t
 {
     string interface;
     int fd;
 };
 
+//  Maps queue name to queue info.
 typedef map <string, queue_info_t> queues_t;
 
+//  This function is used when there is socket disconnection. It cleans all
+//  the objects registered by the connection.
 void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
 {
     //  Delete the symbols associated with socket s_ from
@@ -85,6 +91,7 @@ void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
 
 int main (int argc, char *argv [])
 {
+    //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
         printf ("Usage: zmq_server [<network-interface-IP-address:port>]\n");
@@ -181,7 +188,7 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
                         name [size] = 0;
 
-                        //  Parse interface
+                        //  Parse interface.
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
                         assert (nbytes == 1);
                         char interface [256];
@@ -331,7 +338,7 @@ int main (int argc, char *argv [])
                              break;
                         }
 
-                        //  Send the reply command..
+                        //  Send the reply command.
                         reply = get_queue_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         assert (nbytes == 1);
@@ -356,7 +363,7 @@ int main (int argc, char *argv [])
             }
         }
 
-        //  Accept incoming connection
+        //  Accept incoming connection.
         if (pollfds [0].revents & POLLIN) {
             int s = accept (listening_socket, NULL, NULL);
             errno_assert (s != -1);

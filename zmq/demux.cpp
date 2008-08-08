@@ -30,6 +30,7 @@ zmq::demux_t::~demux_t ()
 
 void zmq::demux_t::send_to (pipe_t *pipe_)
 {
+    //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
 }
 
@@ -48,7 +49,7 @@ void zmq::demux_t::write (message_t &msg_)
         return;
     }
 
-    //  The message has actual content. We'll handle this case in an optimised
+    //  The message has actual content. We'll handle this case in optimised
     //  fashion.
     
     int pipes_count = pipes.size ();
@@ -90,6 +91,7 @@ void zmq::demux_t::write (message_t &msg_)
 
 void zmq::demux_t::flush ()
 {
+    //  Flush all the present messages to the pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->flush ();
 }

@@ -47,7 +47,7 @@ namespace zmq
         ypipe_t (bool dead_ = true) :
             stop (false)
         {
-            //  Insert terminator element into the queue
+            //  Insert terminator element into the queue.
             queue.push ();
 
             //  Let all the pointers to point to the terminator
@@ -59,7 +59,7 @@ namespace zmq
         //  Write an item to the pipe.  Don't flush it yet.
         void write (const T &value_)
         {
-            //  Place the value to the queue, add new terminator element
+            //  Place the value to the queue, add new terminator element.
             queue.back () = value_;
             queue.push ();
         }
@@ -92,7 +92,7 @@ namespace zmq
             return true;
         }
 
-        //  Reads an item from the pipe. Returns false if there is no value
+        //  Reads an item from the pipe. Returns false if there is no value.
         //  available.
         bool read (T *value_)
         {

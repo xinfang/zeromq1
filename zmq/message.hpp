@@ -33,22 +33,29 @@ namespace zmq
     {
     public:
 
+        //  Creates empty message (0 bytes long).
         inline message_t ()
         {
             content = (message_content_t*) raw_message_t::vsm_tag;
             vsm_size = 0;
         }
 
+        //  Creates message size_ bytes long.
         inline message_t (size_t size_)
         {
             raw_message_init (this, size_);
         }
 
+        //  Creates message from the supplied buffer. 0MQ takes care of
+        //  deallocating the buffer once it is not needed. The deallocation
+        //  function is supplied in ffn_ parameter. If ffn_ is NULL, no
+        //  deallocation happens - this is useful for sending static buffers.
         inline message_t (void *data_, size_t size_, free_fn *ffn_)
         {
             raw_message_init (this, data_, size_, ffn_);
         }
 
+        //  Destroys the message.
         inline ~message_t ()
         {
             raw_message_destroy (this);
@@ -63,7 +70,9 @@ namespace zmq
             raw_message_init (this, size_);            
         }
 
-        //  Same as above.
+        //  Same as above, however, the message is rebuilt from the supplied
+        //  buffer. See appropriate constructor for discussion of buffer
+        //  deallocation mechanism.
         inline void rebuild (void *data_, size_t size_, free_fn *ffn_)
         {
             raw_message_destroy (this);

@@ -56,24 +56,26 @@ namespace perf
         int msg_count_)
     {
        
-        // Allocate array for timestamps captured after receive message.
-        // Note that it is neessary to keep time between peers in sync with
-        // accuracy in orders of us.
-        // Precision Time protocol (PTP) as defined by the IEEE 1588 can be used. 
-        perf::time_instant_t *stop_times = new perf::time_instant_t [msg_count_];
+        //  Allocate array for timestamps captured after receive message.
+        //  Note that it is neessary to keep time between peers in sync with
+        //  accuracy in orders of us. Precision Time protocol (PTP) as defined
+        //  by the IEEE 1588 can be used. 
+        perf::time_instant_t *stop_times =
+            new perf::time_instant_t [msg_count_];
 
-        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
-        {
-            // Receive test message from peer
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++) {
+
+            //  Receive test message from peer.
             size_t size = transport_->receive ();
-            // Capture timestamp
+
+            //  Capture timestamp.
             stop_times [msg_nbr] = perf::now ();
 
-            // Check incomming message size
+            //  Check incomming message size.
             assert (size == msg_size_);
         }
 
-        // Write stop_times into the stop_times.dat file
+        //  Write stop_times into the stop_times.dat file.
         std::ofstream outf ("stop_times.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
 
@@ -84,12 +86,12 @@ namespace perf
 
         outf.close ();
 
-        // calculate incomming throughput [msg/s]
+        //  Calculate incomming throughput [msg/s].
         uint64_t msg_thput = ((uint64_t) 1000000000 *
             (uint64_t) msg_count_)/
             (uint64_t) (stop_times [msg_count_ - 1] - stop_times [0]);
            
-        // Calculate throughput [Mb/s]
+        //  Calculate throughput [Mb/s].
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
             (uint64_t) 1000000;
                 
@@ -98,43 +100,43 @@ namespace perf
         std::cout << "Your average throughput (incoming) is " 
             << tcp_thput << " [Mb/s]\n\n";
 
-        // Send sync message
+        //  Send sync message.
         transport_->send (1);
 
-        // Wait for peer to write start_times
+        //  Wait for peer to write start_times.
         size_t size = transport_->receive ();
         assert (size == 1);
 
-        // Cleanup
+        //  Cleanup.
         delete [] stop_times;
     }
 
     void remote_thr_lat (i_transport *transport_, size_t msg_size_, 
         int msg_count_, int msgs_per_second_)
     {
-        // Initialize ticker with msgs_per_second ticks frequency
+        //  Initialize ticker with msgs_per_second ticks frequency.
         ticker_t ticker (msgs_per_second_); 
 
-        // Allocate array for timestamps captured before sending message.
-        // Note that it is neessary to keep time between peers in sync with
-        // accuracy in orders of us.
-        // Precision Time protocol (PTP) as defined by the IEEE 1588 can be used. 
+        //  Allocate array for timestamps captured before sending message.
+        //  Note that it is neessary to keep time between peers in sync with
+        //  accuracy in orders of us. Precision Time protocol (PTP) as defined
+        //  by the IEEE 1588 can be used. 
         perf::time_instant_t *start_times = new perf::time_instant_t [msg_count_];
 
         for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
         { 
-            // Wait for specific ammount of time to 
-            // achieve msgs_per_second_ freq
+            //  Wait for specific ammount of time to 
+            //  achieve msgs_per_second_ freq.
             ticker.wait_for_tick ();
 
-            // Capture timestamp
+            //  Capture timestamp.
             start_times [msg_nbr] = perf::now ();
 
-            // Sent test message to the peer
+            //  Sent test message to the peer.
             transport_->send (msg_size_);
         }
 
-        // Write start_times into the start_times.dat file
+        //  Write start_times into the start_times.dat file.
         std::ofstream outf ("start_times.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
 
@@ -145,11 +147,11 @@ namespace perf
 
         outf.close ();
 
-        // Wait for sync message from peer
+        //  Wait for sync message from peer.
         size_t size = transport_->receive ();
         assert (size == 1);
 
-        // send sync message
+        //  Send sync message.
         transport_->send (1);
 
         delete [] start_times;

@@ -33,7 +33,7 @@
 namespace zmq
 {
 
-    //  Poll thread is a worker thread that wait for events from engines
+    //  Poll thread is a I/O thread that waits for events from engines
     //  using POSIX poll function and schedules handling of the signals
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
@@ -42,14 +42,16 @@ namespace zmq
     {
     public:
 
-        //  Create a poll thread
+        //  Create a poll thread.
         static poll_thread_t *create (dispatcher_t *dispatcher_);
 
-        //  Destroy the poll thread
+        //  Destroy the poll thread.
         ~poll_thread_t ();
 
         //  Registers the engine with the poll thread.
         void register_engine (i_pollable *engine_);
+
+        //  Unregisters the engine from the thread.
         void unregister_engine (i_pollable* engine_);
 
         //  i_context implementation
@@ -60,25 +62,34 @@ namespace zmq
 
         poll_thread_t (dispatcher_t *dispatcher_);
 
-        //  Main worker thread routing
+        //  Main worker thread routine.
         static void *worker_routine (void *arg_);
 
-        //  Main routine (non-static) - called from worker_routine
+        //  Main routine (non-static) - called from worker_routine.
         void loop ();
 
         //  Processes commands from other threads. Returns false if the thread
         //  should terminate.
         bool process_commands (uint32_t signals_);
 
+        //  Pointer to dispatcher.
         dispatcher_t *dispatcher;
+
+        //  Thread ID allocated for the poll thread by dispatcher.
         int thread_id;
 
+        //  Poll thread gets notifications about incoming commands using
+        //  this socketpair.
         ysocketpair_t signaler;
+
+        //  Handle of the physical thread doing the I/O work.
         pthread_t worker;
 
+        //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;
         pollset_t pollset;
 
+        //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
         engines_t engines;
     };

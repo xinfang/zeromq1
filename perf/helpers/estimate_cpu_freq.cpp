@@ -26,18 +26,18 @@ using namespace std;
 int main (void)
 {
 
-    // Estimate CPU freq with perf function
+    //  Estimate CPU freq with perf function.
     uint64_t cpu_freq = perf::estimate_cpu_frequency ();
 
-    // If 0 is returned it means that CPU frequency between busy and idle CPU 
-    // states is changed singnificantly ant therefore can not be measured.
+    //  If 0 is returned it means that CPU frequency between busy and idle CPU 
+    //  states is changed singnificantly. Therefore can not be measured.
     if (cpu_freq == 0) {
         return 1;
 
     }
 
-    // If PERF_CPU_FREQUENCY macro is defined while compiling perf on 
-    // i386 and x86_64 platforms rtdsc will be used for time measuring.
+    //  If PERF_CPU_FREQUENCY macro is defined while compiling perf on 
+    //  i386 and x86_64 platforms RTDSC will be used for time measuring.
     cout << "Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=" << cpu_freq 
         << " and run\nconfigure and make in the top of the source tree again."
         << endl;

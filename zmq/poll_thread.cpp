@@ -97,7 +97,7 @@ void zmq::poll_thread_t::loop ()
         //  if messages are available and and poll only occasinally (every
         //  100 messages or so). If there are no messages, poll immediately.
 
-        //  Wait for events
+        //  Wait for events.
         int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
 
@@ -165,11 +165,14 @@ void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 {
+    //  Iterate through all the threads in the process and find out which
+    //  of them sent us commands.
     for (int source_thread_id = 0;
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
         if (signals_ & (1 << source_thread_id)) {
 
+            //  Read all the commands from particular thread.
             command_t command;
             while (dispatcher->read (source_thread_id, thread_id, &command)) {
 
