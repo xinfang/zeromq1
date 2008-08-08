@@ -93,9 +93,9 @@ namespace perf
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
             (uint64_t) 1000000;
                 
-        std::cout << "Your average throughput (incomming) is " 
+        std::cout << "Your average throughput (incoming) is " 
             << msg_thput << " [msg/s]\n";
-        std::cout << "Your average throughput (incomming) is " 
+        std::cout << "Your average throughput (incoming) is " 
             << tcp_thput << " [Mb/s]\n\n";
 
         // Send sync message
