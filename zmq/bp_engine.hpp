@@ -89,12 +89,15 @@ namespace zmq
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;
         size_t writebuf_size;
-        size_t write_size;
-        size_t write_pos;
 
         //  Buffer to read from undrlying socket.
         unsigned char *readbuf;
         size_t readbuf_size;
+
+        //  Positions in write buffer.
+        size_t write_size;
+        size_t write_pos;
+
 
         //  Backend wire-level protocol encoder.
         bp_encoder_t encoder;
