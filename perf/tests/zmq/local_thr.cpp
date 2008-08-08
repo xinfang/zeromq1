@@ -17,152 +17,76 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <string>
-#include <limits>
 
 #include "../../transports/zmq.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
-#include "../../workers/raw_receiver.hpp"
+#include "../scenarios/thr.hpp"
+#include "../../helpers/functions.hpp"
 
-#include "./test.hpp"
-
-void *worker_function (void *);
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 1){
-        printf ("Usage: local\n");
+    if (argc != 6) {
+        cerr << "Usage: local_thr <hostname> <interface> <message size> "
+            "<message count> <number of threads>" << endl;
         return 1;
     }
 
-    //  Main results results
-    std::string filename ("timing.dat");
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
+    // Parse & print command line arguments
+    const char *host = argv [1];
+    const char *interface = argv [2];
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
+    int thread_count = atoi (argv [5]);
 
-    FILE *output = ::fopen (filename.c_str (), "w");
-    assert (output);
+    cout << "threads: " << thread_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
 
-    int msg_count;
-    size_t msg_size;
+    // Create *transports array
+    perf::i_transport **transports = new perf::i_transport* [thread_count];
 
-    char file_name [255];
-    memset (file_name, '\0', sizeof (file_name));
+    // Create as many transports as threads, each worker thread uses its own
+    // names for queues and exchanges (Q0 and E0, Q1 and E1 ...) Each exchange
+    // or queue is assigned its own port number starting at 5556.
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        // Create queue name Q0, Q1, ...
+        string queue_name ("Q");
+        queue_name += perf::to_string (thread_nbr);
 
-    perf::time_instant_t start_time;
-    perf::time_instant_t stop_time;
+        // Create exchange name E0, E1, ...
+        string exchange_name ("E");
+        exchange_name += perf::to_string (thread_nbr);
 
-    perf::time_instant_t min_start_time;
-    perf::time_instant_t max_stop_time;
+        // Add port number to the interface to get full exchange interface
+        string exchange_interface (interface);
+        exchange_interface += ":";
+        exchange_interface += perf::to_string (5556 + thread_nbr * 2);
 
-    // throughput [msgs/s]
-    unsigned long long msg_thput;
-    // throughput [Mb/s]
-    unsigned long long tcp_thput;
+        // Add port number to the interface to get full queue interface
+        string queue_interface (interface);
+        queue_interface += ":";
+        queue_interface += perf::to_string (5557 + thread_nbr * 2);
 
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-   
-        min_start_time = std::numeric_limits<unsigned long long>::max ();
-        max_stop_time = 0;
-
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-        }
-
-        msg_count /= TEST_THREADS;
-
-//        msg_count = TEST_MSG_COUNT_THRPUT;
-        printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", msg_size);
-        printf ("Number of messages in the throughput test: %i (per thread)\n", 
-            msg_count);
-
-        {
-            perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
-
-            for (int j = 0; j < TEST_THREADS; j++) {
-                w_args = new worker_args_t;
-                w_args->id = j;
-                w_args->msg_size = msg_size;
-                w_args->msg_count = msg_count;
-                w_args->transport = &transport;
-
-                int rc = pthread_create (&workers [j], NULL, worker_function,
-                    (void*)w_args);
-                assert (rc == 0);
-            }
-            
-            for (int j = 0; j < TEST_THREADS; j++) {
-                int rc = pthread_join (workers [j], NULL);
-                assert (rc == 0);
-
-                // read results from finished worker file
-                snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
-                    msg_size, j);
-
-                perf::read_times_1f (&start_time, &stop_time, file_name);
-
-                if (start_time < min_start_time)
-                    min_start_time = start_time;
-
-                if (stop_time > max_stop_time)
-                    max_stop_time = stop_time;
-
-                // delete file
-                rc = remove (file_name);
-                assert (rc == 0);
-            }
-
-        }
-
-        printf ("Test end\n");
-        fflush (stdout);
-
-        printf ("Test time: %llu [ms]\n", (max_stop_time - min_start_time) / 
-            (long long)1000);
-
-        // throughput [msgs/s]
-        msg_thput = ((long long) 1000000 * (long long) msg_count * 
-            (long long)TEST_THREADS ) / (max_stop_time - min_start_time);
-
-        // throughput [Mb/s]
-        tcp_thput = (msg_thput * msg_size * 8) /(long long) 1000000;
-                
-        printf ("Your average throughput is %llu msgs/s\n", msg_thput);
-        printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
-
-        fprintf (output, "%i %i %llu %llu\n", msg_size, 
-            msg_count * TEST_THREADS, min_start_time, max_stop_time);
+        // Create zmq transport with bind = false. It means that global queue
+        // QX and global exchange EX will be created without any bindings.
+        transports [thread_nbr] = new perf::zmq_t (host, false,
+            exchange_name.c_str (), queue_name.c_str (),
+            exchange_interface.c_str (), queue_interface.c_str ());
     }
+
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    perf::local_thr (transports, msg_size, msg_count, thread_count);
     
-    fclose (output);
+    // Cleanup
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+        delete transports [thread_nbr];
+    
+    delete [] transports;
 
     return 0;
-}
-
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size,
-        w_args->id);
-
-    perf::raw_receiver_t worker (w_args->msg_count);
-    worker.run (*w_args->transport, prefix, w_args->id);
-
-    delete w_args;
-
-    return NULL;
 }

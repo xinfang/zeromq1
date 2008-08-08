@@ -17,55 +17,35 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
 #include <cstdio>
+#include <iostream>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/echo.hpp"
+#include "../scenarios/lat.hpp"
 
-#include "./test.hpp"
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
+    if (argc != 4) {
+        cerr << "Usage: remote <hostname> <message size> <roundtrip count>"
+            << endl;
         return 1;
     }
 
-    if (TEST_THREADS != 1) {
-        printf ("Latency test with more than 1 thread does not nake sense.\n");
-        assert (0);
-    }
+    // Parse & print command line arguments
+    const char *host = argv [1];
+    size_t msg_size = atoi (argv [2]);
+    int roundtrip_count = atoi (argv [3]);
 
-    size_t msg_size;
-    int msg_count;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
+    // Create zmq transport
+    perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
 
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= SYS_LAT_DEN;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= SYS_LAT_DEN;
-        }
-
-//        msg_count = TEST_MSG_COUNT_THRPUT;
-
-        {
-            perf::zmq_t transport (false, argv [1], PORT_NUMBER, TEST_THREADS);
-            perf::echo_t worker (msg_count);
-            worker.run (transport);
-        }
-
-        sleep (2); // Wait till new listeners are started by the 'local'
-
-    }
+    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    perf::remote_lat (&transport, msg_size, roundtrip_count); 
 
     return 0;
 }

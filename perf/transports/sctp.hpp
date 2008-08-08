@@ -20,7 +20,7 @@
 #ifndef __PERF_SCTP_HPP_INCLUDED__
 #define __PERF_SCTP_HPP_INCLUDED__
 
-#include "../interfaces/i_transport.hpp"
+#include "i_transport.hpp"
 
 #include <stdlib.h>
 #include <string.h>
@@ -131,7 +131,7 @@ namespace perf
             }
         }
 
-        inline virtual void send (size_t size_, unsigned int = 0)
+        inline virtual void send (size_t size_)
         {
             //  Create the message
             void *buffer = malloc (size_);
@@ -146,7 +146,7 @@ namespace perf
             free (buffer);
         }
 
-        inline virtual size_t receive (unsigned int = 0)
+        inline virtual size_t receive ()
         {
             unsigned char buffer [4096]; 
             ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),

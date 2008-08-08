@@ -23,20 +23,21 @@
 #include <vector>
 #include <pthread.h>
 
+#include "i_context.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
-#include "cmsg.hpp"
+#include "config.hpp"
 
 namespace zmq
 {
 
     //  Dispatcher implements bidirectional thread-safe ultra-efficient
-    //  passing of objects between N threads.
+    //  passing of commands between N threads.
     //
     //  It's designed to encapsulate all the cross-cutting functionality
     //  between two different threads. Namely, it consists of a pipe to pass
-    //  messages and signaler to wake up receiver thread from sender thread
-    //  when new messages are available.
+    //  commands and signaler to wake up receiver thread when new commands
+    //  are available.
     //
     //  Note that dispatcher is inefficient for passing messages within a thread
     //  (sender thread = receiver thread) as it performs unneccessary atomic
@@ -44,79 +45,99 @@ namespace zmq
     //  is not a cross-cutting functionality, the optimisation is not part
     //  of the class and should be implemented by individual threads.
 
-    //  TODO: message bodies stored in the dispatcher are not deallocated
-    //  when dispatcher is destroyed
-
-    class dispatcher_t
+    class dispatcher_t : public i_context
     {
     public:
 
-        typedef ypipe_t <cmsg_t, false>::item_t item_t;
+        //  Create the dispatcher object. The actual number of threads
+        //  supported will be thread_count_ + 1 (standard worker threads +
+        //  one administrative thread). The administrative thread is
+        //  specific in that it is synchronised and can be used from any
+        //  thread whatsoever.
+        dispatcher_t (int thread_count_);
 
-        //  Create the dispatcher object
-        dispatcher_t (int engine_count_);
-
-        //  Destroy the dispatcher object
+        //  Destroy the dispatcher object.
         ~dispatcher_t ();
 
-        //  Returns number of engines dispatcher is preconfigured for
-        inline int get_engine_count ()
+        //  Returns number of threads dispatcher is preconfigured for.
+        inline int get_thread_count ()
         {
-            return engine_count;
+            return thread_count;
         }
 
-        //  Registers receiver engine with the dispatcher.
-        void set_signaler (int engine_id_, i_signaler *signaler_);
-
-        //  Write a single message to diaptcher
-        inline void write (int source_engine_id_, int destination_engine_id_,
-            const cmsg_t &value_)
+        //  Write messages to dispatcher. If more commands are to be written,
+        //  they are supplied in a linked list. Individual items in the list
+        //  should be allocated using new operator.
+        inline void write (int source_thread_id_, int destination_thread_id_,
+            const command_t &value_)
         {
-            if (!pipes [source_engine_id_ * engine_count +
-                destination_engine_id_].write (value_))
-                signalers [destination_engine_id_]->signal (source_engine_id_);
+            command_pipe_t &pipe = pipes [source_thread_id_ *
+                  thread_count + destination_thread_id_];
+            pipe.write (value_);
+            if (!pipe.flush ())
+                signalers [destination_thread_id_]->signal (source_thread_id_);
         }
 
-        //  Write a message sequenct to dispatcher. 'first' parameter points
-        //  to the first message in the sequence, 'last' parameter points to
-        //  the last message in the sequence.
-        inline void write (int source_engine_id_, int destination_engine_id_,
-            item_t *first_, item_t *last_)
+        //  Read message from the dispatcher. Returns false if there is no
+        //  command available.
+        inline bool read (int source_thread_id_, int destination_thread_id_,
+            command_t *command_)
         {
-            if (!pipes [source_engine_id_ * engine_count +
-                destination_engine_id_].write (first_, last_))
-                signalers [destination_engine_id_]->signal (source_engine_id_);
+            return pipes [source_thread_id_ * thread_count +
+                destination_thread_id_].read (command_);
         }
 
-        //  Read message sequence from the dispatcher. 'first' parameter points
-        //  to the first message in the sequence, 'last' parameter points to 
-        //  one past the last message in the sequence.
-        inline bool read (int source_engine_id_, int destination_engine_id_,
-            item_t **first_, item_t **last_)
-        {
-            return pipes [source_engine_id_ * engine_count +
-                destination_engine_id_].read (first_, last_);
-        }
+        //  Assign an thread ID to the caller
+        //  Regiter the supplied signaler with the thread
+        int allocate_thread_id (i_signaler *signaler_);
 
-        //  Assign an engine ID to the caller
-        int allocate_engine_id ();
+        //  Return thread ID to the pool of free thread IDs
+        void deallocate_thread_id (int thread_id_);
 
-        //  Return engine ID to the pool of free engine IDs
-        void deallocate_engine_id (int engine_id_);
+        //  i_context (administrative context) implementation
+        int get_thread_id ();
+        void send_command (i_context *destination_, const command_t &command_);
 
     private:
 
-        int engine_count;
-        ypipe_t <cmsg_t, false> *pipes;
+        typedef ypipe_t <command_t, true,
+            command_pipe_granularity> command_pipe_t;
+
+        enum {admin_thread_id = 0};
+
+        int thread_count;
+        command_pipe_t *pipes;
         std::vector <i_signaler*> signalers;
 
-        //  Vector specifying which engine IDs are used and which are not.
+        //  Vector specifying which thread IDs are used and which are not.
         //  The access to the vector is synchronised using mutex - this is OK
-        //  as the performance of engine ID assignment is not critical for
-        //  the performance of the system as a whole.
+        //  as the performance of thread ID assignment is not critical for
+        //  the performance of the system as a whole. The mutex is also used
+        //  to sync the commands from the administrative context.
         std::vector <bool> used;
         pthread_mutex_t mutex;
     };
+
+    //  Prototype of the error handling function.
+    typedef bool (error_handler_t) (const char *local_object_);
+
+    //  Returns pointer to the current error handling function.
+    inline error_handler_t *&get_error_handler ()
+    {
+        static error_handler_t *eh = NULL;
+        return eh;
+    }
+
+    //  Sets error function. Error function will be called when a connection
+    //  breaks. Name of the object (exchange or queue) on the local side
+    //  of the connection is passed to the function, so that client is able
+    //  to determine which connection was broken. If error function returns
+    //  true, disconnection is silently ignored. If it returns false,
+    //  application will fail (this is the default behaviour).
+    inline void set_error_handler (error_handler_t *eh_)
+    {
+        get_error_handler () = eh_;
+    }
 
 }
 

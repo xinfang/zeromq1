@@ -20,45 +20,68 @@
 #ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
 
+#include <string>
+
+#include "i_engine.hpp"
 #include "i_pollable.hpp"
+#include "poll_thread.hpp"
+#include "mux.hpp"
+#include "demux.hpp"
 #include "bp_encoder.hpp"
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
+#include "tcp_listener.hpp"
 
 namespace zmq
 {
 
-    //  bp_engine uses TCP to transport messages in 0MQ backen protocol format.
-    //  Event handling is done via poll - i.e. bp_engine should be used with
-    //  poll_thread.
+    //  BP engine is defined by follwowing properties:
+    //
+    //  1. Underlying transport is TCP.
+    //  2. Wire-level protocol is 0MQ backend protocol.
+    //  3. Polling is done using POSIX poll function.
 
-    class bp_engine_t : public i_pollable
+    class bp_engine_t : public i_engine, public i_pollable
     {
     public:
 
-        //  Creates bp_engine. Attaches it to dispatcher. Underlying TCP 
-        //  connection is initialised using listen, address
-        //  and port parameters. source_engine_id specifies which engine
-        //  to get messages from to be send to the socket, destination_engine_id
-        //  specified which engine to send incoming messages to. writebuf_size
-        //  and readbuf_size determine the amount of batching to use.
-        bp_engine_t (dispatcher_t *dispatcher_,
-            bool listen_, const char *address_, uint16_t port_,
-            int source_engine_id_, int destination_engine_id_,
-            size_t writebuf_size_, size_t readbuf_size_);
-        ~bp_engine_t ();
+        //  Creates bp_engine. Underlying TCP connection is initialised using
+        //  host parameter. writebuf_size and readbuf_size determine
+        //  the amount of batching to use. Local object name is simply stored
+        //  and passed to error handler function when connection breaks.
+        static bp_engine_t *create (poll_thread_t *thread_,
+            const char *host_, size_t writebuf_size_,
+            size_t readbuf_size_, const char *local_object_);
 
-        //  i_pollable interface implementation
-        void set_signaler (i_signaler *signaler_);
-        void revive (int engine_id_);
+        //  Creates bp_engine from supplied listener object.
+        static bp_engine_t *create (poll_thread_t *thread_,
+            tcp_listener_t &listener_, size_t writebuf_size_,
+            size_t readbuf_size_, const char *local_object_);
+
+        //  i_pollable interface implementation.
         int get_fd ();
         short get_events ();
-        void in_event ();
-        void out_event ();
+        bool in_event ();
+        bool out_event ();
+        void close_event ();
+        void process_command (const engine_command_t &command_);
 
     private:
 
-        dispatcher_proxy_t proxy;   
+        bp_engine_t (poll_thread_t *thread_,
+            const char *host_,
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
+        bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
+        ~bp_engine_t ();
+
+        //  Thread context the engine belongs to.
+        i_context *context;
+
+        mux_t mux;
+        demux_t demux;  
 
         unsigned char *writebuf;
         size_t writebuf_size;
@@ -71,9 +94,13 @@ namespace zmq
 
         bp_encoder_t encoder;
         bp_decoder_t decoder;
-        tcp_socket_t socket;
 
+        tcp_socket_t socket;
         short events;
+        bool socket_error;
+
+        //  Name of the object on this side of the connection (exchange/queue).
+        std::string local_object;
     };
 
 }

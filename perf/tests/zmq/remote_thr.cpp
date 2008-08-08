@@ -17,88 +17,66 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
+#include <iostream>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/raw_sender.hpp"
+#include "../scenarios/thr.hpp"
+#include "../../helpers/functions.hpp"
 
-#include "./test.hpp"
-
-void *worker_function (void *);
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
+    if (argc != 5) { 
+        cerr << "Usage: remote_thr <hostname> <message size> <message count> "
+            "<number of threads>" << endl; 
         return 1;
     }
 
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
+    // Parse & print command line arguments
+    const char *host = argv [1];
+    size_t msg_size = atoi (argv [2]);
+    int msg_count = atoi (argv [3]);
+    int thread_count = atoi (argv [4]);
 
-    size_t msg_size;
-    int msg_count;
+    cout << "threads: " << thread_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl << endl;
 
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
+    // Create *transports array
+    perf::i_transport **transports = new perf::i_transport* [thread_count];
 
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
+    // Create as many transports as threads, each worker thread uses its own
+    // names for queues and exchanges (Q0 and E0, Q1 and E1 ...)
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        // Create queue name Q0, Q1, ...
+        string queue_name ("Q");
+        queue_name += perf::to_string (thread_nbr);
 
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-        }
+        // Create exchange name E0, E1, ...
+        string exchange_name ("E");
+        exchange_name += perf::to_string (thread_nbr);
 
-        msg_count /= TEST_THREADS;
+        // Create zmq transport with bind = true. It means that created local 
+        // exchange will be created and binded to the global queue QX 
+        // and created local queue will be binded to global exchange EX. 
+        // Global queue and exchange have to be created before by the local_thr.
+        transports [thread_nbr] = new perf::zmq_t (host, true,
+            exchange_name.c_str (), queue_name.c_str (), NULL, NULL);
+    }
 
-//        msg_count = TEST_MSG_COUNT_THRPUT;
-
-        {
-            perf::zmq_t transport (false, argv [1], PORT_NUMBER, TEST_THREADS);
-            
-            for (int j = 0; j < TEST_THREADS; j++) {
-                w_args = new worker_args_t;
-                w_args->id = j;
-                w_args->msg_size = msg_size;
-                w_args->msg_count = msg_count;
-                w_args->transport = &transport;
-
-                int rc = pthread_create (&workers [j], NULL, worker_function,
-                    (void*)w_args);
-                assert (rc == 0);
-            }
-            
-            for (int j = 0; j < TEST_THREADS; j++) {
-                int rc = pthread_join (workers [j], NULL);
-                assert (rc == 0);
-            }
-        }
-
-        sleep (2); // Wait till new listeners are started by the 'local'
-
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    perf::remote_thr (transports, msg_size, msg_count, thread_count);
+   
+    // Cleanup
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        delete transports [thread_nbr];
     }
 
     return 0;
 }
 
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size,
-        w_args->id);
-
-    perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
-    worker.run (*w_args->transport, prefix, w_args->id);
-
-    delete w_args;
-
-    return NULL;
-}

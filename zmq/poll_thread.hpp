@@ -25,10 +25,10 @@
 #include <pthread.h>
 #include <poll.h>
 
-#include "dispatcher.hpp"
-#include "dispatcher_proxy.hpp"
-#include "ysocketpair.hpp"
+#include "i_context.hpp"
 #include "i_pollable.hpp"
+#include "dispatcher.hpp"
+#include "ysocketpair.hpp"
 
 namespace zmq
 {
@@ -38,26 +38,49 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t 
+    class poll_thread_t : public i_context
     {
     public:
 
-        //  Create a poll thread to serve specified engine. At the moment only
-        //  a single engine can be attached to the poll thread. In the future
-        //  poll thread should be able to handle multiple engines.
-        poll_thread_t (i_pollable *engine_);
+        //  Create a poll thread
+        static poll_thread_t *create (dispatcher_t *dispatcher_);
+
+        //  Destroy the poll thread
         ~poll_thread_t ();
+
+        //  Registers the engine with the poll thread.
+        void register_engine (i_pollable *engine_);
+        void unregister_engine (i_pollable* engine_);
+
+        //  i_context implementation
+        int get_thread_id ();
+        void send_command (i_context *destination_, const command_t &command_);
 
     private:
 
-        enum {stop_event = 30};
+        poll_thread_t (dispatcher_t *dispatcher_);
 
+        //  Main worker thread routing
         static void *worker_routine (void *arg_);
+
+        //  Main routine (non-static) - called from worker_routine
         void loop ();
 
-        i_pollable *engine;
+        //  Processes commands from other threads. Returns false if the thread
+        //  should terminate.
+        bool process_commands (uint32_t signals_);
+
+        dispatcher_t *dispatcher;
+        int thread_id;
+
         ysocketpair_t signaler;
         pthread_t worker;
+
+        typedef std::vector <pollfd> pollset_t;
+        pollset_t pollset;
+
+        typedef std::vector <i_pollable*> engines_t;
+        engines_t engines;
     };
 
 }

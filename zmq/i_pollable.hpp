@@ -20,8 +20,6 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
-#include "i_signaler.hpp"
-
 namespace zmq
 {
 
@@ -33,12 +31,6 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Attach the engine with the dispatcher
-        virtual void set_signaler (i_signaler *signaler_) = 0;
-
-        //  Notifies the engine that another engine sent it messages
-        virtual void revive (int engine_id_) = 0;
-
         //  Returns file descriptor to be used by poll thread to poll on
         virtual int get_fd () = 0;
 
@@ -46,10 +38,13 @@ namespace zmq
         virtual short get_events () = 0;
 
         //  Called by poll thread when in event occurs
-        virtual void in_event () = 0;
+        virtual bool in_event () = 0;
 
         //  Called by poll thread when out event occurs
-        virtual void out_event () = 0;
+        virtual bool out_event () = 0;
+
+        //  Called by poll thread when close event occurs
+        virtual void close_event () = 0;
     };
 
 }

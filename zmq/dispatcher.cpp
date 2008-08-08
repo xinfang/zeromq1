@@ -24,21 +24,21 @@
 #include "err.hpp"
 
 
-zmq::dispatcher_t::dispatcher_t (int engine_count_) :
-    engine_count (engine_count_),
-    signalers (engine_count_, (i_signaler*) NULL),
-    used (engine_count_)
+zmq::dispatcher_t::dispatcher_t (int thread_count_) :
+    thread_count (thread_count_ + 1),
+    signalers (thread_count, (i_signaler*) NULL),
+    used (thread_count, false)
 {
     //  Alocate N * N matrix of dispatching pipes
-    pipes = new ypipe_t <cmsg_t, false> [engine_count * engine_count];
+    pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
+
+    //  Mark admin thread ID as used already
+    used [admin_thread_id] = true;
 
     //  Initialise the mutex
     int rc = pthread_mutex_init (&mutex, NULL);
     errno_assert (rc == 0);
-
-    //  Mark all the engine IDs as unused
-    std::fill (used.begin (), used.end (), false);
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
@@ -51,39 +51,65 @@ zmq::dispatcher_t::~dispatcher_t ()
     delete [] pipes;
 }
 
-void zmq::dispatcher_t::set_signaler (int engine_id_, i_signaler *signaler_)
-{
-    signalers [engine_id_] = signaler_; 
-}
-
-int zmq::dispatcher_t::allocate_engine_id ()
+int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
 {
     //  Lock the mutex
     int rc = pthread_mutex_lock (&mutex);
     errno_assert (rc == 0);
 
-    //  Find the first free engine ID
+    //  Find the first free thread ID
     std::vector <bool>::iterator it = std::find (used.begin (),
         used.end (), false);
-    assert (it != used.end ());  //  No more IDs are available!
-        *it = true;
+
+    //  No more thread IDs are available!
+    assert (it != used.end ());
+
+    //  Mark the thread ID as used
+    *it = true;
+    int thread_id = it - used.begin ();
 
     //  Unlock the mutex
     rc = pthread_mutex_unlock (&mutex);
     errno_assert (rc == 0);
 
-    return it - used.begin ();
+    //  Set the signaler
+    signalers [thread_id] = signaler_;
+
+    return thread_id;
 }
 
-void zmq::dispatcher_t::deallocate_engine_id (int engine_id_)
+void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
 {
     //  Lock the mutex
     int rc = pthread_mutex_lock (&mutex);
     errno_assert (rc == 0);
 
-    //  Free the specified engine ID
-    assert (used [engine_id_] == true);
-    used [engine_id_] = false;
+    //  Free the specified thread ID
+    assert (used [thread_id_] == true);
+    used [thread_id_] = false;
+
+    //  Unregister signaler
+    signalers [thread_id_] = NULL;
+
+    //  Unlock the mutex
+    rc = pthread_mutex_unlock (&mutex);
+    errno_assert (rc == 0);
+}
+
+int zmq::dispatcher_t::get_thread_id ()
+{
+    return admin_thread_id;
+}
+
+void zmq::dispatcher_t::send_command (i_context *destination_,
+    const command_t &command_)
+{
+    //  Lock the mutex
+    int rc = pthread_mutex_lock (&mutex);
+    errno_assert (rc == 0);
+
+    //  Pass the command to the other thread via a pipe
+    write (admin_thread_id, destination_->get_thread_id (), command_);
 
     //  Unlock the mutex
     rc = pthread_mutex_unlock (&mutex);

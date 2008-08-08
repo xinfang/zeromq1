@@ -17,146 +17,58 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <string>
-#include <limits>
 
 #include "../../transports/tcp.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
-#include "../../workers/raw_receiver.hpp"
-
-#include "./test.hpp"
+#include "../scenarios/thr.hpp"
 
 using namespace std;
 
-void *worker_function (void *);
-
 int main (int argc, char *argv [])
 {
-    if (argc != 1){
-        printf ("Usage: local\n");
-        exit (0);
-    }
-
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
-
-    int msg_size;
-    int msg_count;
-
-    perf::time_instant_t min_start_time;
-    perf::time_instant_t max_stop_time;
     
-    //  Main results results
-    string filename ("timing.dat");
-
-    FILE *output = ::fopen (filename.c_str (), "w");
-    assert (output);
-
-    // throughput [msgs/s]
-    unsigned long long msg_thput;
-    // throughput [Mb/s]
-    unsigned long long tcp_thput;
-
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-
-        min_start_time = numeric_limits<unsigned long long>::max();
-        max_stop_time = 0;
-
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= TEST_THREADS;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= TEST_THREADS;
-        }
-
-        printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", msg_size);
-        printf ("Number of messages in the throughput test: %i\n", msg_count);
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            w_args = new worker_args_t;
-            w_args->id = j;
-            w_args->msg_size = msg_size;
-            w_args->msg_count = msg_count;
-
-            int rc = pthread_create (&workers [j], NULL, worker_function, 
-                (void*)w_args);
-            assert (rc == 0);
-        }
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            int rc = pthread_join (workers [j], NULL);
-            assert (rc == 0);
-
-            // read results from finished worker thread file
-            perf::time_instant_t start_time;
-            perf::time_instant_t stop_time;
-
-            char file_name [255];
-            memset (file_name, '\0', sizeof (file_name));
-            snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
-                msg_size, j);
-            perf::read_times_1f (&start_time, &stop_time, file_name);
-
-            if (start_time < min_start_time)
-                min_start_time = start_time;
-
-            if (stop_time > max_stop_time)
-                max_stop_time = stop_time;
-
-            // delete file
-            snprintf (file_name, sizeof (file_name) - 1, "%i_%i_in.dat", 
-                msg_size, j);
-            rc = remove (file_name);
-            assert (rc == 0);
-        }
-
-        printf ("Test time: %llu [ms]\n", (max_stop_time - min_start_time) / 
-            (long long)1000);
-
-        // throughput [msgs/s]
-        msg_thput = ((long long) 1000000 * (long long) msg_count * 
-            (long long)TEST_THREADS) / (max_stop_time - min_start_time);
-
-        // throughput [Mb/s]
-        tcp_thput = (msg_thput * msg_size * 8) /(long long) 1000000;
-                
-        printf ("Your average throughput is %llu msgs/s\n", msg_thput);
-        printf ("Your average throughput is %llu Mb/s\n\n", tcp_thput);
-
-        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count * 
-            TEST_THREADS, min_start_time, max_stop_time);
-
+    if (argc != 6) {
+        cerr << "Usage: local_thr <listen IP> <listen port> <message size> "
+            <<  "<message count> <number of threads>\n";
+        return 1;
     }
-  
-    fclose (output);
+
+    // Parse & print command line arguments
+    const char *listen_ip = argv [1];
+    unsigned short listen_port = atoi (argv [2]);
+
+    int thread_count = atoi (argv [5]);
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
+
+    cout << "threads: " << thread_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl;
+
+    // Create *transports array
+    perf::i_transport **transports = new perf::i_transport* [thread_count];
+
+    // Create as many transports as threads, each worker thread uses own transport 
+    // listen port increases by 1
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        // Create tcp transport
+        transports [thread_nbr] = new perf::tcp_t (true, listen_ip, 
+            listen_port + thread_nbr, false);
+    }
+
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    perf::local_thr (transports, msg_size, msg_count, thread_count);
+    
+    // Cleanup
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        delete transports [thread_nbr];
+    }
+    
+    delete [] transports;
 
     return 0;
 }
-
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-    
-    // file prefix
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", w_args->msg_size, 
-        w_args->id);
-
-    perf::tcp_t transport (true, "0.0.0.0", PORT_NUMBER + w_args->id, false);
-    perf::raw_receiver_t worker (w_args->msg_count);
-    worker.run (transport, prefix);
-
-    delete w_args;
-}
-

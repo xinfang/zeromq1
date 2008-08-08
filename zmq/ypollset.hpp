@@ -23,7 +23,7 @@
 #include <assert.h>
 
 #include "i_signaler.hpp"
-#include "atomic_uint.hpp"
+#include "atomic_bitmap.hpp"
 #include "ysemaphore.hpp"
 #include "stdint.hpp"
 
@@ -38,7 +38,7 @@ namespace zmq
     {
     public:
 
-        typedef atomic_uint_t::integer_t integer_t;
+        typedef atomic_bitmap_t::integer_t integer_t;
 
         //  Create the pollset
         inline ypollset_t ()
@@ -53,10 +53,23 @@ namespace zmq
         //  index 2 to value 4 etc.
         inline integer_t poll ()
         {
-            integer_t result = bits.izte (integer_t (1) << wait_signal, 0);
-            if (!result) {
-                sem.wait ();
-                result = bits.xchg (0);
+            integer_t result = 0;
+            while (!result) {
+                result = bits.izte (integer_t (1) << wait_signal, 0);
+                if (!result) {
+                    sem.wait ();
+                    result = bits.xchg (0);
+                }
+
+                //  If btsr was really atomic, result would never be 0 at this
+                //  point, i.e. no looping would be possible. This is the case
+                //  when mutexes are used instead of x86 atomic operations.
+                //  However, on x86 platform btsr is composed of two atomic
+                //  operations: bts and btr. If reader thread processes the
+                //  signals between bts and btr (this can happen because another
+                //  writing thread can unlock writer thread in the meantime)
+                //  the result may actually be 0. Thus looping can occur
+                //  sporadically.
             }
             return result;      
         }
@@ -73,7 +86,7 @@ namespace zmq
         //  Wait signal is carried in the last bit of the integer
         enum {wait_signal = sizeof (integer_t) * 8 - 1};
 
-        atomic_uint_t bits;
+        atomic_bitmap_t bits;
         ysemaphore_t sem;
     };
 

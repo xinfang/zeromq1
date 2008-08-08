@@ -25,26 +25,3 @@ if [ $? -ne 0 ]; then
     echo "Could not run autoreconf, check autotools installation."
     echo
 fi
-
-gsl -v >> /dev/null 2>&1
-
-if [ $? -ne 0 ]; then
-    echo
-    echo "Could not run gsl, check iMatix gsl installation."
-    echo
-    exit 1
-fi
-
-cd zmq
-gsl -script:amqp09.gsl amqp0-9.xml
-if [ $? -ne 0 ]; then
-    echo
-    echo "Could not run gsl, check iMatix gsl installation."
-    echo
-    cd ..
-    exit 1
-fi
-
-cd ..
-echo 
-echo "Run './configure ; make'"

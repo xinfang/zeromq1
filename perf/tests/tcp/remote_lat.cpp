@@ -17,94 +17,37 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
+#include <iostream>
 #include <cstdio>
-#include <pthread.h>
 
 #include "../../transports/tcp.hpp"
-#include "../../workers/echo.hpp"
-
-#include "./test.hpp"
+#include "../scenarios/lat.hpp"
 
 using namespace std;
 
-void *worker_function (void *args_);
-
-const char *ip_of_local;
-
 int main (int argc, char *argv [])
 {
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
-        exit (0);
+    if (argc != 5) {
+        cerr << "Usage: remote <IP address of \'local\'> <\'local\' port> "
+            << "<message size> <roundtrip count>" << endl;
+        return 1;
     }
+    
+    // Parse & print command line arguments
+    const char *peer_ip = argv [1];
+    unsigned short peer_port = atoi (argv [2]);
 
-    ip_of_local = argv [1];
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
+    size_t msg_size = atoi (argv [3]);
+    int roundtrip_count = atoi (argv [4]);
 
-    if (TEST_THREADS != 1) {
-        printf ("Latency test with more than 1 thread does not nake sense.\n");
-        assert (0);
-    }
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
-    int msg_size;
-    int msg_count;
+    // Create tcp transport
+    perf::tcp_t transport (false, peer_ip, peer_port, false);
 
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= TEST_THREADS;
-            msg_count /= SYS_LAT_DEN;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= TEST_THREADS;
-            msg_count /= SYS_LAT_DEN;
-        }
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            w_args = new worker_args_t;
-            w_args->id = j;
-            w_args->msg_size = msg_size;
-            w_args->msg_count = msg_count;
-           
-            int rc = pthread_create (&workers [j], NULL, worker_function, 
-                (void*)w_args);
-            assert (rc == 0);
-        }
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            int rc = pthread_join (workers [j], NULL);
-            assert (rc == 0);
-        }
-
-        sleep (2); // Wait till new listeners are started by the 'local'
-    }
-
-    printf ("TCP latency test OK\n");
-
+    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    perf::remote_lat (&transport, msg_size, roundtrip_count);
+   
     return 0;
-}
-
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    // file prefix
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i", w_args->id);
-
-    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, 
-        false);
-    perf::echo_t worker (w_args->msg_count);
-    worker.run (transport);
-
-    delete w_args;
 }

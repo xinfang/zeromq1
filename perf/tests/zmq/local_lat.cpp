@@ -17,91 +17,38 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
+#include <iostream>
 #include <cstdio>
-#include <string>
 
 #include "../../transports/zmq.hpp"
-#include "../../workers/raw_ping_pong.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
+#include "../scenarios/lat.hpp"
 
-#include "./test.hpp"
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 1){
-        printf ("Usage: local\n");
+    if (argc != 6) {
+        cerr << "Usage: local_lat <hostname> <exchange interface> "
+            "<queue interface> <message size> <roundtrip count>" << endl;
         return 1;
     }
 
-    if (TEST_THREADS != 1) {
-        printf ("Latency test with more than 1 thread does not nake sense.\n");
-        assert (0);
-    }
+    // Parse & print command line arguments 
+    const char *host = argv [1];
+    const char *exchange_interface = argv [2];
+    const char *queue_interface = argv [3];
+    size_t msg_size = atoi (argv [4]);
+    int roundtrip_count = atoi (argv [5]);
 
-    //  Main results results
-    std::string filename ("timing.dat");
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
 
-    FILE *output = ::fopen (filename.c_str (), "w");
-    assert (output);
+    // Create zmq transport
+    perf::zmq_t transport (host, false, "EOUT", "QIN", exchange_interface,
+        queue_interface);
 
-    int msg_count;
-    size_t msg_size;
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-
-    perf::time_instant_t start_time;
-    perf::time_instant_t stop_time;
-
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-    
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= SYS_LAT_DEN;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= SYS_LAT_DEN;
-        }
-
-        printf ("Threads: %i\n", TEST_THREADS);
-        printf ("Message size: %i\n", msg_size);
-        printf ("Number of messages in the latency test: %i\n", msg_count);
-
-        // prefix is msgsize_threadID_, threadID is 0 (api)
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_", msg_size, 0);
-
-        {
-            perf::zmq_t transport (true, "0.0.0.0", PORT_NUMBER, TEST_THREADS);
-            perf::raw_ping_pong_t worker (msg_count, msg_size);
-            worker.run (transport, prefix);
-        }
-
-        printf ("Test end\n");
-        fflush (stdout);
-
-        perf::read_times_2f (&start_time, &stop_time, prefix);
-
-        // write results to the main file
-        fprintf (output, "%i %i %llu %llu\n", msg_size, msg_count, start_time, stop_time);
-
-        // delete files
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_in.dat", 
-            msg_size, 0);
-        int rc = remove (prefix);
-        assert (rc == 0);
-
-        snprintf (prefix, sizeof (prefix) - 1, "%i_%i_out.dat", 
-            msg_size, 0);
-        rc = remove (prefix);
-        assert (rc == 0);
-    }
-
-    fclose (output);
+    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    local_lat (&transport, msg_size, roundtrip_count);
 
     return 0;
 }

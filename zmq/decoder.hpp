@@ -21,6 +21,7 @@
 #define __ZMQ_DECODER_HPP_INCLUDED__
 
 #include <stddef.h>
+#include <string.h>
 #include <algorithm>
 
 namespace zmq
@@ -69,10 +70,11 @@ namespace zmq
 
     protected:
 
+        //  Prototype of state machine action.
         typedef void (T::*step_t) ();
 
         //  This function should be called from derived class to read data
-        //  from the buffer and schedule next state machine action
+        //  from the buffer and schedule next state machine action.
         inline void next_step (void *read_ptr_, size_t to_read_,
             step_t next_)
         {
@@ -83,8 +85,8 @@ namespace zmq
 
     private:
 
-        size_t to_read;
         unsigned char *read_ptr;
+        size_t to_read;
         step_t next;
     };
 

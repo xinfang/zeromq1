@@ -23,17 +23,19 @@
 #include <stddef.h>
 #include <assert.h>
 
+#include "mux.hpp"
 #include "encoder.hpp"
-#include "dispatcher_proxy.hpp"
+#include "message.hpp"
 
 namespace zmq
 {
-    //  Encoder for 0MQ backend protocol
+    //  Encoder for 0MQ backend protocol. Converts messages into data batches.
+
     class bp_encoder_t : public encoder_t <bp_encoder_t>
     {
     public:
 
-        bp_encoder_t (dispatcher_proxy_t *proxy_, int source_engine_id_);
+        bp_encoder_t (mux_t *mux_);
         ~bp_encoder_t ();
 
     protected:
@@ -41,9 +43,8 @@ namespace zmq
         bool size_ready ();
         bool message_ready ();
 
-        dispatcher_proxy_t *proxy;
-        int source_engine_id;
-        cmsg_t msg;
+        mux_t *mux;
+        message_t message;
         unsigned char tmpbuf [9];
     };
 

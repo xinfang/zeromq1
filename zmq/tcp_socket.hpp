@@ -23,43 +23,50 @@
 #include <stddef.h>
 
 #include "stdint.hpp"
+#include "tcp_listener.hpp"
 
 namespace zmq
 {
 
-    //  Encapsulates simple TCP socket
+    //  The class encapsulating simple TCP read/write socket.
+
     class tcp_socket_t
     {
     public:
 
-        // Opens a TCP socket. Either connectes to the host specified by
-        // 'address' argument (when listen = false), or listens to the incoming
-        // connections on the network interface specified by 'address'
-        // (when listen = true).
-        tcp_socket_t (bool listen_, const char *address_, uint16_t port_);
+        //  Opens TCP socket. Host should be in form of "127.0.0.1:5555".
+        tcp_socket_t (const char *host_, const char *default_address_,
+            const char *default_port_);
 
-        //  Closes the socket
+        //  Opens a socket by accepting a connection from TCP listener object
+        tcp_socket_t (tcp_listener_t &listener);
+         
+        //  Closes the socket.
         ~tcp_socket_t ();
 
-        //  Returns the underlying raw socket
-        int get_fd ();
+        //  Returns the underlying socket.
+        inline int get_fd ()
+        {
+            return s;
+        }
 
         //  Writes as much data as possible to the socket. Returns the number
         //  of bytes actually written.
-        size_t write (unsigned char *data, size_t size);
+        size_t write (const void *data, size_t size);
 
         //  Reads data from the socket (up to 'size' bytes). Returns the number
         //  of bytes actually read.
-        size_t read (unsigned char *data, size_t size);
+        size_t read (void *data, size_t size);
 
-        //  Writes all the data to the socket
-        void blocking_write (unsigned char *data, size_t size);
+        //  Writes all the data to the socket.
+        void blocking_write (const void *data, size_t size);
 
-        //  Reads 'size' bytes from the socket
-        void blocking_read (unsigned char *data, size_t size);
+        //  Reads 'size' bytes from the socket.
+        void blocking_read (void *data, size_t size);
 
     private:
-        int listening_socket;
+
+        //  Underlying socket
         int s;
     };
 

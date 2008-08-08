@@ -19,85 +19,57 @@
 
 #include <cstdlib>
 #include <cstdio>
-#include <pthread.h>
+#include <iostream>
 
 #include "../../transports/tcp.hpp"
-#include "../../workers/raw_sender.hpp"
-
-#include "./test.hpp"
+#include "../scenarios/thr.hpp"
 
 using namespace std;
 
-void *worker_function (void *args_);
-
-const char *ip_of_local;
-
 int main (int argc, char *argv [])
 {
-    if (argc != 2) {
-        printf ("Usage: remote <ip address where \'local\' runs>\n");
-        exit (0);
+    if (argc != 6) { 
+        cerr << "Usage: remote_thr <IP address of \'local\'> <\'local\' port> "
+            << "<message size> <message count> <number of threads>\n"; 
+        return 1;
+    }
+ 
+    // Parse & print arguments
+    const char *peer_ip = argv [1];
+    unsigned short peer_port = atoi (argv [2]);
+
+    int thread_count = atoi (argv [5]);
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
+
+    cout << "threads: " << thread_count << endl;
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "message count: " << msg_count << endl << endl;
+
+    // Create *transports array
+    perf::i_transport **transports = new perf::i_transport* [thread_count];
+
+    // Create as many transports as threads, each worker thread uses own transport 
+    // listen port increases by 1
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        transports [thread_nbr] = new perf::tcp_t (false, peer_ip, 
+            peer_port + thread_nbr, false);
+
+        // Give time to the peer to start to listen
+        sleep (1);
     }
 
-    ip_of_local = argv [1];
-    pthread_t workers [TEST_THREADS];
-    worker_args_t *w_args;
-
-    int msg_size;
-    int msg_count;
-
-    for (int i = 0; i < TEST_MSG_SIZE_STEPS; i++) {
-
-        msg_size = TEST_MSG_SIZE_START * (0x1 << i);
-
-        if (msg_size < SYS_BREAK) {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE * msg_size + SYS_OFF));
-            msg_count /= TEST_THREADS;
-        } else {
-            msg_count = (int)((TEST_TIME * 100000) / 
-                (SYS_SLOPE_BIG * msg_size + SYS_OFF_BIG));
-            msg_count /= TEST_THREADS;
-        }
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            w_args = new worker_args_t;
-            w_args->id = j;
-            w_args->msg_size = msg_size;
-            w_args->msg_count = msg_count;
-           
-            int rc = pthread_create (&workers [j], NULL, worker_function,
-                (void*)w_args);
-            assert (rc == 0);
-        }
-
-        for (int j = 0; j < TEST_THREADS; j++) {
-            int rc = pthread_join (workers [j], NULL);
-            assert (rc == 0);
-        }
-
-        sleep (2); // Wait till new listeners are started by the 'local'
+    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    perf::remote_thr (transports, msg_size, msg_count, thread_count);
+   
+    // Cleanup
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
+    {
+        delete transports [thread_nbr];
     }
-
-    printf ("TCP throughput test OK\n");
+    
+    delete [] transports;
 
     return 0;
-}
-
-void *worker_function (void *args_)
-{
-    // args struct
-    worker_args_t *w_args = (worker_args_t*)args_;
-
-    // file prefix
-    char prefix [20];
-    memset (prefix, '\0', sizeof (prefix));
-    snprintf (prefix, sizeof (prefix) - 1, "%i", w_args->id);
-
-    perf::tcp_t transport (false, ip_of_local, PORT_NUMBER + w_args->id, 
-        false);
-    perf::raw_sender_t worker (w_args->msg_count, w_args->msg_size);
-    worker.run (transport, prefix);
-
-    delete w_args;
 }

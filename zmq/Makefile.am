@@ -1,14 +1,13 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
 pkginclude_HEADERS = \
-    api_engine.hpp \
+    api_thread.hpp \
     atomic_ptr.hpp \
-    atomic_uint.hpp \
+    atomic_bitmap.hpp \
+    atomic_counter.hpp \
     bp_decoder.hpp \
-    cmsg.hpp \
     decoder.hpp \
     dispatcher.hpp \
-    dispatcher_proxy.hpp \
     err.hpp \
     i_signaler.hpp \
     tcp_socket.hpp \
@@ -22,73 +21,52 @@ pkginclude_HEADERS = \
     encoder.hpp \
     platform.hpp \
     stdint.hpp \
-    free_fn.hpp \
     bp_engine.hpp \
     i_pollable.hpp \
-    amqp09_encoder.hpp \
-    amqp09_decoder.hpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
-    amqp09_server_fsm.hpp \
-    i_amqp09.hpp \
-    amqp09_marshaller.hpp \
-    amqp09_unmarshaller.hpp 
+    command.hpp \
+    mux.hpp \
+    demux.hpp \
+    i_context.hpp \
+    pipe.hpp \
+    bp_listener.hpp \
+    locator.hpp \
+    i_engine.hpp \
+    scope.hpp \
+    zmq_server.hpp \
+    config.hpp \
+    yqueue.hpp \
+    tcp_listener.hpp \
+    i_locator.hpp \
+    raw_message.hpp \
+    message.hpp
 
 lib_LTLIBRARIES = libzmq.la
-libzmq_la_SOURCES = \
-    tcp_socket.hpp \
+
+libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_socket.cpp \
-    ysocketpair.hpp \
     ysocketpair.cpp \
-    atomic_ptr.hpp \
-    atomic_uint.hpp \
-    err.hpp \
-    wire.hpp \
-    ypipe.hpp \
-    ypollset.hpp \
     ypollset.cpp \
-    ysemaphore.hpp \
-    ysocketpair.hpp \
-    i_signaler.hpp \
-    ysemaphore.hpp \
     ysemaphore.cpp \
-    dispatcher.hpp \
     dispatcher.cpp \
-    dispatcher_proxy.hpp \
-    dispatcher_proxy.cpp \
-    cmsg.hpp \
-    decoder.hpp \
-    bp_decoder.hpp \
     bp_decoder.cpp \
-    encoder.hpp \
-    bp_encoder.hpp \
     bp_encoder.cpp \
-    api_engine.hpp \
-    api_engine.cpp \
-    poll_thread.hpp \
+    api_thread.cpp \
     poll_thread.cpp \
-    platform.hpp \
-    stdint.hpp \
-    free_fn.hpp \
-    bp_engine.hpp \
     bp_engine.cpp \
-    i_pollable.hpp \
-    amqp09_encoder.hpp \
-    amqp09_encoder.cpp \
-    amqp09_decoder.hpp \
-    amqp09_decoder.cpp \
-    amqp09_engine.hpp \
-    amqp09_client_fsm.hpp \
-    amqp09_client_fsm.cpp \
-    amqp09_server_fsm.hpp \
-    amqp09_server_fsm.cpp \
-    i_amqp09.hpp \
-    amqp09_marshaller.hpp \
-    amqp09_marshaller.cpp \
-    amqp09_unmarshaller.hpp \
-    amqp09_unmarshaller.cpp 
+    mux.cpp \
+    demux.cpp \
+    pipe.cpp \
+    bp_listener.cpp \
+    locator.cpp \
+    tcp_listener.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
+libzmq_la_CXXFLAGS = -Wall -pedantic
+
+bin_PROGRAMS = zmq_server
+zmq_server_LDADD = libzmq.la
+zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
+zmq_server_CXXFLAGS = -Wall -pedantic -Werror
 
 dist-hook:
 		-rm $(distdir)/stdint.hpp

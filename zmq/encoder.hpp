@@ -22,6 +22,7 @@
 
 #include <stddef.h>
 #include <assert.h>
+#include <string.h>
 #include <algorithm>
 
 namespace zmq

@@ -20,46 +20,40 @@
 #include "bp_encoder.hpp"
 #include "wire.hpp"
 
-zmq::bp_encoder_t::bp_encoder_t (dispatcher_proxy_t *proxy_,
-      int source_engine_id_) :
-    proxy (proxy_),
-    source_engine_id (source_engine_id_)
+zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
+    mux (mux_)
 {
-    init_cmsg (msg);
+    //  Write 0 bytes to the batch and go to message_ready state.
     next_step (NULL, 0, &bp_encoder_t::message_ready);
 }
 
 zmq::bp_encoder_t::~bp_encoder_t ()
 {
-    free_cmsg (msg);
 }
 
 bool zmq::bp_encoder_t::size_ready ()
 {
-    //  Write message content
-    next_step (msg.data, msg.size, &bp_encoder_t::message_ready);
+    //  Write message body into the buffer.
+    next_step (message.data (), message.size (), &bp_encoder_t::message_ready);
     return true;
 }
 
 bool zmq::bp_encoder_t::message_ready ()
 {
-    //  Read new message from the dispatcher, if there is none, return false.
-    free_cmsg (msg);
-    init_cmsg (msg);
-    if (!proxy->read (source_engine_id, &msg))
+    //  Read new message from the dispatcher. If there is none, return false.
+    if (!mux->read (&message))
         return false;
 
-    if (msg.size < 255) {
-
-        //  Write one-byte length
-        tmpbuf [0] = (unsigned char) msg.size;
+    //  For messages less than 255 bytes long, write one byte of message size.
+    //  For longer messages write 0xff escape character followed by 8-byte
+    //  message size.
+    if (message.size () < 255) {
+        tmpbuf [0] = (unsigned char) message.size ();
         next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
     }
     else {
-
-        //  Write 0xff escape character & 8-byte length
         tmpbuf [0] = 0xff;
-        put_uint64 (tmpbuf + 1, msg.size);
+        put_uint64 (tmpbuf + 1, message.size ());
         next_step (tmpbuf, 9, &bp_encoder_t::size_ready);
     }
     return true;
