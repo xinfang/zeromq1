@@ -29,8 +29,9 @@ namespace zmq
 {
 
     //  Helper base class for encoders. It implements the state machine that
-    //  fills the outgoing buffer. Derived class should implement individual
+    //  fills the outgoing buffer. Derived classes should implement individual
     //  state machine actions.
+
     template <typename T> class encoder_t
     {
     public:
@@ -75,6 +76,7 @@ namespace zmq
         }
 
     private:
+
         unsigned char *write_pos;
         size_t to_write;
         step_t next;

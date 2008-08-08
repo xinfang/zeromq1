@@ -57,40 +57,40 @@
 
 namespace perf
 {
-    // Function sends roundtrip_count messages of msg_size and
-    // receives them back, one by one eg. send-receive, send-receive.
-    // Peer has to echo messages of the same size. Timestamp 
-    // at the beginign and the end of transport is captured and
-    // therefore transport latency can be calculated.
+    //  Function sends roundtrip_count messages of msg_size and
+    //  receives them back, one by one eg. send-receive, send-receive.
+    //  Peer has to echo messages of the same size. Timestamp 
+    //  at the beginign and the end of transport is captured and
+    //  therefore transport latency can be calculated.
     void local_lat (i_transport *transport_, size_t msg_size_, 
         int roundtrip_count_)
     {
-        // Wait for 'remote' side 1B sync message
+        //  Wait for 'remote' side 1B sync message.
         size_t size = transport_->receive ();
         assert (size == 1);
 
-        // Capture timestamp at the begining of the test
+        //  Capture timestamp at the begining of the test.
         time_instant_t start_time = now ();
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
-            // Send test message
+            //  Send test message.
             transport_->send (msg_size_);
 
-            // Receive echoed message
+            //  Receive echoed message.
             size_t size = transport_->receive ();
 
-            // check incomming message size
+            //  Check incomming message size.
             assert (size == msg_size_);
         }
         
-        // Capture the end timestamp of the test
+        //  Capture the end timestamp of the test.
         time_instant_t stop_time = now ();
 
-        // Set 2 fixed decimal places
+        //  Set 2 fixed decimal places.
         std::cout.setf(std::ios::fixed);
         std::cout.precision (2);
 
-        // Calculate & print results 
+        //  Calculate & print results.
         uint64_t test_time = (uint64_t) (stop_time - start_time);
         double latency = (double) (test_time / 2000) / 
             (double) roundtrip_count_;
@@ -98,14 +98,14 @@ namespace perf
         std::cout <<  "Your average latency is " << latency 
             << " [us]" << std::endl << std::endl;
 
-        //  Save the results into tests.dat file
+        //  Save the results into tests.dat file.
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
         outf.precision (2);
 
-        // Output file format, separate line for each run is appended 
-        // to the tests.dat file
+        //  Output file format, separate line for each run is appended 
+        //  to the tests.dat file.
         //
         // 0, roundtrip count, msg size [B], test time [ms], latency [us]
         //
@@ -115,31 +115,31 @@ namespace perf
         
         outf.close ();
 
-        // Send sync message to the peer
+        //  Send sync message to the peer.
         transport_->send (1);
     }
 
-    // Function recevies messages and sends the same size messages back.
-    // Receive-send (echo) procedure is performed roundtrip_count times.
+    //  Function recevies messages and sends the same size messages back.
+    //  Receive-send (echo) procedure is performed roundtrip_count times.
     void remote_lat (i_transport *transport_, size_t msg_size_, 
         int roundtrip_count_)
     {
-        // Send sync message to peer
+        //  Send sync message to peer.
         transport_->send (1);
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++)
         {
-            // Receive message 
+            //  Receive message.
             size_t size = transport_->receive ();
 
-            // Check incomming message size
+            //  Check incomming message size.
             assert (size == msg_size_);
             
-            // Send it back
+            //  Send it back.
             transport_->send (size); 
         }
         
-        // Wait for sync message
+        //  Wait for sync message.
         size_t size = transport_->receive ();
         assert (size == 1);
     }

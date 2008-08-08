@@ -63,39 +63,39 @@
 
 namespace perf
 {
-    // Publisher function
+    //  Publisher function.
     void local_fo (i_transport *transport_, size_t msg_size_, 
         int msg_count_, int subs_count)
     {
 
-        // Receive sync message from each subscriber (they are ready now)
+        //  Receive sync message from each subscriber (they are ready now).
         for (int subs_nbr = 0; subs_nbr < subs_count; subs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);
         }
 
-        // Send test messages of msg_size_ msg_count_ times
+        //  Send test messages of msg_size_ msg_count_ times.
         for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++) {
             transport_->send (msg_size_);
         }
         
-        // Receive synnc message from each subscriber that they 
-        // received msg_count_ of messages
+        //  Receive synnc message from each subscriber that they 
+        //  received msg_count_ of messages.
         for (int subs_nbr = 0; subs_nbr < subs_count; subs_nbr++) {
             size_t size = transport_->receive ();
             assert (size == 1);
         }
         
-        // Send sync message that subscribers can exit
+        //  Send sync message that subscribers can exit.
         transport_->send (1);
     }
 
-    // Subscriber function
+    //  Subscriber function.
     void remote_fo (i_transport *transport_, size_t msg_size_,
         int msg_count_, const char *subs_id_)
     {
 
-        // Send sync message that we are ready to receive test messages
+        //  Send sync message that we are ready to receive test messages.
         transport_->send (1);
 
         time_instant_t start_time = 0;
@@ -103,60 +103,60 @@ namespace perf
         for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++) {
 
             size_t size = transport_->receive ();
-            // Capture test start timestamp
+            //  Capture test start timestamp.
             if (msg_nbr == 0)
                 start_time = now();
 
-            //  Check incomming message size
+            //  Check incomming message size.
             assert (size == msg_size_);
         }
 
-        // Capture test end timestamp
+        //  Capture test end timestamp.
         time_instant_t stop_time = now();
 
-        // Calculate results
+        //  Calculate results.
 
-        // Test time in [ms] with [ms] resolution, do not use for math!!!
+        //  Test time in [ms] with [ms] resolution, do not use for math!!!
         uint64_t test_time = (uint64_t) (stop_time - start_time) /
             (uint64_t) 1000000;
 
-        //  Throughput [msgs/s]
+        //   Throughput [msgs/s].
         uint64_t msg_thput = ((uint64_t) 1000000000 *
             (uint64_t) msg_count_) /
             (uint64_t)(stop_time - start_time);
         
-        // Throughput [Mb/s]
+        //  Throughput [Mb/s].
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
             (uint64_t) 1000000;
  
-        //  Save the results into tests.dat file       
+        //  Save the results into tests.dat file.     
         std::cout << subs_id_ << ": Your average throughput is " 
             << msg_thput << " [msg/s]\n";
         std::cout << subs_id_ << "Your average throughput is " 
             << tcp_thput << " [Mb/s]\n\n";
            
-        //  Save the results into ${subs_id}_tests.dat file
+        //  Save the results into ${subs_id}_tests.dat file.
         std::string _filename (subs_id_);
         _filename += "_tests.dat";
 
         std::ofstream outf (_filename.c_str (), std::ios::out | std::ios::app);
         assert (outf.is_open ());
         
-        // Output file format, separate line for each run is appended 
-        // to the ${subs_id}_tests.dat file
+        //  Output file format, separate line for each run is appended 
+        //  to the ${subs_id}_tests.dat file
         //
-        // 1, message count, msg size [B], test time [ms],
-        //   throughput [msg/s],throughput [Mb/s]
+        //  1, message count, msg size [B], test time [ms],
+        //  throughput [msg/s],throughput [Mb/s]
         //
         outf << "1," << msg_count_ << "," << msg_size_ << "," << test_time 
             << "," << msg_thput << "," << tcp_thput << std::endl;
         
         outf.close ();
 
-        // Send sync message
+        //  Send sync message.
         transport_->send (1);    
 
-        //  All subscribers finished, now we can shutdown
+        //  All subscribers finished, now we can shutdown.
         size_t size = transport_->receive ();
         assert (size == 1);
     }

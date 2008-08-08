@@ -58,10 +58,13 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *host_,
     socket_error (false),
     local_object (local_object_)
 {
+    //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
+
+    //  Register BP engine with the I/O thread.
     thread_->register_engine (this);
 }
 
@@ -80,10 +83,13 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     socket_error (false),
     local_object (local_object_)
 {
+    //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
     assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     assert (readbuf);
+
+    //  Register BP engine with the I/O thread.
     thread_->register_engine (this);
 }
 
@@ -123,6 +129,7 @@ bool zmq::bp_engine_t::in_event ()
 
     //  Flush any messages decoder may have produced.
     demux.flush ();
+
     return true;
 }
 

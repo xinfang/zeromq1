@@ -40,12 +40,12 @@ namespace zmq
 
         typedef atomic_bitmap_t::integer_t integer_t;
 
-        //  Create the pollset
+        //  Create the pollset.
         inline ypollset_t ()
         {
         }
 
-        //  Send a signal to the pollset
+        //  Send a signal to the pollset.
         void signal (int signal_);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
@@ -83,10 +83,14 @@ namespace zmq
 
     private:
 
-        //  Wait signal is carried in the last bit of the integer
+        //  Wait signal is carried in the last bit of the integer.
         enum {wait_signal = sizeof (integer_t) * 8 - 1};
 
+        //  The bits of the pollset.
         atomic_bitmap_t bits;
+
+        //  Used by thread waiting for signals to sleep if there are no
+        //  signals available.
         ysemaphore_t sem;
     };
 

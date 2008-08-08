@@ -41,14 +41,18 @@ namespace zmq
     {
     public:
 
+        //  Create TCP listining socket.
         tcp_listener_t (const char *host_, const char *default_address_,
             const char *default_port_);
 
+        //  Get the file descriptor to poll on to get notified about
+        //  newly created connections.
         inline int get_fd ()
         {
             return s;
         }
 
+        //  Accept the new connection.
         int accept ();
 
     private:

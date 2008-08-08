@@ -33,7 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     size_t msg_size = atoi (argv [2]);
     int msg_count = atoi (argv [3]);
@@ -43,13 +43,13 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 
-    // Create zmq transport with bind = true. It means that local 
-    // exchange will be created and binded to the global queue QIN and created 
-    // local queue will be binded to global exchange EOUT. 
-    // Global queue and exchange have to be created before (by the local_fo).
+    //  Create zmq transport with bind = true. It means that local 
+    //  exchange will be created and binded to the global queue QIN and created 
+    //  local queue will be binded to global exchange EOUT. 
+    //  Global queue and exchange have to be created before (by the local_fo).
     perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
 
-    // Do the job, for more detailed info refer to ../scenarios/fo.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/fo.hpp.
     perf::remote_fo (&transport, msg_size, msg_count, subs_id);
 
     return 0;

@@ -27,7 +27,7 @@
 namespace perf
 {
 
-    //  Class to produce ticks at specified frequency
+    //  Class to produce ticks at specified frequency.
 
     class ticker_t
     {
@@ -66,13 +66,13 @@ namespace perf
 
     public:
 
-        // first run
+        //  If true, we haven't measured the time yet.
         bool first_tick;
 
-        //  Next time (in ns) to issue an event on
+        //  Next time (in ns) to issue an event on.
         uint64_t next;
 
-        // Interval between events in ns
+        //  Interval between events in ns.
         uint64_t period_ns;
     };
 

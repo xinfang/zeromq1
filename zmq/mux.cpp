@@ -31,6 +31,7 @@ zmq::mux_t::~mux_t ()
 
 void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
+    //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
 }
 

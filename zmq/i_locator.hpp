@@ -34,28 +34,28 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_locator () {};
 
-        //  Creates an exchange
+        //  Creates an exchange.
         virtual void create_exchange (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_) = 0;
 
-        //  Gets the engine that handles specified exchange
-        //  Returns false if the exchange is unknown
+        //  Gets the engine that handles specified exchange.
+        //  Returns false if the exchange is unknown.
         virtual bool get_exchange (const char *exchange_,
             i_context **context_, i_engine **engine_,
             class poll_thread_t *thread_, const char *local_object_) = 0;
 
-        //  Creates a queue
+        //  Creates a queue.
         virtual void create_queue (const char *exchange_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
             poll_thread_t **handler_threads_) = 0;
 
-        //  Gets the engine that handles specified queue
-        //  Returns false if the queue is unknown
+        //  Gets the engine that handles specified queue.
+        //  Returns false if the queue is unknown.
         virtual bool get_queue (const char *exchange_,
             i_context **context_, i_engine **engine_,
             class poll_thread_t *thread_, const char *local_object_) = 0;

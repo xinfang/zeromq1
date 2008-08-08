@@ -24,6 +24,8 @@
 
 namespace perf
 {
+
+    //  Converts value supplied into the string.
     template <typename T> inline std::string to_string (const T &input_)
     {
         std::stringstream string_stream;

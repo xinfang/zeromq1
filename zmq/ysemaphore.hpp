@@ -58,7 +58,7 @@ namespace zmq
     { 
     public:
 
-        //  Initialise the semaphore
+        //  Initialise the semaphore.
         inline ysemaphore_t ()
         {
             int rc = pthread_mutex_init (&mutex, NULL);
@@ -67,7 +67,7 @@ namespace zmq
 	    errno_assert (rc == 0);
         }
 
-        //  Destroy the semaphore
+        //  Destroy the semaphore.
         inline ~ysemaphore_t ()
         {
             int rc = pthread_mutex_unlock (&mutex);
@@ -76,14 +76,14 @@ namespace zmq
 	    errno_assert (rc == 0);
         }
 
-        //  Wait for the semaphore
+        //  Wait for the semaphore.
         inline void wait ()
         {
              int rc = pthread_mutex_lock (&mutex);
              errno_assert (rc == 0);
         }
 
-        //  Post the semaphore
+        //  Post the semaphore.
         void signal (int signal_);
 
     private:
@@ -99,32 +99,33 @@ namespace zmq
     { 
     public:
 
-        //  Initialise the semaphore
+        //  Initialise the semaphore.
         inline ysemaphore_t ()
         {
              int rc = sem_init (&sem, 0, 0);
              errno_assert (rc != -1);
         }
 
-        //  Destroy the semaphore
+        //  Destroy the semaphore.
         inline ~ysemaphore_t ()
         {
              int rc = sem_destroy (&sem);
              errno_assert (rc != -1);
         }
 
-        //  Wait for the semaphore
+        //  Wait for the semaphore.
         inline void wait ()
         {
              int rc = sem_wait (&sem);
              errno_assert (rc != -1);
         }
 
-        //  Post the semaphore
+        //  Post the semaphore.
         void signal (int signal_);
 
     private:
 
+        //  Underlying system semaphore object.
         sem_t sem;
     };
 

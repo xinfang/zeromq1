@@ -35,7 +35,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *listen_ip = argv [1];
     unsigned short listen_port = atoi (argv [2]);
 
@@ -47,24 +47,23 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 
-    // Create *transports array
+    //  Create *transports array.
     perf::i_transport **transports = new perf::i_transport* [thread_count];
 
-    // Create as many transports as threads, each worker thread uses own transport 
-    // listen port increases by 1
+    //  Create as many transports as threads, each worker thread uses own
+    //  transport listen port increases by 1.
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
-        // Create tcp transport
+        //  Create tcp transport.
         transports [thread_nbr] = new perf::tcp_t (true, listen_ip, 
             listen_port + thread_nbr, false);
     }
 
-    // Do the job, for more detailed info refer to ../scenarios/thr.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
     perf::local_thr (transports, msg_size, msg_count, thread_count);
     
-    // Cleanup
-    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
+    //  Cleanup.
+    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++) {
         delete transports [thread_nbr];
     }
     

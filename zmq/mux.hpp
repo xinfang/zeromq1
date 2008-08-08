@@ -29,6 +29,8 @@
 namespace zmq
 {
 
+    //  Object to aggregate messages from inbound pipes.
+
     class mux_t
     {
     public:
@@ -48,8 +50,12 @@ namespace zmq
 
     private:
 
+        //  The list of inbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
+
+        //  Pipe to retrieve next message from. The messages are retrieved
+        //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
     };
 

@@ -54,11 +54,11 @@ namespace perf
                 assert (!exchange_interface_);
                 assert (!queue_interface_);
 
-                // create & bind local exchange
+                //  Create & bind local exchange.
                 exchange_id = api->create_exchange ("E_LOCAL");
                 api->bind ("E_LOCAL", queue_name_, worker, worker);
                 
-                // create & bind local queue
+                //  Create & bind local queue.
                 api->create_queue ("Q_LOCAL");
                 api->bind (exchange_name_, "Q_LOCAL", worker, worker);
 
@@ -73,7 +73,7 @@ namespace perf
                     zmq::scope_global, exchange_interface_, worker, 
                     1, &worker);
             }
-            //  Set error handler function (to ignore disconnected receivers)
+            //  Set error handler function (to ignore disconnected receivers).
             zmq::set_error_handler (error_handler);
 
         }

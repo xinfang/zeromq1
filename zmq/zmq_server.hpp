@@ -23,6 +23,9 @@
 namespace zmq
 {
 
+    //  Enumerates individual commands passed between process locator and
+    //  global locator. Maps the symbolic names to command IDs.
+
     enum
     {
         create_exchange_id = 1,

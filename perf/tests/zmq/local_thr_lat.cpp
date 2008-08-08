@@ -34,7 +34,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     const char *exchange_interface = argv [2];
     const char *queue_interface = argv [3];

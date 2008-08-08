@@ -31,19 +31,19 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Returns file descriptor to be used by poll thread to poll on
+        //  Returns file descriptor to be used by poll thread to poll on.
         virtual int get_fd () = 0;
 
-        //  Returns events poll thread should poll for
+        //  Returns events poll thread should poll for.
         virtual short get_events () = 0;
 
-        //  Called by poll thread when in event occurs
+        //  Called by poll thread when in event occurs.
         virtual bool in_event () = 0;
 
-        //  Called by poll thread when out event occurs
+        //  Called by poll thread when out event occurs.
         virtual bool out_event () = 0;
 
-        //  Called by poll thread when close event occurs
+        //  Called by poll thread when close event occurs.
         virtual void close_event () = 0;
     };
 

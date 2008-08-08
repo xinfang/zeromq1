@@ -80,23 +80,35 @@ namespace zmq
         //  Thread context the engine belongs to.
         i_context *context;
 
+        //  Object to aggregate messages from inbound pipes.
         mux_t mux;
+
+        //  Object to distribute messages to outbound pipes.
         demux_t demux;  
 
+        //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;
         size_t writebuf_size;
-
-        unsigned char *readbuf;
-        size_t readbuf_size;
-
         size_t write_size;
         size_t write_pos;
 
+        //  Buffer to read from undrlying socket.
+        unsigned char *readbuf;
+        size_t readbuf_size;
+
+        //  Backend wire-level protocol encoder.
         bp_encoder_t encoder;
+
+        //  Backend wire-level protocol decoder.
         bp_decoder_t decoder;
 
+        //  Underlying TCP/IP socket.
         tcp_socket_t socket;
+
+        //  Events to poll on on the socket.
         short events;
+
+        //  If true, underlying TCP/IP connection is dead.
         bool socket_error;
 
         //  Name of the object on this side of the connection (exchange/queue).

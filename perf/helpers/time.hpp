@@ -30,6 +30,7 @@
 
 namespace perf
 {
+
     //  Time instance in nanoseconds.
     //  For measurement purposes the exact point when the timer started
     //  (e.g. midnight January 1, 1970) is irrelevant. The only requirement
@@ -61,14 +62,13 @@ namespace perf
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
     //  Precomputes CPU frequency (in Hz). If ferquency measured in busy loop
-    //  is too far (more than +- 10%) from freq measured in sleep 
+    //  is too far (more than +- 10%) away from freq measured in sleep 
     //  function returns 0.
     inline uint64_t estimate_cpu_frequency ()
     {
         uint64_t cpu_frequency = 0;
 
-
-        //  Measure frequency with busy loop
+        //  Measure frequency with busy loop.
         uint64_t start_nsecs = now_nsecs ();
         uint64_t start_ticks = now_ticks ();
         for (volatile int i = 0; i != 1000000000; i ++);
@@ -82,7 +82,7 @@ namespace perf
         std::cout << "CPU frequency measured with busy loop: " << busy_frq 
             << " [Hz]" << std::endl;
         
-        //  Measure frequency with sleep
+        //  Measure frequency with sleep.
         start_nsecs = now_nsecs ();
         start_ticks = now_ticks ();
         usleep (4000000);
@@ -109,14 +109,14 @@ namespace perf
             return 0;
         }
 
-        // Return average from busy and sleep frequency
+        // Return average from busy and sleep frequency.
         cpu_frequency = (busy_frq + sleep_frq) / 2;
 
         return cpu_frequency;
     }
 #endif
 
-    //  Get current time in nanosecond resolution
+    //  Get current time in nanosecond resolution.
     inline time_instant_t now ()
     {
 #if (defined (__GNUC__) && defined (PERF_CPU_FREQUENCY) && \
@@ -127,7 +127,7 @@ namespace perf
         static uint64_t last_nsecs = 0;
         static uint64_t last_ticks = 0;
 
-        //  Get current time (in CPU ticks)
+        //  Get current time (in CPU ticks).
         uint64_t current_ticks = now_ticks ();
 
         //  Find out whether one second has already elapsed since the last

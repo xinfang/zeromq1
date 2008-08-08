@@ -33,7 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments 
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     const char *exchange_interface = argv [2];
     const char *queue_interface = argv [3];
@@ -43,11 +43,11 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    // Create zmq transport
+    //  Create zmq transport.
     perf::zmq_t transport (host, false, "EOUT", "QIN", exchange_interface,
         queue_interface);
 
-    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     local_lat (&transport, msg_size, roundtrip_count);
 
     return 0;

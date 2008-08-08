@@ -39,6 +39,8 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
     std::string host;
 
     if (!host_) {
+
+        //  If host is not given, use default values.
         assert (default_port_);
         assert (default_address_);
         port = default_port_;
@@ -46,8 +48,8 @@ void zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
     }
     else {
 
-        if (host_)
-            host = host_;
+        //  Delimit the IP address portion and port portion of the host string.
+        host = host_;
         std::string::size_type pos = host.find (':');
 
         //  Determine port to use.

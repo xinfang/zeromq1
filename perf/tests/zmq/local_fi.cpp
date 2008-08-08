@@ -33,7 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     const char *exchange_interface = argv [2];
     const char *queue_interface = argv [3];
@@ -45,12 +45,12 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count (per publisher): " << msg_count << std::endl;
 
-    // Create zmq transport with bind = false. It means that global queue
-    // QIN and global exchange EOUT will be created without any bindings.
+    //  Create zmq transport with bind = false. It means that global queue
+    //  QIN and global exchange EOUT will be created without any bindings.
     perf::zmq_t transport (host, false, "EOUT", "QIN",
         exchange_interface, queue_interface);
    
-   // Do the job, for more detailed info refer to ../scenarios/fo.hpp
+   //  Do the job, for more detailed info refer to ../scenarios/fo.hpp.
     perf::local_fi (&transport, msg_size, msg_count, pubs_count);
 
     return 0;

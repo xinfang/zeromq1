@@ -40,7 +40,7 @@ namespace perf
         tcp_t (bool listen_, const char *ip_address_, unsigned short port_,
             bool nagle_)
         {
-            //  Parse the IP address
+            //  Parse the IP address.
             sockaddr_in addr;
             memset (&addr, 0, sizeof (addr));
             addr.sin_family = AF_INET;
@@ -54,27 +54,27 @@ namespace perf
                 //  initiated by the other party. 'ip_address' is interpreted
                 //  as a network interface IP address (on local machine).
 
-                //  Create a listening socket
+                //  Create a listening socket.
                 listening_socket = socket (AF_INET, SOCK_STREAM,
                     IPPROTO_TCP);
                 assert (listening_socket != -1);
 
-                //  Allow socket reusing
+                //  Allow socket reusing.
                 int flag = 1;
                 rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
                     &flag, sizeof (int));
                 assert (rc == 0);
 
-                //  Bind the socket to the network interface and port
+                //  Bind the socket to the network interface and port.
                 rc = bind (listening_socket, (struct sockaddr*) &addr,
                     sizeof (addr));
                 assert (rc == 0);
 
-                //  Listen for incomming connections
+                //  Listen for incomming connections.
                 rc = ::listen (listening_socket, 1);
                 assert (rc == 0);
 
-                //  Accept first incoming connection
+                //  Accept first incoming connection.
                 s = accept (listening_socket, NULL, NULL);
                 assert (s != -1);
             }
@@ -84,19 +84,19 @@ namespace perf
                 //  a connection. ip_address is interpreted as peer's
                 //  IP addess.
 
-                //  Create a socket
+                //  Create a socket.
                 s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
                 assert (s != -1);
 
-                //  Connect to the peer
+                //  Connect to the peer.
                 rc = ::connect (s, (sockaddr*) &addr, sizeof (addr));
                 assert (rc != -1);
 
-                //  Listning socket is not used
+                //  Listning socket is not used.
                 listening_socket = -1;
             }
 
-            //  Disable Nagle aglorithm if reuqired
+            //  Disable Nagle aglorithm if reuqired.
             if (!nagle_) {
                 int flag = 1;
                 rc = ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag,
@@ -107,11 +107,11 @@ namespace perf
 
         inline ~tcp_t ()
         {
-            //  Cleanup the socket
+            //  Cleanup the socket.
             int rc = close (s);
             assert (rc == 0);
 
-            //  Close the listening socket
+            //  Close the listening socket.
             if (listening_socket != -1) {
                 rc = close (listening_socket);
                 assert (rc == 0);
@@ -120,39 +120,39 @@ namespace perf
 
         inline virtual void send (size_t size_)
         {
-            //  Create the message
+            //  Create the message.
             void *buffer = malloc (sizeof (uint32_t) + size_);
             assert (buffer);
             *((uint32_t*) buffer) = htonl (size_);
 
-            //  Send the data over the wire
+            //  Send the data over the wire.
             ssize_t bytes = ::send (s, buffer, sizeof (uint32_t) + size_, 0);
             assert (bytes == (ssize_t) (sizeof (uint32_t) + size_));
 
-            //  Cleanup
+            //  Cleanup.
             free (buffer);
         }
 
         inline virtual size_t receive ()
         {
-            //  Read the message size
+            //  Read the message size.
             uint32_t sz;
             ssize_t bytes = recv (s, &sz, sizeof (uint32_t), MSG_WAITALL);
             assert (bytes == sizeof (uint32_t));
             sz = ntohl (sz);
     
-            //  Allocate the buffer to read the message
+            //  Allocate the buffer to read the message.
             void *buffer = malloc (sz);
             assert (buffer);
 
-            //  Read the message body
+            //  Read the message body.
             bytes = recv (s, buffer, sz, MSG_WAITALL);
             assert (bytes == (ssize_t) sz);
 
-            //  Cleanup
+            //  Cleanup.
             free (buffer);
 
-            //  Return message size
+            //  Return message size.
             return sz;
         }
 

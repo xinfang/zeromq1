@@ -30,6 +30,8 @@
 namespace zmq
 {
 
+    //  Object to distribute messages to outbound pipes.
+
     class demux_t
     {
     public:
@@ -54,6 +56,7 @@ namespace zmq
 
     private:
 
+        //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
     };

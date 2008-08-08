@@ -33,13 +33,14 @@ namespace zmq
 {
 
     //  This pipe can be used to send individual bytes from one thread to
-    //  another. The specific of this queue is that it has associated file
-    //  descriptor and it can be polled for.
+    //  another. The specific of this pipe is that it has associated file
+    //  descriptor and so it can be polled on.
+
     class ysocketpair_t : public i_signaler
     {
     public:
 
-        //  Initialise the pipe
+        //  Initialise the pipe.
         inline ysocketpair_t ()
         {
             int sv [2];
@@ -49,14 +50,14 @@ namespace zmq
             r = sv [1];
         }
 
-        //  Destroy the pipe
+        //  Destroy the pipe.
         inline ~ysocketpair_t ()
         {
             close (w);
             close (r);
         }
 
-        //  Send specific signal to the pipe
+        //  Send specific signal to the pipe.
         void signal (int signal_);
 
         //  Waits for a signal. Returns a set of signals in form of a bitmap.
@@ -88,7 +89,7 @@ namespace zmq
             return signals;
         }
 
-        //  Get the file descriptor associated with the pipe
+        //  Get the file descriptor associated with the pipe.
         inline int get_fd ()
         {
             return r;
@@ -96,7 +97,10 @@ namespace zmq
 
     private:
 
+        //  Write end of the socketpair.
         int w;
+
+        //  Read end of the socketpair.
         int r;
     };
 

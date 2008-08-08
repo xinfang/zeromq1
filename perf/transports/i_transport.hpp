@@ -25,10 +25,16 @@
 namespace perf
 {
 
+    //  Interface to be implemented by all the perf transport objects.
+
     struct i_transport
     {
         virtual ~i_transport () {}
+
+        //  Send a message of a specified size.
         virtual void send (size_t size_) = 0;
+
+        //  Receive a message. Return its size.
         virtual size_t receive () = 0;
     };
 

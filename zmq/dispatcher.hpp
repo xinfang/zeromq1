@@ -34,15 +34,11 @@ namespace zmq
     //  Dispatcher implements bidirectional thread-safe ultra-efficient
     //  passing of commands between N threads.
     //
-    //  It's designed to encapsulate all the cross-cutting functionality
-    //  between two different threads. Namely, it consists of a pipe to pass
-    //  commands and signaler to wake up receiver thread when new commands
-    //  are available.
+    //  It consists of a pipe to pass commands and signaler to wake up receiver
+    //  thread when new commands are available.
     //
     //  Note that dispatcher is inefficient for passing messages within a thread
-    //  (sender thread = receiver thread) as it performs unneccessary atomic
-    //  operations. However, given that within-thread message transfer
-    //  is not a cross-cutting functionality, the optimisation is not part
+    //  (sender thread = receiver thread). The optimisation is not part
     //  of the class and should be implemented by individual threads.
 
     class dispatcher_t : public i_context
@@ -51,7 +47,7 @@ namespace zmq
 
         //  Create the dispatcher object. The actual number of threads
         //  supported will be thread_count_ + 1 (standard worker threads +
-        //  one administrative thread). The administrative thread is
+        //  one administrative pseudothread). The administrative thread is
         //  specific in that it is synchronised and can be used from any
         //  thread whatsoever.
         dispatcher_t (int thread_count_);
@@ -65,9 +61,7 @@ namespace zmq
             return thread_count;
         }
 
-        //  Write messages to dispatcher. If more commands are to be written,
-        //  they are supplied in a linked list. Individual items in the list
-        //  should be allocated using new operator.
+        //  Write command to the dispatcher.
         inline void write (int source_thread_id_, int destination_thread_id_,
             const command_t &value_)
         {
@@ -78,7 +72,7 @@ namespace zmq
                 signalers [destination_thread_id_]->signal (source_thread_id_);
         }
 
-        //  Read message from the dispatcher. Returns false if there is no
+        //  Read command from the dispatcher. Returns false if there is no
         //  command available.
         inline bool read (int source_thread_id_, int destination_thread_id_,
             command_t *command_)
@@ -87,11 +81,11 @@ namespace zmq
                 destination_thread_id_].read (command_);
         }
 
-        //  Assign an thread ID to the caller
-        //  Regiter the supplied signaler with the thread
+        //  Assign an thread ID to the caller. Register the supplied signaler
+        //  with the thread.
         int allocate_thread_id (i_signaler *signaler_);
 
-        //  Return thread ID to the pool of free thread IDs
+        //  Return thread ID to the pool of free thread IDs.
         void deallocate_thread_id (int thread_id_);
 
         //  i_context (administrative context) implementation
@@ -100,13 +94,20 @@ namespace zmq
 
     private:
 
+        //  Pipe to hold the commands.
         typedef ypipe_t <command_t, true,
             command_pipe_granularity> command_pipe_t;
 
+        //  Administrative psaudothread has ID of 0.
         enum {admin_thread_id = 0};
 
+        //  Number of threads dispatcher is preconfigured for.
         int thread_count;
+
+        //  NxN matrix of command pipes.
         command_pipe_t *pipes;
+
+        //  Signalers to wake up individual threads.
         std::vector <i_signaler*> signalers;
 
         //  Vector specifying which thread IDs are used and which are not.

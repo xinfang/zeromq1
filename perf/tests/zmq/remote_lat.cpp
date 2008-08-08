@@ -33,7 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     size_t msg_size = atoi (argv [2]);
     int roundtrip_count = atoi (argv [3]);
@@ -41,10 +41,10 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
-    // Create zmq transport
+    //  Create zmq transport.
     perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
 
-    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     perf::remote_lat (&transport, msg_size, roundtrip_count); 
 
     return 0;

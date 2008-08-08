@@ -35,7 +35,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *host = argv [1];
     size_t msg_size = atoi (argv [2]);
     int msg_count = atoi (argv [3]);

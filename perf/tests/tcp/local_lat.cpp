@@ -33,7 +33,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    // Parse & print command line arguments
+    //  Parse & print command line arguments.
     const char *listen_ip = argv [1];
     unsigned short listen_port = atoi (argv [2]);
 
@@ -43,10 +43,10 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    // Create tcp transport
+    //  Create tcp transport.
     perf::tcp_t transport (true, listen_ip, listen_port, false);
 
-    // Do the job, for more detailed info refer to ../scenarios/lat.hpp
+    //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     perf::local_lat (&transport, msg_size, roundtrip_count);
 
     return 0;

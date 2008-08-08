@@ -81,6 +81,9 @@ namespace zmq
         //  The thread array to manage newly-created BP engines.
         typedef std::vector <poll_thread_t*> handler_threads_t;
         handler_threads_t handler_threads;
+
+        //  Points to the I/O thread to use to handle next BP connection.
+        //  (Handler threads are used in round-robin fashion.)
         handler_threads_t::size_type current_handler_thread;
     };
 
