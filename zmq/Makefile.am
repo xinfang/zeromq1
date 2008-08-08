@@ -61,7 +61,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_listener.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
-libzmq_la_CXXFLAGS = -Wall -pedantic -Werror
+libzmq_la_CXXFLAGS = -Wall -pedantic
 
 bin_PROGRAMS = zmq_server
 zmq_server_LDADD = libzmq.la

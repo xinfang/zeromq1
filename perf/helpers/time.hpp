@@ -26,6 +26,8 @@
 #include <unistd.h>
 #include <iostream>
 
+#include "../../zmq/stdint.hpp"
+
 namespace perf
 {
     //  Time instance in nanoseconds.
