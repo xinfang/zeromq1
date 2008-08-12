@@ -142,7 +142,7 @@ bool zmq::bp_engine_t::out_event ()
         write_pos = 0;
 
         //  If there are no data to write stop polling for output.
-        if (!write_size)
+        if (write_size != writebuf_size)
             events ^= POLLOUT;
     }
 
