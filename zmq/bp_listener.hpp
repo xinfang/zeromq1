@@ -52,6 +52,10 @@ namespace zmq
         void close_event ();
         void process_command (const engine_command_t &command_);
 
+        inline int get_name (char* buf, int len) {
+            return listener.get_name (buf, len);
+        }
+
     private:
 
         bp_listener_t (poll_thread_t *thread_, const char *interface_,

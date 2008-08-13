@@ -29,13 +29,14 @@
 #include <string.h>
 
 #include "err.hpp"
+#include "ip.hpp"
 
 zmq::tcp_socket_t::tcp_socket_t (const char *host_,
     const char *default_address_, const char *default_port_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_address (&ip_address, host_, default_address_, default_port_);
+    zmq::resolve_ip_address (&ip_address, host_, default_address_, default_port_);
 
     //  Create the socket
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);

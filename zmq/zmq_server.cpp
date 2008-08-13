@@ -34,8 +34,9 @@ using namespace std;
 #include "config.hpp"
 #include "stdint.hpp"
 #include "err.hpp"
-#include "tcp_listener.hpp"
+// #include "tcp_listener.hpp"
 #include "zmq_server.hpp"
+#include "ip.hpp"
 using namespace zmq;
 
 //  Info about a single exchange.

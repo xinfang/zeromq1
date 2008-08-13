@@ -68,20 +68,27 @@ void zmq::locator_t::create_exchange (const char *exchange_,
          assert (global_locator);
          assert (strlen (interface_) < 256);
 
+         char new_interface_ [256];
+         
+         bp_listener_t* bp;
          //  Create a listener for the exchange
-         bp_listener_t::create (listener_thread_, interface_,
-            handler_thread_count_, handler_threads_,
-            false, context_, engine_, exchange_);
-
+         bp = bp_listener_t::create (listener_thread_, interface_,
+                                     handler_thread_count_, handler_threads_,
+                                     false, context_, engine_, exchange_);
+         
+         if (bp->get_name (new_interface_, sizeof (new_interface_)) < 0) {
+             assert (0);
+         }
+         
          //  Send to 'add exchange' command
          unsigned char cmd = create_exchange_id;
          global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (exchange_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (exchange_, size);
-         size = strlen (interface_);
+         size = strlen (new_interface_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (interface_, size);
+         global_locator->blocking_write (new_interface_, size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);
@@ -181,20 +188,26 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          assert (global_locator);
          assert (strlen (interface_) < 256);
 
+         bp_listener_t* bp;
          //  Create a listener for the exchange
-         bp_listener_t::create (listener_thread_, interface_,
+         bp = bp_listener_t::create (listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
             true, context_, engine_, queue_);
 
+         char new_interface_ [256];
+         if (bp->get_name (new_interface_, sizeof (new_interface_)) < 0) {
+             assert (0);
+         }
+         
          //  Send to 'add queue' command
          unsigned char cmd = create_queue_id;
          global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (queue_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (queue_, size);
-         size = strlen (interface_);
+         size = strlen (new_interface_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (interface_, size);
+         global_locator->blocking_write (new_interface_, size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);
