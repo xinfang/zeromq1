@@ -44,7 +44,7 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
     context (thread_),
     peer_context (peer_context_),
     peer_engine (peer_engine_),
-    listener (interface_, NULL, NULL)
+    listener (interface_)
 {
     //  Copy the peer name.
     assert (strlen (peer_name_) < 16);

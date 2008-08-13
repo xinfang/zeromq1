@@ -17,19 +17,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+#include <string.h>
 #include <arpa/inet.h>
 
+#include "err.hpp"
 #include "locator.hpp"
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::locator_t::locator_t (const char *host_)
+zmq::locator_t::locator_t (const char *hostname_)
 {
-    if (host_) {
-        char buff [32];
-        snprintf (buff, 32, "%d", (int) default_locator_port);
-        global_locator = new tcp_socket_t (host_, NULL, buff);
+    if (hostname_) {
+
+        //  If port number is not explicitly specified, use default one.
+        if (!strchr (hostname_, ':')) {
+            char buf [256];
+            snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
+            hostname_ = buf;
+        }
+
+        //  Open connection to global locator.
+        global_locator = new tcp_socket_t (hostname_);
     }
     else
         global_locator = NULL;
@@ -67,28 +77,21 @@ void zmq::locator_t::create_exchange (const char *exchange_,
 
          assert (global_locator);
          assert (strlen (interface_) < 256);
-
-         char new_interface_ [256];
          
-         bp_listener_t* bp;
          //  Create a listener for the exchange
-         bp = bp_listener_t::create (listener_thread_, interface_,
-                                     handler_thread_count_, handler_threads_,
-                                     false, context_, engine_, exchange_);
-         
-         if (bp->get_name (new_interface_, sizeof (new_interface_)) < 0) {
-             assert (0);
-         }
-         
+         bp_listener_t *listener = bp_listener_t::create (listener_thread_,
+             interface_, handler_thread_count_, handler_threads_, false,
+             context_, engine_, exchange_);
+                  
          //  Send to 'add exchange' command
          unsigned char cmd = create_exchange_id;
          global_locator->blocking_write (&cmd, 1);
          unsigned char size = strlen (exchange_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (exchange_, size);
-         size = strlen (new_interface_);
+         size = strlen (listener->get_interface ());
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (new_interface_, size);
+         global_locator->blocking_write (listener->get_interface (), size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);
@@ -188,16 +191,10 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          assert (global_locator);
          assert (strlen (interface_) < 256);
 
-         bp_listener_t* bp;
          //  Create a listener for the exchange
-         bp = bp_listener_t::create (listener_thread_, interface_,
-            handler_thread_count_, handler_threads_,
-            true, context_, engine_, queue_);
-
-         char new_interface_ [256];
-         if (bp->get_name (new_interface_, sizeof (new_interface_)) < 0) {
-             assert (0);
-         }
+         bp_listener_t *listener = bp_listener_t::create (listener_thread_,
+            interface_, handler_thread_count_, handler_threads_, true,
+            context_, engine_, queue_);
          
          //  Send to 'add queue' command
          unsigned char cmd = create_queue_id;
@@ -205,9 +202,9 @@ void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
          unsigned char size = strlen (queue_);
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (queue_, size);
-         size = strlen (new_interface_);
+         size = strlen (listener->get_interface ());
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (new_interface_, size);
+         global_locator->blocking_write (listener->get_interface (), size);
 
          //  Read the response
          global_locator->blocking_read (&cmd, 1);

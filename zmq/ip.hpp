@@ -1,3 +1,22 @@
+/*
+    Copyright (c) 2007-2008 FastMQ Inc.
+
+    This file is part of 0MQ.
+
+    0MQ is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    0MQ is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef __ZMQ_IP_HPP_INCLUDED__
 #define __ZMQ_IP_HPP_INCLUDED__
 
@@ -5,14 +24,19 @@
 
 namespace zmq
 {
-    int resolve_iface (char const* name, struct sockaddr_in* addr);
 
-    //  This function resolves a string in <host-name>:<port-number> format.
-    //  If port number is not specified, default_port_ is used instead. If
-    //  IP address is not specified (e.g. ":80"), default address is used
-    //  instead.
-    int resolve_ip_address (sockaddr_in *address_, const char *host_,
-        const char *default_address_, const char* default_port_);
-};
+    //  This function resolves a sting contaning a network interface name.
+    //  Interface name is either textual name (e.g. "eth0") or an IP addess
+    //  of the interface.
+    void resolve_nic_name (in_addr* addr_, char const *interface_);
+
+    //  Resolves network interface name in <nic-name>:<port> format. If port
+    //  is not specified, system should use a port from unused ports pool.
+    void resolve_ip_interface (sockaddr_in* addr_, char const *interface_);
+
+    //  This function resolves a string in <hostname>:<port-number> format.
+    //  Hostname can be either the name of the host or its IP address.
+    void resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_);
+}
 
 #endif 

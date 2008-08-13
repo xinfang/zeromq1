@@ -42,9 +42,9 @@ namespace zmq
     public:
 
         //  Creates the local locator and connects it to the global locator.
-        //  If host_ is NULL, no global locator is used. Objects not found
-        //  are reporeted as unknown.
-        locator_t (const char *host_ = NULL);
+        //  If hostname_ is NULL, no global locator is used. Objects not found
+        //  on process level are reported as unknown.
+        locator_t (const char *hostname_ = NULL);
 
         //  Destroys the locator.
         ~locator_t ();

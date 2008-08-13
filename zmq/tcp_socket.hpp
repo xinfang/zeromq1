@@ -34,9 +34,8 @@ namespace zmq
     {
     public:
 
-        //  Opens TCP socket. Host should be in form of "127.0.0.1:5555".
-        tcp_socket_t (const char *host_, const char *default_address_,
-            const char *default_port_);
+        //  Opens TCP socket. Hostname should be in form of <host>:<port>.
+        tcp_socket_t (const char *hostname_);
 
         //  Opens a socket by accepting a connection from TCP listener object
         tcp_socket_t (tcp_listener_t &listener);
@@ -68,6 +67,9 @@ namespace zmq
 
         //  Underlying socket
         int s;
+
+        //  Disable copy construction of tcp_socket.
+        tcp_socket_t (const tcp_socket_t&);
     };
 
 }

@@ -24,7 +24,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-#include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
 #include <string>
@@ -32,14 +31,11 @@
 #include "err.hpp"
 #include "ip.hpp"
 
-zmq::tcp_listener_t::tcp_listener_t (const char *host_,
-    const char *default_address_, const char *default_port_)
+zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    if (resolve_ip_address (&ip_address, host_, default_address_, default_port_) < 0) {
-        assert (0);
-    }
+    resolve_ip_interface (&ip_address, interface_);
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -51,38 +47,32 @@ zmq::tcp_listener_t::tcp_listener_t (const char *host_,
     errno_assert (rc == 0);
 
     //  Bind the socket to the network interface and port.
-    rc = bind (s, (struct sockaddr*) &ip_address, 
-        sizeof (ip_address));
+    rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     errno_assert (rc == 0);
+
+    //  If port number was not specified, retrieve the one assigned
+    //  to the socket by the operating system.
+    if (ntohs (ip_address.sin_port) == 0) {
+
+        sockaddr_in addr;
+        memset (&addr, 0, sizeof (sockaddr_in));
+        socklen_t sz = sizeof (sockaddr_in);
+        int rc = getsockname (s, (sockaddr*) &addr, &sz);
+        assert (rc == 0);
+        ip_address.sin_port = addr.sin_port;
+    }
+
+    //  Fill in the interface name.
+    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, interface,
+        sizeof (interface));
+    assert (rcp);
+    size_t isz = strlen (interface);
+    snprintf (interface + isz, sizeof (interface) - isz, ":%d",
+        (int) ntohs (ip_address.sin_port));
               
     //  Listen for incomming connections.
     rc = listen (s, 1);
     errno_assert (rc == 0);
-}
-
-int zmq::tcp_listener_t::get_name(char* buf, int len)
-{
-    struct sockaddr_in sin4;
-    socklen_t namelen = sizeof (struct sockaddr_in);
-
-    memset (&sin4, 0, sizeof (struct sockaddr_in));
-
-    if (getsockname (s, 
-                     (struct sockaddr*)&sin4, 
-                     &namelen) == 0) {
-
-        char cp[128];
-        if (inet_ntop (AF_INET, &sin4.sin_addr, cp, sizeof (cp))) {
-            if (snprintf (buf, len, 
-                          "%s:%d",
-                          cp, ntohs (sin4.sin_port)) >= 0) {
-                return 0;
-            }
-            
-        }
-    }
-
-    return -1; 
 }
 
 int zmq::tcp_listener_t::accept ()

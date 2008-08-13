@@ -44,6 +44,12 @@ namespace zmq
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
             const char *peer_name_);
 
+        //  Returns port listener is listening on.
+        inline const char *get_interface ()
+        {
+            return listener.get_interface ();
+        }
+
         //  i_pollable implementation.
         int get_fd ();
         short get_events ();
@@ -51,10 +57,6 @@ namespace zmq
         bool out_event ();
         void close_event ();
         void process_command (const engine_command_t &command_);
-
-        inline int get_name (char* buf, int len) {
-            return listener.get_name (buf, len);
-        }
 
     private:
 

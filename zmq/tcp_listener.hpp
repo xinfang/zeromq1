@@ -30,9 +30,10 @@ namespace zmq
     {
     public:
 
-        //  Create TCP listining socket.
-        tcp_listener_t (const char *host_, const char *default_address_,
-            const char *default_port_);
+        //  Create TCP listining socket. Interface is either interface name,
+        //  in that case port number is chosen by OS and can be retrieved
+        //  by get_port method, or <interface-name>:<port-number>.
+        tcp_listener_t (const char *interface_);
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
@@ -41,12 +42,19 @@ namespace zmq
             return s;
         }
 
+        //  Returns port listener is listening on.
+        inline const char *get_interface ()
+        {
+            return interface; 
+        }
+
         //  Accept the new connection.
         int accept ();
 
-        int get_name (char* buf, int len);
-
     private:
+
+        //  Name of the interface listenet is listening on.
+        char interface [256];
 
         //  Underlying socket.
         int s;

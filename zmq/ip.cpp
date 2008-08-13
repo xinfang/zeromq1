@@ -1,181 +1,186 @@
+/*
+    Copyright (c) 2007-2008 FastMQ Inc.
+
+    This file is part of 0MQ.
+
+    0MQ is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    0MQ is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include <assert.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
-#include <assert.h>
 #include <string.h>
-
 #include <string>
 
-#include "ip.hpp"
 #include "config.h"
+#include "ip.hpp"
 
-# if ZMQ_HAVE_SOLARIS
+#if defined ZMQ_HAVE_SOLARIS
 
 #include <sys/sockio.h>
 #include <net/if.h>
 
-int zmq::resolve_iface (char const* name, struct sockaddr_in* addr)
+//  On Solaris platform, network interface name can be queried by ioctl.
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
-    int rc = -1;
-    int fd;
-    
-    if ((fd = socket (AF_INET, SOCK_DGRAM, 0)) == -1) {
-        assert (0);
-        return -1;
-    }
-    
-    struct lifnum ifn;
+    //  Create a socket.
+    int fd = socket (AF_INET, SOCK_DGRAM, 0);
+    assert (fd != -1);
+
+    //  Retrieve number of interfaces.
+    lifnum ifn;
     ifn.lifn_family = AF_UNSPEC;
     ifn.lifn_flags = 0;
-    if (ioctl (fd, SIOCGLIFNUM, (char*)&ifn) < 0) {
-        assert (0);
-        close (fd);
-        /* could not determine number of interfaces */
-        return -1;
-    }
+    int rc = ioctl (fd, SIOCGLIFNUM, (char*) &ifn) < 0);
+    assert (rc != -1);
 
-    char* ifr;
+    //  Allocate memory to get interface names.
     size_t ifr_size = sizeof (struct lifreq) * ifn.lifn_count;
+    char *ifr = malloc (ifr_size);
+    assert (ifr);
     
-    if ((ifr = malloc (ifr_size)) == NULL) {
-        assert (0);
-        close (fd);
-        return -1;
-    }
-    
-    struct lifconf ifc;
+    //  Retrieve interface names.
+    lifconf ifc;
     ifc.lifc_family = AF_UNSPEC;
     ifc.lifc_flags = 0;
     ifc.lifc_len = ifr_size;
     ifc.lifc_buf = ifr;
-    if (ioctl (fd, SIOCGLIFCONF, (char*)&ifc) < 0) {
-        assert (0);
-        close (fd);
-        free (ifr);
-        return -1;
-    }
+    rc = ioctl (fd, SIOCGLIFCONF, (char*) &ifc) < 0)
+    assert (rc != -1);
 
-    struct lifreq* ifrp;
-    int n;
-
-    ifrp = ifc.lifc_req;
-    for (n = 0 ; n < ifc.lifc_len / sizeof (struct lifreq) ; ++n, ifrp++) {
-        if (!strcmp (name, ifrp->lifr_name)) {
-            if (ioctl (fd, SIOCGLIFADDR, (char*)ifrp) == 0) {
-                if (ifrp->lifr_addr.ss_family == AF_INET) {
-                    memcpy (addr, (void*)&ifrp->lifr_addr, sizeof (struct sockaddr_in));
-                    rc = 0;
-                }
+    //  Find the interface with the specified name and AF_INET family.
+    bool found = false;
+    lifreq *ifrp = ifc.lifc_req;
+    for (int n = 0; n < ifc.lifc_len / sizeof (lifreq); n ++, ifrp ++) {
+        if (!strcmp (interface_, ifrp->lifr_name)) {
+            rc = ioctl (fd, SIOCGLIFADDR, (char*) ifrp) == 0);
+            assert (rc != -1);
+            if (ifrp->lifr_addr.ss_family == AF_INET) {
+                memcpy (addr_, (void*) &ifrp->lifr_addr, sizeof (sockaddr_in));
+                found = true;
+                break;
             }
         }
     }
 
+    //  Clean-up.
+    free (ifr_size);
     close (fd);
 
-    return rc;
+    //  If interface was not found among interface names, we assume it's
+    //  specified in the form of IP address.
+    if (!found) {
+        rc = inet_pton (AF_INET, interface_, addr_);
+        assert (rc > 0);
+    }
 }
-# else
-# include <ifaddrs.h>
 
-int zmq::resolve_iface (char const* name, struct sockaddr_in* addr)
+#elif defined HAVE_GETIFADDRS
+
+#include <ifaddrs.h>
+
+//  On some platforms (Linux, FreeBSD & Mac OS X), network interface name
+//  can be queried using getifaddrs function.
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
-    int rc = -1;
-    struct ifaddrs* ifa = NULL;
+    //  Initialuse the output parameter.
+    memset (addr_, 0, sizeof (sockaddr_in));
 
-    assert (name != NULL);
-    assert (addr != NULL);
-
-    memset (addr, 0, sizeof (struct sockaddr_in));
-    addr->sin_family = AF_UNSPEC;
-    addr->sin_addr.s_addr = INADDR_NONE;
-
-# if HAVE_GETIFADDRS
-    if (getifaddrs (&ifa) != 0) 
-        return -1;
-    
+    //  Get the addresses.
+    ifaddrs* ifa = NULL;
+    int rc = getifaddrs (&ifa);
+    assert (rc == 0);    
     assert (ifa != NULL);
 
-    for (struct ifaddrs* ifp = ifa ; ifp != NULL ; ifp = ifp->ifa_next) {
-        if (ifp->ifa_addr 
-            && ifp->ifa_addr->sa_family == AF_INET 
-            && !strcmp (name, ifp->ifa_name)) 
+    //  Find the corresponding network interface.
+    bool found = false;
+    for (ifaddrs *ifp = ifa; ifp != NULL ;ifp = ifp->ifa_next)
+        if (ifp->ifa_addr && ifp->ifa_addr->sa_family == AF_INET 
+            && !strcmp (interface_, ifp->ifa_name)) 
         {
-            addr->sin_family = AF_INET;
-            addr->sin_addr = 
-                ((struct sockaddr_in*)ifp->ifa_addr)->sin_addr;
-            rc = 0;
+            *addr_ = ((sockaddr_in*) ifp->ifa_addr)->sin_addr;
+            found = true;
         }
-    }
-    
+
+    //  Clean-up;
     freeifaddrs (ifa);
-# endif 
-    return rc;
+
+    //  If interface was not found among interface names, we assume it's
+    //  specified in the form of IP address.
+    if (!found) {
+        rc = inet_pton (AF_INET, interface_, addr_);
+        assert (rc > 0);
+    }
 }
-# endif
 
-int zmq::resolve_ip_address (sockaddr_in *address_, const char *host_,
-    const char *default_address_, const char* default_port_)
+#else
+
+//  On other platforms interface name is interpreted as raw IP address.
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
-    const char *port;
-    const char *address;
-    std::string host;
+    //  Convert IP address into sockaddr_in structure.
+    int rc = inet_pton (AF_INET, interface_, addr_);
+    assert (rc > 0);
+}
 
-    if (!host_) {
+#endif
 
-        //  If host is not given, use default values.
-        // assert (default_port_);
-        assert (default_address_);
-        port = default_port_;
-        address = default_address_;
-    }
+void zmq::resolve_ip_interface (sockaddr_in* addr_, char const *interface_)
+{
+    //  Find the ':' that separates NIC name from port.
+    const char *delimiter = strchr (interface_, ':');
+
+    //  Resolve the name of the NIC.
+    if (!delimiter)
+        resolve_nic_name (&addr_->sin_addr, interface_);
     else {
-
-        //  Delimit the IP address portion and port portion of the host string.
-        host = host_;
-        std::string::size_type pos = host.find (':');
-
-        //  Determine port to use.
-        if (pos == std::string::npos) {
-            // assert (default_port_);
-            port = default_port_;
-        }
-        else
-            port = host.c_str () + pos + 1;
-
-        //  Determine IP address to use.
-        if (pos == 0) {
-            assert (default_address_);
-            address = default_address_;
-        }
-        else {
-            host [pos] = 0;
-            address = host.c_str ();
-        }
+        assert (delimiter - interface_ < 256);
+        char buf [256];
+        memcpy (buf, interface_, delimiter - interface_);
+        buf [delimiter - interface_] = 0;
+        resolve_nic_name (&addr_->sin_addr, buf);
     }
 
-    //  Resolve the host name and service name.
-    struct addrinfo req;
-    memset (&req, 0, sizeof req);
-    struct addrinfo *res;
+    //  Resolve the port.
+    addr_->sin_port = htons (delimiter ? atoi (delimiter + 1) : 0);        
+}
+
+void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
+{
+    //  Find the ':' that separates hostname name from port.
+    const char *delimiter = strchr (hostname_, ':');
+    assert (delimiter);
+
+    //  Get the hostname.
+    assert (delimiter - hostname_ < 256);
+    char hostname [256];
+    memcpy (hostname, hostname_, delimiter - hostname_);
+    hostname [delimiter - hostname_] = 0;
+
+    //  Resolve host name.
+    addrinfo req;
+    memset (&req, 0, sizeof (req));
     req.ai_family = AF_INET;
-    int rc = getaddrinfo (address, NULL, &req, &res);
-    if (rc == 0) {
-        *address_ = *((sockaddr_in *) res->ai_addr);
-        freeaddrinfo (res);
-    } else {
-        rc = resolve_iface (host.c_str(), address_);
-    }
-    if (!port)
-        address_->sin_port = 0;
-    else
-        address_->sin_port = htons (atoi (port));
-    if (rc < 0) {
-        fprintf (stderr, "failed to resolve '%s'\n",
-                 host.c_str());
-    }
-    assert (rc == 0); // until zmq_server is fixd
-    return rc;
+    addrinfo *res;
+    int rc = getaddrinfo (hostname, NULL, &req, &res);
+    assert (rc == 0);
+    *addr_ = *((sockaddr_in *) res->ai_addr);
+    freeaddrinfo (res);
+    
+    //  Fill in the port number.
+    addr_->sin_port = htons (atoi (delimiter + 1));
 }

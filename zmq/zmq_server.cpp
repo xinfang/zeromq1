@@ -34,7 +34,6 @@ using namespace std;
 #include "config.hpp"
 #include "stdint.hpp"
 #include "err.hpp"
-// #include "tcp_listener.hpp"
 #include "zmq_server.hpp"
 #include "ip.hpp"
 using namespace zmq;
@@ -95,16 +94,20 @@ int main (int argc, char *argv [])
     //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
-        printf ("Usage: zmq_server [<network-interface-IP-address:port>]\n");
+        printf ("Usage: zmq_server [port]\n");
+        printf ("Default port used is %d.\n", (int) default_locator_port);
         return 1;
     }
 
-    //  Resolve the NIC and port to use.
-    char buff [32];
-    snprintf (buff, 32, "%d", (int) default_locator_port);
+    //  Create the interface string. zmq_server always listens
+    //  on all available network interfaces.
+    char buff [256];
+    snprintf (buff, 256, "0.0.0.0:%d",
+        (int) (argc == 1 ? default_locator_port : atoi (argv [1])));
+
+    //  Resolve the interface
     sockaddr_in interface;
-    resolve_ip_address (&interface, argc == 1 ? NULL : argv [1],
-        "0.0.0.0", buff);
+    resolve_ip_interface (&interface, buff);
 
     //  Create a listening socket.
     int listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
