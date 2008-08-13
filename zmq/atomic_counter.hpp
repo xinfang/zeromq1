@@ -41,7 +41,7 @@ namespace zmq
             value (value_)
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__)))
+    && !defined (__x86_64__) && !defined (__sparc__)))
             int rc = pthread_mutex_init (&mutex, NULL);
             errno_assert (rc == 0);
 #endif
@@ -50,7 +50,7 @@ namespace zmq
         inline ~atomic_counter_t ()
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__)))
+    && !defined (__x86_64__) && !defined (__sparc__)))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
 #endif
@@ -74,6 +74,23 @@ namespace zmq
                 : "0" (increment), "m" (*val)
                 : "memory", "cc");
             return increment;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            volatile integer_t *val = &value;
+            integer_t tmp;
+            integer_t result;
+            __asm__ volatile(
+                "ld [%4], %1\n\t"
+                "1:\n\t"
+                "add %1, %0, %2\n\t"
+                "cas [%4], %1, %2\n\t"
+                "cmp %1, %2\n\t"
+                "bne,a,pn %%icc, 1b\n\t"
+                "mov %2, %1\n\t"
+                : "+r" (increment), "=&r" (tmp), "=&r" (result), "+m" (*val)
+                : "r" (val)
+                : "cc");
+            return result; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
@@ -97,6 +114,23 @@ namespace zmq
                 : "0" (oldval), "m" (*val)
                 : "memory", "cc");
             return oldval != decrement;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            volatile integer_t *val = &value;
+            integer_t tmp;
+            integer_t result;
+            __asm__ volatile(
+                "ld [%4], %1\n\t"
+                "1:\n\t"
+                "add %1, %0, %2\n\t"
+                "cas [%4], %1, %2\n\t"
+                "cmp %1, %2\n\t"
+                "bne,a,pn %%icc, 1b\n\t"
+                "mov %2, %1\n\t"
+                : "+r" (-decrement), "=&r" (tmp), "=&r" (result), "+m" (*val)
+                : "r" (val)
+                : "cc");
+            return result <= decrement;
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
@@ -112,7 +146,7 @@ namespace zmq
 
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
-    (!defined (__i386__) && !defined (__x86_64__)))
+    (!defined (__i386__) && !defined (__x86_64__) && !defined (__sparc__)))
         pthread_mutex_t mutex;
 #endif
     };
