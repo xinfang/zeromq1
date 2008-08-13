@@ -219,11 +219,26 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 //  Forward the command to the specified engine.
                 case command_t::engine_command:
+                    {
+                        //  Check whether engine still exists.
+                        std::vector <i_pollable*>::iterator it = std::find (
+                            engines.begin (), engines.end (),
+                            command.args.engine_command.engine);
+                        assert (it != engines.end ());
 
-                    //  TODO: check whether the engine still exists,
-                    //  Otherwise drop the command.
-                    command.args.engine_command.engine->process_command (
-                        command.args.engine_command.command);
+                        //  TODO: This is a hack to perform speculative write
+                        //  after new message arrived from pipe. It should be
+                        //  cone in more coherent fashion, however, that would
+                        //  require refactoring of thread/engine interface.
+                        if (command.args.engine_command.command.type ==
+                              engine_command_t::revive)
+                            pollset [1 + (it - engines.begin ())].revents |=
+                                POLLOUT;
+
+                        //  Forward the command to the engine.
+                        command.args.engine_command.engine->process_command (
+                            command.args.engine_command.command);
+                    }
                     break;
 
                 //  Unknown command.

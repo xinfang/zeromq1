@@ -22,8 +22,6 @@
 
 #include <string.h>
 
-#include "i_pollable.hpp"
-#include "i_engine.hpp"
 #include "ysemaphore.hpp"
 #include "pipe.hpp"
 

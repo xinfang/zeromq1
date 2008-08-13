@@ -20,12 +20,13 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
+#include "i_engine.hpp"
+
 namespace zmq
 {
-
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
-    struct i_pollable
+    struct i_pollable : public i_engine
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
