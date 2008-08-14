@@ -17,9 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cassert>
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
 #include "../../transports/zmq.hpp"
 #include "../scenarios/thr.hpp"
@@ -42,6 +44,10 @@ int main (int argc, char *argv [])
     int msg_count = atoi (argv [4]);
     int thread_count = atoi (argv [5]);
 
+    //  Port number shouldn't be specified in the "interface" parameter,
+    //  because there are possibly multiple ports used.
+    assert (strchr (interface, ':') == NULL);
+
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
@@ -62,21 +68,10 @@ int main (int argc, char *argv [])
         string exchange_name ("E");
         exchange_name += perf::to_string (thread_nbr);
 
-        //  Add port number to the interface to get full exchange interface.
-        string exchange_interface (interface);
-        exchange_interface += ":";
-        exchange_interface += perf::to_string (5556 + thread_nbr * 2);
-
-        //  Add port number to the interface to get full queue interface.
-        string queue_interface (interface);
-        queue_interface += ":";
-        queue_interface += perf::to_string (5557 + thread_nbr * 2);
-
         //  Create zmq transport with bind = false. It means that global queue
         //  QX and global exchange EX will be created without any bindings.
         transports [thread_nbr] = new perf::zmq_t (host, false,
-            exchange_name.c_str (), queue_name.c_str (),
-            exchange_interface.c_str (), queue_interface.c_str ());
+            exchange_name.c_str (), queue_name.c_str (), interface, interface);
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
