@@ -17,7 +17,6 @@ AC_CHECK_LIB(pthread, pthread_create)
 
 # Host speciffic checks
 AC_CANONICAL_HOST
-AC_MSG_RESULT([   host: $host_os]) 
 
 case "${host_os}" in
     *linux*)
