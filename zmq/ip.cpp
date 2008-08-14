@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
