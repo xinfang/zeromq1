@@ -37,54 +37,31 @@ using namespace std;
 #include "zmq_server.hpp"
 using namespace zmq;
 
-//  Info about a single exchange.
-struct exchange_info_t
+//  Info about a single object.
+struct object_info_t
 {
     string interface;
     int fd;
 };
 
-//  Maps exchange name to exchange info.
-typedef map <string, exchange_info_t> exchanges_t;
-
-//  Info about a single queue.
-struct queue_info_t
-{
-    string interface;
-    int fd;
-};
-
-//  Maps queue name to queue info.
-typedef map <string, queue_info_t> queues_t;
+//  Maps object name to object info.
+typedef map <string, object_info_t> objects_t;
 
 //  This function is used when there is socket disconnection. It cleans all
 //  the objects registered by the connection.
-void unregister (int s_, exchanges_t &exchanges_, queues_t &queues_)
+void unregister (int s_, objects_t *objects_)
 {
-    //  Delete the symbols associated with socket s_ from
-    //  the exchange repository.
-    exchanges_t::iterator eit = exchanges_.begin();
-    while (eit != exchanges_.end ()) {
-        if (eit->second.fd == s_) {
-            exchanges_t::iterator tmp = eit;
-            eit ++;
-            exchanges_.erase (tmp);
-            continue;
+    for (int type_id = 0; type_id != typeid_count; type_id ++) {
+        objects_t::iterator it = objects_[type_id].begin();
+        while (it != objects_[type_id].end ()) {
+            if (it->second.fd == s_) {
+                objects_t::iterator tmp = it;
+                it ++;
+                objects_[type_id].erase (tmp);
+                continue;
+            }
+            it ++;
         }
-        eit ++;
-    }
-
-    //  Delete the symbols associated with socket s_ from
-    //  the queue repository.
-    queues_t::iterator qit = queues_.begin();
-    while (qit != queues_.end ()) {
-        if (qit->second.fd == s_) {
-            queues_t::iterator tmp = qit;
-            qit ++;
-            queues_.erase (tmp);
-            continue;
-        }
-        qit ++;
     }
 }
 
@@ -94,10 +71,11 @@ int main (int argc, char *argv [])
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
         printf ("Usage: zmq_server [port]\n");
-        printf ("Default port used is %d.\n", (int) default_locator_port);
+        printf ("Default port is %d.\n", (int) default_locator_port);
         return 1;
     }
 
+    //  Create IP address to listen to.
     sockaddr_in address;
     memset (&address, 0, sizeof (sockaddr_in));
     address.sin_family = AF_INET;
@@ -130,9 +108,9 @@ int main (int argc, char *argv [])
     pollfds [0].fd = listening_socket;
     pollfds [0].events = POLLIN;
 
-    //  Exchange and queue repositories.
-    exchanges_t exchanges;
-    queues_t queues;
+    //  Object repository. Individual object maps are placed into slots
+    //  identified by the typeid of particular object.
+    objects_t objects [typeid_count];
 
     while (true) {
 
@@ -151,7 +129,7 @@ int main (int argc, char *argv [])
 
                 //  Unregister all the symbols registered by this connection
                 //  and delete the descriptor from pollfds vector.
-                unregister (s, exchanges, queues);
+                unregister (s, objects);
                 pollfds.erase (pollfds.begin () + pos);
                 close (s);
                 continue;
@@ -169,7 +147,7 @@ int main (int argc, char *argv [])
 
                     //  Unregister all the symbols registered by this connection
                     //  and delete the descriptor from pollfds vector.
-                    unregister (s, exchanges, queues);
+                    unregister (s, objects);
                     pollfds.erase (pollfds.begin () + pos);
                     continue;
                 }
@@ -177,9 +155,14 @@ int main (int argc, char *argv [])
                 assert (nbytes == 1);
 
                 switch (cmd) {
-                case create_exchange_id:
+                case create_id:
                     {
-                        //  Parse exchange name.
+                        //  Parse typeid.
+                        unsigned char type_id;
+                        nbytes = recv (s, &type_id, 1, MSG_WAITALL);
+                        assert (nbytes == 1);
+
+                        //  Parse object name.
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
                         assert (nbytes == 1);
@@ -196,80 +179,40 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
                         interface [size] = 0;
 
-                        //  Insert exchange to the exchange repository.
-                        exchange_info_t info = {interface, s};
-                        if (!exchanges.insert (
-                              exchanges_t::value_type (name, info)).second) {
+                        //  Insert object to the repository.
+                        object_info_t info = {interface, s};
+                        if (!objects [type_id].insert (
+                              objects_t::value_type (name, info)).second) {
 
                             //  Send an error if the exchange already exists.
                             reply = fail_id;
                             nbytes = send (s, &reply, 1, 0);
                             assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                            printf ("Error when creating exchange: exchange %s"
-                                " already exists.\n", name);
+                            printf ("Error when creating object: object %d:%s"
+                                " already exists.\n", (int) type_id, name);
 #endif
                             break;
                         }
 
                         //  Send reply command.
-                        reply = create_exchange_ok_id;
+                        reply = create_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                        printf ("Exchange %s created (%s).\n", name,
+                        printf ("Object %d:%s created (%s).\n", type_id, name,
                             interface);
 #endif
                         break;
                     }
-                case create_queue_id:
+                case get_id:
                     {
-                        //  Parse queue name.
-                        unsigned char size;
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
+                        //  Parse typeid.
+                        unsigned char type_id;
+                        nbytes = recv (s, &type_id, 1, MSG_WAITALL);
                         assert (nbytes == 1);
-                        char name [256];
-                        nbytes = recv (s, name, size, MSG_WAITALL);
-                        assert (nbytes == size);
-                        name [size] = 0;
 
-                        //  Parse interface.
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        assert (nbytes == 1);
-                        char interface [256];
-                        nbytes = recv (s, interface, size, MSG_WAITALL);
-                        assert (nbytes == size);
-                        interface [size] = 0;
-
-                        //  Insert queue to the queue repository.
-                        queue_info_t info = {interface, s};
-                        if (!queues.insert (
-                              queues_t::value_type (name, info)).second) {
-
-                            //  Send an error if the queue already exists.
-                            reply = fail_id;
-                            nbytes = send (s, &reply, 1, 0);
-                            assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                            printf ("Error when creating queue: "
-                                "queue %s already exists.\n", name);
-#endif
-                            break;
-                        }
-
-                        //  Send reply command.
-                        reply = create_queue_ok_id;
-                        nbytes = send (s, &reply, 1, 0);
-                        assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                        printf ("Queue %s created (%s).\n", name,
-                            interface);
-#endif        
-                        break;
-                    }
-                case get_exchange_id:
-                    {
-                        //  Parse exchange name.
+                        //  Parse object name.
                         unsigned char size;
                         nbytes = recv (s, &size, 1, MSG_WAITALL);
                         assert (nbytes == 1);
@@ -279,22 +222,24 @@ int main (int argc, char *argv [])
                         name [size] = 0;
 
                         //  Find the exchange in the repository.
-                        exchanges_t::iterator it = exchanges.find (name);
-                        if (it == exchanges.end ()) {
+                        objects_t::iterator it =
+                            objects [type_id].find (name);
+                        if (it == objects [type_id].end ()) {
 
                              //  Send the error.
                              reply = fail_id;
                              nbytes = send (s, &reply, 1, 0);
                              assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                             printf ("Error when looking for an exchange: "
-                                 "exchange %s does not exist.\n", name);
+                             printf ("Error when looking for an object: "
+                                 "object %d:%s does not exist.\n",
+                                 (int) type_id, name);
 #endif
                              break;
                         }
 
                         //  Send reply command.
-                        reply = get_exchange_ok_id;
+                        reply = get_ok_id;
                         nbytes = send (s, &reply, 1, 0);
                         assert (nbytes == 1);
 
@@ -307,53 +252,8 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
 
 #ifdef ZMQ_TRACE
-                        printf ("Exchange %s retrieved (%s).\n", name,
-                            it->second.interface.c_str ());
-#endif
-                        break;
-                    }
-                case get_queue_id:
-                    {
-                        //  Parse queue name.
-                        unsigned char size;
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
-                        assert (nbytes == 1);
-                        char name [256];
-                        nbytes = recv (s, name, size, MSG_WAITALL);
-                        assert (nbytes == size);
-                        name [size] = 0;
-
-                        //  Find the queue in the repository.
-                        queues_t::iterator it = queues.find (name);
-                        if (it == queues.end ()) {
-
-                             //  Send the error.
-                             reply = fail_id;
-                             nbytes = send (s, &reply, 1, 0);
-                             assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                             printf ("Error when looking for a queue: "
-                                 "queue %s does not exist.\n", name);
-#endif
-                             break;
-                        }
-
-                        //  Send the reply command.
-                        reply = get_queue_ok_id;
-                        nbytes = send (s, &reply, 1, 0);
-                        assert (nbytes == 1);
-
-                        //  Send the interface.
-                        size = it->second.interface.size ();
-                        nbytes = send (s, &size, 1, 0);
-                        assert (nbytes == 1);
-                        nbytes = send (
-                            s, it->second.interface.c_str (), size, 0);
-                        assert (nbytes == size);
-
-#ifdef ZMQ_TRACE
-                        printf ("Queue %s retrieved (%s).\n", name,
-                        it->second.interface.c_str ());  
+                        printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
+                            name, it->second.interface.c_str ());
 #endif
                         break;
                     }

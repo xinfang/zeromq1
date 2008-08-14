@@ -23,20 +23,24 @@
 namespace zmq
 {
 
-    //  Enumerates individual commands passed between process locator and
-    //  global locator. Maps the symbolic names to command IDs.
-
+    //  Enumerates object types sotred in the directory service.
+    //  Typeid_count holds number of exisitng typeids.
     enum
     {
-        create_exchange_id = 1,
-        create_exchange_ok_id = 2,
-        create_queue_id = 3,
-        create_queue_ok_id = 4,
-        get_exchange_id = 5,
-        get_exchange_ok_id = 6,
-        get_queue_id = 7,
-        get_queue_ok_id = 8,
-        fail_id = 9
+        exchange_typeid = 0,
+        queue_typeid = 1,
+        typeid_count = 2
+    };
+
+    //  Enumerates individual commands passed between process locator and
+    //  global locator. Maps the symbolic names to command IDs.
+    enum
+    {
+        create_id = 1,
+        create_ok_id = 2,
+        get_id = 3,
+        get_ok_id = 4,
+        fail_id = 5
     };
 
 }
