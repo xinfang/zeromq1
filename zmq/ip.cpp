@@ -45,12 +45,12 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     lifnum ifn;
     ifn.lifn_family = AF_UNSPEC;
     ifn.lifn_flags = 0;
-    int rc = ioctl (fd, SIOCGLIFNUM, (char*) &ifn) < 0);
+    int rc = ioctl (fd, SIOCGLIFNUM, (char*) &ifn);
     assert (rc != -1);
 
     //  Allocate memory to get interface names.
     size_t ifr_size = sizeof (struct lifreq) * ifn.lifn_count;
-    char *ifr = malloc (ifr_size);
+    char *ifr = (char*) malloc (ifr_size);
     assert (ifr);
     
     //  Retrieve interface names.
@@ -59,15 +59,16 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     ifc.lifc_flags = 0;
     ifc.lifc_len = ifr_size;
     ifc.lifc_buf = ifr;
-    rc = ioctl (fd, SIOCGLIFCONF, (char*) &ifc) < 0)
+    rc = ioctl (fd, SIOCGLIFCONF, (char*) &ifc);
     assert (rc != -1);
 
     //  Find the interface with the specified name and AF_INET family.
     bool found = false;
     lifreq *ifrp = ifc.lifc_req;
-    for (int n = 0; n < ifc.lifc_len / sizeof (lifreq); n ++, ifrp ++) {
+    for (int n = 0; n < (int) (ifc.lifc_len / sizeof (lifreq));
+          n ++, ifrp ++) {
         if (!strcmp (interface_, ifrp->lifr_name)) {
-            rc = ioctl (fd, SIOCGLIFADDR, (char*) ifrp) == 0);
+            rc = ioctl (fd, SIOCGLIFADDR, (char*) ifrp);
             assert (rc != -1);
             if (ifrp->lifr_addr.ss_family == AF_INET) {
                 memcpy (addr_, (void*) &ifrp->lifr_addr, sizeof (sockaddr_in));
@@ -78,7 +79,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     }
 
     //  Clean-up.
-    free (ifr_size);
+    free (ifr);
     close (fd);
 
     //  If interface was not found among interface names, we assume it's
