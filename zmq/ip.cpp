@@ -71,7 +71,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
             rc = ioctl (fd, SIOCGLIFADDR, (char*) ifrp);
             assert (rc != -1);
             if (ifrp->lifr_addr.ss_family == AF_INET) {
-                memcpy (addr_, (void*) &ifrp->lifr_addr, sizeof (sockaddr_in));
+                *addr_ = ((sockaddr_in*) &ifrp->lifr_addr)->sin_addr;
                 found = true;
                 break;
             }
@@ -144,6 +144,10 @@ void zmq::resolve_ip_interface (sockaddr_in* addr_, char const *interface_)
 {
     //  Find the ':' that separates NIC name from port.
     const char *delimiter = strchr (interface_, ':');
+
+    //  Clean the structure and fill in protocol family.
+    memset (addr_, 0, sizeof (addr_));
+    addr_->sin_family = AF_INET;
 
     //  Resolve the name of the NIC.
     if (!delimiter)
