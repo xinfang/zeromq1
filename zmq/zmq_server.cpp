@@ -35,7 +35,6 @@ using namespace std;
 #include "stdint.hpp"
 #include "err.hpp"
 #include "zmq_server.hpp"
-#include "ip.hpp"
 using namespace zmq;
 
 //  Info about a single exchange.
@@ -99,15 +98,12 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    //  Create the interface string. zmq_server always listens
-    //  on all available network interfaces.
-    char buff [256];
-    snprintf (buff, 256, "0.0.0.0:%d",
-        (int) (argc == 1 ? default_locator_port : atoi (argv [1])));
-
-    //  Resolve the interface
-    sockaddr_in interface;
-    resolve_ip_interface (&interface, buff);
+    sockaddr_in address;
+    memset (&address, 0, sizeof (sockaddr_in));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl (INADDR_ANY);
+    address.sin_port =
+        htons (argc == 1 ? default_locator_port : atoi (argv [1]));
 
     //  Create a listening socket.
     int listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -120,8 +116,8 @@ int main (int argc, char *argv [])
     errno_assert (rc == 0);
 
     //  Bind the socket to the network interface and port.
-    rc = bind (listening_socket, (struct sockaddr*) &interface,
-        sizeof (interface));
+    rc = bind (listening_socket, (struct sockaddr*) &address,
+        sizeof (address));
     errno_assert (rc == 0);
               
     //  Listen for incomming connections.
