@@ -59,7 +59,7 @@ namespace zmq
             size_t readbuf_size_, const char *local_object_);
 
         //  i_pollable interface implementation.
-        void set_pollfd (pollfd *pfd_);
+        void set_poller (i_poller *poller_, int handle_);
         bool in_event ();
         bool out_event ();
         void close_event ();
@@ -106,8 +106,11 @@ namespace zmq
         //  Underlying TCP/IP socket.
         tcp_socket_t socket;
 
-        //  Associated pollfd.
-        pollfd *pfd;
+        //  Callback to poller.
+        i_poller *poller;
+
+        //  Poll handle associated with this engine.
+        int handle;
 
         //  If true, underlying TCP/IP connection is dead.
         bool socket_error;

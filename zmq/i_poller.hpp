@@ -17,35 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
-#define __ZMQ_I_POLLABLE_HPP_INCLUDED__
-
-#include <poll.h>
-
-#include "i_engine.hpp"
-#include "i_poller.hpp"
+#ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
+#define __ZMQ_I_POLLER_HPP_INCLUDED__
 
 namespace zmq
 {
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
-    struct i_pollable : public i_engine
+    struct i_poller
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_pollable () {};
+        virtual ~i_poller () {};
 
-        //  Set poller & poll handle associated with this engine.
-        virtual void set_poller (i_poller *poller_, int handle_) = 0;
-
-        //  Called by poll thread when in event occurs.
-        virtual bool in_event () = 0;
-
-        //  Called by poll thread when out event occurs.
-        virtual bool out_event () = 0;
-
-        //  Called by poll thread when close event occurs.
-        virtual void close_event () = 0;
+        virtual void set_fd (int handle_, int fd_) = 0;
+        virtual void set_pollin (int handle_) = 0;
+        virtual void reset_pollin (int handle_) = 0;
+        virtual void speculative_read (int handle_) = 0;
+        virtual void set_pollout (int handle_) = 0;
+        virtual void reset_pollout (int handle_) = 0;
+        virtual void speculative_write (int handle_) = 0;
     };
 
 }

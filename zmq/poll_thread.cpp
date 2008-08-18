@@ -75,6 +75,41 @@ void zmq::poll_thread_t::send_command (i_context *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
+void zmq::poll_thread_t::set_fd (int handle_, int fd_)
+{
+    pollset [handle_].fd = fd_;
+}
+
+void zmq::poll_thread_t::set_pollin (int handle_)
+{
+    pollset [handle_].events |= POLLIN;
+}
+
+void zmq::poll_thread_t::reset_pollin (int handle_)
+{
+    pollset [handle_].events &= ~((short) POLLIN);
+}
+
+void zmq::poll_thread_t::speculative_read (int handle_)
+{
+    pollset [handle_].revents |= POLLIN;
+}
+
+void zmq::poll_thread_t::set_pollout (int handle_)
+{
+    pollset [handle_].events |= POLLOUT;
+}
+
+void zmq::poll_thread_t::reset_pollout (int handle_)
+{
+    pollset [handle_].events &= ~((short) POLLOUT);
+}
+
+void zmq::poll_thread_t::speculative_write (int handle_)
+{
+    pollset [handle_].revents |= POLLOUT;
+}
+
 void *zmq::poll_thread_t::worker_routine (void *arg_)
 {
     poll_thread_t *self = (poll_thread_t*) arg_;
@@ -189,7 +224,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         pollset.push_back (pfd);
 
                         //  Pass pollfd to the engine.
-                        engine->set_pollfd (&pollset.back());
+                        engine->set_poller (this, pollset.size () - 1);
 
                         //  Store the engine pointer.
                         engines.push_back (engine);
@@ -223,15 +258,6 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                             command.args.engine_command.engine);
                         assert (it != engines.end ());
 
-                        //  TODO: This is a hack to perform speculative write
-                        //  after new message arrived from pipe. It should be
-                        //  cone in more coherent fashion, however, that would
-                        //  require refactoring of thread/engine interface.
-                        if (command.args.engine_command.command.type ==
-                              engine_command_t::revive)
-                            pollset [1 + (it - engines.begin ())].revents |=
-                                POLLOUT;
-
                         //  Forward the command to the engine.
                         command.args.engine_command.engine->process_command (
                             command.args.engine_command.command);
@@ -240,7 +266,6 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 //  Unknown command.
                 default:
-
                     assert (false);
                 }
             }

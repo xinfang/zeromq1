@@ -54,7 +54,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     encoder (&mux),
     decoder (&demux),
     socket (hostname_),
-    pfd (NULL),
+    poller (NULL),
+    handle (0),
     socket_error (false),
     local_object (local_object_)
 {
@@ -79,6 +80,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     encoder (&mux),
     decoder (&demux),
     socket (listener_),
+    poller (NULL),
+    handle (0),
     socket_error (false),
     local_object (local_object_)
 {
@@ -98,11 +101,15 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-void zmq::bp_engine_t::set_pollfd (pollfd *pfd_)
+void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 {
-    pfd = pfd_;
-    pfd->fd = socket.get_fd ();
-    pfd->events = POLLIN;
+    //  Store the callback.
+    poller = poller_;
+    handle = handle_;
+
+    //  Initialise the poll handle.
+    poller->set_fd (handle, socket.get_fd ());
+    poller->set_pollin (handle);
 }
 
 bool zmq::bp_engine_t::in_event ()
@@ -114,7 +121,7 @@ bool zmq::bp_engine_t::in_event ()
 
         //  If the other party closed the connection, stop polling.
         //  TODO: handle the event more gracefully
-        pfd->events ^= POLLIN;
+        poller->reset_pollin (handle);
         return false;
     }
 
@@ -137,7 +144,7 @@ bool zmq::bp_engine_t::out_event ()
 
         //  If there are no data to write stop polling for output.
         if (write_size != writebuf_size)
-            pfd->events ^= POLLOUT;
+            poller->reset_pollout (handle);
     }
 
     //  If there are any data to write in write buffer, write as much as
@@ -183,9 +190,9 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         if (!socket_error)
             command_.args.revive.pipe->revive ();
 
-        //  There is at least one engine that has messages ready -
-        //  start polling the socket for writing.
-        pfd->events |= POLLOUT;
+        //  There is at least one engine that has messages ready. Try to do
+        //  speculative write to the socket and thus avoid polling for POLLOUT.
+        poller->speculative_write (handle);
         break;
 
     case engine_command_t::send_to:
@@ -200,7 +207,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         //  Start receiving messages from a pipe.
         if (!socket_error) {
             mux.receive_from (command_.args.receive_from.pipe);
-            pfd->events |= POLLOUT;
+            poller->set_pollout (handle);
         }
         break;
 

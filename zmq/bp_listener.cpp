@@ -64,10 +64,10 @@ zmq::bp_listener_t::~bp_listener_t ()
 {
 }
 
-void zmq::bp_listener_t::set_pollfd (pollfd *pfd_)
+void zmq::bp_listener_t::set_poller (i_poller *poller_, int handle_)
 {
-    pfd_->fd = listener.get_fd ();
-    pfd_->events = POLLIN;
+    poller_->set_fd (handle_, listener.get_fd ());
+    poller_->set_pollin (handle_);
 }
 
 bool zmq::bp_listener_t::in_event ()

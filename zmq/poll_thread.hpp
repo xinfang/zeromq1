@@ -27,6 +27,7 @@
 
 #include "i_context.hpp"
 #include "i_pollable.hpp"
+#include "i_poller.hpp"
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
 
@@ -38,7 +39,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t : public i_context
+    class poll_thread_t : public i_context, public i_poller
     {
     public:
 
@@ -57,6 +58,15 @@ namespace zmq
         //  i_context implementation
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
+
+        //  i_poller implementation.
+        void set_fd (int handle_, int fd_);
+        void set_pollin (int handle_);
+        void reset_pollin (int handle_);
+        void speculative_read (int handle_);
+        void set_pollout (int handle_);
+        void reset_pollout (int handle_);
+        void speculative_write (int handle_);
 
     private:
 
