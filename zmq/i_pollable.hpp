@@ -34,9 +34,6 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Returns file descriptor to be used by poll thread to poll on.
-        virtual int get_fd () = 0;
-
         //  Set pollfd associated with the engine.
         virtual void set_pollfd (pollfd *pfd_) = 0;
 

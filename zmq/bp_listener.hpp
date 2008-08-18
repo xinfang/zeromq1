@@ -51,7 +51,6 @@ namespace zmq
         }
 
         //  i_pollable implementation.
-        int get_fd ();
         void set_pollfd (pollfd *pfd_);
         bool in_event ();
         bool out_event ();

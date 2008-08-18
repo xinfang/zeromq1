@@ -98,14 +98,10 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-int zmq::bp_engine_t::get_fd ()
-{
-    return socket.get_fd ();
-}
-
 void zmq::bp_engine_t::set_pollfd (pollfd *pfd_)
 {
     pfd = pfd_;
+    pfd->fd = socket.get_fd ();
     pfd->events = POLLIN;
 }
 

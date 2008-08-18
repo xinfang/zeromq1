@@ -64,13 +64,9 @@ zmq::bp_listener_t::~bp_listener_t ()
 {
 }
 
-int zmq::bp_listener_t::get_fd ()
-{
-    return listener.get_fd ();
-}
-
 void zmq::bp_listener_t::set_pollfd (pollfd *pfd_)
 {
+    pfd_->fd = listener.get_fd ();
     pfd_->events = POLLIN;
 }
 
@@ -99,8 +95,6 @@ bool zmq::bp_listener_t::in_event ()
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
         cmd_send_to.init_engine_send_to (source_engine, "", pipe);
-//        source_engine->process_command (
-//            cmd_send_to.args.engine_command.command);
         context->send_command (source_context, cmd_send_to);
 
         //  Bind the peer to the destination end of the pipe.
@@ -126,8 +120,6 @@ bool zmq::bp_listener_t::in_event ()
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (
             destination_engine, "", pipe);
-//        destination_engine->process_command (
-//            cmd_receive_from.args.engine_command.command);
         context->send_command (destination_context, cmd_receive_from);
 
         //  Bind the peer to the source end of the pipe.

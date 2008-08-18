@@ -185,7 +185,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                             command.args.register_engine.engine;
 
                         //  Add the engine to the pollset.
-                        pollfd pfd = {engine->get_fd (), 0, 0};
+                        pollfd pfd = {0, 0, 0};
                         pollset.push_back (pfd);
 
                         //  Pass pollfd to the engine.
