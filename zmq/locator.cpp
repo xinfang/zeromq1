@@ -31,7 +31,7 @@ zmq::locator_t::locator_t (const char *hostname_)
 {
     if (hostname_) {
 
-        //  If port number is not explicitly specified, use default one.
+        //  If port number is not explicitly specified, use the default one.
         if (!strchr (hostname_, ':')) {
             char buf [256];
             snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
@@ -57,40 +57,42 @@ zmq::locator_t::~locator_t ()
         delete global_locator;
 }
 
-void zmq::locator_t::create_exchange (const char *exchange_,
+void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     i_context *context_, i_engine *engine_, scope_t scope_,
     const char *interface_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_)
 {
-    assert (strlen (exchange_) < 256);
+    assert (type_id_ < type_id_count);
+    assert (strlen (object_) < 256);
 
     //  Enter critical section.
     int rc = pthread_mutex_lock (&sync);
     errno_assert (rc == 0);
 
-    //  Add the exchange to the list of known exchanges.
-    exchange_info_t info = {context_, engine_};
-    exchanges.insert (exchanges_t::value_type (exchange_, info));
+    //  Add the object to the list of known objects.
+    object_info_t info = {context_, engine_};
+    objects [type_id_].insert (objects_t::value_type (object_, info));
 
-    //  Add exchange to the global locator.
+    //  Add the object to the global locator.
     if (scope_ == scope_global) {
 
          assert (global_locator);
          assert (strlen (interface_) < 256);
          
-         //  Create a listener for the exchange.
+         //  Create a listener for the object.
          bp_listener_t *listener = bp_listener_t::create (listener_thread_,
-             interface_, handler_thread_count_, handler_threads_, false,
-             context_, engine_, exchange_);
+             interface_, handler_thread_count_, handler_threads_,
+             type_id_ == exchange_type_id ? false : true, context_,
+             engine_, object_);
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;
          global_locator->blocking_write (&cmd, 1);
-         unsigned char type_id = exchange_typeid;
+         unsigned char type_id = type_id_;
          global_locator->blocking_write (&type_id, 1);         
-         unsigned char size = strlen (exchange_);
+         unsigned char size = strlen (object_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (exchange_, size);
+         global_locator->blocking_write (object_, size);
          size = strlen (listener->get_interface ());
          global_locator->blocking_write (&size, 1);
          global_locator->blocking_write (listener->get_interface (), size);
@@ -105,18 +107,22 @@ void zmq::locator_t::create_exchange (const char *exchange_,
     errno_assert (rc == 0);
 }
 
-bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
-    i_engine **engine_, poll_thread_t *thread_, const char *local_object_)
+bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
+    i_context **context_, i_engine **engine_, poll_thread_t *thread_,
+    const char *local_object_)
 {
+    assert (type_id_ < type_id_count);
+    assert (strlen (object_) < 256);
+
     //  Enter critical section.
     int rc = pthread_mutex_lock (&sync);
     errno_assert (rc == 0);
 
-    //  Find the exchange.
-    exchanges_t::iterator it = exchanges.find (exchange_);
+    //  Find the object.
+    objects_t::iterator it = objects [type_id_].find (object_);
 
-    //  If the exchange is unknown, find it using global locator.
-    if (it == exchanges.end ()) {
+    //  If the object is unknown, find it using global locator.
+    if (it == objects [type_id_].end ()) {
 
          //  If we are running without global locator, fail.
          if (!global_locator) {
@@ -131,11 +137,11 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          //  Send 'get' command.
          unsigned char cmd = get_id;
          global_locator->blocking_write (&cmd, 1);
-         unsigned char type_id = exchange_typeid;
+         unsigned char type_id = type_id_;
          global_locator->blocking_write (&type_id, 1);
-         unsigned char size = strlen (exchange_);
+         unsigned char size = strlen (object_);
          global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (exchange_, size);
+         global_locator->blocking_write (object_, size);
 
          //  Read the response.
          global_locator->blocking_read (&cmd, 1);
@@ -154,131 +160,15 @@ bool zmq::locator_t::get_exchange (const char *exchange_, i_context **context_,
          global_locator->blocking_read (interface, size);
          interface [size] = 0;
 
-         //  Create the proxy engine for the exchange.
+         //  Create the proxy engine for the object.
          bp_engine_t *engine = bp_engine_t::create (thread_,
              interface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
-         //  Write it into exchange repository.
-         exchange_info_t info = {thread_, engine};
-         it = exchanges.insert (
-             exchanges_t::value_type (exchange_, info)).first;
-    }
-
-    *context_ = it->second.context;
-    *engine_ = it->second.engine;
-
-    //  Leave critical section.
-    rc = pthread_mutex_unlock (&sync);
-    errno_assert (rc == 0);
-
-    return true;
-}
-
-void zmq::locator_t::create_queue (const char *queue_, i_context *context_,
-    i_engine *engine_, scope_t scope_, const char *interface_,
-    poll_thread_t *listener_thread_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
-{
-    assert (strlen (queue_) < 256);
-
-    //  Enter critical section.
-    int rc = pthread_mutex_lock (&sync);
-    errno_assert (rc == 0);
-
-    queue_info_t info = {context_, engine_};
-    queues.insert (queues_t::value_type (queue_, info));
-
-    //  Add queue to the global locator.
-    if (scope_ == scope_global) {
-
-         assert (global_locator);
-         assert (strlen (interface_) < 256);
-
-         //  Create a listener for the exchange.
-         bp_listener_t *listener = bp_listener_t::create (listener_thread_,
-            interface_, handler_thread_count_, handler_threads_, true,
-            context_, engine_, queue_);
-         
-         //  Send 'create' command.
-         unsigned char cmd = create_id;
-         global_locator->blocking_write (&cmd, 1);
-         unsigned char type_id = queue_typeid;
-         global_locator->blocking_write (&type_id, 1);
-         unsigned char size = strlen (queue_);
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (queue_, size);
-         size = strlen (listener->get_interface ());
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (listener->get_interface (), size);
-
-         //  Read the response.
-         global_locator->blocking_read (&cmd, 1);
-         assert (cmd == create_ok_id);
-    }
-
-    //  Leave critical section.
-    rc = pthread_mutex_unlock (&sync);
-    errno_assert (rc == 0);
-}
-
-bool zmq::locator_t::get_queue (const char *queue_, i_context **context_,
-    i_engine **engine_, poll_thread_t *thread_, const char *local_object_)
-{
-    //  Enter critical section.
-    int rc = pthread_mutex_lock (&sync);
-    errno_assert (rc == 0);
-
-    queues_t::iterator it = queues.find (queue_);
- 
-    //  If the exchange is unknown, find it using global locator.
-    if (it == queues.end ()) {
-
-         //  If we are running without global locator, fail.
-         if (!global_locator) {
-
-             //  Leave critical section.
-             rc = pthread_mutex_unlock (&sync);
-             errno_assert (rc == 0);
-
-             return false;
-         }
-
-         //  Send 'get' command.
-         unsigned char cmd = get_id;
-         global_locator->blocking_write (&cmd, 1);
-         unsigned char type_id = queue_typeid;
-         global_locator->blocking_write (&type_id, 1);
-         unsigned char size = strlen (queue_);
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (queue_, size);
-
-         //  Read the response.
-         global_locator->blocking_read (&cmd, 1);
-         if (cmd == fail_id) {
-
-             //  Leave critical section.
-             rc = pthread_mutex_unlock (&sync);
-             errno_assert (rc == 0);
-
-             return false;
-         }
-
-         assert (cmd == get_ok_id);
-         global_locator->blocking_read (&size, 1);
-         char interface [256];
-         global_locator->blocking_read (interface, size);
-         interface [size] = 0;
-
-         //  Create the proxy engine for the exchange.
-         bp_engine_t *engine = bp_engine_t::create (thread_,
-             interface, bp_out_batch_size, bp_in_batch_size,
-             local_object_);
-
-         //  Write it into queue repository.
-         queue_info_t info = {thread_, engine};
-         it = queues.insert (
-             queues_t::value_type (queue_, info)).first;
+         //  Write it into object repository.
+         object_info_t info = {thread_, engine};
+         it = objects [type_id_].insert (
+             objects_t::value_type (object_, info)).first;
     }
 
     *context_ = it->second.context;

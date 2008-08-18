@@ -20,17 +20,10 @@
 #ifndef __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 #define __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 
+#include "i_locator.hpp"
+
 namespace zmq
 {
-
-    //  Enumerates object types sotred in the directory service.
-    //  Typeid_count holds number of exisitng typeids.
-    enum
-    {
-        exchange_typeid = 0,
-        queue_typeid = 1,
-        typeid_count = 2
-    };
 
     //  Enumerates individual commands passed between process locator and
     //  global locator. Maps the symbolic names to command IDs.

@@ -67,7 +67,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    locator->create_exchange (exchange_, this, this,
+    locator->create (exchange_type_id, exchange_, this, this,
         scope_, interface_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -92,7 +92,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    locator->create_queue (queue_, this, this, scope_,
+    locator->create (queue_type_id, queue_, this, this, scope_,
         interface_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -114,7 +114,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         exchange_engine = this;
     }
     else {
-        if (!(locator->get_exchange (exchange_,
+        if (!(locator->get (exchange_type_id, exchange_,
               &exchange_context, &exchange_engine, exchange_thread_, queue_))) {
 
             //  If the exchange cannot be found, report connection error.
@@ -137,7 +137,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         queue_engine = this;
     }
     else {
-        if (!(locator->get_queue (queue_,
+        if (!(locator->get (queue_type_id, queue_,
               &queue_context, &queue_engine, queue_thread_, exchange_))) {
 
             //  If the queue cannot be found, report connection error.

@@ -98,7 +98,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Initialuse the output parameter.
-    memset (addr_, 0, sizeof (sockaddr_in));
+    memset (addr_, 0, sizeof (in_addr));
 
     //  Get the addresses.
     ifaddrs* ifa = NULL;
@@ -145,7 +145,7 @@ void zmq::resolve_ip_interface (sockaddr_in* addr_, char const *interface_)
     const char *delimiter = strchr (interface_, ':');
 
     //  Clean the structure and fill in protocol family.
-    memset (addr_, 0, sizeof (addr_));
+    memset (addr_, 0, sizeof (sockaddr_in));
     addr_->sin_family = AF_INET;
 
     //  Resolve the name of the NIC.

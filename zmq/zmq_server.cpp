@@ -51,7 +51,7 @@ typedef map <string, object_info_t> objects_t;
 //  the objects registered by the connection.
 void unregister (int s_, objects_t *objects_)
 {
-    for (int type_id = 0; type_id != typeid_count; type_id ++) {
+    for (int type_id = 0; type_id != type_id_count; type_id ++) {
         objects_t::iterator it = objects_[type_id].begin();
         while (it != objects_[type_id].end ()) {
             if (it->second.fd == s_) {
@@ -109,8 +109,8 @@ int main (int argc, char *argv [])
     pollfds [0].events = POLLIN;
 
     //  Object repository. Individual object maps are placed into slots
-    //  identified by the typeid of particular object.
-    objects_t objects [typeid_count];
+    //  identified by the type ID of particular object.
+    objects_t objects [type_id_count];
 
     while (true) {
 
@@ -157,7 +157,7 @@ int main (int argc, char *argv [])
                 switch (cmd) {
                 case create_id:
                     {
-                        //  Parse typeid.
+                        //  Parse type ID.
                         unsigned char type_id;
                         nbytes = recv (s, &type_id, 1, MSG_WAITALL);
                         assert (nbytes == 1);
@@ -207,7 +207,7 @@ int main (int argc, char *argv [])
                     }
                 case get_id:
                     {
-                        //  Parse typeid.
+                        //  Parse type ID.
                         unsigned char type_id;
                         nbytes = recv (s, &type_id, 1, MSG_WAITALL);
                         assert (nbytes == 1);
