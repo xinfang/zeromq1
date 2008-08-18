@@ -86,11 +86,6 @@ void zmq::poll_thread_t::loop ()
 {
     while (true)
     {
-        //  Adjust the events to wait - the engine chooses the events.
-        for (engines_t::size_type engine_nbr = 0;
-              engine_nbr != engines.size (); engine_nbr ++)
-            pollset [engine_nbr + 1].events =
-                engines [engine_nbr]->get_events ();
 
         //  TODO: Polling all the time isn't efficient. We should do it in
         //  a manner similar to API thread. I.e. loop throught dispatcher
@@ -189,13 +184,15 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         i_pollable *engine =
                             command.args.register_engine.engine;
 
+                        //  Add the engine to the pollset.
+                        pollfd pfd = {engine->get_fd (), 0, 0};
+                        pollset.push_back (pfd);
+
+                        //  Pass pollfd to the engine.
+                        engine->set_pollfd (&pollset.back());
+
                         //  Store the engine pointer.
                         engines.push_back (engine);
-
-                        //  Add the engine to the pollset.
-                        pollfd pfd = {engine->get_fd (),
-                            engine->get_events (), 0};
-                        pollset.push_back (pfd);
                     }
                     break;
 

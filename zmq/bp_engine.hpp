@@ -60,7 +60,7 @@ namespace zmq
 
         //  i_pollable interface implementation.
         int get_fd ();
-        short get_events ();
+        void set_pollfd (pollfd *pfd_);
         bool in_event ();
         bool out_event ();
         void close_event ();
@@ -98,7 +98,6 @@ namespace zmq
         size_t write_size;
         size_t write_pos;
 
-
         //  Backend wire-level protocol encoder.
         bp_encoder_t encoder;
 
@@ -108,8 +107,8 @@ namespace zmq
         //  Underlying TCP/IP socket.
         tcp_socket_t socket;
 
-        //  Events to poll on on the socket.
-        short events;
+        //  Associated pollfd.
+        pollfd *pfd;
 
         //  If true, underlying TCP/IP connection is dead.
         bool socket_error;

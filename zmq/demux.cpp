@@ -36,7 +36,7 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
 
 void zmq::demux_t::write (message_t &msg_)
 {
-    //  Underlying layers work with raw_message_t, layers above use messge_t.
+    //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 

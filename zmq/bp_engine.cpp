@@ -54,7 +54,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     encoder (&mux),
     decoder (&demux),
     socket (hostname_),
-    events (POLLIN),
+    pfd (NULL),
     socket_error (false),
     local_object (local_object_)
 {
@@ -79,7 +79,6 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     encoder (&mux),
     decoder (&demux),
     socket (listener_),
-    events (POLLIN),
     socket_error (false),
     local_object (local_object_)
 {
@@ -104,11 +103,10 @@ int zmq::bp_engine_t::get_fd ()
     return socket.get_fd ();
 }
 
-short zmq::bp_engine_t::get_events ()
+void zmq::bp_engine_t::set_pollfd (pollfd *pfd_)
 {
-    //  TODO:
-    //  return events | (proxy.has_messages () ? POLLOUT : 0);
-    return events;
+    pfd = pfd_;
+    pfd->events = POLLIN;
 }
 
 bool zmq::bp_engine_t::in_event ()
@@ -120,7 +118,7 @@ bool zmq::bp_engine_t::in_event ()
 
         //  If the other party closed the connection, stop polling.
         //  TODO: handle the event more gracefully
-        events ^= POLLIN;
+        pfd->events ^= POLLIN;
         return false;
     }
 
@@ -143,7 +141,7 @@ bool zmq::bp_engine_t::out_event ()
 
         //  If there are no data to write stop polling for output.
         if (write_size != writebuf_size)
-            events ^= POLLOUT;
+            pfd->events ^= POLLOUT;
     }
 
     //  If there are any data to write in write buffer, write as much as
@@ -191,7 +189,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
 
         //  There is at least one engine that has messages ready -
         //  start polling the socket for writing.
-        events |= POLLOUT;
+        pfd->events |= POLLOUT;
         break;
 
     case engine_command_t::send_to:
@@ -206,7 +204,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         //  Start receiving messages from a pipe.
         if (!socket_error) {
             mux.receive_from (command_.args.receive_from.pipe);
-            events |= POLLOUT;
+            pfd->events |= POLLOUT;
         }
         break;
 

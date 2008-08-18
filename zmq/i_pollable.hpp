@@ -20,6 +20,8 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
+#include <poll.h>
+
 #include "i_engine.hpp"
 
 namespace zmq
@@ -35,8 +37,8 @@ namespace zmq
         //  Returns file descriptor to be used by poll thread to poll on.
         virtual int get_fd () = 0;
 
-        //  Returns events poll thread should poll for.
-        virtual short get_events () = 0;
+        //  Set pollfd associated with the engine.
+        virtual void set_pollfd (pollfd *pfd_) = 0;
 
         //  Called by poll thread when in event occurs.
         virtual bool in_event () = 0;
