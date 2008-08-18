@@ -177,6 +177,10 @@ namespace zmq
         //  prefetch was already done since last sleeping and the reader
         //  should go asleep instead of prefetching once more.
         bool stop;
+
+        //  Disable copying of ypipe object.
+        ypipe_t (const ypipe_t&);
+        void operator = (const ypipe_t&);
     };
 
 }

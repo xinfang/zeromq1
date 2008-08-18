@@ -57,6 +57,8 @@ namespace zmq
         //  Pipe to retrieve next message from. The messages are retrieved
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
+
+        //  TODO: disable copying
     };
 
 }

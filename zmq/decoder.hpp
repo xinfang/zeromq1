@@ -88,6 +88,9 @@ namespace zmq
         unsigned char *read_ptr;
         size_t to_read;
         step_t next;
+
+        decoder_t (const decoder_t&);
+        void operator = (const decoder_t&);
     };
 
 }

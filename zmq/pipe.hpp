@@ -99,6 +99,9 @@ namespace zmq
         //  True if we've already read the pipe delimiter from
         //  the underlying pipe.
         bool endofpipe;
+
+        pipe_t (const pipe_t&);
+        void operator = (const pipe_t&);
     }; 
 
 }

@@ -59,6 +59,8 @@ namespace zmq
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
+
+        //  TODO: disable copying
     };
 
 }

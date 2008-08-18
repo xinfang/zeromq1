@@ -80,6 +80,9 @@ namespace zmq
         unsigned char *write_pos;
         size_t to_write;
         step_t next;
+
+        encoder_t (const encoder_t&);
+        void operator = (const encoder_t&);
     };
 
 }

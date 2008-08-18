@@ -116,6 +116,9 @@ namespace zmq
 
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
+
+        bp_engine_t (const bp_engine_t&);
+        void operator = (const bp_engine_t&);
     };
 
 }

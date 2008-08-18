@@ -145,6 +145,9 @@ namespace zmq
         //  available only on x86 platforms.
         uint64_t last_command_time;   
 #endif
+
+        api_thread_t (const api_thread_t&);
+        void operator = (const api_thread_t&);
     };
 
 }

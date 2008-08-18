@@ -58,6 +58,9 @@ namespace zmq
 
         //  Underlying socket.
         int s;
+
+        tcp_listener_t (const tcp_listener_t&);
+        void operator = (const tcp_listener_t&);
     };
 
 }

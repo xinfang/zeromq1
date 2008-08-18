@@ -86,6 +86,9 @@ namespace zmq
 
         //  Connection to the global locator.
         tcp_socket_t *global_locator;
+
+        locator_t (const locator_t&);
+        void operator = (const locator_t&);
     };
 
 }

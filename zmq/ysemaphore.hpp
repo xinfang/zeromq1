@@ -91,6 +91,10 @@ namespace zmq
         //  Simple semaphore is implemented by mutex, as it is more efficient
         //  on Linux platform.
         pthread_mutex_t mutex;
+
+        //  Disable copying of ysemaphore object.
+        ysemaphore_t (const ysemaphore_t&);
+        void operator = (const ysemaphore_t&);
     };
 
 #else
@@ -127,6 +131,10 @@ namespace zmq
 
         //  Underlying system semaphore object.
         sem_t sem;
+
+        //  Disable copying of ysemaphore object.
+        ysemaphore_t (const ysemaphore_t&);
+        void operator = (const ysemaphore_t&);
     };
 
 #endif

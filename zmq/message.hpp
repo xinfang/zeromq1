@@ -113,6 +113,7 @@ namespace zmq
         //  Disable implicit message copying, so that users won't use shared
         //  messages (less efficient) without being aware of the fact.
         message_t (const message_t&);
+        void operator = (const message_t&);
     };
 
 }

@@ -91,6 +91,9 @@ namespace zmq
         //  Points to the I/O thread to use to handle next BP connection.
         //  (Handler threads are used in round-robin fashion.)
         handler_threads_t::size_type current_handler_thread;
+
+        bp_listener_t (const bp_listener_t&);
+        void operator = (const bp_listener_t&);
     };
 
 }

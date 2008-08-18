@@ -117,6 +117,9 @@ namespace zmq
         //  to sync the commands from the administrative context.
         std::vector <bool> used;
         pthread_mutex_t mutex;
+
+        dispatcher_t (const dispatcher_t&);
+        void operator = (const dispatcher_t&);
     };
 
     //  Prototype of the error handling function.

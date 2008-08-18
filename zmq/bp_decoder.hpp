@@ -34,7 +34,7 @@ namespace zmq
 
         bp_decoder_t (demux_t *demux_);
 
-    protected:
+    private:
 
         void one_byte_size_ready ();
         void eight_byte_size_ready ();
@@ -43,6 +43,9 @@ namespace zmq
         demux_t *demux;
         unsigned char tmpbuf [8];
         message_t message;
+
+        bp_decoder_t (const bp_decoder_t&);
+        void operator = (const bp_decoder_t&);
     };
 
 }

@@ -92,6 +92,9 @@ namespace zmq
         //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
         engines_t engines;
+
+        poll_thread_t (const poll_thread_t&);
+        void operator = (const poll_thread_t&);
     };
 
 }

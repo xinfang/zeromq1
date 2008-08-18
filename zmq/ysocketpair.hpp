@@ -102,6 +102,10 @@ namespace zmq
 
         //  Read end of the socketpair.
         int r;
+
+        //  Disable copying of ysocketpair object.
+        ysocketpair_t (const ysocketpair_t&);
+        void operator = (const ysocketpair_t&);
     };
 
 }

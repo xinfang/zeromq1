@@ -171,11 +171,16 @@ namespace zmq
             return oldval;
         }
 
+    private:
+
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__)))
         pthread_mutex_t mutex;
 #endif
+
+        atomic_bitmap_t (const atomic_bitmap_t&);
+        void operator = (const atomic_bitmap_t&);
     };
 
 }

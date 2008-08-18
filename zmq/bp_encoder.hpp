@@ -38,7 +38,7 @@ namespace zmq
         bp_encoder_t (mux_t *mux_);
         ~bp_encoder_t ();
 
-    protected:
+    private:
 
         bool size_ready ();
         bool message_ready ();
@@ -46,8 +46,10 @@ namespace zmq
         mux_t *mux;
         message_t message;
         unsigned char tmpbuf [9];
-    };
 
+        bp_encoder_t (const bp_encoder_t&);
+        void operator = (const bp_encoder_t&);
+    };
 }
 
 #endif

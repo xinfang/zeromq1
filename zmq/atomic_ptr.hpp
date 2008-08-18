@@ -126,7 +126,8 @@ namespace zmq
             return old;
 #endif
         }
-    protected:
+
+    private:
         
         volatile T *ptr;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
@@ -134,6 +135,8 @@ namespace zmq
         pthread_mutex_t mutex;
 #endif
 
+        atomic_ptr_t (const atomic_ptr_t&);
+        void operator = (const atomic_ptr_t&);
     };
 
 }

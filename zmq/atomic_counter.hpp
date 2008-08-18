@@ -142,13 +142,16 @@ namespace zmq
 #endif
         }
 
-    protected:
+    private:
 
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__) && !defined (__sparc__)))
         pthread_mutex_t mutex;
 #endif
+
+        atomic_counter_t (const atomic_counter_t&);
+        void operator = (const atomic_counter_t&);
     };
 
 }

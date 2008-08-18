@@ -126,6 +126,10 @@ namespace zmq
         int back_pos;
         chunk_t *end_chunk;
         int end_pos;
+
+        //  Disable copying of yqueue.
+        yqueue_t (const yqueue_t&);
+        void operator = (const yqueue_t&);
     };
 
 }

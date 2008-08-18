@@ -92,6 +92,10 @@ namespace zmq
         //  Used by thread waiting for signals to sleep if there are no
         //  signals available.
         ysemaphore_t sem;
+
+        //  Disable copying of ypollset object.
+        ypollset_t (const ypollset_t&);
+        void operator = (const ypollset_t&);
     };
 
 }
