@@ -61,7 +61,7 @@ namespace zmq
                 }
                 pos += to_copy;
                 to_read -= to_copy;
-                if (!to_read)
+                while (!to_read)
                     (static_cast <T*> (this)->*next) ();
                 if (pos == size_)
                     break;
