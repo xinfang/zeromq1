@@ -39,7 +39,8 @@ pkginclude_HEADERS = \
     i_locator.hpp \
     raw_message.hpp \
     message.hpp \
-    ip.hpp
+    ip.hpp \
+    i_poller.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
