@@ -92,6 +92,7 @@ void zmq::poll_thread_t::reset_pollin (int handle_)
 
 void zmq::poll_thread_t::speculative_read (int handle_)
 {
+    pollset [handle_].events |= POLLIN;
     pollset [handle_].revents |= POLLIN;
 }
 
@@ -107,6 +108,7 @@ void zmq::poll_thread_t::reset_pollout (int handle_)
 
 void zmq::poll_thread_t::speculative_write (int handle_)
 {
+    pollset [handle_].events |= POLLOUT;
     pollset [handle_].revents |= POLLOUT;
 }
 
