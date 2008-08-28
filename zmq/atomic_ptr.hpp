@@ -77,11 +77,30 @@ namespace zmq
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
             T *old = val_;
-            __asm__ volatile ("lock; xchgq %0, %1"
-                : "=r" (old)
+            __asm__ volatile ("lock; xchgq %0, %2"
+                : "=r" (old), "+m" (*ptr)
                 : "m" (ptr), "0" (old)
                 : "memory");
             return old;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            volatile T* oldval = ptr;
+            T* newptr = val_;
+            volatile T** ptrin = &ptr;
+            T* tmp;
+            T* prev;
+            __asm__ __volatile__(
+                "ld [%4], %1\n\t" // tmp = [ptr]
+                "1:\n\t"          // 
+                "mov %0, %2\n\t"  // prev = newptr
+                "cas [%4], %1, %2\n\t" // [ptr], tmp, prev
+                "cmp %1, %2\n\t"       // if tmp != prev  
+                "bne,a,pn %%icc, 1b\n\t" // 
+                "mov %2, %1\n\t" // tmp = prev
+                : "+r" (newptr), "=&r" (tmp), "=&r" (prev), "+m" (*ptrin)
+                : "r" (ptrin) 
+                : "cc");
+            return prev; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
@@ -102,19 +121,29 @@ namespace zmq
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old;
-            __asm__ volatile ("lock; cmpxchgl %1, %2"             
-                : "=a" (old)               
+            __asm__ volatile ("lock; cmpxchgl %2, %3"             
+                : "=a" (old), "+m" (*ptr)               
                 : "r" (val_), "m" (ptr), "0" (cmp_) 
-                : "memory", "cc");
+                : "cc");
             return old;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
     defined (__GNUC__))
             T *old;
-            __asm__ volatile ("lock; cmpxchgq %1, %2"             
-                : "=a" (old)               
+            __asm__ __volatile__ ("lock; cmpxchgq %2, %3"             
+                : "=a" (old), "+m" (*ptr)               
                 : "r" (val_), "m" (ptr), "0" (cmp_) 
-                : "memory", "cc");
+                : "cc");
             return old;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            volatile T** ptrin = &ptr;
+            volatile T* prev = ptr;
+            __asm__ __volatile__(
+                "cas [%3], %1, %2\n\t" // [ptr], cmp, tmp2 
+                : "+m" (*ptrin)
+                : "r" (cmp_), "r" (val_), "r" (ptrin)
+                : "cc");
+            return (T*)prev; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);

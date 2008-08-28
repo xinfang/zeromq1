@@ -25,6 +25,7 @@
 #include "err.hpp"
 #include "stdint.hpp"
 
+
 namespace zmq
 {
 
@@ -74,14 +75,34 @@ namespace zmq
     defined (__x86_64__)) && defined (__GNUC__))
             uint32_t oldval;
             __asm__ volatile (
-                "lock; btsl %1, (%3)\n\t"  //  Does bts have to be atomic?
-                "lock; btrl %2, (%3)\n\t"
+                "lock; btsl %2, (%4)\n\t"  //  Does bts have to be atomic?
+                "lock; btrl %3, (%4)\n\t"
                 "setc %%al\n\t"
                 "movzb %%al, %0\n\t"
-                : "=r" (oldval)
+                : "=r" (oldval), "+m" (value)
                 : "r" (set_index_), "r" (reset_index_), "r" (&value)
                 : "memory", "cc", "%eax");
             return (bool) oldval;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            volatile integer_t* valptr = &value;
+            integer_t set_val = integer_t(1) << set_index_;
+            integer_t reset_val = ~(integer_t(1) << reset_index_);
+            integer_t tmp;
+            integer_t oldval;
+            __asm__ volatile(
+                "ld       [%5], %2       \n\t" 
+                "1:                      \n\t" 
+                "or       %2, %0, %3     \n\t" 
+                "and      %3, %1, %3     \n\t"
+                "cas      [%5], %2, %3   \n\t"
+                "cmp      %2, %3         \n\t"
+                "bne,a,pn %%icc, 1b      \n\t"
+                "mov      %3, %2         \n\t"
+                : "+r" (set_val), "+r" (reset_val), "=&r" (tmp), "=&r" (oldval), "+m" (*valptr)
+                : "r" (valptr)
+                : "cc");
+            return oldval; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
@@ -113,6 +134,24 @@ namespace zmq
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            oldval = value;
+            volatile integer_t* ptrin = &value;
+            integer_t tmp;
+            integer_t prev;
+            __asm__ __volatile__(
+                "ld [%4], %1\n\t" // tmp = [ptr]
+                "1:\n\t"          // 
+                "mov %0, %2\n\t"  // prev = newptr
+                "cas [%4], %1, %2\n\t" // [ptr], tmp, prev
+                "cmp %1, %2\n\t"       // if tmp != prev  
+                "bne,a,pn %%icc, 1b\n\t" // 
+                "mov %2, %1\n\t" // tmp = prev
+                : "+r" (newval_), "=&r" (tmp), "=&r" (prev), "+m" (*ptrin)
+                : "r" (ptrin) /* input */
+                : "cc");
+            return prev; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);
@@ -160,6 +199,25 @@ namespace zmq
                 : "=&a" (oldval)
                 : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
                 : "memory", "cc");
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+    defined (__GNUC__))
+            oldval = value;
+            volatile integer_t* ptrin = &value;
+            integer_t tmp;
+            integer_t prev;
+            __asm__ __volatile__(
+                "ld      [%3], %0       \n\t" 
+                "mov     0,    %1       \n\t"           
+                "cas     [%3], %1, %4   \n\t" 
+                "cmp     %0,   %1       \n\t" 
+                "be,a,pn %%icc,1f       \n\t" 
+                "ld      [%3], %0       \n\t" 
+                "cas     [%3], %0, %5   \n\t" 
+                "1:                     \n\t"           
+                : "=&r" (tmp), "=&r" (prev), "+m" (*ptrin)
+                : "r" (ptrin), "r" (thenval_), "r" (elseval_)
+                : "cc");
+            return prev; 
 #else
             int rc = pthread_mutex_lock (&mutex);
             errno_assert (rc == 0);

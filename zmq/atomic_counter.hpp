@@ -72,7 +72,7 @@ namespace zmq
             __asm__ volatile ("lock; xaddl %0,%1"
                 : "=r" (increment), "=m" (*val)
                 : "0" (increment), "m" (*val)
-                : "memory", "cc");
+                : "cc");
             return increment;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
@@ -112,7 +112,7 @@ namespace zmq
             __asm__ volatile ("lock; xaddl %0,%1"
                 : "=r" (oldval), "=m" (*val)
                 : "0" (oldval), "m" (*val)
-                : "memory", "cc");
+                : "cc");
             return oldval != decrement;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
