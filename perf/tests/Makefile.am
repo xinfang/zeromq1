@@ -1,1 +1,1 @@
-SUBDIRS = zmq tcp rdma
+SUBDIRS = zmq tcp
