@@ -180,7 +180,7 @@ AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
 examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile \
-perf/helpers/Makefile examples/chat/Makefile perf/tests/rdma/Makefile)
+perf/helpers/Makefile examples/chat/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])

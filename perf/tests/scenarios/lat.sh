@@ -18,21 +18,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # GL_* only for zmq transport test
-GL_IP="10.0.0.1"
-GL_PORT=5682
+GL_IP="localhost"
+GL_PORT="5682"
 
-REC_IP="10.0.0.1"
+REC_IP="192.168.101.1"
 REC_PORT=5672
 
 MSG_SIZE_START=1
-MSG_SIZE_STEPS=10
+MSG_SIZE_STEPS=16
 
 RUNS=1
 
 TEST_TIME=250
 
-LOCAL_LAT_BIN="./local_lat"
-REMOTE_LAT_BIN="./remote_lat"
+LOCAL_LAT_BIN="taskset -c 1,3,5,7 chrt --fifo 1 /home/malosek/fast-svn/perf/tests/zmq/local_lat"
+REMOTE_LAT_BIN="taskset -c 0,2,4,6 chrt --fifo 1 ./remote_lat"
 
 ######################## Do not edit below this line ##########################
 
@@ -78,6 +78,7 @@ if [ $2 = "local" ]; then
             fi
 
             if [ $1 = "zmq" ]; then
+            echo $LOCAL_LAT_BIN $GL_IP:$GL_PORT $REC_IP:$REC_PORT $REC_IP:$QUEUE_PORT $MSG_SIZE $MSG_COUNT
                 $LOCAL_LAT_BIN $GL_IP:$GL_PORT $REC_IP:$REC_PORT $REC_IP:$QUEUE_PORT $MSG_SIZE $MSG_COUNT
             else
                 $LOCAL_LAT_BIN $REC_IP $REC_PORT $MSG_SIZE $MSG_COUNT

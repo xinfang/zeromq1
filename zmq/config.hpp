@@ -34,13 +34,13 @@ namespace zmq
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be read by a single 'read' system call, thus avoiding
         //  unnecessary network stack traversals.
-        bp_in_batch_size = 8192,
+        bp_in_batch_size = 65536,
 
         //  Maximal batching size for outgoing backend protocol messages.
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be sent by a single 'write' system call, thus avoiding
         //  unnecessary network stack traversals.
-        bp_out_batch_size = 8192,
+        bp_out_batch_size = 65536,
 
         //  Number of new messages in message pipe which triggers new memory
         //  allocation.
@@ -52,7 +52,7 @@ namespace zmq
 
         //  Maximal size of "Very Small Message". VSMs are passed by value
         //  to avoid excessive allocation/deallocation.
-        max_vsm_size = 30,
+        max_vsm_size = 9,
 
         //  Determines how often does api_thread poll for new messages when it
         //  still has unprocessed messages to handle. Thus, if it is set to 100,
