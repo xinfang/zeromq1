@@ -17,9 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <cstdio>
-
 #include "../../transports/openamq.hpp"
 #include "../scenarios/lat.hpp"
 
@@ -27,7 +24,7 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 6) {
+    if (argc != 4) {
         cerr << "Usage: local_lat <hostname> <message size> <roundtrip count>"
             << endl;
         return 1;
@@ -42,7 +39,7 @@ int main (int argc, char *argv [])
     cout << "roundtrip count: " << roundtrip_count << endl;
 
     //  Create OpenAMQ transport.
-    perf::openamq_t transport (host);
+    perf::openamq_t transport (host, true);
 
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     local_lat (&transport, msg_size, roundtrip_count);

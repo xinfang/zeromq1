@@ -33,12 +33,12 @@ namespace perf
     {
     public:
 
-        inline openamq_t (const char *host_)
+        inline openamq_t (const char *host_, bool direct)
         {
-            //  Initialise iCL
+            //  Initialise iCL.
             icl_system_initialise (0, NULL);
 
-            //  Open a connection
+            //  Open a connection.
             icl_longstr_t *auth_data =
                 amq_client_connection_auth_plain ("guest", "guest");
             connection = amq_client_connection_new (
@@ -46,78 +46,82 @@ namespace perf
             assert (connection);
             icl_longstr_destroy (&auth_data);
 
-            //  Open a channel
+            //  Switch into direct mode if required.
+            if (direct)
+                connection->direct = TRUE;
+
+            //  Open a channel.
             session = amq_client_session_new (connection);
             assert (session);
 
-           //  Create a private queue
+           //  Create a private queue.
            amq_client_session_queue_declare (
                session, 0, NULL, FALSE, FALSE, TRUE, TRUE, NULL);
 
-           //  Bind the queue to the exchange
+           //  Bind the queue to the exchange.
            amq_client_session_queue_bind (session, 0, NULL, "amq.direct",
                "rk", NULL);
 
-           //  Consume from the queue
+           //  Consume from the queue.
            amq_client_session_basic_consume (
                session, 0, NULL, NULL, TRUE, TRUE, TRUE, NULL);
         }
 
         inline ~openamq_t ()
         {
-            //  Close the channel
+            //  Close the channel.
             amq_client_session_destroy (&session);
 
-            //  Close the connection
+            //  Close the connection.
             amq_client_connection_destroy (&connection);
 
-            //  Uninitialise system
+            //  Uninitialise system.
             icl_system_terminate ();
         }
 
         inline virtual void send (size_t size_)
         {
-            //  Create the message body
+            //  Create the message body.
             void *message_body = malloc (size_);
             assert (message_body);
 
-            //  Create the message itself
+            //  Create the message itself.
             amq_content_basic_t *content = amq_content_basic_new ();
             amq_content_basic_set_body (content, message_body, size_, free);
 
-            //  Send the message
+            //  Send the message.
             amq_client_session_basic_publish (
                 session, content, 0, "amq.direct", "rk", FALSE, FALSE);
 
-            //  Release the message
+            //  Release the message.
             amq_content_basic_unlink (&content);
         }
 
         inline virtual size_t receive ()
         {
-            //  Get next message; if none is available wait for it
+            //  Get next message; if none is available wait for it.
             amq_content_basic_t *content =
                 amq_client_session_basic_arrived (session);
 
             if (!content) {
 
-                //  Wait while next message arrives
+                //  Wait while next message arrives.
                 amq_client_session_wait (session, 0);
 
-                //  Exit the loop if Ctrl+C is encountered
+                //  Exit the loop if Ctrl+C is encountered.
 //  FIXME
 //                if (!connection->alive)
 //                    assert (false);
 
-                //  Get the message
+                //  Get the message.
                 content = amq_client_session_basic_arrived (session);
                 assert (content);
             }
 
-            //  Retrieve message size;
+            //  Retrieve message size.
             size_t size = amq_content_basic_get_body_size (content);
 
-            //  Destroy the message
+            //  Destroy the message.
             amq_content_basic_unlink (&content);
 
             return size;
