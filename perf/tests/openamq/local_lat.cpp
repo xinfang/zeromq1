@@ -39,7 +39,7 @@ int main (int argc, char *argv [])
     cout << "roundtrip count: " << roundtrip_count << endl;
 
     //  Create OpenAMQ transport.
-    perf::openamq_t transport (host, true);
+    perf::openamq_t transport (host, "a", "b", true);
 
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     local_lat (&transport, msg_size, roundtrip_count);

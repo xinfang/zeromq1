@@ -33,7 +33,10 @@ namespace perf
     {
     public:
 
-        inline openamq_t (const char *host_, bool direct)
+        inline openamq_t (const char *host_, const char *send_rk_,
+              const char *receive_rk_, bool direct) :
+            send_rk (send_rk_),
+            receive_rk (receive_rk_)
         {
             //  Initialise iCL.
             icl_system_initialise (0, NULL);
@@ -60,7 +63,7 @@ namespace perf
 
            //  Bind the queue to the exchange.
            amq_client_session_queue_bind (session, 0, NULL, "amq.direct",
-               "rk", NULL);
+               receive_rk, NULL);
 
            //  Consume from the queue.
            amq_client_session_basic_consume (
@@ -91,7 +94,7 @@ namespace perf
 
             //  Send the message.
             amq_client_session_basic_publish (
-                session, content, 0, "amq.direct", "rk", FALSE, FALSE);
+                session, content, 0, "amq.direct", send_rk, FALSE, FALSE);
 
             //  Release the message.
             amq_content_basic_unlink (&content);
@@ -130,6 +133,8 @@ namespace perf
     protected:
         amq_client_connection_t *connection;
         amq_client_session_t *session;
+        const char *send_rk;
+        const char *receive_rk;
     };
 
 }
