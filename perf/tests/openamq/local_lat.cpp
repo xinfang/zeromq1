@@ -1,21 +1,51 @@
+/*
+    Copyright (c) 2007-2008 FastMQ Inc.
 
-#include <stdio.h>
+    This file is part of 0MQ.
+
+    0MQ is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    0MQ is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include <iostream>
+#include <cstdio>
 
 #include "../../transports/openamq.hpp"
-#include "../../workers/raw_ping_pong.hpp"
-#include "../../helpers/time.hpp"
-#include "../../helpers/files.hpp"
+#include "../scenarios/lat.hpp"
+
+using namespace std;
 
 int main (int argc, char *argv [])
 {
-    assert (argc == 2);
+    if (argc != 6) {
+        cerr << "Usage: local_lat <hostname> <message size> <roundtrip count>"
+            << endl;
+        return 1;
+    }
 
-    perf::openamq_t transport ("127.0.0.1");
-    perf::raw_ping_pong_t worker (100000, 6);
-    worker.run (transport);
-    perf::time_instant_t start_time, stop_time;
-    perf::read_times_2f (&start_time, &stop_time, "");
-    double latency = ((double) (stop_time - start_time)) / 200000;
-    printf ("Latency: %f us\n", latency);
+    //  Parse & print command line arguments.
+    const char *host = argv [1];
+    size_t msg_size = atoi (argv [2]);
+    int roundtrip_count = atoi (argv [3]);
+
+    cout << "message size: " << msg_size << " [B]" << endl;
+    cout << "roundtrip count: " << roundtrip_count << endl;
+
+    //  Create OpenAMQ transport.
+    perf::openamq_t transport (host);
+
+    //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
+    local_lat (&transport, msg_size, roundtrip_count);
+
     return 0;
 }
