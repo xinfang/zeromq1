@@ -79,7 +79,9 @@ namespace perf
             //  Receive echoed message.
             size_t size = transport_->receive ();
 
-            //  Check incomming message size.
+            //  Check incoming message size.
+            if (size != msg_size_)
+                printf ("actual=%d, expected=%d\n", size, msg_size_);
             assert (size == msg_size_);
         }
         
@@ -132,7 +134,9 @@ namespace perf
             //  Receive message.
             size_t size = transport_->receive ();
 
-            //  Check incomming message size.
+            //  Check incoming message size.
+            if (size != msg_size_)
+                printf ("actual=%d, expected=%d\n", size, msg_size_);
             assert (size == msg_size_);
             
             //  Send it back.
