@@ -63,7 +63,7 @@ namespace perf
 
            //  Bind the queue to the exchange.
            amq_client_session_queue_bind (session, 0, NULL, "amq.direct",
-               receive_rk, NULL);
+               (char*) receive_rk, NULL);
 
            //  Consume from the queue.
            amq_client_session_basic_consume (
@@ -93,8 +93,8 @@ namespace perf
             amq_content_basic_set_body (content, message_body, size_, free);
 
             //  Send the message.
-            amq_client_session_basic_publish (
-                session, content, 0, "amq.direct", send_rk, FALSE, FALSE);
+            amq_client_session_basic_publish (session, content, 0,
+                "amq.direct", (char*) send_rk, FALSE, FALSE);
 
             //  Release the message.
             amq_content_basic_unlink (&content);

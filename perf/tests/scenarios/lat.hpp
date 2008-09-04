@@ -80,8 +80,6 @@ namespace perf
             size_t size = transport_->receive ();
 
             //  Check incoming message size.
-            if (size != msg_size_)
-                printf ("actual=%d, expected=%d\n", size, msg_size_);
             assert (size == msg_size_);
         }
         
