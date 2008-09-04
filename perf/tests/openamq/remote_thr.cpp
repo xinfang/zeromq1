@@ -17,10 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-
 #include "../../transports/openamq.hpp"
 #include "../scenarios/thr.hpp"
 #include "../../helpers/functions.hpp"
@@ -60,8 +56,8 @@ int main (int argc, char *argv [])
         rrk += perf::to_string (thread_nbr);
 
         //  Create OpenAMQ transport.
-        transports [thread_nbr] = new perf::zmq_t (host,
-            rrk.c_str (), srk.c_str (), true);
+        transports [thread_nbr] = new perf::openamq_t (host,
+            srk.c_str (), rrk.c_str (), true);
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.

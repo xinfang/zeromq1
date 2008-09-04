@@ -34,10 +34,12 @@ namespace perf
     public:
 
         inline openamq_t (const char *host_, const char *send_rk_,
-              const char *receive_rk_, bool direct) :
-            send_rk (send_rk_),
-            receive_rk (receive_rk_)
+            const char *receive_rk_, bool direct)
         {
+	    //  Store routing keys.
+            strncpy (send_rk, send_rk_, 256);
+	    strncpy (receive_rk, receive_rk_, 256);
+
             //  Initialise iCL.
             icl_system_initialise (0, NULL);
 
@@ -133,8 +135,8 @@ namespace perf
     protected:
         amq_client_connection_t *connection;
         amq_client_session_t *session;
-        const char *send_rk;
-        const char *receive_rk;
+        char send_rk [256];
+        char receive_rk [256];
     };
 
 }

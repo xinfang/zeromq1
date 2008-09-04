@@ -17,12 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cassert>
-#include <iostream>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-
 #include "../../transports/openamq.hpp"
 #include "../scenarios/thr.hpp"
 #include "../../helpers/functions.hpp"
