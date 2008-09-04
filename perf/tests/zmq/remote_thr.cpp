@@ -74,9 +74,8 @@ int main (int argc, char *argv [])
    
     //  Cleanup.
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
         delete transports [thread_nbr];
-    }
+    delete [] transports;
 
     return 0;
 }
