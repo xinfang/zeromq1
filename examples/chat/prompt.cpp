@@ -65,7 +65,8 @@ int main (int argc, const char *argv [])
 
         //  Allow user to input the message text. Prepend it by user name.
         char textbuf [1024];
-        fgets (textbuf, sizeof (textbuf), stdin);
+        char *rcc = fgets (textbuf, sizeof (textbuf), stdin);
+        assert (rcc);
         string text (user_name);
         text = text + ": " + textbuf;
 
