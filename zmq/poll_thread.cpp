@@ -258,11 +258,14 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         std::vector <i_pollable*>::iterator it = std::find (
                             engines.begin (), engines.end (),
                             command.args.engine_command.engine);
-                        assert (it != engines.end ());
 
                         //  Forward the command to the engine.
-                        command.args.engine_command.engine->process_command (
-                            command.args.engine_command.command);
+                        //  TODO: If the engine doesn't exist drop the command.
+                        //        However, imagine there's another engine
+                        //        incidentally allocated on the same address.
+                        if (it != engines.end ())
+                            command.args.engine_command.engine->process_command(
+                                command.args.engine_command.command);
                     }
                     break;
 
