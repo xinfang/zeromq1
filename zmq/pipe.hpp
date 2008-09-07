@@ -80,16 +80,16 @@ namespace zmq
 
         void send_revive ();
 
-        //  The message pipe itself
+        //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>
             underlying_pipe_t;
         underlying_pipe_t pipe;
 
-        //  Identification of the engine sending the messages to the pipe
+        //  Identification of the engine sending the messages to the pipe.
         i_context *source_context;
         i_engine *source_engine;
 
-        //  Identification of the engine receiving the messages from the pipe
+        //  Identification of the engine receiving the messages from the pipe.
         i_context *destination_context;
         i_engine *destination_engine;
 
