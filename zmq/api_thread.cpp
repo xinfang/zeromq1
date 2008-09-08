@@ -122,6 +122,8 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             assert (eh);
             if (!eh (exchange_))
                 assert (false);
+
+            return;
         }
     }
 
@@ -145,6 +147,8 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             assert (eh);
             if (!eh (exchange_))
                 assert (false);
+
+            return;
         }
     }
 
