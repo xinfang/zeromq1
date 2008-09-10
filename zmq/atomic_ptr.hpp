@@ -84,7 +84,6 @@ namespace zmq
             return old;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
-            volatile T* oldval = ptr;
             T* newptr = val_;
             volatile T** ptrin = &ptr;
             T* tmp;
