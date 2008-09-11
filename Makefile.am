@@ -2,8 +2,12 @@ if BUILD_PERF
 DIR_PERF = perf
 endif
 
-SUBDIRS = zmq $(DIR_PERF) examples
-DIST_SUBDIRS = zmq perf examples
+if BUILD_C
+DIR_C = czmq
+endif
+
+SUBDIRS = zmq $(DIR_C) $(DIR_PERF) examples
+DIST_SUBDIRS = zmq czmq perf examples
 
 EXTRA_DIST = \
     ./perf/tests/scenarios/thr.sh \

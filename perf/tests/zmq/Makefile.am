@@ -1,8 +1,13 @@
 INCLUDES        = -I$(top_builddir) -I$(top_builddir)/zmq \
                 -I$(top_srcdir) -I$(top_srcdir)/zmq
 
+if BUILD_C
+C_TEST_BINS = c_local_lat c_remote_lat c_local_thr c_remote_thr
+endif
+
 noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
-local_fo remote_fo local_fi remote_fi local_thr_lat remote_thr_lat
+local_fo remote_fo local_fi remote_fi local_thr_lat remote_thr_lat \
+$(C_TEST_BINS)
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq.hpp \
 ../../transports/i_transport.hpp ../../helpers/functions.hpp\
@@ -60,3 +65,20 @@ remote_thr_lat_SOURCES = remote_thr_lat.cpp ../../transports/zmq.hpp \
 remote_thr_lat_LDADD = $(top_builddir)/zmq/libzmq.la
 remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
+if BUILD_C
+c_local_lat_SOURCES = c_local_lat.c ../../../czmq/czmq.h
+c_local_lat_LDADD = $(top_builddir)/czmq/libczmq.la
+c_local_lat_CFLAGS = -Wall -pedantic -Werror
+
+c_remote_lat_SOURCES = c_remote_lat.c ../../../czmq/czmq.h
+c_remote_lat_LDADD = $(top_builddir)/czmq/libczmq.la
+c_remote_lat_CFLAGS = -Wall -pedantic -Werror
+
+c_local_thr_SOURCES = c_local_thr.c ../../../czmq/czmq.h
+c_local_thr_LDADD = $(top_builddir)/czmq/libczmq.la
+c_local_thr_CFLAGS = -Wall -pedantic -Werror
+
+c_remote_thr_SOURCES = c_remote_thr.c ../../../czmq/czmq.h
+c_remote_thr_LDADD = $(top_builddir)/czmq/libczmq.la
+c_remote_thr_CFLAGS = -Wall -pedantic -Werror
+endif

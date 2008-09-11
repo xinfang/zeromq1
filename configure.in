@@ -141,12 +141,21 @@ if test "x$with_chat" != "xno"; then
     chat="yes"
 fi
 
+# Other language bindings
+# C
+czmq="no"
+AC_ARG_WITH([c], [AS_HELP_STRING([--with-c], [build c language binding [default=no]])], [with_c=yes], [with_c=no])
+if test "x$with_c" != "xno"; then
+    czmq="yes"
+fi
+
 
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
 AM_CONDITIONAL(BUILD_CPU_ESTIMATOR, test "x$cpu_estimator" = "xyes")
 AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
+AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -177,7 +186,7 @@ AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 
-AC_OUTPUT(Makefile zmq/Makefile zmq/stdint.hpp perf/Makefile \
+AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile zmq/stdint.hpp perf/Makefile \
 perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
 examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile \
 perf/helpers/Makefile examples/chat/Makefile)
@@ -201,5 +210,7 @@ AC_MSG_RESULT([   performance tests: $perf ($time_measure)])
 AC_MSG_RESULT([   camera example: $camera])
 AC_MSG_RESULT([   stock exchange example: $exchange])
 AC_MSG_RESULT([   chartoom example: $chat])
+AC_MSG_RESULT([])
+AC_MSG_RESULT([   c language binding: $czmq])
 AC_MSG_RESULT([])
 
