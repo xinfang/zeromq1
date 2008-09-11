@@ -110,21 +110,21 @@ if test "x$with_camera" != "xno"; then
     AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
     if test "x$have_pkg_config" != "xyes"; then
         AC_MSG_ERROR([To run configure with --with-camera option, pkg-config has to be installed.]);
-    else
-        PKG_CHECK_MODULES([SDL], [sdl]) 
-        AC_SUBST(SDL_LIBS)
-        AC_SUBST(SDL_CFLAGS)
-
-        PKG_CHECK_MODULES([UNICAP], [libunicap]) 
-        AC_SUBST(UNICAP_LIBS)
-        AC_SUBST(UNICAP_CFLAGS)
-
-        PKG_CHECK_MODULES([UCIL], [libucil]) 
-        AC_SUBST(UCIL_LIBS)
-        AC_SUBST(UCIL_CFLAGS)
-
-        camera="yes"
     fi
+    
+    PKG_CHECK_MODULES([SDL], [sdl]) 
+    AC_SUBST(SDL_LIBS)
+    AC_SUBST(SDL_CFLAGS)
+
+    PKG_CHECK_MODULES([UNICAP], [libunicap]) 
+    AC_SUBST(UNICAP_LIBS)
+    AC_SUBST(UNICAP_CFLAGS)
+
+    PKG_CHECK_MODULES([UCIL], [libucil]) 
+    AC_SUBST(UCIL_LIBS)
+    AC_SUBST(UCIL_CFLAGS)
+
+    camera="yes"
 fi
 
 # Exchange example
@@ -149,6 +149,25 @@ if test "x$with_c" != "xno"; then
     czmq="yes"
 fi
 
+# Python
+pyzmq="no"
+AC_ARG_WITH([python], [AS_HELP_STRING([--with-python], [build python language binding [default=no]])], [with_python=yes], [with_python=no])
+if test "x$with_python" != "xno"; then
+    AM_PATH_PYTHON([2.4], , [:])
+    if test "x$PYTHON" = "x:"; then
+        AC_MSG_ERROR([To run configure with --with-python option, Python has to be installed.]);
+    fi
+
+    py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
+    py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
+    PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
+    if test "$py_prefix" != "$py_exec_prefix"; then
+        PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
+    fi
+    AC_SUBST(PYTHON_INCLUDES)
+
+    pyzmq="yes"
+fi
 
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
@@ -156,6 +175,7 @@ AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
 AM_CONDITIONAL(BUILD_CPU_ESTIMATOR, test "x$cpu_estimator" = "xyes")
 AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
 AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
+AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -186,8 +206,8 @@ AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 
-AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile zmq/stdint.hpp perf/Makefile \
-perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
+AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile pyzmq/Makefile zmq/stdint.hpp \
+perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile examples/Makefile \
 examples/exchange/Makefile examples/camera/Makefile perf/tests/tcp/Makefile \
 perf/helpers/Makefile examples/chat/Makefile)
 
@@ -212,5 +232,6 @@ AC_MSG_RESULT([   stock exchange example: $exchange])
 AC_MSG_RESULT([   chartoom example: $chat])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([   c language binding: $czmq])
+AC_MSG_RESULT([   Python language binding: $pyzmq])
 AC_MSG_RESULT([])
 
