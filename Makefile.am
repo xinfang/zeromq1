@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 if BUILD_PERF
 DIR_PERF = perf
 endif
@@ -10,8 +12,12 @@ if BUILD_PYTHON
 DIR_P = pyzmq
 endif
 
-SUBDIRS = zmq $(DIR_C) $(DIR_P) $(DIR_PERF) examples
-DIST_SUBDIRS = zmq czmq pyzmq perf examples
+if BUILD_JAVA
+DIR_J = jzmq
+endif
+
+SUBDIRS = zmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) examples
+DIST_SUBDIRS = zmq czmq pyzmq jzmq perf examples
 
 EXTRA_DIST = \
     ./perf/tests/scenarios/thr.sh \

@@ -18,7 +18,9 @@
 
 # Script to generate all required files from fresh svn checkout.
 
-autoreconf -fvi -I config
+
+
+autoreconf --install --force --verbose -I config
 
 if [ $? -ne 0 ]; then
     echo
