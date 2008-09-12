@@ -257,5 +257,6 @@ AC_MSG_RESULT([   chartoom example: $chat])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([   c language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
+AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([])
 
