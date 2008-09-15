@@ -99,7 +99,7 @@ namespace zmq
     {
         msg_->shared = false;
         msg_->content = (message_content_t*) malloc (
-            sizeof (message_content_t) + size_);
+            sizeof (message_content_t));
         assert (msg_->content);
         msg_->content->data = data_;
         msg_->content->size = size_;
