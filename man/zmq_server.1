@@ -1,0 +1,17 @@
+.TH zmq_server 1 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+zmq_server \- starts directory service used by 0MQ messaging system 
+.SH SYNOPSIS
+.B zmq_server [--port
+.I port-number
+.B ]
+.SH DESCRIPTION
+.B zmq_server
+serves as a directory service for a 0MQ messaging system. Applications using 0MQ will connect to the running instance of
+.BR zmq_server
+to register or query objects (exchanges and queues) intended to by globally visible.
+.SH OPTIONS
+.IP --port
+Specifies the TCP port zmq_server will listen on. If no port is specified, port 5682 is used.
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>

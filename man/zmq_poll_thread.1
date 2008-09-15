@@ -1,0 +1,45 @@
+.TH zmq_poll_thread 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+zmq::poll_thread_t \- I/O thread handling network traffic using POSIX 'poll' mechanism
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.hpp>
+
+namespace zmq
+{
+    class poll_thread_t
+    {
+        static poll_thread_t *create (dispatcher_t *dispatcher);
+    };
+}
+.fi
+\fP
+.SH DESCRIPTION
+The poll thread class encapsulates an OS thread that handles 0MQ network traffic. The mechanism used for signaling between kernel space and user space is the
+.BR poll (2)
+function. Once you create a poll thread you can use it when creating exchanges, queues and bindings.
+.SH METHODS
+.IP "\fBstatic poll_thread_t *create (dispatcher_t *dispatcher)\fP"
+Creates a poll thread and plugs it into the supplied
+.IR dispatcher .
+Note that there is no way to destroy the thread explicitly. It will be destroyed automatically when the dispatcher itself is deallocated.
+.SH EXAMPLE
+.nf
+#include <zmq.hpp>
+using namespace zmq;
+
+int main ()
+{
+    dispatcher_t dispatcher (2);
+    locator_t locator ("svr01");
+    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
+    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+}
+.fi
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq_dispatcher (3),
+.BR zmq_api_thread (3)

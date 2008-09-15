@@ -1,0 +1,171 @@
+.TH zmq_api_thread 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+zmq::api_thread_t \- proxy object for the application thread
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.hpp>
+
+namespace zmq
+{
+    enum scope_t
+    {
+        scope_local,
+        scope_process,
+        scope_global
+    };
+
+    class api_thread_t
+    {
+        static api_thread_t *create (dispatcher_t *dispatcher, i_locator *locator);
+        int create_exchange (
+            const char *exchange,
+            scope_t scope = scope_local,
+            const char *interface = NULL,
+            poll_thread_t *listener_thread = NULL,
+            int handler_thread_count = 0,
+            poll_thread_t **handler_threads = NULL);
+        int create_queue (
+            const char *queue,
+            scope_t scope_ = scope_local,
+            const char *interface = NULL,
+            poll_thread_t *listener_thread = NULL,
+            int handler_thread_count = 0,
+            poll_thread_t **handler_threads = NULL);
+        void bind (const char *exchange, const char *queue,
+            poll_thread_t *exchange_thread, poll_thread_t *queue_thread);
+        void send (int exchange_id, message_t &msg);
+        void presend (int exchange_id, message_t &msg);
+        void flush ();
+        int receive (message_t *msg, bool block = true);
+    };
+}
+.fi
+\fP
+.SH DESCRIPTION
+The API thread is a proxy for an application thread to access 0MQ functionality. For each of your application threads that needs to use 0MQ you should create an instance of the api_thread class.
+.SH ENUMS
+.IP "\fBscope_local\fP"
+Local scope means that the object (exchange or queue) is visible only within the engine that created it.
+.IP "\fBscope_process\fP"
+Process scope means that the object is visible to all the engines within the process registered with the same dispatcher object.
+.IP "\fBscope_global\fP"
+Global scope means that the object is visible to all the 0MQ processes registered with the same
+.BR zmq_server (1).
+.SH METHODS
+.IP "\fBstatic api_thread_t *create (dispatcher_t *dispatcher, i_locator *locator)\fP"
+Creates an API thread and plugs it into the supplied
+.IR dispatcher
+object. Note that you don't destroy the API thread manually. Rather it'll be destroyed when the
+.IR dispatcher
+it is attached to is destroyed.  The
+.IR locator
+argument specifies the locator object to use when registering and looking for objects (exchanges and queues).
+.IP "\fBint create_exchange (const char *exchange, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL)\fP
+Creates an exchange. The name of the exchange to create is specified by the
+.IR exchange
+parameter.  The
+.IR scope
+parameter specifies visibility of the exchange (see
+.IR scope_t
+enumeration above). If the exchange is being created with local or process scope, subsequent parameters do not need to be specified. If it is created with global scope they are mandatory.  The
+.IR interface
+parameter specifies the network interface card used to pass outgoing traffic from this exchange.  It is either the IP address of the NIC or its symbolic name. Optionally, the port can be specified this way: 'eth0:5555'. If the port is not specified, an unused port will automatically be used.  The
+.IR listener_thread
+parameter specifies which I/O thread should process connection requests (when other parties are binding to this exchange). Once the connection is established the traffic will be handled by one of the I/O threads supplied in the
+.IR handler_threads
+array.  The size of the array is specified by the
+.IR handler_thread_count
+parameter. Newly created connections are distributed between handler threads in a round-robin manner.
+.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL)\fP
+Creates a queue. The name of the queue to create is specified by the
+.IR queue
+parameter.  The
+.IR scope
+parameter specifies the visibility of the queue (see
+.IR scope_t
+the enumeration above). If the queue is being created with local or process scope, subsequent parameters do not need to be specified. If it is created with global scope they are mandatory.  The
+.IR interface
+parameter specifies the network interface card used to pass incoming traffic to this queue. It is either the IP address of the NIC or its symbolic name. Optionally, the port can be specified this way: 'eth0:5555'. If the port is not specified, an unused port will automatically is used.  The
+.IR listener_thread
+parameter specifies which I/O thread should process connection requests (when other parties are binding to this queue). Once the connection is established the traffic will be handled by one of the I/O threads supplied in the
+.IR handler_threads
+array. The zize of the array is specified by the
+.IR handler_thread_count
+parameter. Newly created connections are distributed between handler threads in a round-robin manner.
+.IP "\fBvoid bind (const char *exchange, const char *queue, poll_thread_t *exchange_thread, poll_thread_t *queue_thread)\fP
+Binds
+.IR queue
+to
+.IR exchange .
+Binding means that messages sent to the
+.IR exchange
+will be forwarded to the
+.IR queue .
+If the
+.IR exchange
+is in a different process the
+.IR exchange_thread
+parameter specifies which I/O thread should be used to handle the network traffic. If the
+.IR queue
+resides in a different process the
+.IR queue_thread
+parameter specifies which I/O thread should be used to handle the network traffic.
+.IP "\fBvoid send (int exchange_id, message_t &msg)\fP
+Sends a message to exchange specified by the
+.IR exchange_id
+parameter. The exchange ID is the ID returned by the
+.IR create_exchange
+method. The
+.IR msg
+object will be cleared in this function - it'll represent 0-byte long messages after the call. If there are any pending pre-sent messages pending,
+.IR send
+will flush them immediately so that the correct message ordering will be retained.
+.IP "\fBvoid presend (int exchange_id, message_t &msg)\fP"
+Identical to
+.IR send 
+except that the message specified by the
+.IR msg
+parameter won't be sent immediately, rather it'll wait till next call to
+.IR flush
+or
+.IR send .
+Presend can be used when there are several sends required in a single business transaction. This way the processing can be made more efficient. For example, 0MQ 'exchange' example uses
+.IR presend
+to send all the replies (confirmation, trades, stock quotes) to a single stock order in one go. However, use
+.IR presend
+only if you are striving for messaging rates of 1,000,000 messages a second or higher. For lower message rates the performance effect of presending is almost unmeasurable.
+.IP "\fBvoid flush ()\fP
+Flushes all the pre-sent messages to their destinations (see
+.IR presend
+method).
+.IP "\fBint receive (message_t *msg, bool block = true)\fP"
+Gets a message from 0MQ.  The message will be stored in the object pointed to by
+.IR msg
+parameter.  The old content of the object will be destoyed silently. By default (when the
+.IR block
+parameter is set to true) if no message is immediately available, this method waits for the next message to arrive. If
+.IR block
+is false, the method returns immediately even if there is no message availabe.  The return value is the ID of the queue the message was received from (queue ID is returned by the
+.IR create_queue
+method) or 0 in case no message was retrieved.
+.SH EXAMPLE
+.nf
+#include <zmq.hpp>
+using namespace zmq;
+
+int main ()
+{
+    dispatcher_t dispatcher (2);
+    locator_t locator ("svr01");
+    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
+    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+}
+.fi
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq_dispatcher (3),
+.BR zmq_poll_thread (3),
+.BR zmq_message (3) 

@@ -1,0 +1,45 @@
+.TH zmq_dispatcher 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+zmq::dispatcher_t \- class providing communication between 0MQ threads
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.hpp>
+
+namespace zmq
+{
+    class dispatcher_t
+    {
+        dispatcher_t (int thread_count);
+        ~dispatcher_t ();
+    };
+}
+.fi
+\fP
+.SH DESCRIPTION
+The dispatcher implements bidirectional thread-safe passing of commands between N threads. From the client's perspective the only thing required to use the dispatcher is to declare it at the beginning of the program and pass it to individual threads when creating them.
+.SH METHODS
+.IP "\fBdisaptcher_t (int thread_count)\fP"
+Creates a dispatcher. Up to
+.IR thread_count
+threads can be plugged into the dispatcher.
+.IP "\fB~disaptcher_t ()\fP"
+Destroys the dispatcher and all associated threads.
+.SH EXAMPLE
+.nf
+#include <zmq.hpp>
+using namespace zmq;
+
+int main ()
+{
+    dispatcher_t dispatcher (2);
+    locator_t locator ("localhost");
+    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
+}
+.fi
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq_api_thread (3),
+.BR zmq_poll_thread (3)
