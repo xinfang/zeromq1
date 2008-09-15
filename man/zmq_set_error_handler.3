@@ -1,0 +1,38 @@
+.TH zmq_set_error_handler 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+zmq::set_error_handler \- registers the function to process 0MQ exceptions
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.hpp>
+
+namespace zmq
+{
+    typedef bool (error_handler_t) (const char *local_object);
+    void set_error_handler (error_handler_t *eh);
+}
+.fi
+\fP
+.SH DESCRIPTION
+.IP "\fBvoid set_error_handler (error_handler_t *eh)\fP"
+Registers the function to handle 0MQ exception. When an exception (disconnection) occurs, registered error handler is called. The
+.IR local_object
+parameter is set to the name of the object (exchange or queue) that caused the exception. If error handler returns false, application will fail. If it returns true, exception is silently ignored.
+.SH EXAMPLE
+.nf
+#include <zmq.hpp>
+using namespace zmq;
+
+int main ()
+{
+    dispatcher_t dispatcher (2);
+    locator_t locator ("svr01");
+    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
+    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+}
+.fi
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq_dispatcher (3)
