@@ -26,14 +26,19 @@ namespace zmq
 .fi
 \fP
 .SH DESCRIPTION
-The message class encapsulates a 0MQ message.  A message is a blob.  The message class implements various optimisations that make creation and transfer of the blob as fast as possible.
+The message class encapsulates a 0MQ message.  A message is a blob.  The message
+class implements various optimisations that make creation and transfer of the
+blob as fast as possible.
 .SH METHODS
 .IP "\fBmessage_t (size_t size = 0)\fP"
 Creates a message
 .IR size
-bytes long. The content of the message is uninitialised i.e. it may contain bogus data. It is the user's responsibility to fill-in the content. Use this constructor without filling the
+bytes long. The content of the message is uninitialised i.e. it may contain
+bogus data. It is the user's responsibility to fill-in the content. Use this
+constructor without filling the
 .IR size
-parameter in if you are creating a message object to serve as destination when receiving a message.
+parameter in if you are creating a message object to serve as destination when
+receiving a message.
 .IP "\fBmessage_t (void *data, size_t size, free_fn *ffn)\fP"
 Creates a message from supplied buffer. The buffer is identified by the
 .IR data
@@ -41,25 +46,31 @@ parameter (pointer to the buffer), the
 .IR size
 parameter (size of the buffer) and the
 .IR ffn
-parameter (function that 0MQ will use to deallocate the buffer once it doesn't need it). If
+parameter (function that 0MQ will use to deallocate the buffer once it doesn't
+need it). If
 .IR ffn
-is NULL no deallocation will happen - this is useful for sending data stored in static buffers.
+is NULL no deallocation will happen - this is useful for sending data stored
+in static buffers.
 .IP "\fB~message_t ()\fP"
 Deallocates the message.
 .IP "\fBvoid rebuild (size_t size)\fP"
 Destroys the existing content of the message and replaces it with a message
 .IR size
-bytes long. The content of the message is uninitialised i.e. it may contain bogus data. It is the user's responsibility to fill-in the content.
+bytes long. The content of the message is uninitialised i.e. it may contain
+bogus data. It is the user's responsibility to fill-in the content.
 .IP "\fBvoid rebuild (void *data, size_t size, free_fn *ffn)\fP"
-Destroys the existing content of the message and replaces it with a message created from the supplied buffer.  The buffer is identified by the
+Destroys the existing content of the message and replaces it with a message
+created from the supplied buffer.  The buffer is identified by the
 .IR data
 parameter (pointer to the buffer), the
 .IR size
 parameter (size of the buffer) and the
 .IR ffn
-parameter (function that 0MQ will use to deallocate the buffer once it doesn't need it). If
+parameter (function that 0MQ will use to deallocate the buffer once it doesn't
+need it). If
 .IR ffn
-is NULL no deallocation will happen - this is useful for sending standard messages stored in static buffers.
+is NULL no deallocation will happen - this is useful for sending standard
+messages stored in static buffers.
 .IP "\fBvoid move_to (message_t *msg)\fP"
 Moves the content of the message to the message identified by the
 .IR msg
@@ -67,9 +78,13 @@ parameter.  The original message will be truncated to 0 bytes in the process.
 .IP "\fBvoid copy_to (message_t *msg)\fP"
 Copies the content of the message to the message identified by the
 .IR msg
-parameter. The message content is not necessarily copied, the operation may be handled by copying pointer and increasing reference count of the message. Thus the content of the message shouldn't be changed after it has been copied.
+parameter. The message content is not necessarily copied, the operation may be
+handled by copying pointer and increasing reference count of the message.
+Thus the content of the message shouldn't be changed after it has been copied.
 .IP "\fBvoid *data ()\fP"
-Returns pointer to the message data. It can be used both to read and write the message content. Don't store the pointer for extended periods of time. Rather retrieve it from the message object each time you need it.
+Returns pointer to the message data. It can be used both to read and write
+the message content. Don't store the pointer for extended periods of time.
+Rather retrieve it from the message object each time you need it.
 .IP "\fBsize_t size ()\fP"
 Returns size of the message data (in bytes).
 .SH EXAMPLE

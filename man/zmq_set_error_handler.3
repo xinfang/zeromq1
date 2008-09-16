@@ -15,9 +15,12 @@ namespace zmq
 \fP
 .SH DESCRIPTION
 .IP "\fBvoid set_error_handler (error_handler_t *eh)\fP"
-Registers the function to handle 0MQ exception. When an exception (disconnection) occurs, registered error handler is called. The
+Registers the function to handle 0MQ exception. When an exception
+(disconnection) occurs, registered error handler is called. The
 .IR local_object
-parameter is set to the name of the object (exchange or queue) that caused the exception. If error handler returns false, application will fail. If it returns true, exception is silently ignored.
+parameter is set to the name of the object (exchange or queue) that caused
+the exception. If error handler returns false, application will fail.
+If it returns true, exception is silently ignored.
 .SH EXAMPLE
 .nf
 #include <zmq.hpp>

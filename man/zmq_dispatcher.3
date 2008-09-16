@@ -17,7 +17,10 @@ namespace zmq
 .fi
 \fP
 .SH DESCRIPTION
-The dispatcher implements bidirectional thread-safe passing of commands between N threads. From the client's perspective the only thing required to use the dispatcher is to declare it at the beginning of the program and pass it to individual threads when creating them.
+The dispatcher implements bidirectional thread-safe passing of commands
+between N threads. From the client's perspective the only thing required to use
+the dispatcher is to declare it at the beginning of the program and pass it to
+individual threads when creating them.
 .SH METHODS
 .IP "\fBdisaptcher_t (int thread_count)\fP"
 Creates a dispatcher. Up to

@@ -20,7 +20,11 @@ namespace zmq
 .SH DESCRIPTION
 The locator class provides connectivity to
 .BR zmq_server (1).
-It acts as a directory service for looking up non-private objects (exchanges and queues).  The locator can be either connected to zmq_server in which case global-scoped objects are available, or it can run without zmq_server which means they are not available.  Process- and local-scoped objects are available in both cases.
+It acts as a directory service for looking up non-private objects (exchanges
+and queues).  The locator can be either connected to zmq_server in which case
+global-scoped objects are available, or it can run without zmq_server which
+means they are not available.  Process- and local-scoped objects are available
+in both cases.
 .SH METHODS
 .IP "\fBlocator_t (const char *hostname = NULL)\fP"
 Creates a locator. If
@@ -29,11 +33,15 @@ is NULL it doesn't connect to zmq_server. If you want it to connect
 .IR hostname
 of the box where
 .BR zmq_server (1)
-is running should be supplied in form <host>[:<port>]. 'host' is either name of the box or its IP address. So, for example, if zmq_server is running on box called 'svr01' you set the
+is running should be supplied in form <host>[:<port>]. 'host' is either name
+of the box or its IP address. So, for example, if zmq_server is running on box
+called 'svr01' you set the
 .IR hostname
-parameter to 'svr01'. Default port used by zmq_server is 5682. In case you've started
+parameter to 'svr01'. Default port used by zmq_server is 5682.
+In case you've started
 .BR zmq_server (1)
-on different port - say 5555 - set the hostname this way 'svr01:5555' or this way '192.168.0.45:5555'.
+on different port - say 5555 - set the hostname this way 'svr01:5555'
+or this way '192.168.0.45:5555'.
 .IP "\fB~locator_t ()\fP"
 Destroys the locator.
 .SH EXAMPLE
