@@ -33,15 +33,8 @@ namespace zmq
     {
     public:
 
-        //  Creates empty message (0 bytes long).
-        inline message_t ()
-        {
-            content = (message_content_t*) raw_message_t::vsm_tag;
-            vsm_size = 0;
-        }
-
         //  Creates message size_ bytes long.
-        inline message_t (size_t size_)
+        inline message_t (size_t size_ = 0)
         {
             raw_message_init (this, size_);
         }

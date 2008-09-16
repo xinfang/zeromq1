@@ -12,8 +12,7 @@ namespace zmq
 
     class message_t
     {
-        message_t ();
-        message_t (size_t size);
+        message_t (size_t size = 0);
         message_t (void *data, size_t size, free_fn *ffn);
         ~message_t ();
         void rebuild (size_t size);
@@ -29,12 +28,12 @@ namespace zmq
 .SH DESCRIPTION
 The message class encapsulates a 0MQ message.  A message is a blob.  The message class implements various optimisations that make creation and transfer of the blob as fast as possible.
 .SH METHODS
-.IP "\fBmessage_t ()\fP"
-Creates an empty message (message 0 bytes long). Use this constructor if you are creating a message object to serve as destination when receiving a message.
-.IP "\fBmessage_t (size_t size)\fP"
+.IP "\fBmessage_t (size_t size = 0)\fP"
 Creates a message
 .IR size
-bytes long. The content of the message is uninitialised i.e. it may contain bogus data. It is the user's responsibility to fill-in the content.
+bytes long. The content of the message is uninitialised i.e. it may contain bogus data. It is the user's responsibility to fill-in the content. Use this constructor without filling the
+.IR size
+parameter in if you are creating a message object to serve as destination when receiving a message.
 .IP "\fBmessage_t (void *data, size_t size, free_fn *ffn)\fP"
 Creates a message from supplied buffer. The buffer is identified by the
 .IR data
