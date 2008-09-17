@@ -149,6 +149,7 @@ int main (int argc, char *argv [])
                     //  and delete the descriptor from pollfds vector.
                     unregister (s, objects);
                     pollfds.erase (pollfds.begin () + pos);
+                    close (s);
                     continue;
                 }
 
