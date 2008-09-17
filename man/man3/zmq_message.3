@@ -89,17 +89,17 @@ Rather retrieve it from the message object each time you need it.
 Returns size of the message data (in bytes).
 .SH EXAMPLE
 .nf
-#include <zmq.hpp>
-using namespace zmq;
+    ...
+    message_t msg (10);
+    memset (msg.data (), 0, msg.size ());
+    api->send (exchange_id, msg);
+    ...
 
-int main ()
-{
-    dispatcher_t dispatcher (2);
-    locator_t locator ("svr01");
-    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
-    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
-    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
-}
+    ...
+    message_t msg;
+    api->receive (&msg);
+    memcpy (destination, msg.data (), msg.size ());
+    ...
 .fi
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>

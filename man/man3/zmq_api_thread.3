@@ -195,10 +195,19 @@ using namespace zmq;
 int main ()
 {
     dispatcher_t dispatcher (2);
-    locator_t locator ("svr01");
+    locator_t locator ("localhost");
     poll_thread_t *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
-    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+    int eid = api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+    api->create_queue ("Q", scope_global, "eth0", pt, 1, &pt);
+    api->bind ("E", "Q", pt, pt);
+
+    message_t msg_out (10);
+    memset (msg_out.data (), 0, msg_out.size ());
+    api->send (eid, msg_out);
+
+    message_t msg_in;
+    api->receive (&msg_in);
 }
 .fi
 .SH AUTHOR

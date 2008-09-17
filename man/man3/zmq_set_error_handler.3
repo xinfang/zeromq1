@@ -26,13 +26,15 @@ If it returns true, exception is silently ignored.
 #include <zmq.hpp>
 using namespace zmq;
 
+bool error_handler (const char *local_object)
+{
+    return true;
+}
+
 int main ()
 {
-    dispatcher_t dispatcher (2);
-    locator_t locator ("svr01");
-    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
-    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
-    api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
+    set_error_handler (error_handler);
+    ... 
 }
 .fi
 .SH AUTHOR
