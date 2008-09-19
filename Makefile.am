@@ -14,8 +14,8 @@ if BUILD_JAVA
 DIR_J = jzmq
 endif
 
-SUBDIRS = zmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) examples
-DIST_SUBDIRS = zmq czmq pyzmq jzmq perf examples
+SUBDIRS = zmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) examples man
+DIST_SUBDIRS = zmq czmq pyzmq jzmq perf examples man
 
 EXTRA_DIST = \
     ./perf/tests/scenarios/thr.sh \
