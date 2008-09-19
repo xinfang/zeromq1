@@ -67,19 +67,19 @@ remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 if BUILD_C
 c_local_lat_SOURCES = c_local_lat.c ../../../czmq/czmq.h
-c_local_lat_LDADD = $(top_builddir)/czmq/libczmq.la
+c_local_lat_LDADD = $(top_builddir)/czmq/libczmq.la -lstdc++
 c_local_lat_CFLAGS = -Wall -pedantic -Werror
 
 c_remote_lat_SOURCES = c_remote_lat.c ../../../czmq/czmq.h
-c_remote_lat_LDADD = $(top_builddir)/czmq/libczmq.la
+c_remote_lat_LDADD = $(top_builddir)/czmq/libczmq.la -lstdc++
 c_remote_lat_CFLAGS = -Wall -pedantic -Werror
 
 c_local_thr_SOURCES = c_local_thr.c ../../../czmq/czmq.h
-c_local_thr_LDADD = $(top_builddir)/czmq/libczmq.la
+c_local_thr_LDADD = $(top_builddir)/czmq/libczmq.la -lstdc++
 c_local_thr_CFLAGS = -Wall -pedantic -Werror
 
 c_remote_thr_SOURCES = c_remote_thr.c ../../../czmq/czmq.h
-c_remote_thr_LDADD = $(top_builddir)/czmq/libczmq.la
+c_remote_thr_LDADD = $(top_builddir)/czmq/libczmq.la -lstdc++
 c_remote_thr_CFLAGS = -Wall -pedantic -Werror
 endif
 
