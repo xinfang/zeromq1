@@ -82,3 +82,11 @@ c_remote_thr_SOURCES = c_remote_thr.c ../../../czmq/czmq.h
 c_remote_thr_LDADD = $(top_builddir)/czmq/libczmq.la
 c_remote_thr_CFLAGS = -Wall -pedantic -Werror
 endif
+
+if BUILD_JAVA
+AM_JAVACFLAGS=-classpath $(top_builddir)/jzmq
+
+#j_zmqdir = /tmp
+dist_noinst_JAVA = j_local_lat.java j_remote_lat.java j_local_thr.java \
+j_remote_thr.java
+endif

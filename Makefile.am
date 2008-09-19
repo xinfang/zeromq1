@@ -1,5 +1,3 @@
-ACLOCAL_AMFLAGS = -I m4
-
 if BUILD_PERF
 DIR_PERF = perf
 endif

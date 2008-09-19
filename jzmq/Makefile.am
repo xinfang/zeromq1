@@ -1,8 +1,8 @@
-jzmqdir = /tmp
+# We do not want to install Jzmq.class file
+# user has to copy it to the right location.
+#jzmqdir = /tmp
 
-jzmq_JAVA = Jzmq.java 
-EXTRA_DIST = $(jzmq_JAVA)
-CLASSES = $(jzmq_JAVA:.java=.class)
+dist_noinst_JAVA = Jzmq.java
 
 lib_LTLIBRARIES = libjzmq.la
 libjzmq_la_SOURCES = Jzmq.h Jzmq.cpp
@@ -10,15 +10,14 @@ libjzmq_la_CXXFLAGS = -I$(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -Wall
 libjzmq_la_LDFLAGS = -version-info 0:0:0
 libjzmq_la_LIBADD = $(top_builddir)/zmq/libzmq.la
 
-BUILT_SOURCES = Jzmq.h $(CLASSES)
+BUILT_SOURCES = Jzmq.h Jzmq.class
 
 $(srcdir)/Jzmq.cpp: Jzmq.h
 
-Jzmq.h: $(CLASSES)
-	$(CLASSPATH_ENV) $(JAVAH) Jzmq
+Jzmq.h: Jzmq.class
+	$(CLASSPATH_ENV) $(JAVAH) -jni Jzmq
 
-# force build of class files
-$(CLASSES): classjzmq.stamp
+Jzmq.class: classdist_noinst.stamp
 
 dist-hook:
 		-rm $(distdir)/Jzmq.h
