@@ -1,5 +1,7 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
+include_HEADERS = zmq.hpp
+
 pkginclude_HEADERS = \
     api_thread.hpp \
     atomic_ptr.hpp \
