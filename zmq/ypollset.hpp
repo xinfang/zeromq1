@@ -32,7 +32,7 @@ namespace zmq
 
     //  ypollset allows for rapid polling for up to constant number of  
     //  different signals each produced by a different thread. The number of
-    //  possible signals is dependent of the platform.
+    //  possible signals is platform-dependent.
 
     class ypollset_t : public i_signaler
     {
@@ -50,7 +50,7 @@ namespace zmq
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
-        //  index 2 to value 4 etc.
+        //  index 2 to value 3 etc.
         inline integer_t poll ()
         {
             integer_t result = 0;
@@ -83,7 +83,7 @@ namespace zmq
 
     private:
 
-        //  Wait signal is carried in the last bit of the integer.
+        //  Wait signal is carried in the most significant bit of integer.
         enum {wait_signal = sizeof (integer_t) * 8 - 1};
 
         //  The bits of the pollset.

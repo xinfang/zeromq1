@@ -63,11 +63,11 @@ namespace zmq
         }
 
         //  Bit-test-set-and-reset. Sets one bit of the value and resets
-        //  another one. Returns the original value of the reseted bit.
+        //  another one. Returns the original value of the reset bit.
         //
         //  There's no need for the operation to be fully atomic. The only
         //  requirement is that setting of the bit is performed first and
-        //  resetting afterwards. Getting the original value of the reseted
+        //  resetting afterwards. Getting the original value of the reset
         //  bit and actual reset, however, have to be done atomically.
         inline bool btsr (int set_index_, int reset_index_)
         {
