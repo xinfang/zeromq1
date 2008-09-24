@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstdlib>
 #include <assert.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
