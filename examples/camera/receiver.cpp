@@ -25,11 +25,7 @@
 
 #include <SDL.h>
 
-#include <zmq/dispatcher.hpp>
-#include <zmq/api_thread.hpp>
-#include <zmq/poll_thread.hpp>
-#include <zmq/locator.hpp>
-#include <zmq/message.hpp>
+#include <zmq.hpp>
 #include <zmq/wire.hpp>
 
 int main (int argc, char *argv [])

@@ -22,12 +22,7 @@
 
 #include "i_transport.hpp"
 
-#include "../../zmq/dispatcher.hpp"
-#include "../../zmq/locator.hpp"
-#include "../../zmq/api_thread.hpp"
-#include "../../zmq/bp_engine.hpp"
-#include "../../zmq/poll_thread.hpp"
-#include "../../zmq/message.hpp"
+#include <zmq.hpp>
 
 namespace perf
 {

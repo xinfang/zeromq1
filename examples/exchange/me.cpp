@@ -17,11 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../../zmq/dispatcher.hpp"
-#include "../../zmq/locator.hpp"
-#include "../../zmq/api_thread.hpp"
-#include "../../zmq/poll_thread.hpp"
-#include "../../zmq/message.hpp"
+#include <zmq.hpp>
 #include "../../perf/helpers/time.hpp"
 
 #include "messages.hpp"

@@ -23,11 +23,7 @@
 
 using namespace std;
 
-#include "../../zmq/dispatcher.hpp"
-#include "../../zmq/locator.hpp"
-#include "../../zmq/poll_thread.hpp"
-#include "../../zmq/api_thread.hpp"
-#include "../../zmq/message.hpp"
+#include <zmq.hpp>
 
 using namespace zmq;
 

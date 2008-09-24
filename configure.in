@@ -160,6 +160,8 @@ if test "x$with_python" != "xno"; then
         AC_MSG_ERROR([To run configure with --with-python option, Python has to be installed.]);
     fi
 
+    AC_CHECK_HEADERS(python${PYTHON_VERSION}/Python.h, [] , [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be installed.])])
+
     py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
     py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
     PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
@@ -167,6 +169,7 @@ if test "x$with_python" != "xno"; then
         PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
     fi
     AC_SUBST(PYTHON_INCLUDES)
+
 
     pyzmq="yes"
 fi
@@ -194,10 +197,10 @@ if test "x$with_java" != "xno"; then
 
     case "${host_os}" in
         *solaris*)
-            JAVA_INCLUDE="-I${JAVA_HOME}/include -I ${JAVA_HOME}/include/solaris"
+            JAVA_INCLUDE="-I.. -I${JAVA_HOME}/include -I ${JAVA_HOME}/include/solaris"
         ;;
         *)
-            JAVA_INCLUDE="-I${JAVA_HOME}/include -I ${JAVA_HOME}/include/linux"
+            JAVA_INCLUDE="-I.. -I${JAVA_HOME}/include -I ${JAVA_HOME}/include/linux"
         ;;
     esac
 
