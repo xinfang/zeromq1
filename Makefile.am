@@ -23,8 +23,8 @@ EXTRA_DIST = \
     ./perf/tests/scenarios/fo.sh \
     ./perf/tests/scenarios/fi.sh \
     ./examples/exchange/graph.pl \
-	./perf/tests/zmq/py_local_lat.py \
-	./perf/tests/zmq/py_local_thr.py \
-	./perf/tests/zmq/py_remote_lat.py \
-	./perf/tests/zmq/py_remote_thr.py
-
+    ./perf/tests/zmq/py_local_lat.py \
+    ./perf/tests/zmq/py_local_thr.py \
+    ./perf/tests/zmq/py_remote_lat.py \
+    ./perf/tests/zmq/py_remote_thr.py \
+    ./man/man3/*.3
