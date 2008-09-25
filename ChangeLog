@@ -13,5 +13,6 @@ ZMQ-51: Make it possible to use single include (zmq.hpp) for client apps
 ZMQ-53: Segmentation fault when binding to non-existent queue
 ZMQ-55: raw_message_init (data,size,ffn) allocates more memory than needed
 ZMQ-56: zmq_server fails if too many apps disconnect abruptly
-
-
+ZMQ-58: Implement C binding for 0MQ
+ZMQ-59: Implement Java binding for 0MQ
+ZMQ-60: Implement Python binding for 0MQ
