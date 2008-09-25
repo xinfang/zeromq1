@@ -1,0 +1,17 @@
+Version 0.3.1
+
+ZMQ-25: Allow to use network interface name instead of IP address
+ZMQ-29: Implement speculative write to socket
+ZMQ-33: Assign ports to global objects automatically
+ZMQ-34: Message size of zero causes application to hang up
+ZMQ-42: Change locators to deal with a single object type
+ZMQ-44: Some of the objects have non-functional auto-generated copy constructors
+ZMQ-47: Camera example is broken
+ZMQ-48: Sender fails when receiver disconnects
+ZMQ-50: Warning in chat example
+ZMQ-51: Make it possible to use single include (zmq.hpp) for client apps
+ZMQ-53: Segmentation fault when binding to non-existent queue
+ZMQ-55: raw_message_init (data,size,ffn) allocates more memory than needed
+ZMQ-56: zmq_server fails if too many apps disconnect abruptly
+
+
