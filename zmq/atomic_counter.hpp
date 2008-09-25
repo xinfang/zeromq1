@@ -41,7 +41,7 @@ namespace zmq
             value (value_)
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__) && !defined (__sparc__)))
+    && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
             int rc = pthread_mutex_init (&mutex, NULL);
             errno_assert (rc == 0);
 #endif
@@ -50,7 +50,7 @@ namespace zmq
         inline ~atomic_counter_t ()
         {
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__) && !defined (__sparc__)))
+    && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
             int rc = pthread_mutex_destroy (&mutex);
             errno_assert (rc == 0);
 #endif
@@ -74,7 +74,7 @@ namespace zmq
                 : "0" (increment), "m" (*val)
                 : "cc");
             return increment;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             volatile integer_t *val = &value;
             integer_t tmp;
@@ -114,7 +114,7 @@ namespace zmq
                 : "0" (oldval), "m" (*val)
                 : "cc");
             return oldval != decrement;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             volatile integer_t *val = &value;
             integer_t tmp;
@@ -146,7 +146,7 @@ namespace zmq
 
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
-    (!defined (__i386__) && !defined (__x86_64__) && !defined (__sparc__)))
+    (!defined (__i386__) && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
         pthread_mutex_t mutex;
 #endif
 

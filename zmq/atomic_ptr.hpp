@@ -82,7 +82,7 @@ namespace zmq
                 : "m" (ptr), "0" (old)
                 : "memory");
             return old;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             T* newptr = val_;
             volatile T** ptrin = &ptr;
@@ -133,7 +133,7 @@ namespace zmq
                 : "r" (val_), "m" (ptr), "0" (cmp_) 
                 : "cc");
             return old;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             volatile T** ptrin = &ptr;
             volatile T* prev = ptr;

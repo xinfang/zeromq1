@@ -83,7 +83,7 @@ namespace zmq
                 : "r" (set_index_), "r" (reset_index_), "r" (&value)
                 : "memory", "cc", "%eax");
             return (bool) oldval;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             volatile integer_t* valptr = &value;
             integer_t set_val = integer_t(1) << set_index_;
@@ -134,7 +134,7 @@ namespace zmq
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             oldval = value;
             volatile integer_t* ptrin = &value;
@@ -199,7 +199,7 @@ namespace zmq
                 : "=&a" (oldval)
                 : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
                 : "memory", "cc");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
+#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             oldval = value;
             volatile integer_t* ptrin = &value;
