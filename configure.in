@@ -160,8 +160,6 @@ if test "x$with_python" != "xno"; then
         AC_MSG_ERROR([To run configure with --with-python option, Python has to be installed.]);
     fi
 
-    AC_CHECK_HEADERS(python${PYTHON_VERSION}/Python.h, [] , [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be installed.])])
-
     py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
     py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
     PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
@@ -170,6 +168,7 @@ if test "x$with_python" != "xno"; then
     fi
     AC_SUBST(PYTHON_INCLUDES)
 
+    AC_CHECK_HEADERS($py_prefix/include/python${PYTHON_VERSION}/Python.h, [] , [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be installed.])])
 
     pyzmq="yes"
 fi
@@ -210,6 +209,7 @@ if test "x$with_java" != "xno"; then
 else
 # Workaround to be able to run make dist without real JAVAH
     JAVAH=true
+    JAVAC=true
 fi
 
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
