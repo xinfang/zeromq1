@@ -16,4 +16,4 @@ ZMQ-56: zmq_server fails if too many apps disconnect abruptly
 ZMQ-58: Implement C binding for 0MQ
 ZMQ-59: Implement Java binding for 0MQ  
 ZMQ-60: Implement Python binding for 0MQ 
-
+ZMQ-62: Write man pages
