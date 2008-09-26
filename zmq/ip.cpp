@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include "ip.hpp"
+#include "err.hpp"
 
 #if defined ZMQ_HAVE_SOLARIS
 
@@ -182,7 +183,7 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
     req.ai_family = AF_INET;
     addrinfo *res;
     int rc = getaddrinfo (hostname, NULL, &req, &res);
-    assert (rc == 0);
+    gai_assert (rc);
     *addr_ = *((sockaddr_in *) res->ai_addr);
     freeaddrinfo (res);
     
