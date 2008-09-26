@@ -39,7 +39,7 @@ zmq::locator_t::locator_t (const char *hostname_)
         }
 
         //  Open connection to global locator.
-        global_locator = new tcp_socket_t (hostname_);
+        global_locator = new tcp_socket_t (hostname_, true);
     }
     else
         global_locator = NULL;
@@ -87,18 +87,18 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;
-         global_locator->blocking_write (&cmd, 1);
+         global_locator->write (&cmd, 1);
          unsigned char type_id = type_id_;
-         global_locator->blocking_write (&type_id, 1);         
+         global_locator->write (&type_id, 1);         
          unsigned char size = strlen (object_);
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (object_, size);
+         global_locator->write (&size, 1);
+         global_locator->write (object_, size);
          size = strlen (listener->get_interface ());
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (listener->get_interface (), size);
+         global_locator->write (&size, 1);
+         global_locator->write (listener->get_interface (), size);
 
          //  Read the response.
-         global_locator->blocking_read (&cmd, 1);
+         global_locator->read (&cmd, 1);
          assert (cmd == create_ok_id);
     }
 
@@ -136,15 +136,15 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
 
          //  Send 'get' command.
          unsigned char cmd = get_id;
-         global_locator->blocking_write (&cmd, 1);
+         global_locator->write (&cmd, 1);
          unsigned char type_id = type_id_;
-         global_locator->blocking_write (&type_id, 1);
+         global_locator->write (&type_id, 1);
          unsigned char size = strlen (object_);
-         global_locator->blocking_write (&size, 1);
-         global_locator->blocking_write (object_, size);
+         global_locator->write (&size, 1);
+         global_locator->write (object_, size);
 
          //  Read the response.
-         global_locator->blocking_read (&cmd, 1);
+         global_locator->read (&cmd, 1);
          if (cmd == fail_id) {
 
              //  Leave critical section.
@@ -155,9 +155,9 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          }
 
          assert (cmd == get_ok_id);
-         global_locator->blocking_read (&size, 1);
+         global_locator->read (&size, 1);
          char interface [256];
-         global_locator->blocking_read (interface, size);
+         global_locator->read (interface, size);
          interface [size] = 0;
 
          //  Create the proxy engine for the object.

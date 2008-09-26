@@ -31,7 +31,8 @@
 #include "err.hpp"
 #include "ip.hpp"
 
-zmq::tcp_socket_t::tcp_socket_t (const char *hostname_)
+zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
+    block (block_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -71,7 +72,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 size_t zmq::tcp_socket_t::write (const void *data, size_t size)
 {
-    ssize_t nbytes = send (s, data, size, MSG_DONTWAIT);
+    ssize_t nbytes = send (s, data, size, block ? MSG_DONTWAIT : 0);
 
     //  Signalise peer failure
     if (nbytes == -1 && errno == ECONNRESET)
@@ -83,22 +84,9 @@ size_t zmq::tcp_socket_t::write (const void *data, size_t size)
 
 size_t zmq::tcp_socket_t::read (void *data, size_t size)
 {
-    ssize_t nbytes = recv (s, data, size, MSG_DONTWAIT);
+    ssize_t nbytes = recv (s, data, size, block ? 0 : MSG_DONTWAIT);
     errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
 
-void zmq::tcp_socket_t::blocking_write (const void *data, size_t size)
-{
-    ssize_t nbytes = send (s, data, size, 0);
-    errno_assert (nbytes != -1);
-    assert (((size_t) nbytes) == size);
-}
-
-void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
-{
-    ssize_t nbytes = recv (s, data, size, MSG_WAITALL);
-    errno_assert (nbytes != -1);
-    assert (((size_t) nbytes) == size);
-}
 

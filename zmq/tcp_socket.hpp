@@ -35,7 +35,9 @@ namespace zmq
     public:
 
         //  Opens TCP socket. Hostname should be in form of <host>:<port>.
-        tcp_socket_t (const char *hostname_);
+        //  By default it opens the socket in non-blocking mode. If block_ is
+        //  set to true, the socket will be opened in blocking mode.
+        tcp_socket_t (const char *hostname_, bool block_ = false);
 
         //  Opens a socket by accepting a connection from TCP listener object
         tcp_socket_t (tcp_listener_t &listener);
@@ -49,7 +51,7 @@ namespace zmq
             return s;
         }
 
-        //  Writes as much data as possible to the socket. Returns the number
+        //  Writes data to the socket. Returns the number
         //  of bytes actually written.
         size_t write (const void *data, size_t size);
 
@@ -57,16 +59,11 @@ namespace zmq
         //  of bytes actually read.
         size_t read (void *data, size_t size);
 
-        //  Writes all the data to the socket.
-        void blocking_write (const void *data, size_t size);
-
-        //  Reads 'size' bytes from the socket.
-        void blocking_read (void *data, size_t size);
-
     private:
 
         //  Underlying socket
         int s;
+        bool block;
 
         //  Disable copy construction of tcp_socket.
         tcp_socket_t (const tcp_socket_t&);
