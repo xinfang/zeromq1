@@ -30,7 +30,7 @@ case "${host_os}" in
         AC_CHECK_LIB(socket, main)
         AC_CHECK_LIB(nsl, main)
         AC_CHECK_LIB(rt, main)
-        CPPFLAGS="-D_REENTRANT -D_PTHREADS -mcpu=v9 $CPPFLAGS"
+        CPPFLAGS="-D_REENTRANT -D_PTHREADS $CPPFLAGS"
         ;;
     *freebsd*)
         AC_DEFINE(ZMQ_HAVE_FREEBSD, 1, [Have FreeBSD OS])
@@ -46,6 +46,23 @@ case "${host_os}" in
         ;;
 esac
 
+# Check if we are running at sparc harware
+AC_MSG_CHECKING([wheter __sparc__ is defined])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#if defined __sparc__
+        //OK we are on sparc
+    #else
+        error: we are not on sparc
+    #endif
+    ]])],
+        [sparc=yes],
+        [sparc=no])
+
+AC_MSG_RESULT([$sparc])
+        
+if test "x$sparc" = "xyes"; then
+    CPPFLAGS="$CPPFLAGS -mcpu=v9"
+fi
 
 # Checks for header files.
 AC_HEADER_STDC
