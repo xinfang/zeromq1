@@ -19,7 +19,9 @@
 
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, int handler_thread_count_,

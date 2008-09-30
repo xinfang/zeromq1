@@ -20,7 +20,13 @@
 #ifndef __ZMQ_IP_HPP_INCLUDED__
 #define __ZMQ_IP_HPP_INCLUDED__
 
+#ifndef ZMQ_HAVE_WINXP
 #include <netinet/in.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#endif
 
 namespace zmq
 {

@@ -16,14 +16,40 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ZMQ_HAVE_WINXP
-#include "ysocketpair.hpp"
+#ifndef __ZMQ_THREAD_HPP_INCLUDED__
+#define __ZMQ_THREAD_HPP_INCLUDED__
 
-void zmq::ysocketpair_t::signal (int signal_)
+#ifdef ZMQ_HAVE_WINXP
+#include <windows.h>
+#endif
+
+#include "err.hpp"
+
+namespace zmq
 {
-    assert (signal_ >= 0 && signal_ < 31);
-    unsigned char c = (unsigned char) signal_;
-    ssize_t nbytes = send (w, &c, 1, 0);
-    errno_assert (nbytes == 1);
+
+    typedef void (thread_fn) (void*);
+
+
+    class thread_t
+    {
+    public:
+        thread_t (thread_fn *tfn_, void *arg_);
+        ~thread_t ();
+
+    private:
+
+#ifdef ZMQ_HAVE_WINXP
+        static DWORD WINAPI thread_routine (LPVOID arg_);
+        HANDLE thread_id;
+#else
+        static void *thread_routine (void *arg_);
+        pthread_t thread_id;
+
+#endif
+        thread_fn *tfn;
+        void *arg;
+    };
+
 }
 #endif

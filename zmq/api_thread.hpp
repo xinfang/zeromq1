@@ -24,7 +24,9 @@
 #include <string>
 #include <utility>
 
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "message.hpp"

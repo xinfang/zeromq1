@@ -19,20 +19,26 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <unistd.h>
+#endif
+#ifndef ZMQ_HAVE_WINXP
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <poll.h>
+#endif
+
 #include <string.h>
 #include <vector>
 #include <map>
 #include <string>
 using namespace std;
 
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 #include "stdint.hpp"
 #include "err.hpp"
 #include "zmq_server.hpp"

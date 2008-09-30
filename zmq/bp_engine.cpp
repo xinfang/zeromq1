@@ -17,7 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ZMQ_HAVE_WINXP
 #include <poll.h>
+#endif
 
 #include "bp_engine.hpp"
 
@@ -150,9 +152,16 @@ bool zmq::bp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
+
+#ifdef ZMQ_HAVE_WINXP
+		int nbytes = socket.write (writebuf + write_pos,
             write_size - write_pos);
-        if (nbytes <= 0) 
+#else
+		ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
+            write_size - write_pos);
+#endif
+
+		if (nbytes <= 0) 
             return false;
         write_pos += nbytes;
     }

@@ -22,14 +22,21 @@
 
 #include <stddef.h>
 #include <assert.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <pthread.h>
+#endif
+#ifndef ZMQ_HAVE_WINXP
 #include <poll.h>
+#endif
 
 #include "i_context.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
+
+#ifndef ZMQ_HAVE_WINXP
 #include "ysocketpair.hpp"
+#endif
 
 namespace zmq
 {
@@ -93,7 +100,7 @@ namespace zmq
         ysocketpair_t signaler;
 
         //  Handle of the physical thread doing the I/O work.
-        pthread_t worker;
+        pthread_t *worker;
 
         //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;

@@ -18,7 +18,9 @@
 */
 
 #include "api_thread.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)

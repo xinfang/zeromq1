@@ -20,10 +20,13 @@
 #ifndef __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 
+#ifndef ZMQ_HAVE_WINXP
 #include <pthread.h>
+#endif
 
 #include "err.hpp"
 #include "stdint.hpp"
+
 
 
 namespace zmq

@@ -21,12 +21,18 @@
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
 #include <assert.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <pthread.h>
+#endif
 #if (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
-    #include <semaphore.h>
+#ifndef ZMQ_HAVE_WINXP
+	#include <semaphore.h>
+#endif
 #endif
 
+#ifndef ZMQ_HAVE_WINXP
 #include "platform.hpp"
+#endif
 #include "i_signaler.hpp"
 #include "err.hpp"
 

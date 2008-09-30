@@ -20,7 +20,9 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
+#ifndef ZMQ_HAVE_WINXP
 #include <poll.h>
+#endif
 
 #include "i_engine.hpp"
 #include "i_poller.hpp"

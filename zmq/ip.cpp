@@ -19,15 +19,18 @@
 
 #include <cstdlib>
 #include <assert.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif
 #include <string.h>
 #include <string>
-#include <stdlib.h>
 
+#ifndef ZMQ_HAVE_WINXP
 #include "config.h"
+#endif
 #include "ip.hpp"
 #include "err.hpp"
 
@@ -136,8 +139,16 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
-    int rc = inet_pton (AF_INET, interface_, addr_);
-    assert (rc > 0);
+#ifdef ZMQ_HAVE_WINXP 
+	int rc  = inet_addr (interface_);
+	gai_assert (rc == INADDR_NONE);
+	addr_->S_un.S_addr = rc;
+
+#else
+	int rc = inet_pton (AF_INET, interface_, addr_);
+	assert (rc > 0);
+#endif
+    
 }
 
 #endif
@@ -172,7 +183,6 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
     const char *delimiter = strchr (hostname_, ':');
     assert (delimiter);
 
-    //  Get the hostname.
     assert (delimiter - hostname_ < 256);
     char hostname [256];
     memcpy (hostname, hostname_, delimiter - hostname_);

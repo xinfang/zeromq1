@@ -19,13 +19,17 @@
 
 #include <assert.h>
 #include <string.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <arpa/inet.h>
+#endif
 
 #include "err.hpp"
 #include "locator.hpp"
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 
 zmq::locator_t::locator_t (const char *hostname_)
 {

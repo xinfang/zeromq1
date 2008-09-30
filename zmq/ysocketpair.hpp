@@ -21,9 +21,14 @@
 #define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
 #include <assert.h>
+
+#ifndef ZMQ_HAVE_WINXP
 #include <unistd.h>
 #include <sys/socket.h>
 #include <poll.h>
+#else
+#include <winsock2.h>
+#endif
 
 #include "stdint.hpp"
 #include "i_signaler.hpp"
@@ -53,8 +58,13 @@ namespace zmq
         //  Destroy the pipe.
         inline ~ysocketpair_t ()
         {
-            close (w);
+#ifndef ZMQ_HAVE_WINXP
+			close (w);
             close (r);
+#else
+			closesocket(w);
+			closesocket(r);
+#endif
         }
 
         //  Send specific signal to the pipe.
@@ -79,7 +89,7 @@ namespace zmq
         inline uint32_t check ()
         {
             unsigned char buffer [256];
-            ssize_t nbytes = recv (r, buffer, 256, MSG_DONTWAIT);
+			ssize_t nbytes = recv (r, buffer, 256, MSG_DONTWAIT);
             errno_assert (nbytes != -1);
             uint32_t signals = 0;
             for (int pos = 0; pos != nbytes; pos ++) {
@@ -111,3 +121,4 @@ namespace zmq
 }
 
 #endif
+

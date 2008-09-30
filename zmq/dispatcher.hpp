@@ -21,12 +21,16 @@
 #define __ZMQ_DISPATCHER_HPP_INCLUDED__
 
 #include <vector>
+#ifndef ZMQ_HAVE_WINXP
 #include <pthread.h>
+#endif
 
 #include "i_context.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 
 namespace zmq
 {

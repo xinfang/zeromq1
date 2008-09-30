@@ -31,6 +31,7 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
     pollset (1)
 {
+	
     //  Initialise the pollset.
     pollset [0].fd = signaler.get_fd ();
     pollset [0].events = POLLIN;
@@ -39,8 +40,9 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     thread_id = dispatcher->allocate_thread_id (&signaler);
 
     //  Create the worker thread.
-    int rc = pthread_create (&worker, NULL, worker_routine, this);
-    errno_assert (rc == 0);
+	worker = new thread_t(worker_routine, this);
+    //int rc = pthread_create (&worker, NULL, worker_routine, this);
+    //errno_assert (rc == 0);
 }
 
 zmq::poll_thread_t::~poll_thread_t ()
@@ -52,8 +54,9 @@ zmq::poll_thread_t::~poll_thread_t ()
     dispatcher->write (thread_id, thread_id, cmd);
 
     //  Wait till worker thread terminates.
-    int rc = pthread_join (worker, NULL);
-    errno_assert (rc == 0);
+	delete worker;
+    //int rc = pthread_join (worker, NULL);
+    //errno_assert (rc == 0);
 }
 
 void zmq::poll_thread_t::register_engine (i_pollable *engine_)

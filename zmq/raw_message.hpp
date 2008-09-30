@@ -23,7 +23,9 @@
 #include <assert.h>
 
 #include "stdint.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 #include "atomic_counter.hpp"
 
 namespace zmq

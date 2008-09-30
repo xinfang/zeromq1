@@ -24,7 +24,9 @@
 #include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "raw_message.hpp"
+#ifndef ZMQ_HAVE_WINXP
 #include "config.hpp"
+#endif
 
 namespace zmq
 {
