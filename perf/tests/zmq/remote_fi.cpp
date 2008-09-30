@@ -17,7 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <iostream>
+
 #include "../scenarios/fi.hpp"
 #include "../../transports/zmq.hpp"
 

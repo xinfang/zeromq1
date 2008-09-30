@@ -25,6 +25,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <string>
+#include <stdlib.h>
 
 #include "config.h"
 #include "ip.hpp"
