@@ -1,12 +1,15 @@
-/* Define to 1 if you have the <stdint.h> header file. */
-#define ZMQ_HAVE_STDINT_H 1
+#ifndef __ZMQ_STDINT_HPP_INCLUDED__
+#define __ZMQ_STDINT_HPP_INCLUDED__
 
-/* Define to 1 if you have the <inttypes.h> header file. */
-#define ZMQ_HAVE_INTTYPES_H 1
+#ifdef ZMQ_HAVE_WINXP
 
-#if ZMQ_HAVE_STDINT_H
-    #include <stdint.h>
-#elif ZMQ_HAVE_INTTYPES_H
-    #include <inttypes.h>
+typedef __int8 uint8_t;
+typedef __int16 uint16_t;
+typedef __int32 uint32_t;
+typedef __int64 uint64_t;
+
+#else
+#include "stdintgen.hpp"
 #endif
 
+#endif
