@@ -71,7 +71,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     size_t isz = strlen (iface);
 
 #ifdef ZMQ_HAVE_WINXP
-    _snprintf_s (iface + isz, sizeof (iface) - isz, ":%d",
+    _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
 #else
    snprintf (iface + isz, sizeof (iface) - isz, ":%d",

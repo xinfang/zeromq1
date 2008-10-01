@@ -21,7 +21,6 @@
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
 #include <assert.h>
-#include <pthread.h>
 #if (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
     #include <semaphore.h>
 #endif
