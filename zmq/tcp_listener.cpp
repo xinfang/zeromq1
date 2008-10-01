@@ -69,13 +69,15 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         sizeof (iface));
     assert (rcp);
     size_t isz = strlen (iface);
-#ifndef ZMQ_HAVE_WINXP
-    snprintf (iface + isz, sizeof (iface) - isz, ":%d",
-        (int) ntohs (ip_address.sin_port));
+
+#ifdef ZMQ_HAVE_WINXP
+    _snprintf_s (iface + isz, sizeof (iface) - isz, ":%d",
+        (int) ntohs (ip_address.sin_port));   
 #else
-    _snprintf (iface + isz, sizeof (iface) - isz, ":%d",
+   snprintf (iface + isz, sizeof (iface) - isz, ":%d",
         (int) ntohs (ip_address.sin_port));
 #endif
+
     //  Listen for incomming connections.
     rc = listen (s, 1);
     errno_assert (rc == 0);
