@@ -25,6 +25,7 @@
     #include <semaphore.h>
 #endif
 
+#include <pthread.h>
 #include "platform.hpp"
 #include "i_signaler.hpp"
 #include "err.hpp"
