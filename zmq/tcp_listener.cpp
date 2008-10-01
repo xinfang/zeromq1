@@ -20,11 +20,13 @@
 #include "tcp_listener.hpp"
 
 #include <assert.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#endif
 #include <string.h>
 #include <string>
 
@@ -43,7 +45,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 
     //  Allow reusing of the address.
     int flag = 1;
-    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, (char*) &flag, sizeof (int));
     errno_assert (rc == 0);
 
     //  Bind the socket to the network interface and port.
@@ -63,13 +65,17 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     }
 
     //  Fill in the interface name.
-    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, interface,
-        sizeof (interface));
+    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
+        sizeof (iface));
     assert (rcp);
-    size_t isz = strlen (interface);
-    snprintf (interface + isz, sizeof (interface) - isz, ":%d",
+    size_t isz = strlen (iface);
+#ifndef ZMQ_HAVE_WINXP
+    snprintf (iface + isz, sizeof (iface) - isz, ":%d",
         (int) ntohs (ip_address.sin_port));
-              
+#else
+    _snprintf (iface + isz, sizeof (iface) - isz, ":%d",
+        (int) ntohs (ip_address.sin_port));
+#endif
     //  Listen for incomming connections.
     rc = listen (s, 1);
     errno_assert (rc == 0);

@@ -20,7 +20,11 @@
 #ifndef __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 #define __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 
+#ifndef ZMQ_HAVE_WINXP
 #include "stdint.hpp"
+#else
+#include <winsock2.h>
+#endif
 
 namespace zmq
 {
@@ -45,7 +49,7 @@ namespace zmq
         //  Returns port listener is listening on.
         inline const char *get_interface ()
         {
-            return interface; 
+            return iface; 
         }
 
         //  Accept the new connection.
@@ -53,8 +57,8 @@ namespace zmq
 
     private:
 
-        //  Name of the interface listenet is listening on.
-        char interface [256];
+        //  Name of the interface listener is listening on.
+        char iface [256];
 
         //  Underlying socket.
         int s;

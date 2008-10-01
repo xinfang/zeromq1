@@ -24,8 +24,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#ifndef ZMQ_HAVE_WINXP
 #include <sys/socket.h>
 #include <netdb.h>
+#else
+//#include <winsock2.h>
+#include <windows.h>
+#include "err_winxp.hpp"
+#endif
+namespace zmq
+{
+
 
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
@@ -41,4 +50,34 @@
     abort ();\
 }
 
+#ifdef ZMQ_HAVE_WINXP
+// Provides convenient way to check for errors from connect, when using winXP.
+#define wsa_assert(x) if (x == SOCKET_ERROR || x == INVALID_SOCKET) {\
+	int i = WSAGetLastError();\
+	if(i!=WSAEWOULDBLOCK) {\
+		const char *errstr = getErrorMessage (i);\
+	    printf ("%s (%s:%d)\n", errstr , __FILE__, __LINE__);\
+		abort ();\
+	}\
+}
+
+#define thread_assert(x) if (x != 0 && x != WAIT_IO_COMPLETION) {\
+	LPTSTR pszMessage;\
+    DWORD dwLastError = GetLastError(); \
+    FormatMessage(\
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | \
+        FORMAT_MESSAGE_FROM_SYSTEM |\
+        FORMAT_MESSAGE_IGNORE_INSERTS,\
+        NULL,\
+        dwLastError,\
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),\
+        (LPTSTR)&pszMessage,\
+        0, NULL );\
+    printf ("%s (%s:%d)\n", pszMessage , __FILE__, __LINE__);\
+    LocalFree(pszMessage);\
+    ExitProcess(dwLastError); \
+	abort ();\
+}
+#endif
+}
 #endif
