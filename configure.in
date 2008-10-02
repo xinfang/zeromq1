@@ -66,8 +66,6 @@ fi
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(stdint.h, HAVE_STDINT_H="yes", HAVE_STDINT_H="no")
-AC_CHECK_HEADERS(inttypes.h, HAVE_INTTYPES_H="yes", HAVE_INTTYPES_H="no")
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
 # Use c++ in subsequent tests
@@ -268,7 +266,7 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 
 AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile pyzmq/Makefile jzmq/Makefile \
-zmq/stdint.hpp perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
+perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 perf/tests/tcp/Makefile perf/helpers/Makefile examples/chat/Makefile \
 man/Makefile)

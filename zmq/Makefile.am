@@ -74,7 +74,6 @@ zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
 zmq_server_CXXFLAGS = -Wall -pedantic -Werror
 
 dist-hook:
-		-rm $(distdir)/stdint.hpp
 		-rm $(distdir)/platform.hpp
 
 
