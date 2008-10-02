@@ -24,7 +24,7 @@
 
 #ifdef ZMQ_HAVE_SOLARIS
 #include <inttypes.h>
-#elif ZMQ_HAVE_WINDOWS
+#elif defined ZMQ_HAVE_WINDOWS
 
 namespace zmq
 {
