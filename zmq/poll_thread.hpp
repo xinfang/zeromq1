@@ -30,6 +30,7 @@
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
+#include "thread.hpp"
 
 namespace zmq
 {
@@ -73,7 +74,7 @@ namespace zmq
         poll_thread_t (dispatcher_t *dispatcher_);
 
         //  Main worker thread routine.
-        static void *worker_routine (void *arg_);
+        static void worker_routine (void *arg_);
 
         //  Main routine (non-static) - called from worker_routine.
         void loop ();
@@ -93,7 +94,7 @@ namespace zmq
         ysocketpair_t signaler;
 
         //  Handle of the physical thread doing the I/O work.
-        pthread_t worker;
+        thread_t *worker;
 
         //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;
