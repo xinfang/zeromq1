@@ -20,13 +20,14 @@
 #ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
+#include "config.h"
+
 #include <assert.h>
 #include <pthread.h>
 #if (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
-    #include <semaphore.h>
+#include <semaphore.h>
 #endif
 
-#include "platform.hpp"
 #include "i_signaler.hpp"
 #include "err.hpp"
 

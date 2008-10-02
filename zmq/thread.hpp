@@ -19,7 +19,7 @@
 #ifndef __ZMQ_THREAD_HPP_INCLUDED__
 #define __ZMQ_THREAD_HPP_INCLUDED__
 
-#include <platform.hpp>
+#include "config.h"
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>

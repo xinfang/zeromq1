@@ -21,7 +21,6 @@ pkginclude_HEADERS = \
     poll_thread.hpp \
     bp_encoder.hpp \
     encoder.hpp \
-    platform.hpp \
     stdint.hpp \
     bp_engine.hpp \
     i_pollable.hpp \
@@ -74,8 +73,5 @@ bin_PROGRAMS = zmq_server
 zmq_server_LDADD = libzmq.la
 zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
 zmq_server_CXXFLAGS = -Wall -pedantic -Werror
-
-dist-hook:
-		-rm $(distdir)/platform.hpp
 
 
