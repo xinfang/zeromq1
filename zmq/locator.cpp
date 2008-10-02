@@ -19,7 +19,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <arpa/inet.h>
 
 #include "err.hpp"
 #include "locator.hpp"
