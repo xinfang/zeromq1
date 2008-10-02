@@ -33,7 +33,7 @@ zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
 
 zmq::thread_t::~thread_t ()
 {
-    DWORD rc = WaitForSingleObjectEx (descriptor, INFINITE, TRUE);
+    DWORD rc = WaitForSingleObject (descriptor, INFINITE);
     // TODO: check the error
 }
 
