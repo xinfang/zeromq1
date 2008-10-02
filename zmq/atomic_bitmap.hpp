@@ -97,7 +97,7 @@ namespace zmq
             value = (oldval | (integer_t (1) << set_index_)) &
                 ~(integer_t (1) << reset_index_);
             sync.unlock ();
-            return (bool) (oldval & (integer_t (1) << reset_index_));
+            return (oldval & (integer_t (1) << reset_index_)) ? true : false;
 #endif
         }
 

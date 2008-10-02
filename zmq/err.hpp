@@ -20,6 +20,8 @@
 #ifndef __ZMQ_ERR_HPP_INCLUDED__
 #define __ZMQ_ERR_HPP_INCLUDED__
 
+#include "config.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
