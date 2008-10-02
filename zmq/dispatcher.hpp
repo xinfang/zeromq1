@@ -21,7 +21,6 @@
 #define __ZMQ_DISPATCHER_HPP_INCLUDED__
 
 #include <vector>
-#include <pthread.h>
 
 #include "i_context.hpp"
 #include "i_signaler.hpp"
