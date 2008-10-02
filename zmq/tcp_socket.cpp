@@ -48,39 +48,39 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    wsa_assert (s);
+    // TODO: check error
 
     //  Connect to the remote peer.
     int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
-    wsa_assert (rc);
+    // TODO: check error
 
     //  Set socket properties to non-blocking mode.
     unsigned long argp = 1;
     int rv = ioctlsocket (s, FIONBIO, &argp);
-    wsa_assert (rv);
+    // TODO: check error
 	
     //  Disable Nagle's algorithm.
     int flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    wsa_assert (rc);
+    // TODO: check error
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
 {
     //  Accept the socket.
     s = listener.accept ();
-    wsa_assert (s);
+    // TODO: check error
 
     //  Disable Nagle's algorithm.
     int flag = 1;
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    wsa_assert (rc);
+    // TODO: check error
 }
 
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = closesocket(s);
-    wsa_assert (rc);
+    // TODO: check error
 }
 
 size_t zmq::tcp_socket_t::write (const void *data, size_t size)
@@ -91,14 +91,14 @@ size_t zmq::tcp_socket_t::write (const void *data, size_t size)
     if (nbytes == SOCKET_ERROR)
         return 0;
 
-    wsa_assert (nbytes);
+    // TODO: check error
     return (size_t) nbytes;
 }
 
 size_t zmq::tcp_socket_t::read (void *data, size_t size)
 {
     int nbytes = recv (s, (char*) data, size, 0);
-    wsa_assert (nbytes);
+    // TODO: check error
     return (size_t) nbytes;
 }
 

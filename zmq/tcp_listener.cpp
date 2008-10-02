@@ -52,7 +52,8 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 
     //  Allow reusing of the address.
     int flag = 1;
-    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR,
+        (const char*) &flag, sizeof (int));
     //  TODO: check error
 
     //  Bind the socket to the network interface and port.
@@ -72,10 +73,10 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     }
 
     //  Fill in the interface name.
-    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, interface,
-        sizeof (interface));
+    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
+        sizeof (iface));
     assert (rcp);
-    size_t isz = strlen (interface);
+    size_t isz = strlen (iface);
     _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
               

@@ -45,7 +45,7 @@ namespace zmq
         //  Returns port listener is listening on.
         inline const char *get_interface ()
         {
-            return interface; 
+            return iface; 
         }
 
         //  Accept the new connection.
@@ -54,7 +54,7 @@ namespace zmq
     private:
 
         //  Name of the interface listenet is listening on.
-        char interface [256];
+        char iface [256];
 
         //  Underlying socket.
         int s;

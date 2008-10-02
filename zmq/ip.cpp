@@ -19,15 +19,10 @@
 
 #include <cstdlib>
 #include <assert.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <string.h>
 #include <string>
 #include <stdlib.h>
 
-#include "config.h"
 #include "ip.hpp"
 #include "err.hpp"
 
@@ -136,8 +131,13 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
+#ifdef ZMQ_HAVE_WINDOWS
+    InetPton (AF_INET, interface_, addr_);
+    // TODO: check error
+#else
     int rc = inet_pton (AF_INET, interface_, addr_);
     assert (rc > 0);
+#endif
 }
 
 #endif
