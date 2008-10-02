@@ -43,16 +43,10 @@ zmq::locator_t::locator_t (const char *hostname_)
     }
     else
         global_locator = NULL;
-
-    int rc = pthread_mutex_init (&sync, NULL);
-    errno_assert (rc == 0);
 }
 
 zmq::locator_t::~locator_t ()
 {
-    int rc = pthread_mutex_destroy (&sync);
-    errno_assert (rc == 0);
-
     if (global_locator)
         delete global_locator;
 }
@@ -66,8 +60,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     assert (strlen (object_) < 256);
 
     //  Enter critical section.
-    int rc = pthread_mutex_lock (&sync);
-    errno_assert (rc == 0);
+    sync.lock ();
 
     //  Add the object to the list of known objects.
     object_info_t info = {context_, engine_};
@@ -103,8 +96,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     }
 
     //  Leave critical section.
-    rc = pthread_mutex_unlock (&sync);
-    errno_assert (rc == 0);
+    sync.unlock ();
 }
 
 bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
@@ -115,8 +107,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
     assert (strlen (object_) < 256);
 
     //  Enter critical section.
-    int rc = pthread_mutex_lock (&sync);
-    errno_assert (rc == 0);
+    sync.lock ();
 
     //  Find the object.
     objects_t::iterator it = objects [type_id_].find (object_);
@@ -128,8 +119,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          if (!global_locator) {
 
              //  Leave critical section.
-             rc = pthread_mutex_unlock (&sync);
-             errno_assert (rc == 0);
+             sync.unlock ();
 
              return false;
          }
@@ -148,8 +138,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          if (cmd == fail_id) {
 
              //  Leave critical section.
-             rc = pthread_mutex_unlock (&sync);
-             errno_assert (rc == 0);
+             sync.unlock ();
 
              return false;
          }
@@ -175,8 +164,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
     *engine_ = it->second.engine;
 
     //  Leave critical section.
-    rc = pthread_mutex_unlock (&sync);
-    errno_assert (rc == 0);
+    sync.unlock ();
 
     return true;
 }

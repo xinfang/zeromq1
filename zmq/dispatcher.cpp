@@ -35,18 +35,10 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
 
     //  Mark admin thread ID as used.
     used [admin_thread_id] = true;
-
-    //  Initialise the mutex.
-    int rc = pthread_mutex_init (&mutex, NULL);
-    errno_assert (rc == 0);
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
 {
-    //  Uninitialise the mutex.
-    int rc = pthread_mutex_destroy (&mutex);
-    errno_assert (rc == 0);
-
     //  Deallocate the pipe matrix.
     delete [] pipes;
 }
@@ -54,8 +46,7 @@ zmq::dispatcher_t::~dispatcher_t ()
 int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
 {
     //  Lock the mutex.
-    int rc = pthread_mutex_lock (&mutex);
-    errno_assert (rc == 0);
+    sync.lock ();
 
     //  Find the first free thread ID.
     std::vector <bool>::iterator it = std::find (used.begin (),
@@ -69,8 +60,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
     int thread_id = it - used.begin ();
 
     //  Unlock the mutex.
-    rc = pthread_mutex_unlock (&mutex);
-    errno_assert (rc == 0);
+    sync.unlock ();
 
     //  Set the signaler.
     signalers [thread_id] = signaler_;
@@ -81,8 +71,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
 void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
 {
     //  Lock the mutex.
-    int rc = pthread_mutex_lock (&mutex);
-    errno_assert (rc == 0);
+    sync.lock ();
 
     //  Free the specified thread ID.
     assert (used [thread_id_] == true);
@@ -92,8 +81,7 @@ void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
     signalers [thread_id_] = NULL;
 
     //  Unlock the mutex.
-    rc = pthread_mutex_unlock (&mutex);
-    errno_assert (rc == 0);
+    sync.unlock ();
 }
 
 int zmq::dispatcher_t::get_thread_id ()
@@ -105,14 +93,12 @@ void zmq::dispatcher_t::send_command (i_context *destination_,
     const command_t &command_)
 {
     //  Lock the mutex.
-    int rc = pthread_mutex_lock (&mutex);
-    errno_assert (rc == 0);
+    sync.lock ();
 
     //  Pass the command to the other thread via a pipe.
     write (admin_thread_id, destination_->get_thread_id (), command_);
 
     //  Unlock the mutex.
-    rc = pthread_mutex_unlock (&mutex);
-    errno_assert (rc == 0);
+    sync.unlock ();
 }
 

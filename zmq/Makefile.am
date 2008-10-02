@@ -42,7 +42,8 @@ pkginclude_HEADERS = \
     message.hpp \
     ip.hpp \
     i_poller.hpp \
-    thread.hpp
+    thread.hpp \
+    mutex.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

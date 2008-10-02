@@ -20,10 +20,9 @@
 #ifndef __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 
-#include <pthread.h>
-
 #include "err.hpp"
 #include "stdint.hpp"
+#include "mutex.hpp"
 
 namespace zmq
 {
@@ -40,20 +39,10 @@ namespace zmq
         inline atomic_counter_t (integer_t value_ = 0) :
             value (value_)
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
-            int rc = pthread_mutex_init (&mutex, NULL);
-            errno_assert (rc == 0);
-#endif
         }
 
         inline ~atomic_counter_t ()
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
-            int rc = pthread_mutex_destroy (&mutex);
-            errno_assert (rc == 0);
-#endif
         }
 
         //  Set counter value (not thread-safe).
@@ -92,12 +81,10 @@ namespace zmq
                 : "cc");
             return result; 
 #else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
+            sync.lock ();
             bool result = value;
             value += increment;
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
+            sync.unlock ();
             return result;
 #endif
         }
@@ -132,12 +119,10 @@ namespace zmq
                 : "cc");
             return result <= decrement;
 #else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
+            sync.lock ();
             value -= decrement;
             bool result = value;
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
+            sync.unlock ();
             return result;
 #endif
         }
@@ -147,7 +132,7 @@ namespace zmq
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
-        pthread_mutex_t mutex;
+        mutex_t sync;
 #endif
 
         atomic_counter_t (const atomic_counter_t&);

@@ -26,6 +26,7 @@
 #include "i_context.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
+#include "mutex.hpp"
 #include "config.hpp"
 
 namespace zmq
@@ -116,7 +117,7 @@ namespace zmq
         //  the performance of the system as a whole. The mutex is also used
         //  to sync the commands from the administrative context.
         std::vector <bool> used;
-        pthread_mutex_t mutex;
+        mutex_t sync;
 
         dispatcher_t (const dispatcher_t&);
         void operator = (const dispatcher_t&);

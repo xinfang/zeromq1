@@ -26,6 +26,7 @@
 #include "i_locator.hpp"
 #include "i_engine.hpp"
 #include "i_context.hpp"
+#include "mutex.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
 #include "zmq_server.hpp"
@@ -82,7 +83,7 @@ namespace zmq
         //  OK as locator is not accessed on the critical path (message being
         //  passed through the system). The blocking occurs only in the
         //  application threads as they are creating wiring.
-        pthread_mutex_t sync;
+        mutex_t sync;
 
         //  Connection to the global locator.
         tcp_socket_t *global_locator;

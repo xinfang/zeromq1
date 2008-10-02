@@ -20,11 +20,9 @@
 #ifndef __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 
-#include <pthread.h>
-
 #include "err.hpp"
 #include "stdint.hpp"
-
+#include "mutex.hpp"
 
 namespace zmq
 {
@@ -46,20 +44,10 @@ namespace zmq
         inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__)))
-            int rc = pthread_mutex_init (&mutex, NULL);
-            errno_assert (rc == 0);
-#endif
         }
 
         inline ~atomic_bitmap_t ()
         {
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__)))
-            int rc = pthread_mutex_destroy (&mutex);
-            errno_assert (rc == 0);
-#endif
         }
 
         //  Bit-test-set-and-reset. Sets one bit of the value and resets
@@ -104,13 +92,11 @@ namespace zmq
                 : "cc");
             return oldval; 
 #else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
+            sync.lock ();
             integer_t oldval = value;
             value = (oldval | (integer_t (1) << set_index_)) &
                 ~(integer_t (1) << reset_index_);
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
+            sync.unlock ();
             return (bool) (oldval & (integer_t (1) << reset_index_));
 #endif
         }
@@ -153,12 +139,10 @@ namespace zmq
                 : "cc");
             return prev; 
 #else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
+            sync.lock ();
             oldval = value;
             value = newval_;
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
+            sync.unlock ();
 #endif
             return oldval;
         }
@@ -219,12 +203,10 @@ namespace zmq
                 : "cc");
             return prev; 
 #else
-            int rc = pthread_mutex_lock (&mutex);
-            errno_assert (rc == 0);
+            sync.lock ();
             oldval = value;
             value = oldval ? elseval_ : thenval_;
-            rc = pthread_mutex_unlock (&mutex);
-            errno_assert (rc == 0);
+            sync.unlock ();
 #endif
             return oldval;
         }
@@ -234,7 +216,7 @@ namespace zmq
         volatile integer_t value;
 #if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
     (!defined (__i386__) && !defined (__x86_64__)))
-        pthread_mutex_t mutex;
+        mutex_t sync;
 #endif
 
         atomic_bitmap_t (const atomic_bitmap_t&);
