@@ -23,9 +23,12 @@
 #include "config.h"
 
 #include <assert.h>
-#include <pthread.h>
-#if (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
+#ifdef ZMQ_HAVE_WINDOWS
+#include <windows.h>
+#elif (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
 #include <semaphore.h>
+#else
+#include <pthread.h>
 #endif
 
 #include "i_signaler.hpp"
@@ -72,9 +75,9 @@ namespace zmq
         inline ~ysemaphore_t ()
         {
             int rc = pthread_mutex_unlock (&mutex);
-	    errno_assert (rc == 0);
+            errno_assert (rc == 0);
             rc = pthread_mutex_destroy (&mutex);
-	    errno_assert (rc == 0);
+            errno_assert (rc == 0);
         }
 
         //  Wait for the semaphore.
@@ -92,6 +95,45 @@ namespace zmq
         //  Simple semaphore is implemented by mutex, as it is more efficient
         //  on Linux platform.
         pthread_mutex_t mutex;
+
+        //  Disable copying of ysemaphore object.
+        ysemaphore_t (const ysemaphore_t&);
+        void operator = (const ysemaphore_t&);
+    };
+
+#elif defined ZMQ_HAVE_WINDOWS
+
+    class ysemaphore_t : public i_signaler
+    { 
+    public:
+
+        //  Initialise the semaphore.
+        inline ysemaphore_t ()
+        {
+            ev = CreateEvent (NULL, TRUE, TRUE, NULL);
+            // TODO: check error
+        }
+
+        //  Destroy the semaphore.
+        inline ~ysemaphore_t ()
+        {
+            CloseHandle (ev);
+            // TODO: check error
+        }
+
+        //  Wait for the semaphore.
+        inline void wait ()
+        {
+            ResetEvent (ev);
+            //  TODO: check error
+        }
+
+        //  Post the semaphore.
+        void signal (int signal_);
+
+    private:
+
+        HANDLE ev;
 
         //  Disable copying of ysemaphore object.
         ysemaphore_t (const ysemaphore_t&);

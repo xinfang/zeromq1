@@ -28,6 +28,14 @@ void zmq::ysemaphore_t::signal (int signal_)
     errno_assert (rc == 0);
 }
 
+#elif defined ZMQ_HAVE_WINDOWS
+
+void zmq::ysemaphore_t::signal (int signal_)
+{
+    SetEvent (ev);
+    // TODO: check error
+}
+
 #else
 
 void zmq::ysemaphore_t::signal (int signal_)

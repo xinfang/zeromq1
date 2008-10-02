@@ -44,7 +44,7 @@ void zmq::bp_decoder_t::eight_byte_size_ready ()
 {
     //  8-byte size is read. Allocate the buffer for message body and
     //  read the message data into it.
-    message.rebuild (get_uint64 (tmpbuf));
+    message.rebuild ((size_t) get_uint64 (tmpbuf));
     next_step (message.data (), message.size (), &bp_decoder_t::message_ready);
 }
 
