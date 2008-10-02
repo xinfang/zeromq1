@@ -23,9 +23,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#ifdef ZMQ_HAVE_WINDOWS
+#else
 #include <netdb.h>
+#endif
 
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
