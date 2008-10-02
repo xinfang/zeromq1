@@ -82,7 +82,7 @@ namespace zmq
             return result; 
 #else
             sync.lock ();
-            bool result = value;
+			bool result = value ? true : false;
             value += increment;
             sync.unlock ();
             return result;
@@ -121,7 +121,7 @@ namespace zmq
 #else
             sync.lock ();
             value -= decrement;
-            bool result = value;
+            bool result = value ? true : false;
             sync.unlock ();
             return result;
 #endif
