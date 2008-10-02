@@ -119,7 +119,7 @@ void zmq::poll_thread_t::loop ()
         // Process engine events POLLOUT first
         for (int i = 0; i < nfds; i++) {
             if (pfd [1 + i].revents & POLLOUT) {
-                printf ("POLLOUT from index %i, %s(%i)\n", i, __FILE__, __LINE__);
+                //printf ("POLLOUT from index %i, %s(%i)\n", i, __FILE__, __LINE__);
                 engine->out_event (pfd + 1, nfds, i);
             }
         }
@@ -127,7 +127,7 @@ void zmq::poll_thread_t::loop ()
         // Process engine POLLIN events
         for (int i = 0; i < nfds; i++) {
             if (pfd [1 + i].revents & (POLLIN | POLLHUP)) {
-                printf ("POLLIN | POLLHUP from index %i, %s(%i)\n", i, __FILE__, __LINE__);
+                //printf ("POLLIN | POLLHUP from index %i, %s(%i)\n", i, __FILE__, __LINE__);
                 engine->in_event (pfd + 1, nfds, i);
             }
         }

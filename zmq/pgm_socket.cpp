@@ -20,11 +20,25 @@
 #include "pgm_socket.hpp"
 #include "err.hpp"
 
+//#define PGM_SOCKET_DEBUG
+//#define PGM_SOCKET_DEBUG_LEVEL 0
+
+// level 1 = key behaviour
+// level 2 = processing flow
+// level 4 = infos
+
+#ifndef PGM_SOCKET_DEBUG
+#   define zmq_log(n, ...)  while (0)
+#else
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_SOCKET_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#endif
+
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_, 
     const char *network_, uint16_t port_, size_t readbuf_size_): g_transport (NULL), 
     pgm_msgv (NULL), pgm_msgv_len (-1)
 {
-    printf ("GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
+
+    zmq_log (4, "GLIB: %i.%i.%i\n", GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, GLIB_MICRO_VERSION);
 
     pgm_init ();
 
@@ -42,8 +56,8 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
     rc = pgm_transport_create (&g_transport, &gsi, port_, &recv_smr, 1, &send_smr);
     errno_assert (rc == 0);
 
-    int g_sqns = 10;
-    int g_max_rte = 400*1000;
+    int g_sqns = 100;
+    int g_max_rte = 500*1000;
     int g_max_tpdu = 1500;
 
     // common parameters
@@ -69,11 +83,11 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
         // Set timeout for receiving RDATA
         pgm_transport_set_nak_rdata_ivl (g_transport, 200*1000);
 
-        // Set retries for NAK without NCF/DATA
-        pgm_transport_set_nak_data_retries (g_transport, 2);
+        // Set retries for NAK without NCF/DATA (NAK_DATA_RETRIES)
+        pgm_transport_set_nak_data_retries (g_transport, 5);
 
         // Set retries for NCF after NAK (NAK_NCF_RETRIES)
-        pgm_transport_set_nak_ncf_retries (g_transport, 2);
+        pgm_transport_set_nak_ncf_retries (g_transport, 5);
 
         pgm_transport_set_peer_expiry (g_transport, 5*8192*1000);
 	    pgm_transport_set_spmr_expiry (g_transport, 250*1000);
@@ -109,7 +123,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
         pgm_msgv = new pgm_msgv_t [pgm_msgv_len];
     }
 
-    printf ("TSI: %s\n", pgm_print_tsi (&g_transport->tsi));
+    zmq_log (4, "TSI: %s\n", pgm_print_tsi (&g_transport->tsi));
 }
 
 zmq::pgm_socket_t::~pgm_socket_t ()
@@ -158,7 +172,7 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
 
     nbytes = nbytes == -1 ? 0 : nbytes;
 
-    printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+    zmq_log (2, "wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
     
     // We have to write all data as one packet
     if (nbytes > 0) {
@@ -179,7 +193,11 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
 
     size_t max_apdus = (int)readbuf_size_ / get_max_tsdu (false);
 
-    printf ("maxapdu_at_once %i, max tsdu %i\n", (int)max_apdus, (int)get_max_tsdu (false));
+    if ((int) readbuf_size_ % get_max_tsdu (false))
+        max_apdus++;
+
+    zmq_log (2, "readbuff size %i, maxapdu_at_once %i, max tsdu %i\n", 
+        (int)readbuf_size_, (int)max_apdus, (int)get_max_tsdu (false));
 
     // should have at least one apdu per read
     assert (max_apdus);
@@ -204,21 +222,6 @@ void zmq::pgm_socket_t::drop_superuser ()
     pgm_drop_superuser ();
 }
 
-/*
-char zmq::pgm_socket_t::read_one_byte_from_waiting_pipe ()
-{
-    char buf;
-    while (1 == read (g_transport->waiting_pipe[0], &buf, sizeof(buf)));
-    printf ("read 1B \'%c\' from waititng pipe\n", buf);
-    return buf;
-}
-*/
-
-size_t zmq::pgm_socket_t::read_one_pkt (iovec *iov_)
-{
-    assert (0);
-}
-
 size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
 {
 
@@ -236,11 +239,11 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
    
     pgm_msgv_t *msgv = pgm_msgv;
 
-    printf ("raw received %i bytes", (int)nbytes);
+    zmq_log (2, "raw received %i bytes", (int)nbytes);
     if (nbytes < 0) { 
-        printf (", errno %i %s", errno, strerror (errno));
+        zmq_log (2, ", errno %i %s", errno, strerror (errno));
     }
-    printf (", %s(%i)\n", __FILE__, __LINE__);
+    zmq_log (2, ", %s(%i)\n", __FILE__, __LINE__);
 
     // In a case when not ODATA/DRATA fired POLLIN event
     // pgm_transport_recvmsg returns -1 with  errno == EAGAIN
@@ -267,13 +270,12 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
         msgv_read++;
         iov++;
 
-        printf ("translated %i, nbytes %i\n", translated, (int)nbytes);
+        zmq_log (2, "translated %i, nbytes %i\n", translated, (int)nbytes);
     }
 
     nbytes = nbytes == -1 ? 0 : nbytes;
-    printf ("received %i bytes, ", (int)nbytes);
-    printf ("in %i pgm_msgv_t, %s(%i)\n", msgv_read, __FILE__, __LINE__);
-    fflush (stdout); 
+    zmq_log (2, "received %i bytes, ", (int)nbytes);
+    zmq_log (2, "in %i pgm_msgv_t, %s(%i)\n", (int)msgv_read, __FILE__, __LINE__);
 
     assert (nbytes == translated);
 

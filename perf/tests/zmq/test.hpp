@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define TEST_MSG_SIZE_START 1
-#define TEST_MSG_SIZE_STEPS 15
+#define TEST_MSG_SIZE_START 6
+#define TEST_MSG_SIZE_STEPS 1
 #define TEST_TIME 5000
 
 // MT test

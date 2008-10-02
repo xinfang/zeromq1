@@ -25,7 +25,7 @@
 
 
 # set this acording pgm_transport_set_nak_ncf_retries ()
-my $nak_ncf_retries = 2;
+my $nak_ncf_retries = 5;
 
 use strict;
 use PGM::Test;

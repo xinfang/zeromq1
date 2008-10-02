@@ -21,6 +21,19 @@
 
 #include "pgm_receiver_engine.hpp"
 
+//#define PGM_RECEIVER_DEBUG
+//#define PGM_RECEIVER_DEBUG_LEVEL 0
+
+// level 1 = key behaviour
+// level 2 = processing flow
+// level 4 = infos
+
+#ifndef PGM_RECEIVER_DEBUG
+#   define zmq_log(n, ...)  while (0)
+#else
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_RECEIVER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#endif
+
 zmq::pgm_receiver_engine_t::pgm_receiver_engine_t (dispatcher_t *dispatcher_, int engine_id_,
       const char *network_, uint16_t port_, size_t readbuf_size_, int destination_engine_id_):
     proxy (dispatcher_, engine_id_),
@@ -73,7 +86,7 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
             { 
                 size_t nbytes = epgm_socket.read_pkt_with_offset (iov, iov_len);
 
-                printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+                zmq_log (2, "received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
                 // No data received
                 if (!nbytes) {
@@ -89,7 +102,7 @@ void zmq::pgm_receiver_engine_t::in_event (pollfd *pfd_, int count_, int index_)
                     assert (nbytes > 0);
                     assert (iov_to_write <= iov_to_write_end);
 
-                    printf ("writting %iB into decoder, %s(%i)\n", (int)iov_to_write->iov_len, 
+                    zmq_log (2, "writting %iB into decoder, %s(%i)\n", (int)iov_to_write->iov_len, 
                         __FILE__, __LINE__);
                     decoder.write ((unsigned char*)iov_to_write->iov_base, iov_to_write->iov_len);
 

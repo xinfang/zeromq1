@@ -19,6 +19,22 @@
 
 #include "./epgm_socket.hpp"
 
+//#define EPGM_SOCKET_DEBUG
+//#define EPGM_SOCKET_DEBUG_LEVEL 0
+
+// level 1 = key behaviour
+// level 2 = processing flow
+// level 4 = infos
+
+#ifndef EPGM_SOCKET_DEBUG
+#   define zmq_log(n, ...)  while (0)
+#else
+#   define zmq_log(n, ...)    do { if ((n) <= EPGM_SOCKET_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#endif
+
+
+
+
 zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, 
       const char *network_, uint16_t port_, size_t readbuf_size_) :
     pgm_socket_t (receiver_, pasive_, network_, port_, readbuf_size_), 
@@ -65,19 +81,18 @@ size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
         iov->iov_len -= sizeof (uint16_t);
         nbytes -= sizeof (uint16_t);
 
-        printf ("read apdu_offset %i, %s(%i)\n", apdu_offset, __FILE__, __LINE__);
-        fflush (stdout);
+        zmq_log (2, "read apdu_offset %i, %s(%i)\n", apdu_offset, __FILE__, __LINE__);
 
         if (apdu_offset == 0xFFFF) {
 
             if (joined) {
-                printf ("0xffff, joined sending all up, %s(%i)\n", 
+                zmq_log (2, "0xffff, joined sending all up, %s(%i)\n", 
                     __FILE__, __LINE__);
 
                 translated += iov->iov_len;
 
             } else {
-                printf ("0xffff, not joined throwing data, %s(%i)\n", 
+                zmq_log (2, "0xffff, not joined throwing data, %s(%i)\n", 
                     __FILE__, __LINE__);
 
                 // setting iov_len to 0 that iov_base is not pushed into encoder
@@ -93,7 +108,7 @@ size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
         if (!joined) {
 
             if (apdu_offset) {
-               printf ("shifting iov_base (len %i), %s(%i)\n", (int)iov_->iov_len, __FILE__, __LINE__);
+               zmq_log (2, "shifting iov_base (len %i), %s(%i)\n", (int)iov_->iov_len, __FILE__, __LINE__);
 
                 // Shift iov_base
                 iov->iov_base = (unsigned char*)iov->iov_base + apdu_offset;
@@ -105,7 +120,7 @@ size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
             // Joined 
             joined = true;
 
-            printf ("joined into the stream, %s(%i)\n", __FILE__, __LINE__);
+            zmq_log (2, "joined into the stream, %s(%i)\n", __FILE__, __LINE__);
         }
 
         translated += iov->iov_len;
@@ -119,7 +134,7 @@ size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
 
 size_t zmq::epgm_socket_t::write_one_pkt_with_offset (unsigned char *data_, size_t size_, uint16_t offset_)
 {
-    printf ("going to write %iB, offset %i, %s(%i)\n", (int)size_, 
+    zmq_log (2, "going to write %iB, offset %i, %s(%i)\n", (int)size_, 
         offset_, __FILE__, __LINE__);
     
     put_uint16 (data_, offset_);
@@ -128,7 +143,7 @@ size_t zmq::epgm_socket_t::write_one_pkt_with_offset (unsigned char *data_, size
 
     nbytes = nbytes > 0 ? nbytes : 0;
 
-    printf ("wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+    zmq_log (2, "wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
     return nbytes;
 }

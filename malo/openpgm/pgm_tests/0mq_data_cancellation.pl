@@ -24,7 +24,7 @@
 # receiver should generate NAKs and die on not receiving RDATA
 
 # set this acording pgm_transport_set_nak_data_retries ()
-my $nak_data_retries = 2;
+my $nak_data_retries = 5;
 
 use strict;
 use PGM::Test;

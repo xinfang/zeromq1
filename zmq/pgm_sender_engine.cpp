@@ -21,6 +21,20 @@
 
 #include "pgm_sender_engine.hpp"
 
+//#define PGM_SENDER_DEBUG
+//#define PGM_SENDER_DEBUG_LEVEL 1
+
+// level 1 = key behaviour
+// level 2 = processing flow
+// level 4 = infos
+
+#ifndef PGM_SENDER_DEBUG
+#   define zmq_log(n, ...)  while (0)
+#else
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_SENDER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#endif
+
+
 zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int engine_id_,
       const char *network_, uint16_t port_, int source_engine_id_) :
     proxy (dispatcher_, engine_id_),
@@ -40,7 +54,7 @@ zmq::pgm_sender_engine_t::pgm_sender_engine_t (dispatcher_t *dispatcher_, int en
 zmq::pgm_sender_engine_t::~pgm_sender_engine_t ()
 {
     if (txw_slice) {
-        printf ("Freeing unused slice\n");
+        zmq_log (2, "Freeing unused slice\n");
         epgm_socket.free_one_pkt (txw_slice, false);
     }
 }
@@ -91,7 +105,7 @@ void zmq::pgm_sender_engine_t::in_event (pollfd *pfd_, int count_, int index_)
                 // debug only 
                 pfd_ [index_].events ^= POLLIN;
 
-                printf ("received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+                zmq_log (2, "received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 
                 assert (!nbytes);
             }
@@ -115,20 +129,20 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                 // get memory slice from tx window if we do not have already one
                 if (!txw_slice) {
                     txw_slice = epgm_socket.alloc_one_pkt (false);
-                    printf ("Alocated packet in tx window\n");
+                    zmq_log (2, "Alocated packet in tx window\n");
                 }
 
                 write_size = encoder.read (txw_slice + sizeof (uint16_t), 
                     max_tsdu - sizeof (uint16_t), &first_message_offest);
                 write_pos = 0;
 
-                printf ("read %iB from encoder offset %i, %s(%i)\n", 
+                zmq_log (2, "read %iB from encoder offset %i, %s(%i)\n", 
                     (int)write_size, (int)first_message_offest, __FILE__, __LINE__);
 
                 //  If there are no data to write stop polling for output
                 if (!write_size) {
                     pfd_ [index_].events ^= POLLOUT;
-                    printf ("POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
+                    zmq_log (2, "POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
                 } else {
                     // Addning uint16_t for offset in a case when encoder returned > 0B
                     write_size += sizeof (uint16_t);
@@ -141,12 +155,23 @@ void zmq::pgm_sender_engine_t::out_event (pollfd *pfd_, int count_, int index_)
                 size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + write_pos,
                     write_size - write_pos, first_message_offest);
 
-                printf ("wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+                zmq_log (2, "wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+               
+                // we can write all packer or 0 which means rate limit reached
+                if (write_size - write_pos != nbytes && nbytes != 0) {
+                    zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
+                        (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+                    assert (0);
+                }
 
-                assert (write_size - write_pos == nbytes);
+                if (!nbytes) {
+                    zmq_log (1, "pgm rate limit reached, %s(%i)\n", __FILE__, __LINE__);
+                }
 
-                // slice is now owned by tx window
-                txw_slice = NULL;
+                // after sending data slice is owned by tx window
+                if (nbytes) {
+                    txw_slice = NULL;
+                }
 
                 write_pos += nbytes;
             }
