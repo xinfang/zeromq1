@@ -24,7 +24,7 @@
 #include <string>
 
 #include "config.h"
-#ifdef ZMQ_HAVE_WINXP
+#ifdef ZMQ_HAVE_WINDOWS
 #include <winsock2.h>
 #else
 #include <unistd.h>
