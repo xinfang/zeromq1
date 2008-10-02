@@ -20,16 +20,24 @@
 #include "tcp_socket.hpp"
 
 #include <assert.h>
+#include <string.h>
+
+#include "config.h"
+#ifdef ZMQ_HAVE_WINXP
+#include <winsock2.h>
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <string.h>
+#endif
 
 #include "err.hpp"
 #include "ip.hpp"
+
+#ifdef ZMQ_HAVE_WINDOWS
 
 zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     block (block_)
@@ -38,29 +46,94 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     sockaddr_in ip_address;
     resolve_ip_hostname (&ip_address, hostname_);
 
-    //  Create the socket
+    //  Create the socket.
+    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    wsa_assert (s);
+
+    //  Connect to the remote peer.
+    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    wsa_assert (rc);
+
+    //  Set socket properties to non-blocking mode.
+    unsigned long argp = 1;
+    int rv = ioctlsocket (s, FIONBIO, &argp);
+    wsa_assert (rv);
+	
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    wsa_assert (rc);
+}
+
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
+{
+    //  Accept the socket.
+    s = listener.accept ();
+    wsa_assert (s);
+
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    wsa_assert (rc);
+}
+
+zmq::tcp_socket_t::~tcp_socket_t ()
+{
+    int rc = closesocket(s);
+    wsa_assert (rc);
+}
+
+size_t zmq::tcp_socket_t::write (const void *data, size_t size)
+{
+    int nbytes = send (s, (char*) data, size, 0);
+		
+    //  Signalise peer failure.
+    if (nbytes == SOCKET_ERROR)
+        return 0;
+
+    wsa_assert (nbytes);
+    return (size_t) nbytes;
+}
+
+size_t zmq::tcp_socket_t::read (void *data, size_t size)
+{
+    int nbytes = recv (s, (char*) data, size, 0);
+    wsa_assert (nbytes);
+    return (size_t) nbytes;
+}
+
+#else
+
+zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
+    block (block_)
+{
+    //  Convert the hostname into sockaddr_in structure.
+    sockaddr_in ip_address;
+    resolve_ip_hostname (&ip_address, hostname_);
+
+    //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
 
-    //  Connect to the remote peer
+    //  Connect to the remote peer.
     int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
     errno_assert (rc != -1);
 
-    //  Disable Nagle's algorithm
+    //  Disable Nagle's algorithm.
     int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
     errno_assert (rc == 0);
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
 {
-    //  Accept the socket
+    //  Accept the socket.
     s = listener.accept ();
     errno_assert (s != -1);
 
-    //  Disable Nagle's algorithm
+    //  Disable Nagle's algorithm.
     int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
     errno_assert (rc == 0);
 }
 
@@ -74,7 +147,7 @@ size_t zmq::tcp_socket_t::write (const void *data, size_t size)
 {
     ssize_t nbytes = send (s, data, size, block ? MSG_DONTWAIT : 0);
 
-    //  Signalise peer failure
+    //  Signalise peer failure.
     if (nbytes == -1 && errno == ECONNRESET)
         return 0;
 
@@ -89,4 +162,4 @@ size_t zmq::tcp_socket_t::read (void *data, size_t size)
     return (size_t) nbytes;
 }
 
-
+#endif

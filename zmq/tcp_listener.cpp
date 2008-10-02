@@ -20,16 +20,79 @@
 #include "tcp_listener.hpp"
 
 #include <assert.h>
+#include <string.h>
+#include <string>
+
+#include "config.h"
+#ifdef ZMQ_HAVE_WINXP
+#include <winsock2.h>
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 #include <netdb.h>
-#include <string.h>
-#include <string>
+#endif
 
 #include "err.hpp"
 #include "ip.hpp"
+
+#ifdef ZMQ_HAVE_WINDOWS
+
+zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
+{
+    //  Convert the hostname into sockaddr_in structure.
+    sockaddr_in ip_address;
+    resolve_ip_interface (&ip_address, interface_);
+    
+    //  Create a listening socket.
+    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    //  TODO: check error
+
+    //  Allow reusing of the address.
+    int flag = 1;
+    int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    //  TODO: check error
+
+    //  Bind the socket to the network interface and port.
+    rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
+    //  TODO: check error
+
+    //  If port number was not specified, retrieve the one assigned
+    //  to the socket by the operating system.
+    if (ntohs (ip_address.sin_port) == 0) {
+
+        sockaddr_in addr;
+        memset (&addr, 0, sizeof (sockaddr_in));
+        socklen_t sz = sizeof (sockaddr_in);
+        int rc = getsockname (s, (sockaddr*) &addr, &sz);
+        assert (rc == 0);
+        ip_address.sin_port = addr.sin_port;
+    }
+
+    //  Fill in the interface name.
+    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, interface,
+        sizeof (interface));
+    assert (rcp);
+    size_t isz = strlen (interface);
+    _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
+        (int) ntohs (ip_address.sin_port));   
+              
+    //  Listen for incomming connections.
+    rc = listen (s, 1);
+    //  TODO: check error
+}
+
+int zmq::tcp_listener_t::accept ()
+{
+    //  Accept one incoming connection.
+    int res = ::accept (s, NULL, NULL);
+    //  TODO: check error
+    return res;
+}
+
+#else
 
 zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 {
@@ -82,3 +145,5 @@ int zmq::tcp_listener_t::accept ()
     errno_assert (res != -1);
     return res;
 }
+
+#endif
