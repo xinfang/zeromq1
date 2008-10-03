@@ -85,6 +85,26 @@ int zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
     return pollset.size () - 1;
 }
 
+void zmq::poll_thread_t::rm_fd (i_pollable *engine_)
+{
+    bool found = false; 
+    std::vector <i_pollable*>::iterator it;
+
+    //  Find the engine in the engines list.
+    while ((it = std::find (engines.begin (), engines.end (), 
+          engine_)) != engines.end ()) {
+        // Remove the engine from the engine list and the pollset.
+        int pos = it - engines.begin ();
+        engines.erase (it);
+        pollset.erase (pollset.begin () + 1 + pos);
+        found = true;
+    }
+
+    assert (found);
+
+    // TODO: delete engine_;
+}
+
 void zmq::poll_thread_t::set_pollin (int handle_)
 {
     pollset [handle_].events |= POLLIN;
@@ -139,11 +159,10 @@ void zmq::poll_thread_t::loop ()
 
         //  First of all, process socket errors.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
+              pollset_index < pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents &
                   (POLLNVAL | POLLERR | POLLHUP)) {
-                engines [pollset_index - 1]->close_event ();
-                unregister_engine (engines[pollset_index - 1]);
+                engines [pollset_index - 1]->uninit_event (this);
                 pollset_index --;
             }
         }
@@ -158,11 +177,10 @@ void zmq::poll_thread_t::loop ()
 
         //  Process out events from the engines.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
+              pollset_index < pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents & POLLOUT) {
                 if (!engines [pollset_index - 1]->out_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
+                    engines [pollset_index - 1]->uninit_event (this);
                     pollset_index --;
                 }
             }
@@ -170,33 +188,16 @@ void zmq::poll_thread_t::loop ()
 
         //  Process in events from the engines.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
+              pollset_index < pollset.size (); pollset_index ++) {
 
             //  TODO: investigate the POLLHUP issue on OS X
             if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
                 if (!engines [pollset_index - 1]->in_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
+                    engines [pollset_index - 1]->uninit_event (this);
                     pollset_index--;
                 }
         }
     }
-}
-
-void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
-{
-    //  Find the engine in the list.
-    std::vector <i_pollable*>::iterator it =std::find (
-        engines.begin (), engines.end (),
-        engine_);
-    assert (it != engines.end ());
-
-    //  Remove the engine from the engine list and the pollset.
-    int pos = it - engines.begin ();
-    engines.erase (it);
-    pollset.erase (pollset.begin () + 1 + pos);
-
-    // TODO: delete engine_;
 }
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)
@@ -235,18 +236,15 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
 
                 //  Unregister the engine.
                 case command_t::unregister_engine:
-                    {
-                        //  Find the engine in the list.
-                        std::vector <i_pollable*>::iterator it =std::find (
-                            engines.begin (), engines.end (),
-                            command.args.unregister_engine.engine);
-                        assert (it != engines.end ());
+                    {   
+                        i_pollable *engine =
+                            command.args.unregister_engine.engine;
+                        
+                        //  Remove engine from pollset & engines lists.
+                        this->rm_fd (engine);
 
-                        //  Remove the engine from the engine list and
-                        //  the pollset.
-                        int pos = it - engines.begin ();
-                        engines.erase (it);
-                        pollset.erase (pollset.begin () + 1 + pos);
+                        //  Should not we call unregister_event?
+                        assert (false);
                     }
                     break;
 

@@ -145,8 +145,11 @@ bool zmq::bp_listener_t::out_event ()
     return true;
 }
 
-void zmq::bp_listener_t::close_event()
+void zmq::bp_listener_t::uninit_event (i_poller *poller_)
 {
+    //  Remove all fds belonging to this engine from poll-er
+    poller_->rm_fd (this);
+
     //  TODO: engine tear-down
     assert (false);
 }

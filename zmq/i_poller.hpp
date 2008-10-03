@@ -33,6 +33,9 @@ namespace zmq
         //  Add file descriptor fd_ into pollset. Return handle in pollset vector.
         virtual int add_fd (int fd_, i_pollable *engine_) = 0;
 
+        //  Remove all pfd(s) belonging to engine_
+        virtual void rm_fd (i_pollable *engine_) = 0;
+
         //  Start polling for input from socket.
         virtual void set_pollin (int handle_) = 0;
 

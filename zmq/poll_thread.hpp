@@ -54,7 +54,7 @@ namespace zmq
         void register_engine (i_pollable *engine_);
 
         //  Unregisters the engine from the thread.
-        void unregister_engine (i_pollable* engine_);
+//        void unregister_engine (i_pollable* engine_);
 
         //  i_context implementation
         int get_thread_id ();
@@ -62,6 +62,7 @@ namespace zmq
 
         //  i_poller implementation.
         int add_fd (int fd_, i_pollable *engine_);
+        void rm_fd (i_pollable *engine_);
         void set_pollin (int handle_);
         void reset_pollin (int handle_);
         void speculative_read (int handle_);

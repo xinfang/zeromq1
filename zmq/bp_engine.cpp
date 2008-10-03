@@ -160,7 +160,7 @@ bool zmq::bp_engine_t::out_event ()
     return true;
 }
 
-void zmq::bp_engine_t::close_event ()
+void zmq::bp_engine_t::uninit_event (i_poller *poller_)
 {
     if (!socket_error) {
         socket_error = true;
@@ -180,6 +180,10 @@ void zmq::bp_engine_t::close_event ()
         //  Notify senders that this engine is shutting down.
         mux.terminate_pipes ();
     }
+
+    //  Remove all fds belonging to this engine from poll-er
+    poller_->rm_fd (this);
+
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)

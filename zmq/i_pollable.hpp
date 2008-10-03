@@ -45,7 +45,7 @@ namespace zmq
         virtual bool out_event () = 0;
 
         //  Called by poll thread when close event occurs.
-        virtual void close_event () = 0;
+        virtual void uninit_event (i_poller *poller_) = 0;
     };
 
 }

@@ -62,7 +62,7 @@ namespace zmq
         void init_event (i_poller *poller_);
         bool in_event ();
         bool out_event ();
-        void close_event ();
+        void uninit_event (i_poller *poller_);
         void process_command (const engine_command_t &command_);
 
     private:
