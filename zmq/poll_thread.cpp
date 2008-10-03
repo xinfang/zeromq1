@@ -73,9 +73,16 @@ void zmq::poll_thread_t::send_command (i_context *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-void zmq::poll_thread_t::set_fd (int handle_, int fd_)
+int zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-    pollset [handle_].fd = fd_;
+    //  Add new pfd into the pollset.
+    pollfd pfd = {fd_, 0, 0};
+    pollset.push_back (pfd);
+
+    engines.push_back (engine_);
+
+    //  Return handle for just added pfd
+    return pollset.size () - 1;
 }
 
 void zmq::poll_thread_t::set_pollin (int handle_)
@@ -218,15 +225,11 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         i_pollable *engine =
                             command.args.register_engine.engine;
 
-                        //  Add the engine to the pollset.
-                        pollfd pfd = {0, 0, 0};
-                        pollset.push_back (pfd);
+                        //  Let the engine to initialize itself.
+                        engine->init_event (this);
 
-                        //  Pass pollfd to the engine.
-                        engine->set_poller (this, pollset.size () - 1);
-
-                        //  Store the engine pointer.
-                        engines.push_back (engine);
+                        //  Check pollset & engines sizes.
+                        assert (pollset.size () == engines.size () + 1);
                     }
                     break;
 

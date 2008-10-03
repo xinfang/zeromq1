@@ -59,7 +59,7 @@ namespace zmq
             size_t readbuf_size_, const char *local_object_);
 
         //  i_pollable interface implementation.
-        void set_poller (i_poller *poller_, int handle_);
+        void init_event (i_poller *poller_);
         bool in_event ();
         bool out_event ();
         void close_event ();

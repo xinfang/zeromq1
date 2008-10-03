@@ -35,8 +35,8 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_pollable () {};
 
-        //  Set poller & poll handle associated with this engine.
-        virtual void set_poller (i_poller *poller_, int handle_) = 0;
+        //  Called by poll thread when command 'registrer_engine' occurs.
+        virtual void init_event (i_poller *poller_) = 0;
 
         //  Called by poll thread when in event occurs.
         virtual bool in_event () = 0;

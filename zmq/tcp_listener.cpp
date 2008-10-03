@@ -96,6 +96,7 @@ int zmq::tcp_listener_t::accept ()
 
 zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 {
+
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
     resolve_ip_interface (&ip_address, interface_);

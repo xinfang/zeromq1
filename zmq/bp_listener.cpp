@@ -64,10 +64,13 @@ zmq::bp_listener_t::~bp_listener_t ()
 {
 }
 
-void zmq::bp_listener_t::set_poller (i_poller *poller_, int handle_)
+void zmq::bp_listener_t::init_event (i_poller *poller_)
 {
-    poller_->set_fd (handle_, listener.get_fd ());
-    poller_->set_pollin (handle_);
+    //  Add new pfd into poll-er
+    int handle_pfd = poller_->add_fd (listener.get_fd (), this);
+
+    //  Enable POLLIN
+    poller_->set_pollin (handle_pfd);
 }
 
 bool zmq::bp_listener_t::in_event ()

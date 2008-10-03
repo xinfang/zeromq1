@@ -101,15 +101,16 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
+void zmq::bp_engine_t::init_event (i_poller *poller_)
 {
+    //  Add new pfd into poll-er and store handler
+    handle = poller_->add_fd (socket.get_fd (), this);
+
     //  Store the callback.
     poller = poller_;
-    handle = handle_;
 
-    //  Initialise the poll handle.
-    poller->set_fd (handle, socket.get_fd ());
-    poller->set_pollin (handle);
+    //  Enable POLLIN
+    poller_->set_pollin (handle);
 }
 
 bool zmq::bp_engine_t::in_event ()

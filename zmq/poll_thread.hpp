@@ -61,7 +61,7 @@ namespace zmq
         void send_command (i_context *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        void set_fd (int handle_, int fd_);
+        int add_fd (int fd_, i_pollable *engine_);
         void set_pollin (int handle_);
         void reset_pollin (int handle_);
         void speculative_read (int handle_);
