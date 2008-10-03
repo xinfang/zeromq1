@@ -127,11 +127,11 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     }
 
     //  Fill in the interface name.
-    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, interface,
-        sizeof (interface));
+    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
+        sizeof (iface));
     assert (rcp);
-    size_t isz = strlen (interface);
-    snprintf (interface + isz, sizeof (interface) - isz, ":%d",
+    size_t isz = strlen (iface);
+    snprintf (iface + isz, sizeof (iface) - isz, ":%d",
         (int) ntohs (ip_address.sin_port));
               
     //  Listen for incomming connections.
