@@ -20,6 +20,7 @@
 #ifndef __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 #define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
+#include "config.h"
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
 
 #include <assert.h>
