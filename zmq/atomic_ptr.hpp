@@ -22,6 +22,10 @@
 
 #include "mutex.hpp"
 #include "err.hpp"
+#include "config.h"
+#ifdef ZMQ_HAVE_WINDOWS
+#include <Windows.h>
+#endif
 
 namespace zmq
 {
@@ -55,7 +59,9 @@ namespace zmq
         //  to the 'val' value. Old value is returned.
         inline T *xchg (T *val_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+            return (T*) InterlockedExchangePointer (&ptr, val_);
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old = val_;
             __asm__ volatile ("lock; xchgl %0, %1"
@@ -104,7 +110,10 @@ namespace zmq
         //  is returned.
         inline T *cas (T *cmp_, T *val_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+            return (T*) InterlockedCompareExchangePointer (
+                (volatile PVOID*) &ptr, val_, cmp_);
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgl %2, %3"             

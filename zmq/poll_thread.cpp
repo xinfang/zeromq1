@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
+
 #include <algorithm>
 
 #include "poll_thread.hpp"
@@ -275,3 +277,5 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
     }
     return true;
 }
+
+#endif

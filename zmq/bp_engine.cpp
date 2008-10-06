@@ -17,8 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <poll.h>
-
 #include "bp_engine.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,

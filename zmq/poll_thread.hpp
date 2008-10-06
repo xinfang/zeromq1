@@ -20,9 +20,10 @@
 #ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
+
 #include <stddef.h>
 #include <assert.h>
-#include <pthread.h>
 #include <poll.h>
 
 #include "i_context.hpp"
@@ -109,5 +110,7 @@ namespace zmq
     };
 
 }
+
+#endif
 
 #endif

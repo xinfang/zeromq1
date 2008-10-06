@@ -48,17 +48,17 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    //  TODO: check error
+    wsa_assert (s != SOCKET_ERROR);
 
     //  Allow reusing of the address.
     int flag = 1;
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR,
         (const char*) &flag, sizeof (int));
-    //  TODO: check error
+    wsa_assert (rc != SOCKET_ERROR);
 
     //  Bind the socket to the network interface and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
-    //  TODO: check error
+    wsa_assert (rc != SOCKET_ERROR);
 
     //  If port number was not specified, retrieve the one assigned
     //  to the socket by the operating system.
@@ -68,7 +68,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         memset (&addr, 0, sizeof (sockaddr_in));
         socklen_t sz = sizeof (sockaddr_in);
         int rc = getsockname (s, (sockaddr*) &addr, &sz);
-        assert (rc == 0);
+        wsa_assert (rc != SOCKET_ERROR);
         ip_address.sin_port = addr.sin_port;
     }
 
@@ -82,15 +82,15 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
               
     //  Listen for incomming connections.
     rc = listen (s, 1);
-    //  TODO: check error
+    wsa_assert (rc != SOCKET_ERROR);
 }
 
 int zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
-    int res = ::accept (s, NULL, NULL);
-    //  TODO: check error
-    return res;
+    int sock = ::accept (s, NULL, NULL);
+    wsa_assert (sock != SOCKET_ERROR);
+    return sock;
 }
 
 #else
@@ -122,7 +122,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         memset (&addr, 0, sizeof (sockaddr_in));
         socklen_t sz = sizeof (sockaddr_in);
         int rc = getsockname (s, (sockaddr*) &addr, &sz);
-        assert (rc == 0);
+        errno_assert (rc == 0);
         ip_address.sin_port = addr.sin_port;
     }
 
@@ -142,9 +142,9 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 int zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
-    int res = ::accept (s, NULL, NULL);
-    errno_assert (res != -1);
-    return res;
+    int sock = ::accept (s, NULL, NULL);
+    errno_assert (sock != -1);
+    return sock;
 }
 
 #endif

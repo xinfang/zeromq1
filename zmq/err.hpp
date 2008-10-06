@@ -26,9 +26,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef ZMQ_HAVE_WINDOWS
+#include <Winsock2.h>
 #else
 #include <netdb.h>
 #endif
+
+#ifdef ZMQ_HAVE_WINDOWS
+
+namespace zmq
+{
+
+    void wsa_error ();
+
+}
+
+#endif
+
+
 
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
@@ -43,5 +57,9 @@
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }
+
+//  Provides convenient way to check WSA-style errors on Windows.
+#define wsa_assert(x) if (!(x))\
+    wsa_error ();
 
 #endif

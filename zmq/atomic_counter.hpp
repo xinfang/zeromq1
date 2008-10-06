@@ -23,6 +23,10 @@
 #include "err.hpp"
 #include "stdint.hpp"
 #include "mutex.hpp"
+#include "config.h"
+#ifdef ZMQ_HAVE_WINDOWS
+#include <Windows.h>
+#endif
 
 namespace zmq
 {
@@ -55,7 +59,11 @@ namespace zmq
         //  before the operation.
         inline bool add (integer_t increment)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+            integer_t old = InterlockedExchangeAdd ((LONG*) &value,
+                increment);
+			return old != 0;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
@@ -92,7 +100,11 @@ namespace zmq
         //  Atomic subtraction. Returns false if the counter drops to zero.
         inline bool sub (integer_t decrement)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+            integer_t old = InterlockedExchangeAdd ((LONG*) &value,
+                -decrement);
+			return old - decrement != 0;
+#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t oldval = -decrement;
             volatile integer_t *val = &value;
