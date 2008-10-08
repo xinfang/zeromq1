@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-AC_INIT([zmq],[0.3.1])
+AC_INIT([zmq],[0.3.2])
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(zmq/config.h)
 AM_CONFIG_HEADER(zmq/platform.hpp)
@@ -24,6 +24,10 @@ case "${host_os}" in
     *linux*)
         AC_DEFINE(ZMQ_HAVE_LINUX, 1, [Have Linux OS])
         CPPFLAGS="-D_REENTRANT $CPPFLAGS"
+        sed < libtool > libtool-2 \
+        's/^hardcode_libdir_flag_spec.*$'/'hardcode_libdir_flag_spec=" "/'
+        mv libtool-2 libtool
+        chmod 755 libtool
         ;;
     *solaris*)
         AC_DEFINE(ZMQ_HAVE_SOLARIS, 1, [Have Solaris OS])
