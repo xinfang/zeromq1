@@ -64,4 +64,12 @@ namespace zmq
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }
+#define win_assert(x) if (!(x)) {\
+    const char *errstr;\
+    DWORD last_error = GetLastError (); \
+    FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, last_error, \
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)errstr, 0, NULL );\
+    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+    abort ();\
+}
 #endif

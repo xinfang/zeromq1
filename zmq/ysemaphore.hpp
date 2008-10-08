@@ -113,21 +113,22 @@ namespace zmq
         inline ysemaphore_t ()
         {
             ev = CreateEvent (NULL, FALSE, FALSE, NULL);
-            // TODO: check error
+            win_assert (ev != NULL);
         }
 
         //  Destroy the semaphore.
         inline ~ysemaphore_t ()
         {
-            CloseHandle (ev);
-            // TODO: check error
+            BOOL rc = CloseHandle (ev);
+            win_assert (rc != 0);
+            
         }
 
         //  Wait for the semaphore.
         inline void wait ()
         {
-            WaitForSingleObject (ev, INFINITE);
-            //  TODO: check error
+            DWORD rc = WaitForSingleObject (ev, INFINITE);
+            win_assert (rc != WAIT_FAILED);
         }
 
         //  Post the semaphore.

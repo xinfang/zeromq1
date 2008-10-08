@@ -28,13 +28,14 @@ zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
 {
     descriptor = CreateThread (NULL, 0, &zmq::thread_t::thread_routine,
         this, 0, NULL); 
-    // TODO: check the error
+    win_assert (descriptor != NULL);
+    
 }
 
 zmq::thread_t::~thread_t ()
 {
     DWORD rc = WaitForSingleObject (descriptor, INFINITE);
-    // TODO: check the error
+    win_assert (rc != WAIT_FAILED);
 }
 
 DWORD WINAPI zmq::thread_t::thread_routine (LPVOID arg_)

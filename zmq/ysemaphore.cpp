@@ -32,8 +32,8 @@ void zmq::ysemaphore_t::signal (int signal_)
 
 void zmq::ysemaphore_t::signal (int signal_)
 {
-    SetEvent (ev);
-    // TODO: check error
+    BOOL rc = SetEvent (ev);
+    win_assert (rc != 0);
 }
 
 #else
