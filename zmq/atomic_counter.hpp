@@ -23,9 +23,9 @@
 #include "err.hpp"
 #include "stdint.hpp"
 #include "mutex.hpp"
-#include "config.h"
+#include "platform.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 namespace zmq

@@ -23,7 +23,7 @@
 #include <string.h>
 #include <string>
 
-#include "config.h"
+#include "platform.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #include <winsock2.h>
 #else

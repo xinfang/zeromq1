@@ -43,7 +43,8 @@ pkginclude_HEADERS = \
     ip.hpp \
     i_poller.hpp \
     thread.hpp \
-    mutex.hpp
+    mutex.hpp \
+    platform.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -74,5 +75,8 @@ bin_PROGRAMS = zmq_server
 zmq_server_LDADD = libzmq.la
 zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
 zmq_server_CXXFLAGS = -Wall -pedantic -Werror
+
+dist-hook:
+		-rm $(distdir)/platform.hpp
 
 

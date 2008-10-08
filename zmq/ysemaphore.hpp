@@ -20,11 +20,9 @@
 #ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
-#ifndef ZMQ_HAVE_WINDOWS
-#include "config.h"
-#endif
-
 #include <assert.h>
+
+#include "platform.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
 #elif (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)

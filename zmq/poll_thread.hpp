@@ -20,7 +20,7 @@
 #ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
-#include "config.h"
+#include "platform.hpp"
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
 
 #include <stddef.h>

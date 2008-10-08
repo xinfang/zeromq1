@@ -20,7 +20,7 @@
 #ifndef __ZMQ_MUTEX_HPP_INCLUDED__
 #define __ZMQ_MUTEX_HPP_INCLUDED__
 
-#include "config.h"
+#include "platform.hpp"
 #include "err.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
