@@ -112,7 +112,7 @@ namespace zmq
         //  Initialise the semaphore.
         inline ysemaphore_t ()
         {
-            ev = CreateEvent (NULL, TRUE, TRUE, NULL);
+            ev = CreateEvent (NULL, FALSE, FALSE, NULL);
             // TODO: check error
         }
 
@@ -126,7 +126,7 @@ namespace zmq
         //  Wait for the semaphore.
         inline void wait ()
         {
-            ResetEvent (ev);
+            WaitForSingleObject (ev, INFINITE);
             //  TODO: check error
         }
 
