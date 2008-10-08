@@ -54,6 +54,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     ypollset.cpp \
     ysemaphore.cpp \
     dispatcher.cpp \
+    err.cpp \
     bp_decoder.cpp \
     bp_encoder.cpp \
     api_thread.cpp \

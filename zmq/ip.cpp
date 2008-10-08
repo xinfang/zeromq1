@@ -87,6 +87,21 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     }
 }
 
+#elif defined ZMQ_HAVE_WINDOWS
+
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
+{
+    //  TODO: Add code that'll convert interface name to IP address
+    //  on Windows platform here.
+    sockaddr addr;
+    int addr_length = sizeof (addr);
+    ((sockaddr_in*) &addr_)->sin_family = AF_INET;
+    int rc = WSAStringToAddress ((char*) interface_, AF_INET, NULL,
+        &addr, &addr_length);
+    addr_ = (in_addr*) &addr;
+    wsa_assert (rc != SOCKET_ERROR);        
+}
+
 #elif defined HAVE_GETIFADDRS
 
 #include <ifaddrs.h>
@@ -131,20 +146,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
-#ifdef ZMQ_HAVE_WINDOWS
-    sockaddr addr;
-    int addr_length = sizeof(addr);
-    reinterpret_cast<sockaddr_in*>(&addr_)->sin_family = AF_INET;
-    int rc = WSAStringToAddress ( const_cast<char*>(interface_), AF_INET, NULL, &addr, &addr_length);
-
-    addr_ = (in_addr *) &addr;
-        
-    wsa_assert (rc != SOCKET_ERROR);    
-    
-#else
     int rc = inet_pton (AF_INET, interface_, addr_);
     assert (rc > 0);
-#endif
 }
 
 #endif

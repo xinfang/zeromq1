@@ -73,15 +73,14 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     }
 
     //  Fill in the interface name.
-#ifndef ZMQ_HAVE_WINDOWS    
+#ifdef ZMQ_HAVE_WINDOWS    
+    //  TODO: Make this resistent to buffer overflow!
+    strcpy (iface, inet_ntoa (ip_address.sin_addr));
+    assert (iface);
+#else
     const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
         sizeof (iface));
     assert (rcp);
-    
-#else
-    strcpy (iface, inet_ntoa(ip_address.sin_addr));
-    assert (iface != NULL);
-
 #endif
      size_t isz = strlen (iface);
     _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
