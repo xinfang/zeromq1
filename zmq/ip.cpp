@@ -132,8 +132,18 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
 #ifdef ZMQ_HAVE_WINDOWS
-    InetPton (AF_INET, interface_, addr_);
-    // TODO: check error
+    sockaddr addr;
+    int addr_length = sizeof(addr);
+    reinterpret_cast<sockaddr_in*>(&addr_)->sin_family = AF_INET;
+    int rc = WSAStringToAddress ( const_cast<char*>(interface_), AF_INET, NULL, &addr, &addr_length);
+
+    addr_ = (in_addr *) &addr;
+    //sockaddr sckaddr;
+    //int sckaddrlen = sizeof (sockaddr);
+    //int rc = WSAStringToAddress ( "127.0.0.1", AF_INET, NULL, &sckaddr, &sckaddrlen);
+    
+    wsa_assert (rc != SOCKET_ERROR);    
+    
 #else
     int rc = inet_pton (AF_INET, interface_, addr_);
     assert (rc > 0);

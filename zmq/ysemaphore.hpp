@@ -20,7 +20,9 @@
 #ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
+#ifndef ZMQ_HAVE_WINDOWS
 #include "config.h"
+#endif
 
 #include <assert.h>
 #ifdef ZMQ_HAVE_WINDOWS

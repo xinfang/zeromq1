@@ -73,10 +73,17 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     }
 
     //  Fill in the interface name.
+#ifndef ZMQ_HAVE_WINDOWS    
     const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
         sizeof (iface));
     assert (rcp);
-    size_t isz = strlen (iface);
+    
+#else
+    strcpy (iface, inet_ntoa(ip_address.sin_addr));
+    assert (iface != NULL);
+
+#endif
+     size_t isz = strlen (iface);
     _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
               

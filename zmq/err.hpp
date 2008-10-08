@@ -36,7 +36,7 @@
 namespace zmq
 {
 
-    void wsa_error ();
+    const char * wsa_error ();
 
 }
 
@@ -59,7 +59,9 @@ namespace zmq
 }
 
 //  Provides convenient way to check WSA-style errors on Windows.
-#define wsa_assert(x) if (!(x))\
-    wsa_error ();
-
+#define wsa_assert(x) if (!(x)){\
+    const char *errstr = wsa_error ();\
+    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+    abort ();\
+}
 #endif
