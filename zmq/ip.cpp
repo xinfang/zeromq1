@@ -103,7 +103,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     wsa_assert (rc != SOCKET_ERROR);        
 }
 
-#elif defined HAVE_GETIFADDRS
+#elif (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+    defined ZMQ_HAVE_OSX)
 
 #include <ifaddrs.h>
 
