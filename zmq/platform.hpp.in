@@ -10,3 +10,6 @@
 /* Have FreeBSD OS */
 #undef ZMQ_HAVE_FREEBSD
 
+/* Have getifaddrs support */
+#undef HAVE_GETIFADDRS
+

@@ -83,7 +83,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        assert (rc > 0);
+        assert (rc != 0);
+        errno_assert (rc == 1);
     }
 }
 
@@ -136,7 +137,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        assert (rc > 0);
+        assert (rc != 0);
+        errno_assert (rc == 1);
     }
 }
 
@@ -147,7 +149,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
     int rc = inet_pton (AF_INET, interface_, addr_);
-    assert (rc > 0);
+    assert (rc != 0);
+    errno_assert (rc == 1);
 }
 
 #endif
