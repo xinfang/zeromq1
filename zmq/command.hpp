@@ -20,9 +20,9 @@
 #ifndef __ZMQ_COMMAND_HPP_INCLUDED__
 #define __ZMQ_COMMAND_HPP_INCLUDED__
 
+#include <assert.h>
 #include <string.h>
 
-#include "ysemaphore.hpp"
 #include "pipe.hpp"
 
 #include "platform.hpp"
