@@ -71,7 +71,7 @@ const char *zmq::wsa_error()
             "Operation not supported on socket" : 
         (errcode == WSAEPFNOSUPPORT) ?
             "Protocol family not supported" : 
-        (errcode == WSAEAFNOSUPPORT) 
+        (errcode == WSAEAFNOSUPPORT) ?
             "Address family not supported by protocol family" : 
         (errcode == WSAEADDRINUSE) ?
             "Address already in use" : 
@@ -135,6 +135,16 @@ const char *zmq::wsa_error()
             "Non-Recoverable errors: FORMERR REFUSED NOTIMP" : 
         (errcode == WSANO_DATA) ?
             "Valid name no data record of requested": "error not defined"; 
+}
+
+void zmq::win_error (char *buffer_, size_t buffer_size_)
+{
+    DWORD errcode = GetLastError ();
+    char *errstr = NULL;
+    DWORD rc = FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errcode, MAKELANGID(LANG_NEUTRAL,
+        SUBLANG_DEFAULT), errstr, buffer_size_, NULL );
+    assert (rc);
 }
 
 #endif

@@ -22,6 +22,7 @@
 
 #include "platform.hpp"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,6 +38,7 @@ namespace zmq
 {
 
     const char * wsa_error ();
+    void win_error (char *buffer_, size_t buffer_size_);
 
 }
 
@@ -64,12 +66,12 @@ namespace zmq
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }
+
 #define win_assert(x) if (!(x)) {\
-    const char *errstr;\
-    DWORD last_error = GetLastError (); \
-    FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, last_error, \
-    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)errstr, 0, NULL );\
+    char errstr [256];\
+    win_error (errstr, 256);\
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }
+
 #endif
