@@ -168,10 +168,12 @@ int main (int argc, char *argv [])
                     //  Erase the filedescriptor from fd_list 
 	                fd_list.erase (fd_list.begin () + pos);
 	                
-	                //  Erase the whole list of filedescriptors selectfds and add
-	                //  them back without the one erased from fd_list.
+	                //  Erase the whole list of filedescriptors selectfds
+                        //  and add them back without the one erased 
+                        //  from fd_list.
 	                FD_ZERO (&source_set_fds);
-	                for (fd_list_t::size_type i = 0; i < fd_list.size (); i ++)
+	                for (fd_list_t::size_type i = 0; i < fd_list.size ();
+                              i ++)
 	                    FD_SET (fd_list[i], &source_set_fds);
                 
                     close (s);
