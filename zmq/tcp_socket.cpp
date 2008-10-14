@@ -80,7 +80,6 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
         wsa_assert (rc != SOCKET_ERROR);
     }
 
-
     //  Disable Nagle's algorithm.
     int flag = 1;
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
@@ -137,7 +136,8 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     errno_assert (rc == 0);
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
+    block (block_)
 {
     //  Accept the socket.
     s = listener.accept ();

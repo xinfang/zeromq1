@@ -40,11 +40,11 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_interface (&ip_address, interface_i_);
+    resolve_ip_interface (&ip_address, iface_);
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -72,16 +72,11 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface_i name.
-#ifdef ZMQ_HAVE_WINDOWS    
+    //  Fill in the interface name.
     //  TODO: Make this resistent to buffer overflow!
     strcpy (iface, inet_ntoa (ip_address.sin_addr));
     assert (iface);
-#else
-    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
-        sizeof (iface));
-    assert (rcp);
-#endif
+
      size_t isz = strlen (iface);
     _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
@@ -101,11 +96,11 @@ int zmq::tcp_listener_t::accept ()
 
 #else
 
-zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_interface_i (&ip_address, interface_i_);
+    resolve_ip_interface (&ip_address, iface_);
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -147,12 +142,9 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
 
 int zmq::tcp_listener_t::accept ()
 {
-  
-  
     //  Accept one incoming connection.
     int sock = ::accept (s, NULL, NULL);
-       errno_assert (sock != -1);
-  
+       errno_assert (sock != -1); 
     return sock;
 }
 
