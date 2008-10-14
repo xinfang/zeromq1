@@ -20,30 +20,30 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *thread_,
-    const char *hostname_, size_t writebuf_size_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
+    i_context *thread_, const char *hostname_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (
+    bp_engine_t *instance = new bp_engine_t (calling_thread_,
         thread_, hostname_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *thread_,
-    tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-    const char *local_object_)
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
+    i_context *thread_, tcp_listener_t &listener_, size_t writebuf_size_,
+    size_t readbuf_size_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (
+    bp_engine_t *instance = new bp_engine_t (calling_thread_,
         thread_, listener_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (i_context *thread_, const char *hostname_,
-      size_t writebuf_size_, size_t readbuf_size_,
+zmq::bp_engine_t::bp_engine_t (i_context *calling_thread_, i_context *thread_,
+      const char *hostname_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
     writebuf_size (writebuf_size_),
@@ -67,10 +67,10 @@ zmq::bp_engine_t::bp_engine_t (i_context *thread_, const char *hostname_,
     //  Register BP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
-    thread_->get_dispatcher ()->send_command (thread_, command);
+    calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::bp_engine_t (i_context *thread_,
+zmq::bp_engine_t::bp_engine_t (i_context *calling_thread_, i_context *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
@@ -95,7 +95,7 @@ zmq::bp_engine_t::bp_engine_t (i_context *thread_,
     //  Register BP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
-    thread_->get_dispatcher ()->send_command (thread_, command);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_engine_t::~bp_engine_t ()

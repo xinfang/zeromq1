@@ -51,16 +51,16 @@ namespace zmq
         ~locator_t ();
 
         //  Creates object.
-        void create (unsigned char type_id_, const char *object_,
-            i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *interface_,
+        void create (i_context *calling_thread_, unsigned char type_id_,
+            const char *object_, i_context *context_, i_engine *engine_,
+            scope_t scope_, const char *interface_,
             i_context *listener_thread_, int handler_thread_count_,
             i_context **handler_threads_);
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        bool get (unsigned char type_id_, const char *object_,
-            i_context **context_, i_engine **engine_,
+        bool get (i_context *calling_thread_, unsigned char type_id_,
+            const char *object_, i_context **context_, i_engine **engine_,
             i_context *thread_, const char *local_object_);
 
     private:

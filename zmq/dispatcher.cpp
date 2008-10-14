@@ -25,16 +25,13 @@
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
-    thread_count (thread_count_ + 1),
+    thread_count (thread_count_),
     signalers (thread_count, (i_signaler*) NULL),
     used (thread_count, false)
 {
     //  Alocate NxN matrix of dispatching pipes.
     pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
-
-    //  Mark admin thread ID as used.
-    used [admin_thread_id] = true;
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
@@ -79,29 +76,6 @@ void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
 
     //  Unregister signaler.
     signalers [thread_id_] = NULL;
-
-    //  Unlock the mutex.
-    sync.unlock ();
-}
-
-zmq::dispatcher_t *zmq::dispatcher_t::get_dispatcher ()
-{
-    return this;
-}
-
-int zmq::dispatcher_t::get_thread_id ()
-{
-    return admin_thread_id;
-}
-
-void zmq::dispatcher_t::send_command (i_context *destination_,
-    const command_t &command_)
-{
-    //  Lock the mutex.
-    sync.lock ();
-
-    //  Pass the command to the other thread via a pipe.
-    write (admin_thread_id, destination_->get_thread_id (), command_);
 
     //  Unlock the mutex.
     sync.unlock ();

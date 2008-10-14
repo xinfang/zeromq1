@@ -21,22 +21,22 @@
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::bp_listener_t *zmq::bp_listener_t::create (i_context *thread_,
-    const char *interface_, int handler_thread_count_,
+zmq::bp_listener_t *zmq::bp_listener_t::create (i_context *calling_thread_,
+    i_context *thread_, const char *interface_, int handler_thread_count_,
     i_context **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
     const char *peer_name_)
 {
-    bp_listener_t *instance = new bp_listener_t (thread_, interface_,
-        handler_thread_count_, handler_threads_, source_, peer_context_,
-        peer_engine_, peer_name_);
+    bp_listener_t *instance = new bp_listener_t (calling_thread_, thread_,
+        interface_, handler_thread_count_, handler_threads_, source_,
+        peer_context_, peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_listener_t::bp_listener_t (i_context *thread_,
-      const char *interface_, int handler_thread_count_,
+zmq::bp_listener_t::bp_listener_t (i_context *calling_thread_,
+      i_context *thread_, const char *interface_, int handler_thread_count_,
       i_context **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
       const char *peer_name_) :
@@ -59,7 +59,7 @@ zmq::bp_listener_t::bp_listener_t (i_context *thread_,
     //  Register BP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
-    thread_->get_dispatcher ()->send_command (thread_, command);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_listener_t::~bp_listener_t ()
@@ -76,7 +76,7 @@ bool zmq::bp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_engine_t *engine = bp_engine_t::create (
+    bp_engine_t *engine = bp_engine_t::create (context,
         handler_threads [current_handler_thread], listener,
         bp_out_batch_size, bp_in_batch_size, peer_name);
     assert (engine);

@@ -38,8 +38,8 @@ namespace zmq
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        static bp_listener_t *create (i_context *thread_,
-            const char *interface_,
+        static bp_listener_t *create (i_context *calling_thread_,
+            i_context *thread_, const char *interface_,
             int handler_thread_count_, i_context **handler_threads_,
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
             const char *peer_name_);
@@ -59,9 +59,10 @@ namespace zmq
 
     private:
 
-        bp_listener_t (i_context *thread_, const char *interface_,
-            int handler_thread_count_, i_context **handler_threads_,
-            bool source_, i_context *peer_context_, i_engine *peer_engine_,
+        bp_listener_t (i_context *calling_thread_, i_context *thread_,
+            const char *interface_, int handler_thread_count_,
+            i_context **handler_threads_, bool source_,
+            i_context *peer_context_, i_engine *peer_engine_,
             const char *peer_name_);
         ~bp_listener_t ();
 

@@ -50,7 +50,8 @@ zmq::locator_t::~locator_t ()
         delete global_locator;
 }
 
-void zmq::locator_t::create (unsigned char type_id_, const char *object_,
+void zmq::locator_t::create (i_context *calling_thread_,
+    unsigned char type_id_, const char *object_,
     i_context *context_, i_engine *engine_, scope_t scope_,
     const char *interface_, i_context *listener_thread_,
     int handler_thread_count_, i_context **handler_threads_)
@@ -72,10 +73,10 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
          assert (strlen (interface_) < 256);
          
          //  Create a listener for the object.
-         bp_listener_t *listener = bp_listener_t::create (listener_thread_,
-             interface_, handler_thread_count_, handler_threads_,
-             type_id_ == exchange_type_id ? false : true, context_,
-             engine_, object_);
+         bp_listener_t *listener = bp_listener_t::create (calling_thread_,
+             listener_thread_, interface_, handler_thread_count_,
+             handler_threads_, type_id_ == exchange_type_id ? false : true,
+             context_, engine_, object_);
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;
@@ -98,9 +99,9 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     sync.unlock ();
 }
 
-bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
-    i_context **context_, i_engine **engine_, i_context *thread_,
-    const char *local_object_)
+bool zmq::locator_t::get (i_context *calling_thread_, unsigned char type_id_,
+    const char *object_, i_context **context_, i_engine **engine_,
+    i_context *thread_, const char *local_object_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -149,7 +150,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          interface [size] = 0;
 
          //  Create the proxy engine for the object.
-         bp_engine_t *engine = bp_engine_t::create (thread_,
+         bp_engine_t *engine = bp_engine_t::create (calling_thread_, thread_,
              interface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 

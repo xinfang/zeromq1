@@ -41,15 +41,12 @@ namespace zmq
     //  (sender thread = receiver thread). The optimisation is not part
     //  of the class and should be implemented by individual threads.
 
-    class dispatcher_t : public i_context
+    class dispatcher_t
     {
     public:
 
         //  Create the dispatcher object. The actual number of threads
-        //  supported will be thread_count_ + 1 (standard worker threads +
-        //  one administrative pseudothread). The administrative thread is
-        //  specific in that it is synchronised and can be used from any
-        //  thread whatsoever.
+        //  supported is determined by thread_count_.
         dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object.
@@ -88,19 +85,11 @@ namespace zmq
         //  Return thread ID to the pool of free thread IDs.
         void deallocate_thread_id (int thread_id_);
 
-        //  i_context (administrative context) implementation
-        dispatcher_t *get_dispatcher ();
-        int get_thread_id ();
-        void send_command (i_context *destination_, const command_t &command_);
-
     private:
 
         //  Pipe to hold the commands.
         typedef ypipe_t <command_t, true,
             command_pipe_granularity> command_pipe_t;
-
-        //  Administrative psaudothread has ID of 0.
-        enum {admin_thread_id = 0};
 
         //  Number of threads dispatcher is preconfigured for.
         int thread_count;

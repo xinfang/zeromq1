@@ -37,7 +37,8 @@ namespace zmq
         virtual ~i_locator () {};
 
         //  Creates an object.
-        virtual void create (unsigned char type_id_, const char *object_,
+        virtual void create (i_context *calling_thread_,
+            unsigned char type_id_, const char *object_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
             i_context *listener_thread_, int handler_thread_count_,
@@ -45,7 +46,8 @@ namespace zmq
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is not known.
-        virtual bool get (unsigned char type_id_, const char *object_,
+        virtual bool get (i_context *calling_thread_,
+            unsigned char type_id_, const char *object_,
             i_context **context_, i_engine **engine_,
             class i_context *thread_, const char *local_object_) = 0;
     };
