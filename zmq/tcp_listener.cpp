@@ -147,9 +147,12 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
 
 int zmq::tcp_listener_t::accept ()
 {
+  
+  
     //  Accept one incoming connection.
     int sock = ::accept (s, NULL, NULL);
-    errno_assert (sock != -1);
+       errno_assert (sock != -1);
+  
     return sock;
 }
 

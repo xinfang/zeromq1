@@ -24,18 +24,12 @@
 #include "i_engine.hpp"
 #include "scope.hpp"
 #include "poll_thread.hpp"
+#include "zmq_server.hpp"
 
 namespace zmq
 {
 
-    //  Enumerates object types sorted in the directory service.
-    //  'type_id_count' holds number of exisitng type IDs.
-    enum
-    {
-        exchange_type_id = 0,
-        queue_type_id = 1,
-        type_id_count = 2
-    };
+    
 
     struct i_locator
     {

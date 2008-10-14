@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
@@ -36,6 +37,7 @@ using namespace std;
 #include "stdint.hpp"
 #include "err.hpp"
 #include "zmq_server.hpp"
+#include "tcp_socket.hpp"
 using namespace zmq;
 
 //  Info about a single object.
@@ -76,80 +78,102 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    //  Create IP address to listen to.
-    sockaddr_in address;
-    memset (&address, 0, sizeof (sockaddr_in));
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = htonl (INADDR_ANY);
-    address.sin_port =
-        htons (argc == 1 ? default_locator_port : atoi (argv [1]));
 
-    //  Create a listening socket.
-    int listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    errno_assert (listening_socket != -1);
+    //  Create a tcp_listener.
+    char interface [256] = "0.0.0.0:";
+    char tmp [10];
+    if (argc == 2 && (sizeof (argc)== 4 * sizeof (char) ||
+        sizeof (argc)== 5 * sizeof (char) )) { 
+	   //  The argument is port.
+	   snprintf (tmp, sizeof (argv [1]), "%s", argv [1]);
+    }	
+    else {
+        sprintf (tmp, "%d", default_locator_port);   
+    }
+    strcat (interface, tmp);
+ 
+    tcp_listener_t *listening_socket = new tcp_listener_t (interface);
+     
+    //	Create list of descriptors
+    typedef vector <int> fd_list_t;
+    fd_list_t fd_list;
 
-    //  Allow socket reusing.
-    int flag = 1;
-    int rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
-        &flag, sizeof (int));
-    errno_assert (rc == 0);
-
-    //  Bind the socket to the network interface and port.
-    rc = bind (listening_socket, (struct sockaddr*) &address,
-        sizeof (address));
-    errno_assert (rc == 0);
-              
-    //  Listen for incomming connections.
-    rc = ::listen (listening_socket, 1);
-    errno_assert (rc == 0);
-
-    //  Initialise the pollset.
-    typedef vector <pollfd> pollfds_t;
-    pollfds_t pollfds (1);
-    pollfds [0].fd = listening_socket;
-    pollfds [0].events = POLLIN;
-
+    //  Intitialise descriptors for select
+    fd_set result_set_fds, source_set_fds, error_set_fds;
+    
+    FD_ZERO (&source_set_fds);
+    FD_ZERO (&result_set_fds);
+    FD_ZERO (&error_set_fds); 
+    int fd_int = listening_socket->get_fd ();
+    FD_SET (fd_int, &source_set_fds);
+    int maxfdp1 = fd_int + 1;
+    
+    fd_list.push_back (fd_int);
+    
     //  Object repository. Individual object maps are placed into slots
     //  identified by the type ID of particular object.
     objects_t objects [type_id_count];
-
+    
     while (true) {
-
-        //  Poll on the sockets.
-        rc = poll (&pollfds [0], pollfds.size (), -1);
-        errno_assert (rc != -1);
-
-        //  Traverse all the sockets.
-        for (pollfds_t::size_type pos = 1; pos < pollfds.size (); pos ++) {
+        
+	   //  Select on the descriptors.
+       int rc = 0;
+       while (rc == 0) {
+            
+           memcpy (&result_set_fds, &source_set_fds, sizeof (source_set_fds));
+           memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
+	            
+           rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
+	       errno_assert (rc != -1);
+       }    
+      
+       //  Traverse all the sockets.
+       for (fd_list_t::size_type pos = 1; pos < fd_list.size (); pos ++) {
 
             //  Get the socket being currently being processed.
-            int s = pollfds [pos].fd;
-
-            if ((pollfds [pos].revents & POLLERR) ||
-                  (pollfds [pos].revents & POLLHUP)) {
-
+            int s = fd_list[pos];
+            
+            if (FD_ISSET (s, &error_set_fds)) {
+               
                 //  Unregister all the symbols registered by this connection
                 //  and delete the descriptor from pollfds vector.
                 unregister (s, objects);
-                pollfds.erase (pollfds.begin () + pos);
+                
+                //  Erase the file descriptor from fd_list. 
+                fd_list.erase (fd_list.begin () + pos);
+                
+                //  Erase the whole list of file descriptors selectfds and add
+                //  them back without the one erased from fd_list.
+                FD_ZERO (&source_set_fds);
+                for (fd_list_t::size_type i = 0; i < fd_list.size (); i ++)
+                    FD_SET (fd_list[i], &source_set_fds);
+                 
                 close (s);
                 continue;
             }
-
-            if (pollfds [pos].revents & POLLIN) {
-
+			else if (FD_ISSET (s, &result_set_fds)) {
+           
                 //  Read command ID.
                 unsigned char cmd;
                 unsigned char reply;
                 ssize_t nbytes = recv (s, &cmd, 1, MSG_WAITALL);
-
+                
                 //  Connection closed by peer.
                 if (nbytes == 0) {
-
+           
                     //  Unregister all the symbols registered by this connection
                     //  and delete the descriptor from pollfds vector.
                     unregister (s, objects);
-                    pollfds.erase (pollfds.begin () + pos);
+                    
+                    //  Erase the filedescriptor from fd_list 
+	                fd_list.erase (fd_list.begin () + pos);
+	                
+	                //  Erase the whole list of filedescriptors selectfds and add
+	                //  them back without the one erased from fd_list.
+	                FD_ZERO (&source_set_fds);
+	                for (fd_list_t::size_type i = 0; i < fd_list.size (); i ++)
+	                    FD_SET (fd_list[i], &source_set_fds);
+                
                     close (s);
                     continue;
                 }
@@ -159,6 +183,7 @@ int main (int argc, char *argv [])
                 switch (cmd) {
                 case create_id:
                     {
+                        
                         //  Parse type ID.
                         unsigned char type_id;
                         nbytes = recv (s, &type_id, 1, MSG_WAITALL);
@@ -263,18 +288,21 @@ int main (int argc, char *argv [])
                     assert (false);
                 }
             }
+
         }
 
         //  Accept incoming connection.
-        if (pollfds [0].revents & POLLIN) {
-            int s = accept (listening_socket, NULL, NULL);
+        if (FD_ISSET (fd_list [0], &result_set_fds)) {
+            int s = listening_socket->accept ();
             errno_assert (s != -1);
-            pollfd pfd = {s, POLLIN, 0};
-            pollfds.push_back (pfd);
+            
+            FD_SET (s, &source_set_fds);
+            fd_list.push_back (s);
+            if (maxfdp1 <= s)
+                maxfdp1 = s + 1;
         }
 
     }
 
     return 0;
 }
-

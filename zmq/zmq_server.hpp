@@ -20,7 +20,6 @@
 #ifndef __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 #define __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 
-#include "i_locator.hpp"
 
 namespace zmq
 {
@@ -34,6 +33,15 @@ namespace zmq
         get_id = 3,
         get_ok_id = 4,
         fail_id = 5
+    };
+    
+    //  Enumerates object types sorted in the directory service.
+    //  'type_id_count' holds number of exisitng type IDs.
+    enum
+    {
+        exchange_type_id = 0,
+        queue_type_id = 1,
+        type_id_count = 2
     };
 
 }
