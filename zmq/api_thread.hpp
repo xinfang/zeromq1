@@ -28,13 +28,14 @@
 #include "config.hpp"
 #include "i_context.hpp"
 #include "i_engine.hpp"
+#include "i_locator.hpp"
+#include "i_poller.hpp"
 #include "message.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
 #include "ypollset.hpp"
 #include "scope.hpp"
-#include "i_locator.hpp"
 #include "zmq_server.hpp"
 #include "poll_thread.hpp"
 
@@ -61,22 +62,22 @@ namespace zmq
             const char *exchange_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            poll_thread_t *listener_thread_ = NULL,
+            i_context *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            i_context **handler_threads_ = NULL);
 
         //  Creates new queue, returns queue ID.
         int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            poll_thread_t *listener_thread_ = NULL,
+            i_context *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            i_context **handler_threads_ = NULL);
 
         //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,
-            poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
+            i_context *exchange_thread_, i_context *queue_thread_);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
@@ -101,6 +102,7 @@ namespace zmq
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
         //  i_context implementation.
+        dispatcher_t *get_dispatcher ();
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
 

@@ -26,7 +26,7 @@ struct pyZMQ
     PyObject_HEAD
     zmq::dispatcher_t *dispatcher;
     zmq::locator_t *locator;
-    zmq::poll_thread_t *poll_thread;
+    zmq::i_context *io_thread;
     zmq::api_thread_t *api_thread;
 };
 
@@ -36,9 +36,9 @@ void pyZMQ_dealloc (pyZMQ *self)
         delete self->api_thread;
         self->api_thread = NULL;
     }
-    if (self->poll_thread) {
-        delete self->poll_thread;
-        self->poll_thread = NULL;
+    if (self->io_thread) {
+        delete self->io_thread;
+        self->io_thread = NULL;
     }
     if (self->locator) {
         delete self->locator;
@@ -59,7 +59,7 @@ PyObject *pyZMQ_new (PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self) {
         self->dispatcher = NULL;
         self->locator = NULL;
-        self->poll_thread = NULL;
+        self->io_thread = NULL;
         self->api_thread = NULL;
     }
 
@@ -78,7 +78,7 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
     self->dispatcher = new zmq::dispatcher_t (2);
     self->locator = new zmq::locator_t (hostname);
-    self->poll_thread = zmq::poll_thread_t::create (self->dispatcher);
+    self->io_thread = zmq::poll_thread_t::create (self->dispatcher);
     self->api_thread = zmq::api_thread_t::create (self->dispatcher,
         self->locator);
 
@@ -99,8 +99,8 @@ PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
         return NULL;
     
     int eid = self->api_thread->create_exchange (exchange_name, 
-        (zmq::scope_t) scope, interface, self->poll_thread, 1,
-        &self->poll_thread);
+        (zmq::scope_t) scope, interface, self->io_thread, 1,
+        &self->io_thread);
 
     return PyInt_FromLong (eid);
 }
@@ -118,8 +118,8 @@ PyObject *pyZMQ_create_queue (pyZMQ *self, PyObject *args, PyObject *kw)
         return NULL;
 
     int qid = self->api_thread->create_queue (queue_name, 
-        (zmq::scope_t) scope, interface, self->poll_thread, 1,
-        &self->poll_thread);
+        (zmq::scope_t) scope, interface, self->io_thread, 1,
+        &self->io_thread);
 
     return PyInt_FromLong (qid);
 }
@@ -135,8 +135,8 @@ PyObject* pyZMQ_bind (pyZMQ *self, PyObject *args, PyObject *kwdict)
           &exchange_name, &queue_name))
         return NULL;
     
-    self->api_thread->bind (exchange_name, queue_name, self->poll_thread, 
-        self->poll_thread);
+    self->api_thread->bind (exchange_name, queue_name, self->io_thread, 
+        self->io_thread);
 
     Py_INCREF (Py_None);
     return Py_None;

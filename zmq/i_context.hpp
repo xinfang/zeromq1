@@ -35,10 +35,13 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_context () {};
 
-        //  Returns the thread ID associated with the context
+        //  Returns pointer to underlying dispatcher object.
+        virtual class dispatcher_t *get_dispatcher () = 0;
+
+        //  Returns the thread ID associated with the context.
         virtual int get_thread_id () = 0;
 
-        //  Sends command to a different thread
+        //  Sends command to a different thread.
         virtual void send_command (i_context *destination_,
             const struct command_t &command_) = 0;
     };

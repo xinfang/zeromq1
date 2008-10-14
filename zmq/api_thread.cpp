@@ -50,8 +50,8 @@ zmq::api_thread_t::~api_thread_t ()
 
 int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *interface_,
-    poll_thread_t *listener_thread_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
+    i_context *listener_thread_, int handler_thread_count_,
+    i_context **handler_threads_)
 {
     //  Insert the exchange to the local list of exchanges.
     //  If the exchange is already present, return immediately.
@@ -75,8 +75,8 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
 }
 
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
-    const char *interface_, poll_thread_t *listener_thread_,
-    int handler_thread_count_, poll_thread_t **handler_threads_)
+    const char *interface_, i_context *listener_thread_,
+    int handler_thread_count_, i_context **handler_threads_)
 {
     //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.
@@ -100,7 +100,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
 }
 
 void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
-    poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
+    i_context *exchange_thread_, i_context *queue_thread_)
 {
     //  Find the exchange.
     i_context *exchange_context;
@@ -273,6 +273,11 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
     }
 
     return qid;
+}
+
+zmq::dispatcher_t *zmq::api_thread_t::get_dispatcher ()
+{
+    return dispatcher;
 }
 
 int zmq::api_thread_t::get_thread_id ()

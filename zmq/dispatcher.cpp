@@ -84,6 +84,11 @@ void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
     sync.unlock ();
 }
 
+zmq::dispatcher_t *zmq::dispatcher_t::get_dispatcher ()
+{
+    return this;
+}
+
 int zmq::dispatcher_t::get_thread_id ()
 {
     return admin_thread_id;

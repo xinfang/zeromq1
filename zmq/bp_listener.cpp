@@ -21,9 +21,9 @@
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
+zmq::bp_listener_t *zmq::bp_listener_t::create (i_context *thread_,
     const char *interface_, int handler_thread_count_,
-    poll_thread_t **handler_threads_, bool source_,
+    i_context **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
     const char *peer_name_)
 {
@@ -35,9 +35,9 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     return instance;
 }
 
-zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
+zmq::bp_listener_t::bp_listener_t (i_context *thread_,
       const char *interface_, int handler_thread_count_,
-      poll_thread_t **handler_threads_, bool source_,
+      i_context **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
       const char *peer_name_) :
     source (source_),
@@ -56,8 +56,10 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
         handler_threads.push_back (handler_threads_ [thread_nbr]);
     current_handler_thread = 0;
 
-    //  Register the listener with the polling thread.
-    thread_->register_engine (this);   
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    thread_->get_dispatcher ()->send_command (thread_, command);
 }
 
 zmq::bp_listener_t::~bp_listener_t ()

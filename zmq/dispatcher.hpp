@@ -89,6 +89,7 @@ namespace zmq
         void deallocate_thread_id (int thread_id_);
 
         //  i_context (administrative context) implementation
+        dispatcher_t *get_dispatcher ();
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
 

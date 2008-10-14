@@ -52,8 +52,8 @@ zmq::locator_t::~locator_t ()
 
 void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     i_context *context_, i_engine *engine_, scope_t scope_,
-    const char *interface_, poll_thread_t *listener_thread_,
-    int handler_thread_count_, poll_thread_t **handler_threads_)
+    const char *interface_, i_context *listener_thread_,
+    int handler_thread_count_, i_context **handler_threads_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -99,7 +99,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
 }
 
 bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
-    i_context **context_, i_engine **engine_, poll_thread_t *thread_,
+    i_context **context_, i_engine **engine_, i_context *thread_,
     const char *local_object_)
 {
     assert (type_id_ < type_id_count);

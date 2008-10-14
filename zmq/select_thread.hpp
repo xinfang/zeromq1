@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
-#define __ZMQ_POLL_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
+#define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
 #include "platform.hpp"
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
@@ -42,7 +42,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t : public i_context, public i_poller
+    class select_thread_t : public i_context, public i_poller
     {
     public:
 
@@ -50,7 +50,7 @@ namespace zmq
         static i_context *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread.
-        ~poll_thread_t ();
+        ~select_thread_t ();
 
         //  Unregisters the engine from the thread.
         void unregister_engine (i_pollable* engine_);
@@ -71,7 +71,7 @@ namespace zmq
 
     private:
 
-        poll_thread_t (dispatcher_t *dispatcher_);
+        select_thread_t (dispatcher_t *dispatcher_);
 
         //  Main worker thread routine.
         static void worker_routine (void *arg_);
@@ -104,8 +104,8 @@ namespace zmq
         typedef std::vector <i_pollable*> engines_t;
         engines_t engines;
 
-        poll_thread_t (const poll_thread_t&);
-        void operator = (const poll_thread_t&);
+        select_thread_t (const select_thread_t&);
+        void operator = (const select_thread_t&);
     };
 
 }

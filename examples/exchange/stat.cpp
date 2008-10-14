@@ -107,7 +107,7 @@ int main (int argc, char *argv [])
     zmq::dispatcher_t dispatcher (2);
     zmq::locator_t locator (argv [1]);
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
-    zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
+    zmq::i_context *pt = zmq::poll_thread_t::create (&dispatcher);
 
     //  Initialise the wiring
     api->create_queue ("SQ", zmq::scope_global, argv [2], pt, 1, &pt);

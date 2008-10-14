@@ -50,12 +50,12 @@ namespace zmq
         //  host parameter. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        static bp_engine_t *create (poll_thread_t *thread_,
+        static bp_engine_t *create (i_context *thread_,
             const char *hostname_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object.
-        static bp_engine_t *create (poll_thread_t *thread_,
+        static bp_engine_t *create (i_context *thread_,
             tcp_listener_t &listener_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
@@ -68,11 +68,11 @@ namespace zmq
 
     private:
 
-        bp_engine_t (poll_thread_t *thread_,
+        bp_engine_t (i_context *thread_,
             const char *hostname_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
-        bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
+        bp_engine_t (i_context *thread_, tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
         ~bp_engine_t ();

@@ -20,7 +20,7 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *thread_,
     const char *hostname_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
@@ -31,7 +31,7 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *thread_,
     tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
     const char *local_object_)
 {
@@ -42,7 +42,7 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
+zmq::bp_engine_t::bp_engine_t (i_context *thread_, const char *hostname_,
       size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
@@ -65,10 +65,12 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     assert (readbuf);
 
     //  Register BP engine with the I/O thread.
-    thread_->register_engine (this);
+    command_t command;
+    command.init_register_engine (this);
+    thread_->get_dispatcher ()->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
+zmq::bp_engine_t::bp_engine_t (i_context *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
@@ -91,7 +93,9 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     assert (readbuf);
 
     //  Register BP engine with the I/O thread.
-    thread_->register_engine (this);
+    command_t command;
+    command.init_register_engine (this);
+    thread_->get_dispatcher ()->send_command (thread_, command);
 }
 
 zmq::bp_engine_t::~bp_engine_t ()

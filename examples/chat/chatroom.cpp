@@ -54,7 +54,7 @@ int main (int argc, const char *argv [])
     locator_t locator (host);
 
     //  Initialise the thread layout
-    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    i_context *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Create a queue to receive messages sent to the chatroom

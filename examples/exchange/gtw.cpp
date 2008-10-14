@@ -102,7 +102,7 @@ private:
 
     //  0MQ infrastructure
     zmq::api_thread_t *api;
-    zmq::poll_thread_t *pt;
+    zmq::i_context *pt;
 
     //  Exchange IDs
     int oe_id;
@@ -199,7 +199,7 @@ private:
 
     //  0MQ infrastructure
     zmq::api_thread_t *api;
-    zmq::poll_thread_t *pt;
+    zmq::i_context *pt;
 
     //  Exchange IDs
     int se_id;

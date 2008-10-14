@@ -19,17 +19,17 @@
 
 #include <algorithm>
 
-#include "poll_thread.hpp"
+#include "select_thread.hpp"
 #include "err.hpp"
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
 
-zmq::i_context *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
+zmq::i_context *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
 {
-    return new poll_thread_t (dispatcher_);
+    return new select_thread_t (dispatcher_);
 }
 
-zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
+zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
     pollset (1)
 {
@@ -44,7 +44,7 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     worker = new thread_t (worker_routine, this);
 }
 
-zmq::poll_thread_t::~poll_thread_t ()
+zmq::select_thread_t::~select_thread_t ()
 {
     //  Send a 'stop' event ot the worker thread.
     //  TODO: Analyse whether using the to-self command pipe here is appropriate
@@ -56,66 +56,66 @@ zmq::poll_thread_t::~poll_thread_t ()
     delete worker;
 }
 
-zmq::dispatcher_t *zmq::poll_thread_t::get_dispatcher ()
+zmq::dispatcher_t *zmq::select_thread_t::get_dispatcher ()
 {
     return dispatcher;
 }
 
-int zmq::poll_thread_t::get_thread_id ()
+int zmq::select_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::poll_thread_t::send_command (i_context *destination_,
+void zmq::select_thread_t::send_command (i_context *destination_,
     const command_t &command_)
 {
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-void zmq::poll_thread_t::set_fd (int handle_, int fd_)
+void zmq::select_thread_t::set_fd (int handle_, int fd_)
 {
     pollset [handle_].fd = fd_;
 }
 
-void zmq::poll_thread_t::set_pollin (int handle_)
+void zmq::select_thread_t::set_pollin (int handle_)
 {
     pollset [handle_].events |= POLLIN;
 }
 
-void zmq::poll_thread_t::reset_pollin (int handle_)
+void zmq::select_thread_t::reset_pollin (int handle_)
 {
     pollset [handle_].events &= ~((short) POLLIN);
 }
 
-void zmq::poll_thread_t::speculative_read (int handle_)
+void zmq::select_thread_t::speculative_read (int handle_)
 {
     pollset [handle_].events |= POLLIN;
     pollset [handle_].revents |= POLLIN;
 }
 
-void zmq::poll_thread_t::set_pollout (int handle_)
+void zmq::select_thread_t::set_pollout (int handle_)
 {
     pollset [handle_].events |= POLLOUT;
 }
 
-void zmq::poll_thread_t::reset_pollout (int handle_)
+void zmq::select_thread_t::reset_pollout (int handle_)
 {
     pollset [handle_].events &= ~((short) POLLOUT);
 }
 
-void zmq::poll_thread_t::speculative_write (int handle_)
+void zmq::select_thread_t::speculative_write (int handle_)
 {
     pollset [handle_].events |= POLLOUT;
     pollset [handle_].revents |= POLLOUT;
 }
 
-void zmq::poll_thread_t::worker_routine (void *arg_)
+void zmq::select_thread_t::worker_routine (void *arg_)
 {
-    poll_thread_t *self = (poll_thread_t*) arg_;
+    select_thread_t *self = (select_thread_t*) arg_;
     self->loop ();
 }
 
-void zmq::poll_thread_t::loop ()
+void zmq::select_thread_t::loop ()
 {
     while (true)
     {
@@ -175,7 +175,7 @@ void zmq::poll_thread_t::loop ()
     }
 }
 
-void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
+void zmq::select_thread_t::unregister_engine (i_pollable* engine_)
 {
     //  Find the engine in the list.
     std::vector <i_pollable*>::iterator it =std::find (
@@ -191,7 +191,7 @@ void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
     // TODO: delete engine_;
 }
 
-bool zmq::poll_thread_t::process_commands (uint32_t signals_)
+bool zmq::select_thread_t::process_commands (uint32_t signals_)
 {
     //  Iterate through all the threads in the process and find out which
     //  of them sent us commands.

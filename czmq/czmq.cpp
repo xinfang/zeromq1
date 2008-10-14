@@ -29,7 +29,7 @@ struct context_t
 {
     zmq::locator_t *locator;
     zmq::dispatcher_t *dispatcher;
-    zmq::poll_thread_t *poll_thread;
+    zmq::i_context *io_thread;
     zmq::api_thread_t *api_thread;
 };
 
@@ -42,8 +42,8 @@ void *czmq_create (const char *host_)
     assert (context->locator);
     context->dispatcher = new zmq::dispatcher_t (2);
     assert (context->dispatcher);
-    context->poll_thread = zmq::poll_thread_t::create (context->dispatcher);
-    assert (context->poll_thread);
+    context->io_thread = zmq::poll_thread_t::create (context->dispatcher);
+    assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);
     assert (context->api_thread);
@@ -75,7 +75,7 @@ int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
 
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_exchange (exchange_, scope, nic_,
-        context->poll_thread, 1, &context->poll_thread);
+        context->io_thread, 1, &context->io_thread);
 }
 
 int czmq_create_queue (void *obj_, const char *queue_, int scope_,
@@ -91,7 +91,7 @@ int czmq_create_queue (void *obj_, const char *queue_, int scope_,
 
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_queue (queue_, scope, nic_,
-        context->poll_thread, 1, &context->poll_thread);
+        context->io_thread, 1, &context->io_thread);
 }
 
 void czmq_bind (void *obj_, const char *exchange_, const char *queue_)
@@ -101,7 +101,7 @@ void czmq_bind (void *obj_, const char *exchange_, const char *queue_)
 
     //  Forward the call to native 0MQ library.
     context->api_thread->bind (exchange_, queue_,
-        context->poll_thread, context->poll_thread);
+        context->io_thread, context->io_thread);
 }
 
 void czmq_send (void *obj_, int eid_, void *data_, size_t size_,

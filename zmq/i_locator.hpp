@@ -23,7 +23,6 @@
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "scope.hpp"
-#include "poll_thread.hpp"
 #include "zmq_server.hpp"
 
 namespace zmq
@@ -41,14 +40,14 @@ namespace zmq
         virtual void create (unsigned char type_id_, const char *object_,
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
-            poll_thread_t *listener_thread_, int handler_thread_count_,
-            poll_thread_t **handler_threads_) = 0;
+            i_context *listener_thread_, int handler_thread_count_,
+            i_context **handler_threads_) = 0;
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is not known.
         virtual bool get (unsigned char type_id_, const char *object_,
             i_context **context_, i_engine **engine_,
-            class poll_thread_t *thread_, const char *local_object_) = 0;
+            class i_context *thread_, const char *local_object_) = 0;
     };
 
 }

@@ -46,6 +46,7 @@ namespace perf
             worker = zmq::poll_thread_t::create (&dispatcher);
 
             if (bind_) {
+
                 assert (!exchange_interface_);
                 assert (!queue_interface_);
 
@@ -96,7 +97,7 @@ namespace perf
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
         zmq::api_thread_t *api;
-        zmq::poll_thread_t *worker;
+        zmq::i_context *worker;
 	int exchange_id;
     };
 

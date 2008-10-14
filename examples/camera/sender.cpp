@@ -66,7 +66,7 @@ int main (int argc, char *argv [])
     zmq::locator_t locator (argv [1]);
 
     //  4. Start one working thread (to send data to receivers)
-    zmq::poll_thread_t *pt = zmq::poll_thread_t::create (&dispatcher);
+    zmq::i_context *pt = zmq::poll_thread_t::create (&dispatcher);
 
     //  5. Register one API thread (the application thread - the one that
     //     is being executed at the moment)
