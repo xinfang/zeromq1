@@ -40,11 +40,11 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
+zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_interface (&ip_address, interface_);
+    resolve_ip_interface (&ip_address, interface_i_);
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -56,7 +56,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         (const char*) &flag, sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 
-    //  Bind the socket to the network interface and port.
+    //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     wsa_assert (rc != SOCKET_ERROR);
 
@@ -72,7 +72,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface name.
+    //  Fill in the interface_i name.
 #ifdef ZMQ_HAVE_WINDOWS    
     //  TODO: Make this resistent to buffer overflow!
     strcpy (iface, inet_ntoa (ip_address.sin_addr));
@@ -101,11 +101,11 @@ int zmq::tcp_listener_t::accept ()
 
 #else
 
-zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
+zmq::tcp_listener_t::tcp_listener_t (const char *interface_i_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_interface (&ip_address, interface_);
+    resolve_ip_interface_i (&ip_address, interface_i_);
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -116,7 +116,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 
-    //  Bind the socket to the network interface and port.
+    //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     errno_assert (rc == 0);
 
@@ -132,7 +132,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *interface_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface name.
+    //  Fill in the interface_i name.
     const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
         sizeof (iface));
     assert (rcp);

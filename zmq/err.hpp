@@ -29,6 +29,7 @@
 #ifdef ZMQ_HAVE_WINDOWS
 #include <Winsock2.h>
 #else
+
 #include <netdb.h>
 #endif
 

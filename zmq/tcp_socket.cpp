@@ -55,20 +55,29 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     wsa_assert (rc != SOCKET_ERROR);
 
     //  Set socket properties to non-blocking mode. 
-    unsigned long argp = 1;
-    rc = ioctlsocket (s, FIONBIO, &argp);
-    wsa_assert (rc != SOCKET_ERROR);
-	
+    if (! block) {
+        unsigned long argp = 1;
+        rc = ioctlsocket (s, FIONBIO, &argp);
+        wsa_assert (rc != SOCKET_ERROR);
+    }
+ 	
     //  Disable Nagle's algorithm.
     int flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
+    block (block_)
 {
     //  Accept the socket.
     s = listener.accept ();
+    if (! block) {
+        unsigned long argp = 1;
+        int rc = ioctlsocket (s, FIONBIO, &argp);
+        wsa_assert (rc != SOCKET_ERROR);
+    }
+
 
     //  Disable Nagle's algorithm.
     int flag = 1;

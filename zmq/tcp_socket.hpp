@@ -40,7 +40,7 @@ namespace zmq
         tcp_socket_t (const char *hostname_, bool block_ = false);
 
         //  Opens a socket by accepting a connection from TCP listener object
-        tcp_socket_t (tcp_listener_t &listener);
+        tcp_socket_t (tcp_listener_t &listener, bool block_ = false);
          
         //  Closes the socket.
         ~tcp_socket_t ();
