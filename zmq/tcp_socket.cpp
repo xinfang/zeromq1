@@ -72,6 +72,8 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
 {
     //  Accept the socket.
     s = listener.accept ();
+
+    //  Set socket properties to non-blocking mode. 
     if (! block) {
         unsigned long argp = 1;
         int rc = ioctlsocket (s, FIONBIO, &argp);
