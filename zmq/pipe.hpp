@@ -20,7 +20,7 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "raw_message.hpp"
@@ -33,9 +33,9 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        pipe_t (struct i_context *source_context_,
+        pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
-            struct i_context *destination_context_,
+            struct i_thread *destination_thread_,
             struct i_engine *destination_engine_);
         ~pipe_t ();
 
@@ -86,11 +86,11 @@ namespace zmq
         underlying_pipe_t pipe;
 
         //  Identification of the engine sending the messages to the pipe.
-        i_context *source_context;
+        i_thread *source_thread;
         i_engine *source_engine;
 
         //  Identification of the engine receiving the messages from the pipe.
-        i_context *destination_context;
+        i_thread *destination_thread;
         i_engine *destination_engine;
 
         //  If true we can read messages from the underlying ypipe.

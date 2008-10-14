@@ -26,7 +26,7 @@ struct pyZMQ
     PyObject_HEAD
     zmq::dispatcher_t *dispatcher;
     zmq::locator_t *locator;
-    zmq::i_context *io_thread;
+    zmq::i_thread *io_thread;
     zmq::api_thread_t *api_thread;
 };
 

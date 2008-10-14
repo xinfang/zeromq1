@@ -97,7 +97,7 @@ namespace perf
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
         zmq::api_thread_t *api;
-        zmq::i_context *worker;
+        zmq::i_thread *worker;
 	int exchange_id;
     };
 

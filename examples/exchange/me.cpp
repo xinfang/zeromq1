@@ -144,8 +144,8 @@ private:
    zmq::dispatcher_t dispatcher;
    zmq::locator_t locator;
    zmq::api_thread_t *api;
-   zmq::i_context *pt_in;
-   zmq::i_context *pt_out;
+   zmq::i_thread *pt_in;
+   zmq::i_thread *pt_out;
    int te_id;
    int se_id;
    frequency_meter_t in_meter;

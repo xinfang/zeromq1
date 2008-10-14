@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "i_pollable.hpp"
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "tcp_listener.hpp"
 
 namespace zmq
@@ -38,10 +38,10 @@ namespace zmq
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        static bp_listener_t *create (i_context *calling_thread_,
-            i_context *thread_, const char *interface_,
-            int handler_thread_count_, i_context **handler_threads_,
-            bool source_, i_context *peer_context_, i_engine *peer_engine_,
+        static bp_listener_t *create (i_thread *calling_thread_,
+            i_thread *thread_, const char *interface_,
+            int handler_thread_count_, i_thread **handler_threads_,
+            bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
 
         //  Returns port listener is listening on.
@@ -59,10 +59,10 @@ namespace zmq
 
     private:
 
-        bp_listener_t (i_context *calling_thread_, i_context *thread_,
+        bp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
-            i_context **handler_threads_, bool source_,
-            i_context *peer_context_, i_engine *peer_engine_,
+            i_thread **handler_threads_, bool source_,
+            i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
         ~bp_listener_t ();
 
@@ -72,12 +72,12 @@ namespace zmq
         //  sends them to the socket).
         bool source;
 
-        //  The context listener is running in.
-        i_context *context;
+        //  The thread listener is running in.
+        i_thread *thread;
 
         //  Determine the engine and the object (either exchange or queue)
         //  within the engine to serve as a peer to this engine.
-        i_context *peer_context;
+        i_thread *peer_thread;
         i_engine *peer_engine;
         char peer_name [16];
 
@@ -85,7 +85,7 @@ namespace zmq
         tcp_listener_t listener;
 
         //  The thread array to manage newly-created BP engines.
-        typedef std::vector <i_context*> handler_threads_t;
+        typedef std::vector <i_thread*> handler_threads_t;
         handler_threads_t handler_threads;
 
         //  Points to the I/O thread to use to handle next BP connection.

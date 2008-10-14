@@ -24,7 +24,7 @@
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
 
-zmq::i_context *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
+zmq::i_thread *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
 {
     return new select_thread_t (dispatcher_);
 }
@@ -56,17 +56,12 @@ zmq::select_thread_t::~select_thread_t ()
     delete worker;
 }
 
-zmq::dispatcher_t *zmq::select_thread_t::get_dispatcher ()
-{
-    return dispatcher;
-}
-
 int zmq::select_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::select_thread_t::send_command (i_context *destination_,
+void zmq::select_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);

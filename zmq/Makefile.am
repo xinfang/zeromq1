@@ -27,7 +27,7 @@ pkginclude_HEADERS = \
     command.hpp \
     mux.hpp \
     demux.hpp \
-    i_context.hpp \
+    i_thread.hpp \
     pipe.hpp \
     bp_listener.hpp \
     locator.hpp \

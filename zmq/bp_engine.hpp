@@ -50,13 +50,13 @@ namespace zmq
         //  host parameter. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        static bp_engine_t *create (i_context *calling_thread_,
-            i_context *thread_, const char *hostname_, size_t writebuf_size_,
+        static bp_engine_t *create (i_thread *calling_thread_,
+            i_thread *thread_, const char *hostname_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object.
-        static bp_engine_t *create (i_context *calling_thread_,
-            i_context *thread_, tcp_listener_t &listener_,
+        static bp_engine_t *create (i_thread *calling_thread_,
+            i_thread *thread_, tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
 
@@ -69,17 +69,14 @@ namespace zmq
 
     private:
 
-        bp_engine_t (i_context *calling_thread_, i_context *thread_,
+        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
-        bp_engine_t (i_context *calling_thread_, i_context *thread_,
+        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
         ~bp_engine_t ();
-
-        //  Thread context the engine belongs to.
-        i_context *context;
 
         //  Object to aggregate messages from inbound pipes.
         mux_t mux;

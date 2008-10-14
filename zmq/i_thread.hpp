@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_CONTEXT_HPP_INCLUDED__
-#define __ZMQ_I_CONTEXT_HPP_INCLUDED__
+#ifndef __ZMQ_I_THREAD_HPP_INCLUDED__
+#define __ZMQ_I_THREAD_HPP_INCLUDED__
 
 #include "command.hpp"
 
@@ -26,23 +26,20 @@ namespace zmq
 {
 
     //  This interface can be used for inter-thread communication. Thread
-    //  context is uniquely specified by i_context pointer. Sending a message
-    //  between threads boils down to sending it between the contexts.
+    //  context is uniquely specified by i_thread pointer. Sending a message
+    //  between threads boils down to sending it between the thread contexts.
 
-    struct i_context
+    struct i_thread
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_context () {};
+        virtual ~i_thread () {};
 
-        //  Returns pointer to underlying dispatcher object.
-        virtual class dispatcher_t *get_dispatcher () = 0;
-
-        //  Returns the thread ID associated with the context.
+        //  Returns unique ID of the thread.
         virtual int get_thread_id () = 0;
 
         //  Sends command to a different thread.
-        virtual void send_command (i_context *destination_,
+        virtual void send_command (i_thread *destination_,
             const struct command_t &command_) = 0;
     };
 

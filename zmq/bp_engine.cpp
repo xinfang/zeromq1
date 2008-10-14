@@ -20,8 +20,8 @@
 
 #include "bp_engine.hpp"
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
-    i_context *thread_, const char *hostname_, size_t writebuf_size_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+    i_thread *thread_, const char *hostname_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (calling_thread_,
@@ -31,8 +31,8 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
-    i_context *thread_, tcp_listener_t &listener_, size_t writebuf_size_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+    i_thread *thread_, tcp_listener_t &listener_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (calling_thread_,
@@ -42,10 +42,9 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (i_context *calling_thread_,
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (i_context *calling_thread_, i_context *thread_,
+zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
       const char *hostname_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
-    context (thread_),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
@@ -70,10 +69,9 @@ zmq::bp_engine_t::bp_engine_t (i_context *calling_thread_, i_context *thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::bp_engine_t (i_context *calling_thread_, i_context *thread_,
+zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
-    context (thread_),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),

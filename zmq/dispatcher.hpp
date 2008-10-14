@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
 #include "mutex.hpp"
@@ -103,8 +103,7 @@ namespace zmq
         //  Vector specifying which thread IDs are used and which are not.
         //  The access to the vector is synchronised using mutex - this is OK
         //  as the performance of thread ID assignment is not critical for
-        //  the performance of the system as a whole. The mutex is also used
-        //  to sync the commands from the administrative context.
+        //  the performance of the system as a whole.
         std::vector <bool> used;
         mutex_t sync;
 

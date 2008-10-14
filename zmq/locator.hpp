@@ -25,7 +25,7 @@
 
 #include "i_locator.hpp"
 #include "i_engine.hpp"
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "mutex.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
@@ -51,24 +51,24 @@ namespace zmq
         ~locator_t ();
 
         //  Creates object.
-        void create (i_context *calling_thread_, unsigned char type_id_,
-            const char *object_, i_context *context_, i_engine *engine_,
+        void create (i_thread *calling_thread_, unsigned char type_id_,
+            const char *object_, i_thread *thread_, i_engine *engine_,
             scope_t scope_, const char *interface_,
-            i_context *listener_thread_, int handler_thread_count_,
-            i_context **handler_threads_);
+            i_thread *listener_thread_, int handler_thread_count_,
+            i_thread **handler_threads_);
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        bool get (i_context *calling_thread_, unsigned char type_id_,
-            const char *object_, i_context **context_, i_engine **engine_,
-            i_context *thread_, const char *local_object_);
+        bool get (i_thread *calling_thread_, unsigned char type_id_,
+            const char *object_, i_thread **thread_, i_engine **engine_,
+            i_thread *handler_thread_, const char *local_object_);
 
     private:
 
         //  Info about single object.
         struct object_info_t
         {
-            i_context *context;
+            i_thread *thread;
             i_engine *engine;
         };
 

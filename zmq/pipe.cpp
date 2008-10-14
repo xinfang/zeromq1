@@ -20,12 +20,12 @@
 #include "pipe.hpp"
 #include "command.hpp"
 
-zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
-      i_context *destination_context_, i_engine *destination_engine_) :
+zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
+      i_thread *destination_thread_, i_engine *destination_engine_) :
     pipe (false),
-    source_context (source_context_),
+    source_thread (source_thread_),
     source_engine (source_engine_),
-    destination_context (destination_context_),
+    destination_thread (destination_thread_),
     destination_engine (destination_engine_),
     alive (true), 
     endofpipe (false)
@@ -51,7 +51,7 @@ void zmq::pipe_t::send_revive ()
 {
     command_t cmd;
     cmd.init_engine_revive (destination_engine, this);
-    source_context->send_command (destination_context, cmd);
+    source_thread->send_command (destination_thread, cmd);
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
@@ -80,6 +80,6 @@ void zmq::pipe_t::send_destroy_pipe ()
 {
     command_t cmd;
     cmd.init_engine_destroy_pipe (source_engine, this);
-    destination_context->send_command (source_context, cmd);
+    destination_thread->send_command (source_thread, cmd);
 }
 

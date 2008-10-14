@@ -27,7 +27,7 @@
 #include <assert.h>
 #include <poll.h>
 
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
@@ -42,12 +42,12 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t : public i_context, public i_poller
+    class poll_thread_t : public i_thread, public i_poller
     {
     public:
 
         //  Create a poll thread.
-        static i_context *create (dispatcher_t *dispatcher_);
+        static i_thread *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread.
         ~poll_thread_t ();
@@ -55,10 +55,9 @@ namespace zmq
         //  Unregisters the engine from the thread.
         void unregister_engine (i_pollable* engine_);
 
-        //  i_context implementation.
-        dispatcher_t *get_dispatcher ();
+        //  i_thread implementation.
         int get_thread_id ();
-        void send_command (i_context *destination_, const command_t &command_);
+        void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
         void set_fd (int handle_, int fd_);

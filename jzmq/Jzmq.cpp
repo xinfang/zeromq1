@@ -30,7 +30,7 @@ struct context_t
 {
     zmq::locator_t *locator;
     zmq::dispatcher_t *dispatcher;
-    zmq::i_context *io_thread;
+    zmq::i_thread *io_thread;
     zmq::api_thread_t *api_thread;
 };
 

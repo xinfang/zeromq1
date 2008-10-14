@@ -21,28 +21,28 @@
 #include "bp_engine.hpp"
 #include "config.hpp"
 
-zmq::bp_listener_t *zmq::bp_listener_t::create (i_context *calling_thread_,
-    i_context *thread_, const char *interface_, int handler_thread_count_,
-    i_context **handler_threads_, bool source_,
-    i_context *peer_context_, i_engine *peer_engine_,
+zmq::bp_listener_t *zmq::bp_listener_t::create (i_thread *calling_thread_,
+    i_thread *thread_, const char *interface_, int handler_thread_count_,
+    i_thread **handler_threads_, bool source_,
+    i_thread *peer_thread_, i_engine *peer_engine_,
     const char *peer_name_)
 {
     bp_listener_t *instance = new bp_listener_t (calling_thread_, thread_,
         interface_, handler_thread_count_, handler_threads_, source_,
-        peer_context_, peer_engine_, peer_name_);
+        peer_thread_, peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_listener_t::bp_listener_t (i_context *calling_thread_,
-      i_context *thread_, const char *interface_, int handler_thread_count_,
-      i_context **handler_threads_, bool source_,
-      i_context *peer_context_, i_engine *peer_engine_,
+zmq::bp_listener_t::bp_listener_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *interface_, int handler_thread_count_,
+      i_thread **handler_threads_, bool source_,
+      i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
     source (source_),
-    context (thread_),
-    peer_context (peer_context_),
+    thread (thread_),
+    peer_thread (peer_thread_),
     peer_engine (peer_engine_),
     listener (interface_)
 {
@@ -76,7 +76,7 @@ bool zmq::bp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_engine_t *engine = bp_engine_t::create (context,
+    bp_engine_t *engine = bp_engine_t::create (thread,
         handler_threads [current_handler_thread], listener,
         bp_out_batch_size, bp_in_batch_size, peer_name);
     assert (engine);
@@ -86,48 +86,48 @@ bool zmq::bp_listener_t::in_event ()
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
         //  the peer engine.
-        i_context *source_context = handler_threads [current_handler_thread];
+        i_thread *source_thread = handler_threads [current_handler_thread];
         i_engine *source_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        pipe_t *pipe = new pipe_t (source_context, source_engine,
-            peer_context, peer_engine);
+        pipe_t *pipe = new pipe_t (source_thread, source_engine,
+            peer_thread, peer_engine);
         assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
         cmd_send_to.init_engine_send_to (source_engine, "", pipe);
-        context->send_command (source_context, cmd_send_to);
+        thread->send_command (source_thread, cmd_send_to);
 
         //  Bind the peer to the destination end of the pipe.
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (peer_engine,
             peer_name, pipe);
-        context->send_command (peer_context, cmd_receive_from);
+        thread->send_command (peer_thread, cmd_receive_from);
     }
     else {
 
         //  The newly created engine serves as a local destination of messages
         //  I.e. it sends messages received from the peer engine to the socket.
-        i_context *destination_context =
+        i_thread *destination_thread =
             handler_threads [current_handler_thread];
         i_engine *destination_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        pipe_t *pipe = new pipe_t (peer_context, peer_engine,
-            destination_context, destination_engine);
+        pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
+            destination_thread, destination_engine);
         assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (
             destination_engine, "", pipe);
-        context->send_command (destination_context, cmd_receive_from);
+        thread->send_command (destination_thread, cmd_receive_from);
 
         //  Bind the peer to the source end of the pipe.
         command_t cmd_send_to;
         cmd_send_to.init_engine_send_to (peer_engine, peer_name, pipe);
-        context->send_command (peer_context, cmd_send_to);
+        thread->send_command (peer_thread, cmd_send_to);
     }
 
     //  Move to the next thread to get round-robin balancing of engines.

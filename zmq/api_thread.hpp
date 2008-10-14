@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "config.hpp"
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "i_engine.hpp"
 #include "i_locator.hpp"
 #include "i_poller.hpp"
@@ -45,7 +45,7 @@ namespace zmq
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create api_thread for each of them.
 
-    class api_thread_t : private i_context, private i_engine
+    class api_thread_t : private i_thread, private i_engine
     {
     public:
 
@@ -62,22 +62,22 @@ namespace zmq
             const char *exchange_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            i_context *listener_thread_ = NULL,
+            i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            i_context **handler_threads_ = NULL);
+            i_thread **handler_threads_ = NULL);
 
         //  Creates new queue, returns queue ID.
         int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            i_context *listener_thread_ = NULL,
+            i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            i_context **handler_threads_ = NULL);
+            i_thread **handler_threads_ = NULL);
 
         //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,
-            i_context *exchange_thread_, i_context *queue_thread_);
+            i_thread *exchange_thread_, i_thread *queue_thread_);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
@@ -101,10 +101,10 @@ namespace zmq
 
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
-        //  i_context implementation.
+        //  i_thread implementation.
         dispatcher_t *get_dispatcher ();
         int get_thread_id ();
-        void send_command (i_context *destination_, const command_t &command_);
+        void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_engine implementation.
         void process_command (const engine_command_t &command_);
