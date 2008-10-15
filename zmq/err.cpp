@@ -23,7 +23,7 @@
 #ifdef ZMQ_HAVE_WINDOWS
 
 #include <winsock2.h>
-using namespace zmq;
+
 const char *zmq::wsa_error()
 {
     int errcode = WSAGetLastError ();

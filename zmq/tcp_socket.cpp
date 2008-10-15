@@ -100,7 +100,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 		
     //  Signalise peer failure.
     if (nbytes == SOCKET_ERROR)
-        return 0;
+        return -1;
 
     // TODO: check error
     return (size_t) nbytes;

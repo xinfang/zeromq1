@@ -45,8 +45,6 @@ namespace zmq
 
 #endif
 
-
-
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
     perror (NULL);\

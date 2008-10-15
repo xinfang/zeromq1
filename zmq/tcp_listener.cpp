@@ -37,6 +37,7 @@
 
 #include "err.hpp"
 #include "ip.hpp"
+#include "formatting.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -73,12 +74,10 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     }
 
     //  Fill in the interface name.
-    //  TODO: Make this resistent to buffer overflow!
-    strcpy (iface, inet_ntoa (ip_address.sin_addr));
-    assert (iface);
+    zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
 
-     size_t isz = strlen (iface);
-    _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
+    size_t isz = strlen (iface);
+    snprintf (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
               
     //  Listen for incomming connections.
