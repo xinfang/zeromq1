@@ -25,7 +25,7 @@
 
 #include "i_engine.hpp"
 #include "i_pollable.hpp"
-#include "poll_thread.hpp"
+#include "i_thread.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
 #include "bp_encoder.hpp"

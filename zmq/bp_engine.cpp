@@ -19,6 +19,7 @@
 
 
 #include "bp_engine.hpp"
+#include "dispatcher.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *hostname_, size_t writebuf_size_,

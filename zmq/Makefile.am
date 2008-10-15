@@ -45,7 +45,8 @@ pkginclude_HEADERS = \
     thread.hpp \
     mutex.hpp \
     platform.hpp \
-    select_thread.hpp
+    select_thread.hpp \
+    formatting.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
