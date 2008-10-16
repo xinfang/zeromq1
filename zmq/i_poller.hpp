@@ -30,8 +30,12 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_poller () {};
 
-        //  Specify the file descriptor to use for polling.
-        virtual void set_fd (int handle_, int fd_) = 0;
+        //  Add file descriptor to the polling set. Return handle
+        //  representing the descriptor.
+        virtual int add_fd (int fd_, i_pollable *engine_) = 0;
+
+        //  Remove file descriptor identified by handle from the polling set.
+        virtual void rm_fd (int handle_) = 0;
 
         //  Start polling for input from socket.
         virtual void set_pollin (int handle_) = 0;
@@ -52,6 +56,7 @@ namespace zmq
         //  Try to write to the socket (even though we are not sure the
         //  write will succeed).
         virtual void speculative_write (int handle_) = 0;
+
     };
 
 }

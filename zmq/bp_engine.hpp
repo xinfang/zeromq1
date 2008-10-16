@@ -61,10 +61,11 @@ namespace zmq
             const char *local_object_);
 
         //  i_pollable interface implementation.
-        void set_poller (i_poller *poller_, int handle_);
-        bool in_event ();
-        bool out_event ();
-        void close_event ();
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void error_event ();
+        void unregister_event ();
         void process_command (const engine_command_t &command_);
 
     private:
