@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -29,7 +29,7 @@ struct context_t
 {
     zmq::locator_t *locator;
     zmq::dispatcher_t *dispatcher;
-    zmq::poll_thread_t *poll_thread;
+    zmq::i_thread *io_thread;
     zmq::api_thread_t *api_thread;
 };
 
@@ -42,8 +42,8 @@ void *czmq_create (const char *host_)
     assert (context->locator);
     context->dispatcher = new zmq::dispatcher_t (2);
     assert (context->dispatcher);
-    context->poll_thread = zmq::poll_thread_t::create (context->dispatcher);
-    assert (context->poll_thread);
+    context->io_thread = zmq::poll_thread_t::create (context->dispatcher);
+    assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);
     assert (context->api_thread);
@@ -75,7 +75,7 @@ int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
 
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_exchange (exchange_, scope, nic_,
-        context->poll_thread, 1, &context->poll_thread);
+        context->io_thread, 1, &context->io_thread);
 }
 
 int czmq_create_queue (void *obj_, const char *queue_, int scope_,
@@ -91,7 +91,7 @@ int czmq_create_queue (void *obj_, const char *queue_, int scope_,
 
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_queue (queue_, scope, nic_,
-        context->poll_thread, 1, &context->poll_thread);
+        context->io_thread, 1, &context->io_thread);
 }
 
 void czmq_bind (void *obj_, const char *exchange_, const char *queue_)
@@ -101,7 +101,7 @@ void czmq_bind (void *obj_, const char *exchange_, const char *queue_)
 
     //  Forward the call to native 0MQ library.
     context->api_thread->bind (exchange_, queue_,
-        context->poll_thread, context->poll_thread);
+        context->io_thread, context->io_thread);
 }
 
 void czmq_send (void *obj_, int eid_, void *data_, size_t size_,

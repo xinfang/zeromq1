@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -50,8 +50,8 @@ zmq::api_thread_t::~api_thread_t ()
 
 int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *interface_,
-    poll_thread_t *listener_thread_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
+    i_thread *listener_thread_, int handler_thread_count_,
+    i_thread **handler_threads_)
 {
     //  Insert the exchange to the local list of exchanges.
     //  If the exchange is already present, return immediately.
@@ -67,7 +67,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    locator->create (exchange_type_id, exchange_, this, this,
+    locator->create (this, exchange_type_id, exchange_, this, this,
         scope_, interface_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -75,8 +75,8 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
 }
 
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
-    const char *interface_, poll_thread_t *listener_thread_,
-    int handler_thread_count_, poll_thread_t **handler_threads_)
+    const char *interface_, i_thread *listener_thread_,
+    int handler_thread_count_, i_thread **handler_threads_)
 {
     //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.
@@ -92,7 +92,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    locator->create (queue_type_id, queue_, this, this, scope_,
+    locator->create (this, queue_type_id, queue_, this, this, scope_,
         interface_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -100,22 +100,22 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
 }
 
 void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
-    poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
+    i_thread *exchange_thread_, i_thread *queue_thread_)
 {
     //  Find the exchange.
-    i_context *exchange_context;
+    i_thread *exchange_thread;
     i_engine *exchange_engine;
     exchanges_t::iterator eit;
     for (eit = exchanges.begin (); eit != exchanges.end (); eit ++)
         if (eit->first == exchange_)
             break;
     if (eit != exchanges.end ()) {
-        exchange_context = this;
+        exchange_thread = this;
         exchange_engine = this;
     }
     else {
-        if (!(locator->get (exchange_type_id, exchange_,
-              &exchange_context, &exchange_engine, exchange_thread_, queue_))) {
+        if (!(locator->get (this, exchange_type_id, exchange_,
+              &exchange_thread, &exchange_engine, exchange_thread_, queue_))) {
 
             //  If the exchange cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();
@@ -128,19 +128,19 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
 
     //  Find the queue.
-    i_context *queue_context;
+    i_thread *queue_thread;
     i_engine *queue_engine;
     queues_t::iterator qit;
     for (qit = queues.begin (); qit != queues.end (); qit ++)
         if (qit->first == queue_)
             break;
     if (qit != queues.end ()) {
-        queue_context = this;
+        queue_thread = this;
         queue_engine = this;
     }
     else {
-        if (!(locator->get (queue_type_id, queue_,
-              &queue_context, &queue_engine, queue_thread_, exchange_))) {
+        if (!(locator->get (this, queue_type_id, queue_,
+              &queue_thread, &queue_engine, queue_thread_, exchange_))) {
 
             //  If the queue cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();
@@ -153,8 +153,8 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
 
     //  Create the pipe.
-    pipe_t *pipe = new pipe_t (exchange_context, exchange_engine,
-        queue_context, queue_engine);
+    pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
+        queue_thread, queue_engine);
     assert (pipe);
 
     //  Bind the source end of the pipe.
@@ -163,7 +163,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     else {
         command_t cmd;
         cmd.init_engine_send_to (exchange_engine, exchange_, pipe);
-        send_command (exchange_context, cmd);
+        send_command (exchange_thread, cmd);
     }
 
     //  Bind the destination end of the pipe.
@@ -172,7 +172,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     else {
         command_t cmd;
         cmd.init_engine_receive_from (queue_engine, queue_, pipe);
-        send_command (queue_context, cmd);
+        send_command (queue_thread, cmd);
     }
 }
 
@@ -275,12 +275,17 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
     return qid;
 }
 
+zmq::dispatcher_t *zmq::api_thread_t::get_dispatcher ()
+{
+    return dispatcher;
+}
+
 int zmq::api_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-void zmq::api_thread_t::send_command (i_context *destination_,
+void zmq::api_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);

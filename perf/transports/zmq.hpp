@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -46,6 +46,7 @@ namespace perf
             worker = zmq::poll_thread_t::create (&dispatcher);
 
             if (bind_) {
+
                 assert (!exchange_interface_);
                 assert (!queue_interface_);
 
@@ -96,7 +97,7 @@ namespace perf
         zmq::dispatcher_t dispatcher;
         zmq::locator_t locator;
         zmq::api_thread_t *api;
-        zmq::poll_thread_t *worker;
+        zmq::i_thread *worker;
 	int exchange_id;
     };
 

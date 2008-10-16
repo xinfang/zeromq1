@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -30,11 +30,12 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_poller () {};
 
-        //  Add file descriptor fd_ into pollset. Return handle in pollset vector.
+        //  Add file descriptor to the polling set. Return handle
+        //  representing the descriptor.
         virtual int add_fd (int fd_, i_pollable *engine_) = 0;
 
-        //  Remove all pfd(s) belonging to engine_
-        virtual void rm_fd (i_pollable *engine_) = 0;
+        //  Remove file descriptor identified by handle from the polling set.
+        virtual void rm_fd (int handle_) = 0;
 
         //  Start polling for input from socket.
         virtual void set_pollin (int handle_) = 0;
@@ -55,6 +56,7 @@ namespace zmq
         //  Try to write to the socket (even though we are not sure the
         //  write will succeed).
         virtual void speculative_write (int handle_) = 0;
+
     };
 
 }

@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -25,16 +25,13 @@
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
-    thread_count (thread_count_ + 1),
+    thread_count (thread_count_),
     signalers (thread_count, (i_signaler*) NULL),
     used (thread_count, false)
 {
     //  Alocate NxN matrix of dispatching pipes.
     pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
-
-    //  Mark admin thread ID as used.
-    used [admin_thread_id] = true;
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
@@ -79,24 +76,6 @@ void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
 
     //  Unregister signaler.
     signalers [thread_id_] = NULL;
-
-    //  Unlock the mutex.
-    sync.unlock ();
-}
-
-int zmq::dispatcher_t::get_thread_id ()
-{
-    return admin_thread_id;
-}
-
-void zmq::dispatcher_t::send_command (i_context *destination_,
-    const command_t &command_)
-{
-    //  Lock the mutex.
-    sync.lock ();
-
-    //  Pass the command to the other thread via a pipe.
-    write (admin_thread_id, destination_->get_thread_id (), command_);
 
     //  Unlock the mutex.
     sync.unlock ();

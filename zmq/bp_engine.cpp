@@ -3,50 +3,49 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <poll.h>
 
 #include "bp_engine.hpp"
+#include "dispatcher.hpp"
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    const char *hostname_, size_t writebuf_size_,
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+    i_thread *thread_, const char *hostname_, size_t writebuf_size_,
     size_t readbuf_size_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (
+    bp_engine_t *instance = new bp_engine_t (calling_thread_,
         thread_, hostname_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-    const char *local_object_)
+zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+    i_thread *thread_, tcp_listener_t &listener_, size_t writebuf_size_,
+    size_t readbuf_size_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (
+    bp_engine_t *instance = new bp_engine_t (calling_thread_,
         thread_, listener_, writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
-      size_t writebuf_size_, size_t readbuf_size_,
+zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+      const char *hostname_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
-    context (thread_),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
@@ -66,13 +65,14 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     assert (readbuf);
 
     //  Register BP engine with the I/O thread.
-    thread_->register_engine (this);
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
+zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
-    context (thread_),
     writebuf_size (writebuf_size_),
     readbuf_size (readbuf_size_),
     write_size (0),
@@ -92,7 +92,9 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     assert (readbuf);
 
     //  Register BP engine with the I/O thread.
-    thread_->register_engine (this);
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_engine_t::~bp_engine_t ()
@@ -101,41 +103,34 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-void zmq::bp_engine_t::init_event (i_poller *poller_)
+void zmq::bp_engine_t::register_event (i_poller *poller_)
 {
-    //  Add new pfd into poll-er and store handler
-    handle = poller_->add_fd (socket.get_fd (), this);
-
     //  Store the callback.
     poller = poller_;
 
-    //  Enable POLLIN
-    poller_->set_pollin (handle);
+    //  Initialise the poll handle.
+    handle = poller->add_fd (socket.get_fd (), this);
+    poller->set_pollin (handle);
 }
 
-bool zmq::bp_engine_t::in_event ()
+void zmq::bp_engine_t::in_event ()
 {
     //  Read as much data as possible to the read buffer.
-    size_t nbytes = socket.read (readbuf, readbuf_size);
+    int nbytes = socket.read (readbuf, readbuf_size);
 
-    if (!nbytes) {
-
-        //  If the other party closed the connection, stop polling.
-        //  TODO: handle the event more gracefully
-        poller->reset_pollin (handle);
-        return false;
-    }
+    //  The other party closed the connection.
+    //  TODO: handle the event more gracefully.
+    if (nbytes == -1)
+        assert (false);
 
     //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
 
     //  Flush any messages decoder may have produced.
     demux.flush ();
-
-    return true;
 }
 
-bool zmq::bp_engine_t::out_event ()
+void zmq::bp_engine_t::out_event ()
 {
     //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
@@ -151,17 +146,22 @@ bool zmq::bp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
+        int nbytes = (ssize_t) socket.write (writebuf + write_pos,
             write_size - write_pos);
-        if (nbytes <= 0) 
-            return false;
+
+        //  The other party closed the connection.
+        //  TODO: handle the event more gracefully.
+        if (nbytes == -1)
+            assert (false);
+
         write_pos += nbytes;
     }
-    return true;
 }
 
-void zmq::bp_engine_t::uninit_event (i_poller *poller_)
+void zmq::bp_engine_t::error_event ()
 {
+    assert (false);
+/*
     if (!socket_error) {
         socket_error = true;
 
@@ -180,10 +180,12 @@ void zmq::bp_engine_t::uninit_event (i_poller *poller_)
         //  Notify senders that this engine is shutting down.
         mux.terminate_pipes ();
     }
+*/
+}
 
-    //  Remove all fds belonging to this engine from poll-er
-    poller_->rm_fd (this);
-
+void zmq::bp_engine_t::unregister_event ()
+{
+    assert (false);
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)
@@ -217,6 +219,8 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::destroy_pipe:
+
+        //  Delete the pipe not needed by the other side anymore.
         demux.destroy_pipe (command_.args.destroy_pipe.pipe);
         delete command_.args.destroy_pipe.pipe;
         break;

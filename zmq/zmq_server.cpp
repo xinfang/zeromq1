@@ -3,45 +3,53 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <poll.h>
 #include <string.h>
 #include <vector>
 #include <map>
 #include <string>
 using namespace std;
 
+#include "platform.hpp"
+#ifdef ZMQ_HAVE_WINDOWS
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+#include <poll.h>
+#endif
+
 #include "config.hpp"
 #include "stdint.hpp"
 #include "err.hpp"
 #include "zmq_server.hpp"
+#include "tcp_socket.hpp"
+#include "formatting.hpp"
 using namespace zmq;
 
 //  Info about a single object.
 struct object_info_t
 {
-    string interface;
+    string iface;
     int fd;
 };
 
@@ -68,127 +76,158 @@ void unregister (int s_, objects_t *objects_)
 
 int main (int argc, char *argv [])
 {
+
     //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
+        printf ("argc %d\n", argc);
         printf ("Usage: zmq_server [port]\n");
         printf ("Default port is %d.\n", (int) default_locator_port);
+        
         return 1;
     }
 
-    //  Create IP address to listen to.
-    sockaddr_in address;
-    memset (&address, 0, sizeof (sockaddr_in));
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = htonl (INADDR_ANY);
-    address.sin_port =
-        htons (argc == 1 ? default_locator_port : atoi (argv [1]));
+    //  Create a tcp_listener.
+    char iface [256] = "0.0.0.0:";
+    char tmp [10];
+    if (argc == 2 && (sizeof (argc)== 4 * sizeof (char) ||
+        sizeof (argc)== 5 * sizeof (char) )) { 
+	   //  The argument is port.
+	   zmq_snprintf (tmp, sizeof(argv[1]), "%s", argv[1]);
+    }	
+    else {
+        zmq_sprintf (tmp, "%d", default_locator_port);   
+    }
+    zmq_strcat (iface, tmp); 
+    tcp_listener_t listening_socket (iface);
+     
+    //	Create list of descriptors
+    typedef vector <tcp_socket_t *> socket_list_t;
+    socket_list_t socket_list;
 
-    //  Create a listening socket.
-    int listening_socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    errno_assert (listening_socket != -1);
-
-    //  Allow socket reusing.
-    int flag = 1;
-    int rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
-        &flag, sizeof (int));
-    errno_assert (rc == 0);
-
-    //  Bind the socket to the network interface and port.
-    rc = bind (listening_socket, (struct sockaddr*) &address,
-        sizeof (address));
-    errno_assert (rc == 0);
-              
-    //  Listen for incomming connections.
-    rc = ::listen (listening_socket, 1);
-    errno_assert (rc == 0);
-
-    //  Initialise the pollset.
-    typedef vector <pollfd> pollfds_t;
-    pollfds_t pollfds (1);
-    pollfds [0].fd = listening_socket;
-    pollfds [0].events = POLLIN;
-
+    //  Intitialise descriptors for select
+    fd_set result_set_fds, source_set_fds, error_set_fds;
+    
+    FD_ZERO (&source_set_fds);
+    FD_ZERO (&result_set_fds);
+    FD_ZERO (&error_set_fds); 
+    int fd_int = listening_socket.get_fd();
+    
+    FD_SET (fd_int, &source_set_fds);
+    int maxfdp1 = fd_int + 1;
+        
     //  Object repository. Individual object maps are placed into slots
     //  identified by the type ID of particular object.
     objects_t objects [type_id_count];
-
+    
     while (true) {
-
-        //  Poll on the sockets.
-        rc = poll (&pollfds [0], pollfds.size (), -1);
-        errno_assert (rc != -1);
-
-        //  Traverse all the sockets.
-        for (pollfds_t::size_type pos = 1; pos < pollfds.size (); pos ++) {
-
-            //  Get the socket being currently being processed.
-            int s = pollfds [pos].fd;
-
-            if ((pollfds [pos].revents & POLLERR) ||
-                  (pollfds [pos].revents & POLLHUP)) {
-
+        
+       //  Select on the descriptors.
+       int rc = 0;
+       while (rc == 0) {
+           
+           memcpy (&result_set_fds, &source_set_fds, sizeof (source_set_fds));
+           memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
+	            
+           rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
+	   errno_assert (rc != -1);
+       }    
+      
+       //  Traverse all the sockets.
+       for (socket_list_t::size_type pos = 0; pos < socket_list.size ();
+             pos ++) {
+ 	   
+           //  Get the socket being currently being processed.
+           int s = socket_list[pos]->get_fd();
+           
+           if (FD_ISSET (s, &error_set_fds)) {
+               
                 //  Unregister all the symbols registered by this connection
                 //  and delete the descriptor from pollfds vector.
                 unregister (s, objects);
-                pollfds.erase (pollfds.begin () + pos);
-                close (s);
+                
+                //  Delete the tcp_socket from socket_list. 
+                delete socket_list[pos];
+                socket_list.erase (socket_list.begin () + pos);
+                
+                //  Erase the whole list of file descriptors selectfds and add
+                //  them back without the one erased from socket_list.
+                FD_ZERO (&source_set_fds);
+                for (socket_list_t::size_type i = 0; i < socket_list.size ();
+                     i ++) {
+                   FD_SET (fd_int , &source_set_fds);
+                   FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+		}
+                 
                 continue;
             }
-
-            if (pollfds [pos].revents & POLLIN) {
-
+	    else if (FD_ISSET (s, &result_set_fds)) {
+           
                 //  Read command ID.
                 unsigned char cmd;
                 unsigned char reply;
-                ssize_t nbytes = recv (s, &cmd, 1, MSG_WAITALL);
-
+                int nbytes = socket_list [pos]->read (&cmd, 1);
+                                
                 //  Connection closed by peer.
-                if (nbytes == 0) {
-
+                if (nbytes == -1) {
+           
                     //  Unregister all the symbols registered by this connection
                     //  and delete the descriptor from pollfds vector.
                     unregister (s, objects);
-                    pollfds.erase (pollfds.begin () + pos);
-                    close (s);
+                    
+                    //  Delete the tcp_socket from socket_list. 
+                    delete socket_list [pos];
+                    socket_list.erase (socket_list.begin () + pos);
+	                
+	                //  Erase the whole list of filedescriptors selectfds
+                        //  and add them back without the one erased
+                        //  from socket_list.
+	                FD_ZERO (&source_set_fds);
+	                for (socket_list_t::size_type i = 0;
+                              i < socket_list.size (); i ++) {
+                            FD_SET (fd_int , &source_set_fds);
+                            FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+			}
+                
                     continue;
                 }
-
+		
                 assert (nbytes == 1);
 
                 switch (cmd) {
                 case create_id:
                     {
+                        
                         //  Parse type ID.
                         unsigned char type_id;
-                        nbytes = recv (s, &type_id, 1, MSG_WAITALL);
+                        nbytes = socket_list [pos]->read (&type_id, 1);
                         assert (nbytes == 1);
 
                         //  Parse object name.
                         unsigned char size;
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
+                        nbytes = socket_list [pos]->read (&size, 1);
                         assert (nbytes == 1);
                         char name [256];
-                        nbytes = recv (s, name, size, MSG_WAITALL);
+                        nbytes = socket_list [pos]->read (&name, size);
                         assert (nbytes == size);
                         name [size] = 0;
 
-                        //  Parse interface.
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
+                        //  Parse iface.
+                        nbytes = socket_list [pos]->read (&size, 1);
                         assert (nbytes == 1);
-                        char interface [256];
-                        nbytes = recv (s, interface, size, MSG_WAITALL);
+                        char iface [256];
+                        nbytes = socket_list [pos]->read (&iface, size);
                         assert (nbytes == size);
-                        interface [size] = 0;
+                        iface [size] = 0;
 
                         //  Insert object to the repository.
-                        object_info_t info = {interface, s};
+                        object_info_t info = {iface, s};
                         if (!objects [type_id].insert (
                               objects_t::value_type (name, info)).second) {
 
                             //  Send an error if the exchange already exists.
                             reply = fail_id;
-                            nbytes = send (s, &reply, 1, 0);
+                            nbytes = socket_list [pos]->write(&reply, 1);
                             assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                             printf ("Error when creating object: object %d:%s"
@@ -199,11 +238,11 @@ int main (int argc, char *argv [])
 
                         //  Send reply command.
                         reply = create_ok_id;
-                        nbytes = send (s, &reply, 1, 0);
+                        nbytes = socket_list [pos]->write(&reply, 1);
                         assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s created (%s).\n", type_id, name,
-                            interface);
+                            iface);
 #endif
                         break;
                     }
@@ -211,15 +250,16 @@ int main (int argc, char *argv [])
                     {
                         //  Parse type ID.
                         unsigned char type_id;
-                        nbytes = recv (s, &type_id, 1, MSG_WAITALL);
+
+                        nbytes = socket_list [pos]->read (&type_id, 1);
                         assert (nbytes == 1);
 
                         //  Parse object name.
                         unsigned char size;
-                        nbytes = recv (s, &size, 1, MSG_WAITALL);
+                        nbytes = socket_list [pos]->read (&size, 1);
                         assert (nbytes == 1);
                         char name [256];
-                        nbytes = recv (s, name, size, MSG_WAITALL);
+                        nbytes = socket_list [pos]->read (&name, size);
                         assert (nbytes == size);
                         name [size] = 0;
 
@@ -230,7 +270,8 @@ int main (int argc, char *argv [])
 
                              //  Send the error.
                              reply = fail_id;
-                             nbytes = send (s, &reply, 1, 0);
+
+                             nbytes = socket_list [pos]->write (&reply, 1);                             
                              assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                              printf ("Error when looking for an object: "
@@ -242,20 +283,20 @@ int main (int argc, char *argv [])
 
                         //  Send reply command.
                         reply = get_ok_id;
-                        nbytes = send (s, &reply, 1, 0);
+                        nbytes = socket_list [pos]->write (&reply, 1);
                         assert (nbytes == 1);
 
                         //  Send the interface.
-                        size = it->second.interface.size ();
-                        nbytes = send (s, &size, 1, 0);
+                        size = it->second.iface.size ();
+                        nbytes = socket_list [pos]->write (&size, 1);
                         assert (nbytes == 1);
-                        nbytes = send (
-                            s, it->second.interface.c_str (), size, 0);
+                        nbytes = socket_list [pos]->write (
+                            it->second.iface.c_str (), size);
                         assert (nbytes == size);
 
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name, it->second.interface.c_str ());
+                            name, it->second.iface.c_str ());
 #endif
                         break;
                     }
@@ -263,14 +304,17 @@ int main (int argc, char *argv [])
                     assert (false);
                 }
             }
-        }
 
+        }
+	
         //  Accept incoming connection.
-        if (pollfds [0].revents & POLLIN) {
-            int s = accept (listening_socket, NULL, NULL);
-            errno_assert (s != -1);
-            pollfd pfd = {s, POLLIN, 0};
-            pollfds.push_back (pfd);
+        if (FD_ISSET (fd_int, &result_set_fds)) {    
+	    socket_list.push_back (new tcp_socket_t(listening_socket, true));           
+            int s = socket_list.back()->get_fd();
+            FD_SET (s, &source_set_fds);
+            
+            if (maxfdp1 <= s)
+                maxfdp1 = s + 1;
         }
 
     }

@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -50,10 +50,11 @@ zmq::locator_t::~locator_t ()
         delete global_locator;
 }
 
-void zmq::locator_t::create (unsigned char type_id_, const char *object_,
-    i_context *context_, i_engine *engine_, scope_t scope_,
-    const char *interface_, poll_thread_t *listener_thread_,
-    int handler_thread_count_, poll_thread_t **handler_threads_)
+void zmq::locator_t::create (i_thread *calling_thread_,
+    unsigned char type_id_, const char *object_,
+    i_thread *thread_, i_engine *engine_, scope_t scope_,
+    const char *interface_, i_thread *listener_thread_,
+    int handler_thread_count_, i_thread **handler_threads_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -62,7 +63,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     sync.lock ();
 
     //  Add the object to the list of known objects.
-    object_info_t info = {context_, engine_};
+    object_info_t info = {thread_, engine_};
     objects [type_id_].insert (objects_t::value_type (object_, info));
 
     //  Add the object to the global locator.
@@ -72,10 +73,10 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
          assert (strlen (interface_) < 256);
          
          //  Create a listener for the object.
-         bp_listener_t *listener = bp_listener_t::create (listener_thread_,
-             interface_, handler_thread_count_, handler_threads_,
-             type_id_ == exchange_type_id ? false : true, context_,
-             engine_, object_);
+         bp_listener_t *listener = bp_listener_t::create (calling_thread_,
+             listener_thread_, interface_, handler_thread_count_,
+             handler_threads_, type_id_ == exchange_type_id ? false : true,
+             thread_, engine_, object_);
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;
@@ -98,9 +99,9 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     sync.unlock ();
 }
 
-bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
-    i_context **context_, i_engine **engine_, poll_thread_t *thread_,
-    const char *local_object_)
+bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
+    const char *object_, i_thread **thread_, i_engine **engine_,
+    i_thread *handler_thread_, const char *local_object_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -116,10 +117,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
 
          //  If we are running without global locator, fail.
          if (!global_locator) {
-
-             //  Leave critical section.
              sync.unlock ();
-
              return false;
          }
 
@@ -149,17 +147,17 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          interface [size] = 0;
 
          //  Create the proxy engine for the object.
-         bp_engine_t *engine = bp_engine_t::create (thread_,
-             interface, bp_out_batch_size, bp_in_batch_size,
+         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
+             handler_thread_, interface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into object repository.
-         object_info_t info = {thread_, engine};
+         object_info_t info = {handler_thread_, engine};
          it = objects [type_id_].insert (
              objects_t::value_type (object_, info)).first;
     }
 
-    *context_ = it->second.context;
+    *thread_ = it->second.thread;
     *engine_ = it->second.engine;
 
     //  Leave critical section.

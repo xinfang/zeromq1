@@ -3,19 +3,20 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 
 #ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
 #define __ZMQ_BP_ENGINE_HPP_INCLUDED__
@@ -24,7 +25,7 @@
 
 #include "i_engine.hpp"
 #include "i_pollable.hpp"
-#include "poll_thread.hpp"
+#include "i_thread.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
 #include "bp_encoder.hpp"
@@ -49,35 +50,34 @@ namespace zmq
         //  host parameter. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        static bp_engine_t *create (poll_thread_t *thread_,
-            const char *hostname_, size_t writebuf_size_,
+        static bp_engine_t *create (i_thread *calling_thread_,
+            i_thread *thread_, const char *hostname_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object.
-        static bp_engine_t *create (poll_thread_t *thread_,
-            tcp_listener_t &listener_, size_t writebuf_size_,
-            size_t readbuf_size_, const char *local_object_);
+        static bp_engine_t *create (i_thread *calling_thread_,
+            i_thread *thread_, tcp_listener_t &listener_,
+            size_t writebuf_size_, size_t readbuf_size_,
+            const char *local_object_);
 
         //  i_pollable interface implementation.
-        void init_event (i_poller *poller_);
-        bool in_event ();
-        bool out_event ();
-        void uninit_event (i_poller *poller_);
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void error_event ();
+        void unregister_event ();
         void process_command (const engine_command_t &command_);
 
     private:
 
-        bp_engine_t (poll_thread_t *thread_,
+        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
-        bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
-            size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_);
+        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+            tcp_listener_t &listener_, size_t writebuf_size_,
+            size_t readbuf_size_, const char *local_object_);
         ~bp_engine_t ();
-
-        //  Thread context the engine belongs to.
-        i_context *context;
 
         //  Object to aggregate messages from inbound pipes.
         mux_t mux;

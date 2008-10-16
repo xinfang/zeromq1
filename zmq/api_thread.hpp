@@ -3,19 +3,20 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 
 #ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
 #define __ZMQ_API_THREAD_HPP_INCLUDED__
@@ -25,15 +26,18 @@
 #include <utility>
 
 #include "config.hpp"
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "i_engine.hpp"
+#include "i_locator.hpp"
+#include "i_poller.hpp"
 #include "message.hpp"
 #include "dispatcher.hpp"
 #include "mux.hpp"
 #include "demux.hpp"
 #include "ypollset.hpp"
 #include "scope.hpp"
-#include "i_locator.hpp"
+#include "zmq_server.hpp"
+#include "poll_thread.hpp"
 
 namespace zmq
 {
@@ -41,7 +45,7 @@ namespace zmq
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create api_thread for each of them.
 
-    class api_thread_t : private i_context, private i_engine
+    class api_thread_t : private i_thread, private i_engine
     {
     public:
 
@@ -58,22 +62,22 @@ namespace zmq
             const char *exchange_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            poll_thread_t *listener_thread_ = NULL,
+            i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            i_thread **handler_threads_ = NULL);
 
         //  Creates new queue, returns queue ID.
         int create_queue (
             const char *queue_,
             scope_t scope_ = scope_local,
             const char *interface_ = NULL,
-            poll_thread_t *listener_thread_ = NULL,
+            i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            i_thread **handler_threads_ = NULL);
 
         //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,
-            poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
+            i_thread *exchange_thread_, i_thread *queue_thread_);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
@@ -97,9 +101,10 @@ namespace zmq
 
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
 
-        //  i_context implementation.
+        //  i_thread implementation.
+        dispatcher_t *get_dispatcher ();
         int get_thread_id ();
-        void send_command (i_context *destination_, const command_t &command_);
+        void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_engine implementation.
         void process_command (const engine_command_t &command_);

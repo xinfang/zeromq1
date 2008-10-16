@@ -3,29 +3,29 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "pipe.hpp"
 #include "command.hpp"
 
-zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
-      i_context *destination_context_, i_engine *destination_engine_) :
+zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
+      i_thread *destination_thread_, i_engine *destination_engine_) :
     pipe (false),
-    source_context (source_context_),
+    source_thread (source_thread_),
     source_engine (source_engine_),
-    destination_context (destination_context_),
+    destination_thread (destination_thread_),
     destination_engine (destination_engine_),
     alive (true), 
     endofpipe (false)
@@ -51,7 +51,7 @@ void zmq::pipe_t::send_revive ()
 {
     command_t cmd;
     cmd.init_engine_revive (destination_engine, this);
-    source_context->send_command (destination_context, cmd);
+    source_thread->send_command (destination_thread, cmd);
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
@@ -80,6 +80,6 @@ void zmq::pipe_t::send_destroy_pipe ()
 {
     command_t cmd;
     cmd.init_engine_destroy_pipe (source_engine, this);
-    destination_context->send_command (source_context, cmd);
+    destination_thread->send_command (source_thread, cmd);
 }
 

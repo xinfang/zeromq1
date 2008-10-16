@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -25,7 +25,7 @@
 
 #include "i_locator.hpp"
 #include "i_engine.hpp"
-#include "i_context.hpp"
+#include "i_thread.hpp"
 #include "mutex.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
@@ -51,24 +51,24 @@ namespace zmq
         ~locator_t ();
 
         //  Creates object.
-        void create (unsigned char type_id_, const char *object_,
-            i_context *context_, i_engine *engine_, scope_t scope_,
-            const char *interface_,
-            poll_thread_t *listener_thread_, int handler_thread_count_,
-            poll_thread_t **handler_threads_);
+        void create (i_thread *calling_thread_, unsigned char type_id_,
+            const char *object_, i_thread *thread_, i_engine *engine_,
+            scope_t scope_, const char *interface_,
+            i_thread *listener_thread_, int handler_thread_count_,
+            i_thread **handler_threads_);
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        bool get (unsigned char type_id_, const char *object_,
-            i_context **context_, i_engine **engine_,
-            poll_thread_t *thread_, const char *local_object_);
+        bool get (i_thread *calling_thread_, unsigned char type_id_,
+            const char *object_, i_thread **thread_, i_engine **engine_,
+            i_thread *handler_thread_, const char *local_object_);
 
     private:
 
         //  Info about single object.
         struct object_info_t
         {
-            i_context *context;
+            i_thread *thread;
             i_engine *engine;
         };
 

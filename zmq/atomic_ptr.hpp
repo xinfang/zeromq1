@@ -3,25 +3,30 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 
 #ifndef __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
 
 #include "mutex.hpp"
 #include "err.hpp"
+#include "platform.hpp"
+#ifdef ZMQ_HAVE_WINDOWS
+#include <Windows.h>
+#endif
 
 namespace zmq
 {
@@ -55,7 +60,9 @@ namespace zmq
         //  to the 'val' value. Old value is returned.
         inline T *xchg (T *val_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+            return (T*) InterlockedExchangePointer (&ptr, val_);
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old = val_;
             __asm__ volatile ("lock; xchgl %0, %1"
@@ -104,7 +111,10 @@ namespace zmq
         //  is returned.
         inline T *cas (T *cmp_, T *val_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+            return (T*) InterlockedCompareExchangePointer (
+                (volatile PVOID*) &ptr, val_, cmp_);
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old;
             __asm__ volatile ("lock; cmpxchgl %2, %3"             

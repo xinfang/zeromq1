@@ -27,7 +27,7 @@ pkginclude_HEADERS = \
     command.hpp \
     mux.hpp \
     demux.hpp \
-    i_context.hpp \
+    i_thread.hpp \
     pipe.hpp \
     bp_listener.hpp \
     locator.hpp \
@@ -43,7 +43,9 @@ pkginclude_HEADERS = \
     ip.hpp \
     i_poller.hpp \
     thread.hpp \
-    mutex.hpp
+    mutex.hpp \
+    platform.hpp \
+    formatting.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -53,6 +55,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     ypollset.cpp \
     ysemaphore.cpp \
     dispatcher.cpp \
+    err.cpp \
     bp_decoder.cpp \
     bp_encoder.cpp \
     api_thread.cpp \
@@ -74,5 +77,8 @@ bin_PROGRAMS = zmq_server
 zmq_server_LDADD = libzmq.la
 zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
 zmq_server_CXXFLAGS = -Wall -pedantic -Werror
+
+dist-hook:
+		-rm $(distdir)/platform.hpp
 
 

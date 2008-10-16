@@ -17,21 +17,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_SIGNALER_HPP_INCLUDED__
-#define __ZMQ_I_SIGNALER_HPP_INCLUDED__
+#ifndef __ZMQ_I_THREAD_HPP_INCLUDED__
+#define __ZMQ_I_THREAD_HPP_INCLUDED__
+
+#include "command.hpp"
 
 namespace zmq
 {
-    //  Virtual interface used to send signals. Individual implementations
-    //  may restrict the number of possible signal types to send.
-    struct i_signaler
+
+    //  This interface can be used for inter-thread communication. Thread
+    //  context is uniquely specified by i_thread pointer. Sending a message
+    //  between threads boils down to sending it between the thread contexts.
+
+    struct i_thread
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_signaler () {};
+        virtual ~i_thread () {};
 
-        //  Send a signal with a specific ID.
-        virtual void signal (int signal_) = 0;
+        //  Returns unique ID of the thread.
+        virtual int get_thread_id () = 0;
+
+        //  Sends command to a different thread.
+        //  TODO: send_command is somehow redundant as the implementation is
+        //        the same in each model of this interface.
+        //        Potentially, it can be replaced by get_dispatcher function.
+        virtual void send_command (i_thread *destination_,
+            const struct command_t &command_) = 0;
     };
 
 }

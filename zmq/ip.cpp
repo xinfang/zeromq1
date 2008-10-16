@@ -3,31 +3,26 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <cstdlib>
 #include <assert.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <string.h>
 #include <string>
 #include <stdlib.h>
 
-#include "config.h"
 #include "ip.hpp"
 #include "err.hpp"
 
@@ -88,11 +83,28 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        assert (rc > 0);
+        assert (rc != 0);
+        errno_assert (rc == 1);
     }
 }
 
-#elif defined HAVE_GETIFADDRS
+#elif defined ZMQ_HAVE_WINDOWS
+
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
+{
+    //  TODO: Add code that'll convert interface name to IP address
+    //  on Windows platform here.
+    sockaddr addr;
+    int addr_length = sizeof (addr);
+    ((sockaddr_in*) &addr_)->sin_family = AF_INET;
+    int rc = WSAStringToAddress ((char*) interface_, AF_INET, NULL,
+        &addr, &addr_length);
+    addr_ = (in_addr*) &addr;
+    wsa_assert (rc != SOCKET_ERROR);        
+}
+
+#elif (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+    defined ZMQ_HAVE_OSX)
 
 #include <ifaddrs.h>
 
@@ -126,7 +138,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        assert (rc > 0);
+        assert (rc != 0);
+        errno_assert (rc == 1);
     }
 }
 
@@ -137,7 +150,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  Convert IP address into sockaddr_in structure.
     int rc = inet_pton (AF_INET, interface_, addr_);
-    assert (rc > 0);
+    assert (rc != 0);
+    errno_assert (rc == 1);
 }
 
 #endif

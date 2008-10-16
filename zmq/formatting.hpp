@@ -17,33 +17,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ysemaphore.hpp"
+#ifndef __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
+#define __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+//  Include this file to define standard POSIX text formatting functions
+//  that are missing on Windows platform.
 
-void zmq::ysemaphore_t::signal (int signal_)
-{
-    assert (signal_ == 0);
-    int rc = pthread_mutex_unlock (&mutex);
-    errno_assert (rc == 0);
-}
+#include "platform.hpp"
 
-#elif defined ZMQ_HAVE_WINDOWS
-
-void zmq::ysemaphore_t::signal (int signal_)
-{
-    BOOL rc = SetEvent (ev);
-    win_assert (rc != 0);
-}
-
+#ifdef ZMQ_HAVE_WINDOWS
+#define zmq_sprintf sprintf_s
+#define zmq_snprintf _snprintf_s
+#define zmq_strcat strcat_s
+#define zmq_strncpy strncpy_s
 #else
-
-void zmq::ysemaphore_t::signal (int signal_)
-{
-    assert (signal_ == 0);
-    int rc = sem_post (&sem);
-    errno_assert (rc != -1);
-}
-
+#define zmq_sprintf sprintf
+#define zmq_snprintf snprintf
+#define zmq_strcat strcat
+#define zmq_strncpy strncpy
 #endif
 
+#endif

@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -28,13 +28,13 @@ zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
 {
     descriptor = CreateThread (NULL, 0, &zmq::thread_t::thread_routine,
         this, 0, NULL); 
-    // TODO: check the error
+    win_assert (descriptor);    
 }
 
 zmq::thread_t::~thread_t ()
 {
     DWORD rc = WaitForSingleObject (descriptor, INFINITE);
-    // TODO: check the error
+    win_assert (rc != WAIT_FAILED);
 }
 
 DWORD WINAPI zmq::thread_t::thread_routine (LPVOID arg_)
