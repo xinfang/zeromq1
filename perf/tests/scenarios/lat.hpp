@@ -63,16 +63,29 @@ namespace perf
     //  at the beginign and the end of transport is captured and
     //  therefore transport latency can be calculated.
     void local_lat (i_transport *transport_, size_t msg_size_, 
-        int roundtrip_count_)
+        int roundtrip_count_, bool raw_ = false)
     {
         //  Wait for 'remote' side 1B sync message.
         size_t size = transport_->receive ();
         assert (size == 1);
 
+        //  Prepare arrays for raw test
+        time_instant_t *raw_start_times = NULL;
+        time_instant_t *raw_stop_times = NULL;
+
+        if (raw_) {
+            raw_start_times = new time_instant_t [roundtrip_count_];
+            raw_stop_times = new time_instant_t [roundtrip_count_];
+        }
+        
         //  Capture timestamp at the begining of the test.
         time_instant_t start_time = now ();
 
         for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
+            //  In raw mode capture timestamp before each message round
+            if (raw_)
+                raw_start_times [msg_nbr] = now ();
+
             //  Send test message.
             transport_->send (msg_size_);
 
@@ -81,6 +94,10 @@ namespace perf
 
             //  Check incoming message size.
             assert (size == msg_size_);
+
+            //  In raw mode capture stop timestamp
+            if (raw_)
+                raw_stop_times [msg_nbr] = now ();
         }
         
         //  Capture the end timestamp of the test.
@@ -97,6 +114,29 @@ namespace perf
 
         std::cout <<  "Your average latency is " << latency 
             << " [us]" << std::endl << std::endl;
+
+        //  In raw more save time diffs
+        if (raw_) {
+            //  Open time for raw results
+            std::ofstream raw_outf ("raw_tests.dat", 
+                std::ios::out | std::ios::app);
+            assert (raw_outf.is_open ());
+            
+            raw_outf.precision (2);
+
+            for (int msg_nbr = 0; msg_nbr < roundtrip_count_; msg_nbr++) {
+                raw_outf << std::fixed << std::noshowpoint;
+                raw_outf << (raw_stop_times [msg_nbr] 
+                    - raw_start_times [msg_nbr]) / 2;
+                raw_outf << std::endl;
+            }
+
+            //  Close raw output file
+            raw_outf.close ();
+
+            delete [] raw_start_times;
+            delete [] raw_stop_times;
+        }
 
         //  Save the results into tests.dat file.
         std::ofstream outf ("tests.dat", std::ios::out | std::ios::app);
