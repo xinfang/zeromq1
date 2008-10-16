@@ -53,25 +53,23 @@ namespace zmq
 
         //  Bit-test-set-and-reset. Sets one bit of the value and resets
         //  another one. Returns the original value of the reset bit.
-        //
-        //  There's no need for the operation to be fully atomic. The only
-        //  requirement is that setting of the bit is performed first and
-        //  resetting afterwards. Getting the original value of the reset
-        //  bit and actual reset, however, have to be done atomically.
         inline bool btsr (int set_index_, int reset_index_)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
-            uint32_t oldval;
+            integer_t oldval, dummy;
             __asm__ volatile (
-                "lock; btsl %2, (%4)\n\t"  //  Does bts have to be atomic?
-                "lock; btrl %3, (%4)\n\t"
-                "setc %%al\n\t"
-                "movzb %%al, %0\n\t"
-                : "=r" (oldval), "+m" (value)
-                : "r" (set_index_), "r" (reset_index_), "r" (&value)
-                : "memory", "cc", "%eax");
-            return (bool) oldval;
+                "mov %0, %1\n\t"
+                "1:"
+                "mov %1, %2\n\t"
+                "bts %3, %2\n\t"
+                "btr %4, %2\n\t"
+                "lock cmpxchg %2, %0\n\t"
+                "jnz 1b\n\t"
+                : "+m" (value), "=&a" (oldval), "=&r" (dummy)
+                : "r" (integer_t(set_index_)), "r" (integer_t(reset_index_))
+                : "cc");
+            return (bool) (oldval & (integer_t(1) << reset_index_));
 #elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             volatile integer_t* valptr = &value;
@@ -151,39 +149,25 @@ namespace zmq
         //  izte is "if-zero-then-else" atomic operation - if the value is zero
         //  it substitutes it by 'thenval' else it rewrites it by 'elseval'.
         //  Original value of the integer is returned from this function.
-        //
-        //  As such atomic operation doesn't exist on i386 (and x86_64)
-        //  platform, following assumption is made allowing to implement
-        //  the operation as a non-atomic sequence of two atomic operations:
-        //  "While izte is being called from one thread no other thread is
-        //  allowed to perform any operation that would result in clearing
-        //  bits of the value (btr, xchg, izte)."
-        //  If the code using atomic_bitmap doesn't adhere to this assumption
-        //  the behaviour of izte is undefined.
         inline integer_t izte (integer_t thenval_, integer_t elseval_)
         {
             integer_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__))
+            integer_t dummy;
             __asm__ volatile (
-                "lock; cmpxchgl %1, %3\n\t"
-                "jz 1f\n\t"
-                "mov %2, %%eax\n\t"
-                "lock; xchgl %%eax, %3\n\t"
-                "1:\n\t"
-                : "=&a" (oldval)
-                : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
-                : "memory", "cc");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
-    defined (__GNUC__))
-            __asm__ volatile (
-                "lock; cmpxchgq %1, %3\n\t"
-                "jz 1f\n\t"
-                "mov %2, %%rax\n\t"
-                "lock; xchgq %%rax, %3\n\t"
-                "1:\n\t"
-                : "=&a" (oldval)
-                : "r" (thenval_), "r" (elseval_), "m" (value), "0" (0)
-                : "memory", "cc");
+                "mov %0, %1\n\t"
+                "1:"
+                "mov %3, %2\n\t"
+                "test %1, %1\n\t"
+                "jz 2f\n\t"
+                "mov %4, %2\n\t"
+                "2:"
+                "lock cmpxchg %2, %0\n\t"
+                "jnz 1b\n\t"
+                : "+m" (value), "=&a" (oldval), "=&r" (dummy)
+                : "r" (thenval_), "r" (elseval_)
+                : "cc");
 #elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
             oldval = value;
