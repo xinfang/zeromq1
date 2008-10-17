@@ -33,7 +33,7 @@
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
 #include "thread.hpp"
-
+/*
 namespace zmq
 {
 
@@ -96,8 +96,17 @@ namespace zmq
         thread_t *worker;
 
         //  Pollset to pass to the poll function.
-        typedef std::vector <pollfd> pollset_t;
-        pollset_t pollset;
+        typedef std::vector <int> fd_set_t;
+        fd_set_t fdset;
+        fd_set source_set_in;
+        fd_set source_set_out;
+        fd_set result_set_in;
+        fd_set result_set_out;
+        fd_set error_set;
+        
+        //  Maximum file descriptor plus 1, is an argument
+        //  of select().
+        int maxfdp1;
 
         //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
@@ -108,7 +117,7 @@ namespace zmq
     };
 
 }
-
+*/
 #endif
 
 #endif

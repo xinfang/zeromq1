@@ -19,7 +19,6 @@
 
 
 #include "bp_engine.hpp"
-#include "dispatcher.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *hostname_, size_t writebuf_size_,
@@ -103,34 +102,39 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
-void zmq::bp_engine_t::register_event (i_poller *poller_)
+void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 {
     //  Store the callback.
     poller = poller_;
+    handle = handle_;
 
     //  Initialise the poll handle.
-    handle = poller->add_fd (socket.get_fd (), this);
+    poller->set_fd (handle, socket.get_fd ());
     poller->set_pollin (handle);
 }
 
-void zmq::bp_engine_t::in_event ()
+bool zmq::bp_engine_t::in_event ()
 {
     //  Read as much data as possible to the read buffer.
     int nbytes = socket.read (readbuf, readbuf_size);
 
-    //  The other party closed the connection.
+    //  If the other party closed the connection, stop polling.
     //  TODO: handle the event more gracefully.
-    if (nbytes == -1)
-        assert (false);
+    if (nbytes == -1) {
+        poller->reset_pollin (handle);
+        return false;
+    }
 
     //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
 
     //  Flush any messages decoder may have produced.
     demux.flush ();
+
+    return true;
 }
 
-void zmq::bp_engine_t::out_event ()
+bool zmq::bp_engine_t::out_event ()
 {
     //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
@@ -148,20 +152,15 @@ void zmq::bp_engine_t::out_event ()
     if (write_pos < write_size) {
         int nbytes = (ssize_t) socket.write (writebuf + write_pos,
             write_size - write_pos);
-
-        //  The other party closed the connection.
-        //  TODO: handle the event more gracefully.
-        if (nbytes == -1)
-            assert (false);
-
+        if (nbytes == -1) 
+            return false;
         write_pos += nbytes;
     }
+    return true;
 }
 
-void zmq::bp_engine_t::error_event ()
+void zmq::bp_engine_t::close_event ()
 {
-    assert (false);
-/*
     if (!socket_error) {
         socket_error = true;
 
@@ -180,12 +179,6 @@ void zmq::bp_engine_t::error_event ()
         //  Notify senders that this engine is shutting down.
         mux.terminate_pipes ();
     }
-*/
-}
-
-void zmq::bp_engine_t::unregister_event ()
-{
-    assert (false);
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)
@@ -219,8 +212,6 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::destroy_pipe:
-
-        //  Delete the pipe not needed by the other side anymore.
         demux.destroy_pipe (command_.args.destroy_pipe.pipe);
         delete command_.args.destroy_pipe.pipe;
         break;

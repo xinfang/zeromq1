@@ -34,7 +34,7 @@ namespace zmq
         //  such results in compiler warnings with some compilers.
         virtual ~i_engine () {};
 
-        //  Called when command from a different thread is received.
+        //  Called when command from a different thread is received
         virtual void process_command (
             const struct engine_command_t &command_) = 0;
     };

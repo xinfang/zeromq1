@@ -39,9 +39,6 @@ namespace zmq
         virtual int get_thread_id () = 0;
 
         //  Sends command to a different thread.
-        //  TODO: send_command is somehow redundant as the implementation is
-        //        the same in each model of this interface.
-        //        Potentially, it can be replaced by get_dispatcher function.
         virtual void send_command (i_thread *destination_,
             const struct command_t &command_) = 0;
     };

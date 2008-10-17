@@ -52,13 +52,15 @@ namespace zmq
         //  Destroy the poll thread.
         ~poll_thread_t ();
 
+        //  Unregisters the engine from the thread.
+        void unregister_engine (i_pollable* engine_);
+
         //  i_thread implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        int add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (int handle_);
+        void set_fd (int handle_, int fd_);
         void set_pollin (int handle_);
         void reset_pollin (int handle_);
         void speculative_read (int handle_);

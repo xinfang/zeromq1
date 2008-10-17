@@ -23,20 +23,28 @@
 #include "err.hpp"
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
-
+/*
 zmq::i_thread *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
 {
+    FD_ZERO (&source_set_in);
+    FD_ZERO (&source_set_out);
+    FD_ZERO (&result_set_in);
+    FD_ZERO (&result_set_out);
+    FD_ZERO (&error_set);
+    
     return new select_thread_t (dispatcher_);
+    
 }
 
 zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_),
-    pollset (1)
+    dispatcher (dispatcher_)
 {
+    
     //  Initialise the pollset.
-    pollset [0].fd = signaler.get_fd ();
-    pollset [0].events = POLLIN;
-
+    FD_SET (signaler.get_fd () , &source_set_in);
+    fdset.push_back (signaler.get_fd ());
+    maxfdp1 = signaler.get_fd () + 1;
+    
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (&signaler);
 
@@ -69,39 +77,49 @@ void zmq::select_thread_t::send_command (i_thread *destination_,
 
 void zmq::select_thread_t::set_fd (int handle_, int fd_)
 {
-    pollset [handle_].fd = fd_;
+    if(maxfdp1 <= fd_)
+        maxfdp1 = fd_ + 1;
+    fdset.push_back(fd_);
 }
 
 void zmq::select_thread_t::set_pollin (int handle_)
 {
-    pollset [handle_].events |= POLLIN;
+    FD_SET (handle_, &source_set_in);
+    FD_SET (handle_, &error_set);
 }
 
 void zmq::select_thread_t::reset_pollin (int handle_)
 {
-    pollset [handle_].events &= ~((short) POLLIN);
+    FD_CLR (handle_, &source_set_in);
+    
+    if(!FD_ISSET(handle_, &source_set_out))
+        FD_CLR (handle_, &error_set);
 }
 
 void zmq::select_thread_t::speculative_read (int handle_)
 {
-    pollset [handle_].events |= POLLIN;
-    pollset [handle_].revents |= POLLIN;
+    FD_SET (handle_, &source_set_in);
+    FD_SET (handle_, &result_set_in);
 }
 
 void zmq::select_thread_t::set_pollout (int handle_)
 {
-    pollset [handle_].events |= POLLOUT;
+     FD_SET (handle_, &source_set_out);
+     FD_SET (handle_, &error_set);
 }
 
 void zmq::select_thread_t::reset_pollout (int handle_)
 {
-    pollset [handle_].events &= ~((short) POLLOUT);
+     FD_CLR (handle_, &source_set_out);
+     
+     if(!FD_ISSET(handle_, &source_set_in))
+        FD_CLR (handle_, &error_set);
 }
 
 void zmq::select_thread_t::speculative_write (int handle_)
 {
-    pollset [handle_].events |= POLLOUT;
-    pollset [handle_].revents |= POLLOUT;
+    FD_SET (handle_, &result_set_out);
+    FD_SET (handle_, &source_set_out);
 }
 
 void zmq::select_thread_t::worker_routine (void *arg_)
@@ -121,22 +139,27 @@ void zmq::select_thread_t::loop ()
         //  100 messages or so). If there are no messages, poll immediately.
 
         //  Wait for events.
-        int rc = poll (&pollset [0], pollset.size (), -1);
+        memcpy (&result_set_in, &source_set_in, sizeof (source_set_in));
+        memcpy (&result_set_out, &source_set_out, sizeof (source_set_out));
+        int rc = 0;
+        while (rc==0) { 
+            rc = select(maxfdp1, &result_set_in, &result_set_out, &error_set, NULL);
+        }
         errno_assert (rc != -1);
 
         //  First of all, process socket errors.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
-            if (pollset [pollset_index].revents &
-                  (POLLNVAL | POLLERR | POLLHUP)) {
-                engines [pollset_index - 1]->close_event ();
-                unregister_engine (engines[pollset_index - 1]);
-                pollset_index --;
+        for (fd_set_t::size_type index = 1; index != fdset.size (); 
+            index ++) {
+            if (FD_ISSET (fdset [index], &error_set)) {
+                engines [index - 1]->close_event ();
+                unregister_engine (engines [index - 1]);
+                fdset.erase(fdset.begin() + index);
+                index --;
             }
         }
 
         //  Process commands from other threads.
-        if (pollset [0].revents & POLLIN) {
+        if (FD_ISSET(fdset[0], &result_set_in))   {
             uint32_t signals = signaler.check ();
             assert (signals);
             if (!process_commands (signals))
@@ -144,27 +167,33 @@ void zmq::select_thread_t::loop ()
         }
 
         //  Process out events from the engines.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
-            if (pollset [pollset_index].revents & POLLOUT) {
-                if (!engines [pollset_index - 1]->out_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index --;
+        for (fd_set_t::size_type index = 1; index !=fdset.size ();
+            index ++) {
+            if (FD_ISSET (fdset [index], &result_set_out)) {
+                if (!engines [index - 1]->out_event ()) {
+                    engines [index - 1]->close_event ();
+                    unregister_engine (engines [pollset_index - 1]);
+                    if(!FD_ISSET (fdset [index], &source_set_in)) {
+                        fdset.erase(fdset.begin() + index);
+                        index --;
+                    }
                 }
             }
         }
 
         //  Process in events from the engines.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
+         for (fd_set_t::size_type index = 1; index !=fdset.size();
+            index ++) {
 
             //  TODO: investigate the POLLHUP issue on OS X
-            if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
-                if (!engines [pollset_index - 1]->in_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index--;
+            if (FD_ISSET (fdset [index], &result_set_in)) {
+                if (!engines [index - 1]->in_event ()) {
+                    engines [index - 1]->close_event ();
+                    unregister_engine (engines [index - 1]);
+                    if(!FD_ISSET (fdset [index], &source_set_out)) {
+                        fdset.erase [index];
+                        index--;
+                    }    
                 }
         }
     }
@@ -213,11 +242,11 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
                             command.args.register_engine.engine;
 
                         //  Add the engine to the pollset.
-                        pollfd pfd = {0, 0, 0};
-                        pollset.push_back (pfd);
+                        //pollfd pfd = {0, 0, 0};
+                        //pollset.push_back (pfd);
 
                         //  Pass pollfd to the engine.
-                        engine->set_poller (this, pollset.size () - 1);
+                        engine->set_poller (this, fdset.size ());
 
                         //  Store the engine pointer.
                         engines.push_back (engine);
@@ -237,7 +266,7 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
                         //  the pollset.
                         int pos = it - engines.begin ();
                         engines.erase (it);
-                        pollset.erase (pollset.begin () + 1 + pos);
+                        fdset.erase (fdset.begin () + 1 + pos);
                     }
                     break;
 
@@ -269,5 +298,5 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
     }
     return true;
 }
-
+*/
 #endif

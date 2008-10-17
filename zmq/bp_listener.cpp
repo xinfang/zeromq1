@@ -20,7 +20,6 @@
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
 #include "config.hpp"
-#include "formatting.hpp"
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *interface_, int handler_thread_count_,
@@ -48,7 +47,8 @@ zmq::bp_listener_t::bp_listener_t (i_thread *calling_thread_,
     listener (interface_)
 {
     //  Copy the peer name.
-    zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
+    assert (strlen (peer_name_) < 16);
+    strcpy (peer_name, peer_name_);
 
     //  Initialise the array of threads to handle new connections.
     assert (handler_thread_count_ > 0);
@@ -66,13 +66,13 @@ zmq::bp_listener_t::~bp_listener_t ()
 {
 }
 
-void zmq::bp_listener_t::register_event (i_poller *poller_)
+void zmq::bp_listener_t::set_poller (i_poller *poller_, int handle_)
 {
-    int handle = poller_->add_fd (listener.get_fd (), this);
-    poller_->set_pollin (handle);
+    poller_->set_fd (handle_, listener.get_fd ());
+    poller_->set_pollin (handle_);
 }
 
-void zmq::bp_listener_t::in_event ()
+bool zmq::bp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
@@ -134,23 +134,19 @@ void zmq::bp_listener_t::in_event ()
     current_handler_thread ++;
     if (current_handler_thread == handler_threads.size ())
         current_handler_thread = 0;
+    return true;
 }
 
-void zmq::bp_listener_t::out_event ()
+bool zmq::bp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
     assert (false);
+    return true;
 }
 
-void zmq::bp_listener_t::error_event()
+void zmq::bp_listener_t::close_event()
 {
-    //  TODO: recreation of the listener...
-    assert (false);
-}
-
-void zmq::bp_listener_t::unregister_event ()
-{
-    //  TODO: implement this
+    //  TODO: engine tear-down
     assert (false);
 }
 
