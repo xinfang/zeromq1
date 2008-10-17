@@ -47,7 +47,8 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
 zmq::poll_thread_t::~poll_thread_t ()
 {
     //  Send a 'stop' event ot the worker thread.
-    //  TODO: Analyse whether using the to-self command pipe here is appropriate
+    //  TODO: Analyse whether using the 'to-self' command pipe here
+    //        is appropriate.
     command_t cmd;
     cmd.init_stop ();
     dispatcher->write (thread_id, thread_id, cmd);
@@ -67,9 +68,17 @@ void zmq::poll_thread_t::send_command (i_thread *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-void zmq::poll_thread_t::set_fd (int handle_, int fd_)
+int zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-    pollset [handle_].fd = fd_;
+    pollfd pfd = {fd_, 0, 0};
+    pollset.push_back (pfd);
+    engines.push_back (engine_);
+    return pollset.size () - 1;
+}
+
+void zmq::poll_thread_t::rm_fd (int handle_)
+{
+    assert (false);
 }
 
 void zmq::poll_thread_t::set_pollin (int handle_)
@@ -114,28 +123,11 @@ void zmq::poll_thread_t::loop ()
 {
     while (true)
     {
-
-        //  TODO: Polling all the time isn't efficient. We should do it in
-        //  a manner similar to API thread. I.e. loop throught dispatcher
-        //  if messages are available and and poll only occasinally (every
-        //  100 messages or so). If there are no messages, poll immediately.
-
         //  Wait for events.
         int rc = poll (&pollset [0], pollset.size (), -1);
         errno_assert (rc != -1);
 
-        //  First of all, process socket errors.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
-            if (pollset [pollset_index].revents &
-                  (POLLNVAL | POLLERR | POLLHUP)) {
-                engines [pollset_index - 1]->close_event ();
-                unregister_engine (engines[pollset_index - 1]);
-                pollset_index --;
-            }
-        }
-
-        //  Process commands from other threads.
+        //  First of all, process commands from other threads.
         if (pollset [0].revents & POLLIN) {
             uint32_t signals = signaler.check ();
             assert (signals);
@@ -143,47 +135,26 @@ void zmq::poll_thread_t::loop ()
                 return;
         }
 
+        //  Process socket errors.
+        for (pollset_t::size_type pollset_index = 1;
+              pollset_index != pollset.size (); pollset_index ++)
+            if (pollset [pollset_index].revents &
+                  (POLLNVAL | POLLERR | POLLHUP))
+                engines [pollset_index - 1]->error_event ();
+
         //  Process out events from the engines.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
-            if (pollset [pollset_index].revents & POLLOUT) {
-                if (!engines [pollset_index - 1]->out_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index --;
-                }
-            }
-        }
+              pollset_index != pollset.size (); pollset_index ++)
+            if (pollset [pollset_index].revents & POLLOUT)
+                engines [pollset_index - 1]->out_event ();
 
         //  Process in events from the engines.
+        //  TODO: investigate the POLLHUP issue on OS X
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++) {
-
-            //  TODO: investigate the POLLHUP issue on OS X
-            if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
-                if (!engines [pollset_index - 1]->in_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index--;
-                }
-        }
+              pollset_index != pollset.size (); pollset_index ++)
+            if (pollset [pollset_index].revents & POLLIN)
+                engines [pollset_index - 1]->in_event ();
     }
-}
-
-void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
-{
-    //  Find the engine in the list.
-    std::vector <i_pollable*>::iterator it =std::find (
-        engines.begin (), engines.end (),
-        engine_);
-    assert (it != engines.end ());
-
-    //  Remove the engine from the engine list and the pollset.
-    int pos = it - engines.begin ();
-    engines.erase (it);
-    pollset.erase (pollset.begin () + 1 + pos);
-
-    // TODO: delete engine_;
 }
 
 bool zmq::poll_thread_t::process_commands (uint32_t signals_)
@@ -208,36 +179,27 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                 //  Register the engine supplied with the poll thread.
                 case command_t::register_engine:
                     {
-                        //  Add the engine to the engine list.
+                        //  Ask engine to register itself.
                         i_pollable *engine =
                             command.args.register_engine.engine;
-
-                        //  Add the engine to the pollset.
-                        pollfd pfd = {0, 0, 0};
-                        pollset.push_back (pfd);
-
-                        //  Pass pollfd to the engine.
-                        engine->set_poller (this, pollset.size () - 1);
-
-                        //  Store the engine pointer.
-                        engines.push_back (engine);
+                        engine->register_event (this);
                     }
                     break;
 
                 //  Unregister the engine.
                 case command_t::unregister_engine:
                     {
-                        //  Find the engine in the list.
-                        std::vector <i_pollable*>::iterator it =std::find (
+                        //  Assert that engine still exists.
+                        //  TODO: We should somehow make sure this won't happen.
+                        std::vector <i_pollable*>::iterator it = std::find (
                             engines.begin (), engines.end (),
                             command.args.unregister_engine.engine);
                         assert (it != engines.end ());
 
-                        //  Remove the engine from the engine list and
-                        //  the pollset.
-                        int pos = it - engines.begin ();
-                        engines.erase (it);
-                        pollset.erase (pollset.begin () + 1 + pos);
+                        //  Ask engine to unregister itself.
+                        i_pollable *engine =
+                            command.args.register_engine.engine;
+                        engine->unregister_event ();
                     }
                     break;
 
@@ -246,6 +208,7 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                 case command_t::engine_command:
                     {
                         //  Check whether engine still exists.
+                        //  TODO: We should somehow make sure this won't happen.
                         std::vector <i_pollable*>::iterator it = std::find (
                             engines.begin (), engines.end (),
                             command.args.engine_command.engine);

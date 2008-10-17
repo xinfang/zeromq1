@@ -149,18 +149,15 @@ int main (int argc, char *argv [])
                 //  Delete the tcp_socket from socket_list. 
                 delete socket_list[pos];
                 socket_list.erase (socket_list.begin () + pos);
-		FD_CLR(s, &error_set_fds);
-		FD_CLR(s, &result_set_fds);
-
                 
                 //  Erase the whole list of file descriptors selectfds and add
                 //  them back without the one erased from socket_list.
                 FD_ZERO (&source_set_fds);
-		FD_SET (fd_int , &source_set_fds);
                 for (socket_list_t::size_type i = 0; i < socket_list.size ();
-                     i ++)          
+                     i ++) {
+                   FD_SET (fd_int , &source_set_fds);
                    FD_SET (socket_list[i]->get_fd(), &source_set_fds);
-		
+		}
                  
                 continue;
             }
@@ -181,19 +178,16 @@ int main (int argc, char *argv [])
                     //  Delete the tcp_socket from socket_list. 
                     delete socket_list [pos];
                     socket_list.erase (socket_list.begin () + pos);
-		    FD_CLR(s, &error_set_fds);
-	      	    FD_CLR(s, &result_set_fds);
-
 	                
 	                //  Erase the whole list of filedescriptors selectfds
                         //  and add them back without the one erased
                         //  from socket_list.
 	                FD_ZERO (&source_set_fds);
-			FD_SET (fd_int , &source_set_fds);
 	                for (socket_list_t::size_type i = 0;
-                              i < socket_list.size (); i ++)                             
+                              i < socket_list.size (); i ++) {
+                            FD_SET (fd_int , &source_set_fds);
                             FD_SET (socket_list[i]->get_fd(), &source_set_fds);
-			
+			}
                 
                     continue;
                 }
