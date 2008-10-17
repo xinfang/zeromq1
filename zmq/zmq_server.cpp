@@ -45,7 +45,7 @@ using namespace std;
 #include "tcp_socket.hpp"
 #include "formatting.hpp"
 using namespace zmq;
-
+#define ZMQ_TRACE
 //  Info about a single object.
 struct object_info_t
 {
@@ -153,11 +153,11 @@ int main (int argc, char *argv [])
                 //  Erase the whole list of file descriptors selectfds and add
                 //  them back without the one erased from socket_list.
                 FD_ZERO (&source_set_fds);
+                FD_SET (fd_int , &source_set_fds);
                 for (socket_list_t::size_type i = 0; i < socket_list.size ();
-                     i ++) {
-                   FD_SET (fd_int , &source_set_fds);
-                   FD_SET (socket_list[i]->get_fd(), &source_set_fds);
-		}
+                     i ++) 
+                    FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+		        
                  
                 continue;
             }
@@ -183,11 +183,11 @@ int main (int argc, char *argv [])
                         //  and add them back without the one erased
                         //  from socket_list.
 	                FD_ZERO (&source_set_fds);
+                    FD_SET (fd_int , &source_set_fds);
 	                for (socket_list_t::size_type i = 0;
-                              i < socket_list.size (); i ++) {
-                            FD_SET (fd_int , &source_set_fds);
-                            FD_SET (socket_list[i]->get_fd(), &source_set_fds);
-			}
+                              i < socket_list.size (); i ++)                            
+                        FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+			
                 
                     continue;
                 }

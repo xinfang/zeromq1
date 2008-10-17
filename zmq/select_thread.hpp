@@ -52,15 +52,13 @@ namespace zmq
         //  Destroy the poll thread.
         ~select_thread_t ();
 
-        //  Unregisters the engine from the thread.
-        void unregister_engine (i_pollable* engine_);
-
         //  i_thread implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        void set_fd (int handle_, int fd_);
+        int add_fd (int fd_, i_pollable *engine_);
+        void rm_fd (int handle_);
         void set_pollin (int handle_);
         void reset_pollin (int handle_);
         void speculative_read (int handle_);
@@ -95,9 +93,21 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         thread_t *worker;
 
-        //  Pollset to pass to the poll function.
-        typedef std::vector <pollfd> pollset_t;
-        pollset_t pollset;
+        //  Set of file descriptors that are used to retreive
+        //  information for fd_set.
+        typedef std::vector <int> fd_set_t;
+        fd_set_t fdset;
+        
+        fd_set source_set_in;
+        fd_set source_set_out;
+        fd_set result_set_in;
+        fd_set result_set_out;
+        fd_set error_set;
+        
+        // Maximum file descriptor plus 1.
+        int maxfdp1;
+        
+        
 
         //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
@@ -112,3 +122,4 @@ namespace zmq
 #endif
 
 #endif
+
