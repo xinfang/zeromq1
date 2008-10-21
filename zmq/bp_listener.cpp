@@ -68,7 +68,7 @@ zmq::bp_listener_t::~bp_listener_t ()
 
 void zmq::bp_listener_t::register_event (i_poller *poller_)
 {
-    int handle = poller_->add_fd (listener.get_fd (), this);
+    handle_t handle = poller_->add_fd (listener.get_fd (), this);
     poller_->set_pollin (handle);
 }
 

@@ -61,14 +61,14 @@ namespace zmq
         declspec_export void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        declspec_export int add_fd (int fd_, i_pollable *engine_);
-        declspec_export void rm_fd (int handle_);
-        declspec_export void set_pollin (int handle_);
-        declspec_export void reset_pollin (int handle_);
-        declspec_export void speculative_read (int handle_);
-        declspec_export void set_pollout (int handle_);
-        declspec_export void reset_pollout (int handle_);
-        declspec_export void speculative_write (int handle_);
+        declspec_export handle_t add_fd (int fd_, i_pollable *engine_);
+        declspec_export void rm_fd (handle_t handle_);
+        declspec_export void set_pollin (handle_t handle_);
+        declspec_export void reset_pollin (handle_t handle_);
+        declspec_export void speculative_read (handle_t handle_);
+        declspec_export void set_pollout (handle_t handle_);
+        declspec_export void reset_pollout (handle_t handle_);
+        declspec_export void speculative_write (handle_t handle_);
 
     private:
 

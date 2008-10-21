@@ -22,6 +22,13 @@
 
 namespace zmq
 {
+    struct handle_t {
+        union {
+            int fd;
+            int index;
+        };
+    };
+
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
     struct declspec_export i_poller
@@ -32,30 +39,30 @@ namespace zmq
 
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.
-        virtual int add_fd (int fd_, i_pollable *engine_) = 0;
+        virtual handle_t add_fd (int fd_, i_pollable *engine_) = 0;
 
         //  Remove file descriptor identified by handle from the polling set.
-        virtual void rm_fd (int handle_) = 0;
+        virtual void rm_fd (handle_t handle_) = 0;
 
         //  Start polling for input from socket.
-        virtual void set_pollin (int handle_) = 0;
+        virtual void set_pollin (handle_t handle_) = 0;
 
         //  Stop polling for input from socket.
-        virtual void reset_pollin (int handle_) = 0;
+        virtual void reset_pollin (handle_t handle_) = 0;
 
         //  Try to read from socket (even though we are not sure there's
         //  anything to read there).
-        virtual void speculative_read (int handle_) = 0;
+        virtual void speculative_read (handle_t handle_) = 0;
 
         //  Start polling for availability of the socket for writing.
-        virtual void set_pollout (int handle_) = 0;
+        virtual void set_pollout (handle_t handle_) = 0;
 
         //  Stop polling for availability of the socket for writing.
-        virtual void reset_pollout (int handle_) = 0;
+        virtual void reset_pollout (handle_t handle_) = 0;
 
         //  Try to write to the socket (even though we are not sure the
         //  write will succeed).
-        virtual void speculative_write (int handle_) = 0;
+        virtual void speculative_write (handle_t handle_) = 0;
 
     };
 

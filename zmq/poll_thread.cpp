@@ -68,49 +68,52 @@ void zmq::poll_thread_t::send_command (i_thread *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-int zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
+    handle_t handle;
+
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
     engines.push_back (engine_);
-    return pollset.size () - 1;
+    handle.index = pollset.size() - 1;
+    return handle;
 }
 
-void zmq::poll_thread_t::rm_fd (int handle_)
+void zmq::poll_thread_t::rm_fd (handle_t handle_)
 {
     assert (false);
 }
 
-void zmq::poll_thread_t::set_pollin (int handle_)
+void zmq::poll_thread_t::set_pollin (handle_t handle_)
 {
-    pollset [handle_].events |= POLLIN;
+    pollset [handle_.index].events |= POLLIN;
 }
 
-void zmq::poll_thread_t::reset_pollin (int handle_)
+void zmq::poll_thread_t::reset_pollin (handle_t handle_)
 {
-    pollset [handle_].events &= ~((short) POLLIN);
+    pollset [handle_.index].events &= ~((short) POLLIN);
 }
 
-void zmq::poll_thread_t::speculative_read (int handle_)
+void zmq::poll_thread_t::speculative_read (handle_t handle_)
 {
-    pollset [handle_].events |= POLLIN;
-    pollset [handle_].revents |= POLLIN;
+    pollset [handle_.index].events |= POLLIN;
+    pollset [handle_.index].revents |= POLLIN;
 }
 
-void zmq::poll_thread_t::set_pollout (int handle_)
+void zmq::poll_thread_t::set_pollout (handle_t handle_)
 {
-    pollset [handle_].events |= POLLOUT;
+    pollset [handle_.index].events |= POLLOUT;
 }
 
-void zmq::poll_thread_t::reset_pollout (int handle_)
+void zmq::poll_thread_t::reset_pollout (handle_t handle_)
 {
-    pollset [handle_].events &= ~((short) POLLOUT);
+    pollset [handle_.index].events &= ~((short) POLLOUT);
 }
 
-void zmq::poll_thread_t::speculative_write (int handle_)
+void zmq::poll_thread_t::speculative_write (handle_t handle_)
 {
-    pollset [handle_].events |= POLLOUT;
-    pollset [handle_].revents |= POLLOUT;
+    pollset [handle_.index].events |= POLLOUT;
+    pollset [handle_.index].revents |= POLLOUT;
 }
 
 void zmq::poll_thread_t::worker_routine (void *arg_)

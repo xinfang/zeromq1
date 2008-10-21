@@ -110,7 +110,7 @@ namespace zmq
         i_poller *poller;
 
         //  Poll handle associated with this engine.
-        int handle;
+        handle_t handle;
 
         //  If true, underlying TCP/IP connection is dead.
         bool socket_error;

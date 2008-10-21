@@ -79,8 +79,10 @@ void zmq::select_thread_t::send_command (i_thread *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-int zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
+    handle_t handle;
+
     //  Set maxfdp1 as maximum file descriptor plus 1.
     if(maxfdp1 <= fd_)
         maxfdp1 = fd_ + 1;
@@ -88,44 +90,45 @@ int zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
     fdset.push_back(fd_);
    
     engines.push_back (engine_);
-    return fd_;
+    handle.fd = fd_;
+    return handle;
 }
 
-void zmq::select_thread_t::rm_fd (int handle_)
+void zmq::select_thread_t::rm_fd (handle_t handle_)
 {
     assert (false);
 }
 
-void zmq::select_thread_t::set_pollin (int handle_)
+void zmq::select_thread_t::set_pollin (handle_t handle_)
 {
-    FD_SET (handle_, &source_set_in);
+    FD_SET (handle_.fd, &source_set_in);
 }
 
-void zmq::select_thread_t::reset_pollin (int handle_)
+void zmq::select_thread_t::reset_pollin (handle_t handle_)
 {
-     FD_CLR (handle_, &source_set_in);
+     FD_CLR (handle_.fd, &source_set_in);
 }
 
-void zmq::select_thread_t::speculative_read (int handle_)
+void zmq::select_thread_t::speculative_read (handle_t handle_)
 {
-    FD_SET (handle_, &source_set_in);
-    FD_SET (handle_, &result_set_in);
+    FD_SET (handle_.fd, &source_set_in);
+    FD_SET (handle_.fd, &result_set_in);
 }
 
-void zmq::select_thread_t::set_pollout (int handle_)
+void zmq::select_thread_t::set_pollout (handle_t handle_)
 {
-    FD_SET (handle_, &source_set_out);
+    FD_SET (handle_.fd, &source_set_out);
 }
 
-void zmq::select_thread_t::reset_pollout (int handle_)
+void zmq::select_thread_t::reset_pollout (handle_t handle_)
 {
-    FD_CLR (handle_, &source_set_out);
+    FD_CLR (handle_.fd, &source_set_out);
 }
 
-void zmq::select_thread_t::speculative_write (int handle_)
+void zmq::select_thread_t::speculative_write (handle_t handle_)
 {
-    FD_SET (handle_, &result_set_out);
-    FD_SET (handle_, &source_set_out);
+    FD_SET (handle_.fd, &result_set_out);
+    FD_SET (handle_.fd, &source_set_out);
 }
 
 void zmq::select_thread_t::worker_routine (void *arg_)

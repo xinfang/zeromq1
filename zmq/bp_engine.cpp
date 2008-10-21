@@ -54,7 +54,6 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     decoder (&demux),
     socket (hostname_),
     poller (NULL),
-    handle (0),
     socket_error (false),
     local_object (local_object_)
 {
@@ -81,7 +80,6 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     decoder (&demux),
     socket (listener_),
     poller (NULL),
-    handle (0),
     socket_error (false),
     local_object (local_object_)
 {
