@@ -30,7 +30,7 @@
 namespace zmq
 {
 
-    class mutex_t
+    class declspec_export mutex_t
     {
     public:
         inline mutex_t ()

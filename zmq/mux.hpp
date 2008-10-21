@@ -31,7 +31,7 @@ namespace zmq
 
     //  Object to aggregate messages from inbound pipes.
 
-    class mux_t
+    class declspec_export mux_t
     {
     public:
 

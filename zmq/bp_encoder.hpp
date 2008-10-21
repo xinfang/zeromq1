@@ -32,7 +32,7 @@ namespace zmq
 {
     //  Encoder for 0MQ backend protocol. Converts messages into data batches.
 
-    class bp_encoder_t : public encoder_t <bp_encoder_t>
+    class declspec_export bp_encoder_t : public encoder_t <bp_encoder_t>
     {
     public:
 

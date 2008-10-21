@@ -32,7 +32,7 @@ namespace zmq
 
     //  Object to distribute messages to outbound pipes.
 
-    class demux_t
+    class declspec_export demux_t
     {
     public:
 

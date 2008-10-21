@@ -38,7 +38,7 @@ namespace zmq
     //  N is granularity of the pipe (how many elements have to be inserted
     //  till actual memory allocation is required).
 
-    template <typename T, bool D, int N> class ypipe_t
+    template <typename T, bool D, int N> class declspec_export ypipe_t
     {
     public:
 

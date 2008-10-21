@@ -28,7 +28,7 @@
 
 namespace zmq
 {
-    class pipe_t
+    class declspec_export pipe_t
     {
     public:
 

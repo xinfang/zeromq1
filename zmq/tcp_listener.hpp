@@ -21,12 +21,13 @@
 #define __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 
 #include "stdint.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
     //  The class encapsulating simple TCP listening socket.
 
-    class tcp_listener_t
+    class declspec_export tcp_listener_t
     {
     public:
 

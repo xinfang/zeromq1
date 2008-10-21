@@ -39,7 +39,7 @@ namespace zmq
     //  N is granularity of the queue (how many pushes have to be done till
     //  actual memory allocation is required)
 
-    template <typename T, int N> class yqueue_t
+    template <typename T, int N> class declspec_export yqueue_t
     {
     public:
 

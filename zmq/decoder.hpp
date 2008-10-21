@@ -38,7 +38,7 @@ namespace zmq
     //  Decoder implements the state machine that parses the incoming buffer.
     //  Derived class should implement individual state machine actions.
 
-    template <typename T> class decoder_t
+    template <typename T> class declspec_export decoder_t
     {
     public:
 

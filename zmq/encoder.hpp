@@ -32,7 +32,7 @@ namespace zmq
     //  fills the outgoing buffer. Derived classes should implement individual
     //  state machine actions.
 
-    template <typename T> class encoder_t
+    template <typename T> class declspec_export encoder_t
     {
     public:
 

@@ -27,6 +27,7 @@
 #include "ypipe.hpp"
 #include "mutex.hpp"
 #include "config.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -41,7 +42,7 @@ namespace zmq
     //  (sender thread = receiver thread). The optimisation is not part
     //  of the class and should be implemented by individual threads.
 
-    class dispatcher_t
+    class declspec_export dispatcher_t
     {
     public:
 

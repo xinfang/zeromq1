@@ -20,19 +20,23 @@
 #ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
-#include "platform.hpp"
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
-
-#include <stddef.h>
-#include <assert.h>
-#include <poll.h>
-
 #include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
 #include "ysocketpair.hpp"
 #include "thread.hpp"
+#include "platform.hpp"
+#include "declspec_export.hpp"
+
+#ifndef ZMQ_HAVE_WINDOWS
+#include <poll.h>
+#endif
+
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_WINDOWS
+
+#include <stddef.h>
+#include <assert.h>
 
 namespace zmq
 {
@@ -42,7 +46,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class select_thread_t : public i_thread, public i_poller
+    class declspec_export select_thread_t : public i_thread, public i_poller
     {
     public:
 

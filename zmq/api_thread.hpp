@@ -38,6 +38,7 @@
 #include "scope.hpp"
 #include "zmq_server.hpp"
 #include "select_thread.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -45,7 +46,7 @@ namespace zmq
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create api_thread for each of them.
 
-    class api_thread_t : private i_thread, private i_engine
+    class declspec_export api_thread_t : private i_thread, private i_engine
     {
     public:
 

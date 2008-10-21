@@ -32,12 +32,29 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
     //  Alocate NxN matrix of dispatching pipes.
     pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
+
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int rc;
+
+	wVersionRequested = MAKEWORD(2, 2);
+
+	rc = WSAStartup(wVersionRequested, &wsaData);
+	errno_assert(rc == 0);
+
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+        errno_assert(true);    
+        WSACleanup();       
+    }
+        
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
 {
     //  Deallocate the pipe matrix.
     delete [] pipes;
+    WSACleanup();
+    
 }
 
 int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)

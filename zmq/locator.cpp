@@ -33,7 +33,11 @@ zmq::locator_t::locator_t (const char *hostname_)
         //  If port number is not explicitly specified, use the default one.
         if (!strchr (hostname_, ':')) {
             char buf [256];
+#ifndef ZMQ_HAVE_WINDOWS
             snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
+#else
+            _snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
+#endif
             hostname_ = buf;
         }
 
@@ -142,13 +146,13 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
 
          assert (cmd == get_ok_id);
          global_locator->read (&size, 1);
-         char interface [256];
-         global_locator->read (interface, size);
-         interface [size] = 0;
+         char iface [256];
+         global_locator->read (iface, size);
+         iface [size] = 0;
 
          //  Create the proxy engine for the object.
          bp_engine_t *engine = bp_engine_t::create (calling_thread_,
-             handler_thread_, interface, bp_out_batch_size, bp_in_batch_size,
+             handler_thread_, iface, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into object repository.

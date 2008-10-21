@@ -21,6 +21,7 @@
 #define __ZMQ_ERR_HPP_INCLUDED__
 
 #include "platform.hpp"
+#include "declspec_export.hpp"
 
 #include <assert.h>
 #include <errno.h>

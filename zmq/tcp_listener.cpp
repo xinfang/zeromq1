@@ -39,6 +39,7 @@
 #include "ip.hpp"
 #include "formatting.hpp"
 
+
 #ifdef ZMQ_HAVE_WINDOWS
 
 zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
@@ -77,7 +78,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
 
     size_t isz = strlen (iface);
-    snprintf (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
+    _snprintf_s (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
         (int) ntohs (ip_address.sin_port));   
               
     //  Listen for incomming connections.

@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "platform.hpp"
+#include "declspec_export.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
 #elif (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
@@ -58,7 +59,7 @@ namespace zmq
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 
-    class ysemaphore_t : public i_signaler
+    class declspec_export ysemaphore_t : public i_signaler
     { 
     public:
 
@@ -103,7 +104,7 @@ namespace zmq
 
 #elif defined ZMQ_HAVE_WINDOWS
 
-    class ysemaphore_t : public i_signaler
+    class declspec_export ysemaphore_t : public i_signaler
     { 
     public:
 

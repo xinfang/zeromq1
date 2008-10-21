@@ -32,7 +32,7 @@ namespace zmq
     //  integer. Selection of operations is driven specifically by the needs
     //  of ypollset implementation.
 
-    class atomic_bitmap_t
+    class declspec_export atomic_bitmap_t
     {
     public:
 

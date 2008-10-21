@@ -35,7 +35,7 @@ namespace zmq
     //  This class represents an integer that can be incremented/decremented
     //  in atomic fashion.
 
-    class atomic_counter_t
+    class declspec_export atomic_counter_t
     {
     public:
 

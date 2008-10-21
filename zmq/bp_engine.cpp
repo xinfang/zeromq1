@@ -145,10 +145,15 @@ void zmq::bp_engine_t::out_event ()
 
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
+#ifndef ZMQ_HAVE_WINDOWS
     if (write_pos < write_size) {
         int nbytes = (ssize_t) socket.write (writebuf + write_pos,
             write_size - write_pos);
-
+#else
+    if (write_pos < write_size) {
+        int nbytes = (int) socket.write (writebuf + write_pos,
+            write_size - write_pos);
+#endif
         //  The other party closed the connection.
         //  TODO: handle the event more gracefully.
         if (nbytes == -1)

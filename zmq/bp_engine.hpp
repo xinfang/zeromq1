@@ -42,7 +42,7 @@ namespace zmq
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Polling is done using POSIX poll function.
 
-    class bp_engine_t : public i_pollable
+    class declspec_export bp_engine_t : public i_pollable
     {
     public:
 

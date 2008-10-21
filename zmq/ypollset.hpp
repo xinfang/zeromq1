@@ -26,6 +26,7 @@
 #include "atomic_bitmap.hpp"
 #include "ysemaphore.hpp"
 #include "stdint.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -34,7 +35,7 @@ namespace zmq
     //  different signals each produced by a different thread. The number of
     //  possible signals is platform-dependent.
 
-    class ypollset_t : public i_signaler
+    class declspec_export ypollset_t : public i_signaler
     {
     public:
 

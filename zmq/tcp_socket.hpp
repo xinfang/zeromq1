@@ -30,7 +30,7 @@ namespace zmq
 
     //  The class encapsulating simple TCP read/write socket.
 
-    class tcp_socket_t
+    class declspec_export tcp_socket_t
     {
     public:
 

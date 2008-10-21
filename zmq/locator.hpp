@@ -38,7 +38,7 @@ namespace zmq
     //  If the resource cannot be found, it asks global locator service
     //  to find it on the network.
 
-    class locator_t : public i_locator
+    class declspec_export locator_t : public i_locator
     {
     public:
 

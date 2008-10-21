@@ -29,7 +29,7 @@ namespace zmq
     //  copied it - the behaviour would be undefined. Don't change the body
     //  of the message received.
 
-    class message_t : private raw_message_t
+    class declspec_export message_t : private raw_message_t
     {
     public:
 

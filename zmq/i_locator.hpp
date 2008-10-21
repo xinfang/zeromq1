@@ -30,7 +30,7 @@ namespace zmq
 
     
 
-    struct i_locator
+    struct declspec_export i_locator
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
@@ -49,7 +49,7 @@ namespace zmq
         virtual bool get (i_thread *calling_thread_,
             unsigned char type_id_, const char *object_,
             i_thread **thread_, i_engine **engine_,
-            class i_thread *thread_, const char *local_object_) = 0;
+            struct i_thread *handler_thread_, const char *local_object_) = 0;
     };
 
 }

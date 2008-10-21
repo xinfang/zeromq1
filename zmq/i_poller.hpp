@@ -24,7 +24,7 @@ namespace zmq
 {
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
-    struct i_poller
+    struct declspec_export i_poller
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.

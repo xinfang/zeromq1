@@ -32,7 +32,7 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_listener_t : public i_pollable
+    class declspec_export bp_listener_t : public i_pollable
     {
     public:
 

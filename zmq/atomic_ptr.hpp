@@ -33,7 +33,7 @@ namespace zmq
 
     //  This class encapsulates several atomic operations on pointers.
 
-    template <typename T> class atomic_ptr_t
+    template <typename T> class declspec_export atomic_ptr_t
     {
     public:
 

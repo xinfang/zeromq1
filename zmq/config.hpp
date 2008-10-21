@@ -20,12 +20,14 @@
 #ifndef __ZMQ_CONFIG_HPP_INCLUDED__
 #define __ZMQ_CONFIG_HPP_INCLUDED__
 
+#include "declspec_export.hpp"
+
 namespace zmq
 {
 
     //  Compile-time settings for 0MQ
 
-    enum
+    enum declspec_export 
     {
         //  Default port to use to connect to global locator (zmq_server).
         default_locator_port = 5682,

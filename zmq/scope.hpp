@@ -23,7 +23,7 @@
 namespace zmq
 {
 
-    enum scope_t
+    declspec_export enum scope_t
     {
         //  Local scope means that the object is visible only within
         //  the engine that created it.

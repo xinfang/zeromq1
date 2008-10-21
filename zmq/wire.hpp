@@ -28,30 +28,30 @@ namespace zmq
     //  Helper functions to convert different integer types to/from network
     //  byte order.
 
-    inline void put_uint8 (unsigned char *buffer_, uint8_t value)
+    declspec_export inline void put_uint8 (unsigned char *buffer_, uint8_t value)
     {
         *buffer_ = value;
     }
 
-    inline uint8_t get_uint8 (unsigned char *buffer_)
+    declspec_export inline uint8_t get_uint8 (unsigned char *buffer_)
     {
         return *buffer_;
     }
 
-    inline void put_uint16 (unsigned char *buffer_, uint16_t value)
+    declspec_export inline void put_uint16 (unsigned char *buffer_, uint16_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 8) & 0xff);
         buffer_ [1] = (unsigned char) (value & 0xff);
     }
 
-    inline uint16_t get_uint16 (unsigned char *buffer_)
+    declspec_export inline uint16_t get_uint16 (unsigned char *buffer_)
     {
         return
             (((uint16_t) buffer_ [0]) << 8) |
             ((uint16_t) buffer_ [1]);
     }
 
-    inline void put_uint32 (unsigned char *buffer_, uint32_t value)
+    declspec_export inline void put_uint32 (unsigned char *buffer_, uint32_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 24) & 0xff);
         buffer_ [1] = (unsigned char) (((value) >> 16) & 0xff);
@@ -59,7 +59,7 @@ namespace zmq
         buffer_ [3] = (unsigned char) (value & 0xff);
     }
 
-    inline uint32_t get_uint32 (unsigned char *buffer_)
+    declspec_export inline uint32_t get_uint32 (unsigned char *buffer_)
     {
         return
             (((uint32_t) buffer_ [0]) << 24) |
@@ -68,7 +68,7 @@ namespace zmq
             ((uint32_t) buffer_ [3]);
     }
 
-    inline void put_uint64 (unsigned char *buffer_, uint64_t value)
+    declspec_export inline void put_uint64 (unsigned char *buffer_, uint64_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 56) & 0xff);
         buffer_ [1] = (unsigned char) (((value) >> 48) & 0xff);
@@ -80,7 +80,7 @@ namespace zmq
         buffer_ [7] = (unsigned char) (value & 0xff);
     }
 
-    inline uint64_t get_uint64 (unsigned char *buffer_)
+    declspec_export inline uint64_t get_uint64 (unsigned char *buffer_)
     {
         return
             (((uint64_t) buffer_ [0]) << 56) |
