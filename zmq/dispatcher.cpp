@@ -33,28 +33,27 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
     pipes = new command_pipe_t [thread_count * thread_count];
     assert (pipes);
 
-    WORD wVersionRequested;
-    WSADATA wsaData;
-    int rc;
+#ifdef ZMQ_HAVE_WINDOWS
 
-	wVersionRequested = MAKEWORD(2, 2);
-
-	rc = WSAStartup(wVersionRequested, &wsaData);
-	errno_assert(rc == 0);
-
-    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-        errno_assert(true);    
-        WSACleanup();       
-    }
-        
+    //  Intialise Windows sockets.
+    WORD version_requested = MAKEWORD (2, 2);
+    WSADATA wsa_data;
+    int rc = WSAStartup (version_requested, &wsa_data);
+    errno_assert (rc == 0);
+    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
+#endif  
 }
 
 zmq::dispatcher_t::~dispatcher_t ()
 {
     //  Deallocate the pipe matrix.
     delete [] pipes;
-    WSACleanup();
-    
+
+#ifdef ZMQ_HAVE_WINDOWS
+
+    //  Uninitialise Windows sockets.
+    WSACleanup ();
+#endif
 }
 
 int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
