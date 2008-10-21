@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
@@ -36,6 +37,7 @@
 #include "err.hpp"
 
 namespace zmq
+
 {
 
     //  Simple semaphore. Only single thread may be waiting at any given time.
@@ -120,6 +122,7 @@ namespace zmq
         {
             BOOL rc = CloseHandle (ev);
             win_assert (rc != 0);
+
             
         }
 
