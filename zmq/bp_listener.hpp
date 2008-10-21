@@ -32,31 +32,31 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class declspec_export bp_listener_t : public i_pollable
+    class bp_listener_t : public i_pollable
     {
     public:
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        static bp_listener_t *create (i_thread *calling_thread_,
+        declspec_export static bp_listener_t *create (i_thread *calling_thread_,
             i_thread *thread_, const char *interface_,
             int handler_thread_count_, i_thread **handler_threads_,
             bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
 
         //  Returns port listener is listening on.
-        inline const char *get_interface ()
+        declspec_export inline const char *get_interface ()
         {
             return listener.get_interface ();
         }
 
         //  i_pollable implementation.
-        void register_event (i_poller *poller_);
-        void in_event ();
-        void out_event ();
-        void error_event ();
-        void unregister_event ();
-        void process_command (const engine_command_t &command_);
+        declspec_export void register_event (i_poller *poller_);
+        declspec_export void in_event ();
+        declspec_export void out_event ();
+        declspec_export void error_event ();
+        declspec_export void unregister_event ();
+        declspec_export void process_command (const engine_command_t &command_);
 
     private:
 

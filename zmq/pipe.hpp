@@ -28,25 +28,25 @@
 
 namespace zmq
 {
-    class declspec_export pipe_t
+    class pipe_t
     {
     public:
 
         //  Initialise the pipe.
-        pipe_t (struct i_thread *source_thread_,
+        declspec_export pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
             struct i_thread *destination_thread_,
             struct i_engine *destination_engine_);
-        ~pipe_t ();
+        declspec_export ~pipe_t ();
 
         //  Write a message to the pipe.
-        inline void write (raw_message_t *msg_)
+        declspec_export inline void write (raw_message_t *msg_)
         {
             pipe.write (*msg_);
         }
 
         //  Write pipe delimiter to the pipe.
-        inline void write_delimiter ()
+        declspec_export inline void write_delimiter ()
         {
             raw_message_t delimiter;
             raw_message_init_delimiter (&delimiter);
@@ -55,26 +55,26 @@ namespace zmq
         }
 
         //  Flush all the written messages to be accessible for reading.
-        inline void flush ()
+        declspec_export inline void flush ()
         {
             if (!pipe.flush ())
                 send_revive ();
         }
 
         //  Returns true, if pipe delimiter was already received.
-        bool eop ()
+        declspec_export bool eop ()
         {
             return endofpipe;
         }
 
         //  Reads a message from the pipe.
-        bool read (raw_message_t *msg);
+        declspec_export bool read (raw_message_t *msg);
 
         //  Make the dead pipe alive once more.
-        void revive ();
+        declspec_export void revive ();
 
         //  Notify the other end of the pipe that pipe is to be destroyed.
-        void send_destroy_pipe ();
+        declspec_export void send_destroy_pipe ();
 
     private:
 

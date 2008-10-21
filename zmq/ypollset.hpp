@@ -35,24 +35,24 @@ namespace zmq
     //  different signals each produced by a different thread. The number of
     //  possible signals is platform-dependent.
 
-    class declspec_export ypollset_t : public i_signaler
+    class ypollset_t : public i_signaler
     {
     public:
 
         typedef atomic_bitmap_t::integer_t integer_t;
 
         //  Create the pollset.
-        inline ypollset_t ()
+        declspec_export inline ypollset_t ()
         {
         }
 
         //  Send a signal to the pollset.
-        void signal (int signal_);
+        declspec_export void signal (int signal_);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 3 etc.
-        inline integer_t poll ()
+        declspec_export inline integer_t poll ()
         {
             integer_t result = 0;
             while (!result) {
@@ -77,7 +77,7 @@ namespace zmq
 
         //  Same as poll, however, if there is no signal available,
         //  function returns zero immediately instead of waiting for a signal.
-        inline integer_t check ()
+        declspec_export inline integer_t check ()
         {
             return bits.xchg (0);
         }

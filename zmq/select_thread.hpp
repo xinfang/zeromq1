@@ -46,29 +46,29 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class declspec_export select_thread_t : public i_thread, public i_poller
+    class select_thread_t : public i_thread, public i_poller
     {
     public:
 
         //  Create a poll thread.
-        static i_thread *create (dispatcher_t *dispatcher_);
+        declspec_export static i_thread *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread.
-        ~select_thread_t ();
+        declspec_export ~select_thread_t ();
 
         //  i_thread implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
+        declspec_export int get_thread_id ();
+        declspec_export void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        int add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (int handle_);
-        void set_pollin (int handle_);
-        void reset_pollin (int handle_);
-        void speculative_read (int handle_);
-        void set_pollout (int handle_);
-        void reset_pollout (int handle_);
-        void speculative_write (int handle_);
+        declspec_export int add_fd (int fd_, i_pollable *engine_);
+        declspec_export void rm_fd (int handle_);
+        declspec_export void set_pollin (int handle_);
+        declspec_export void reset_pollin (int handle_);
+        declspec_export void speculative_read (int handle_);
+        declspec_export void set_pollout (int handle_);
+        declspec_export void reset_pollout (int handle_);
+        declspec_export void speculative_write (int handle_);
 
     private:
 

@@ -32,27 +32,27 @@ namespace zmq
 
     //  Object to distribute messages to outbound pipes.
 
-    class declspec_export demux_t
+    class demux_t
     {
     public:
 
-        demux_t ();
-        ~demux_t ();
+        declspec_export demux_t ();
+        declspec_export ~demux_t ();
 
         //  Start sending messages to the specified pipe.
-        void send_to (pipe_t *pipe_);
+        declspec_export void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush).
-        void write (message_t &msg_);
+        declspec_export void write (message_t &msg_);
 
         //  Flush the messages.
-        void flush ();
+        declspec_export void flush ();
 
         //  Write a delimiter to each pipe.
-        void terminate_pipes ();
+        declspec_export void terminate_pipes ();
 
         //  Write a delimiter to the specified pipe.
-        void destroy_pipe (pipe_t *pipe_);
+        declspec_export void destroy_pipe (pipe_t *pipe_);
 
     private:
 

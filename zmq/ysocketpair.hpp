@@ -45,12 +45,12 @@ namespace zmq
     //  another. The specific of this pipe is that it has associated file
     //  descriptor and so it can be polled on.
 
-    class declspec_export ysocketpair_t : public i_signaler
+    class ysocketpair_t : public i_signaler
     {
     public:
 
         //  Initialise the pipe.
-        inline ysocketpair_t ()
+        declspec_export inline ysocketpair_t ()
         {
             
             
@@ -60,19 +60,19 @@ namespace zmq
         }
 
         //  Destroy the pipe.
-        inline ~ysocketpair_t ()
+        declspec_export inline ~ysocketpair_t ()
         {
 //            close (w);
 //            close (r);
         }
 
         //  Send specific signal to the pipe.
-        void signal (int signal_);
+        declspec_export void signal (int signal_);
 
         //  Waits for a signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
-        inline uint32_t poll ()
+        declspec_export inline uint32_t poll ()
         {
             int rc = WaitForSingleObject(r, INFINITE);          
             errno_assert (rc >= 0);
@@ -84,7 +84,7 @@ namespace zmq
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc. If there is no signal available,
         //  it returns zero immediately.
-        inline uint32_t check ()
+        declspec_export inline uint32_t check ()
         {
             unsigned char buffer [256];
            
@@ -99,7 +99,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        inline int get_fd ()
+        declspec_export inline int get_fd ()
         {
             return (int) r;
         }

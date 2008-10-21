@@ -104,19 +104,19 @@ namespace zmq
 
 #elif defined ZMQ_HAVE_WINDOWS
 
-    class declspec_export ysemaphore_t : public i_signaler
+    class ysemaphore_t : public i_signaler
     { 
     public:
 
         //  Initialise the semaphore.
-        inline ysemaphore_t ()
+        declspec_export inline ysemaphore_t ()
         {
             ev = CreateEvent (NULL, FALSE, FALSE, NULL);
             win_assert (ev != NULL);
         }
 
         //  Destroy the semaphore.
-        inline ~ysemaphore_t ()
+        declspec_export inline ~ysemaphore_t ()
         {
             BOOL rc = CloseHandle (ev);
             win_assert (rc != 0);
@@ -124,14 +124,14 @@ namespace zmq
         }
 
         //  Wait for the semaphore.
-        inline void wait ()
+        declspec_export inline void wait ()
         {
             DWORD rc = WaitForSingleObject (ev, INFINITE);
             win_assert (rc != WAIT_FAILED);
         }
 
         //  Post the semaphore.
-        void signal (int signal_);
+        declspec_export void signal (int signal_);
 
     private:
 

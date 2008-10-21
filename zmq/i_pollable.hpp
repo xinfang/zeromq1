@@ -32,23 +32,23 @@ namespace zmq
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_pollable () {};
+        declspec_export virtual ~i_pollable () {};
 
         //  Called by I/O thread when engine is being registered
         //  with the thread.
-        virtual void register_event (i_poller *poller_) = 0;
+        declspec_export virtual void register_event (i_poller *poller_) = 0;
 
         //  Called by I/O thread when file descriptor is ready for reading.
-        virtual void in_event () = 0;
+        declspec_export virtual void in_event () = 0;
 
         //  Called by I/O thread when file descriptor is ready for writing.
-        virtual void out_event () = 0;
+        declspec_export virtual void out_event () = 0;
 
         //  Called by I/O thread when error occurs on the file descriptor.
-        virtual void error_event () = 0;
+        declspec_export virtual void error_event () = 0;
 
         //  Called by poll thread when unregistering the engine.
-        virtual void unregister_event () = 0;
+        declspec_export virtual void unregister_event () = 0;
 
     };
 

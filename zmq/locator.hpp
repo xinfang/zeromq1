@@ -38,20 +38,20 @@ namespace zmq
     //  If the resource cannot be found, it asks global locator service
     //  to find it on the network.
 
-    class declspec_export locator_t : public i_locator
+    class locator_t : public i_locator
     {
     public:
 
         //  Creates the local locator and connects it to the global locator.
         //  If hostname_ is NULL, no global locator is used. Objects not found
         //  on process level are reported as unknown.
-        locator_t (const char *hostname_ = NULL);
+        declspec_export locator_t (const char *hostname_ = NULL);
 
         //  Destroys the locator.
-        ~locator_t ();
+        declspec_export ~locator_t ();
 
         //  Creates object.
-        void create (i_thread *calling_thread_, unsigned char type_id_,
+        declspec_export void create (i_thread *calling_thread_, unsigned char type_id_,
             const char *object_, i_thread *thread_, i_engine *engine_,
             scope_t scope_, const char *interface_,
             i_thread *listener_thread_, int handler_thread_count_,
@@ -59,7 +59,7 @@ namespace zmq
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        bool get (i_thread *calling_thread_, unsigned char type_id_,
+        declspec_export bool get (i_thread *calling_thread_, unsigned char type_id_,
             const char *object_, i_thread **thread_, i_engine **engine_,
             i_thread *handler_thread_, const char *local_object_);
 

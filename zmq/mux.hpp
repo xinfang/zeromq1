@@ -31,22 +31,22 @@ namespace zmq
 
     //  Object to aggregate messages from inbound pipes.
 
-    class declspec_export mux_t
+    class mux_t
     {
     public:
 
-        mux_t ();
-        ~mux_t ();
+        declspec_export mux_t ();
+        declspec_export ~mux_t ();
 
         //  Adds a pipe to receive messages from.
-        void receive_from (pipe_t *pipe_);
+        declspec_export void receive_from (pipe_t *pipe_);
 
         //  Returns a message, if available. If not, returns false.
-        bool read (message_t *msg_);
+        declspec_export bool read (message_t *msg_);
 
         //  Send a command to the engines on the other
         //  end of our pipes to destroy the pipe.
-        void terminate_pipes();
+        declspec_export void terminate_pipes();
 
     private:
 

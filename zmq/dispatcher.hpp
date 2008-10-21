@@ -42,25 +42,25 @@ namespace zmq
     //  (sender thread = receiver thread). The optimisation is not part
     //  of the class and should be implemented by individual threads.
 
-    class declspec_export dispatcher_t
+    class dispatcher_t
     {
     public:
 
         //  Create the dispatcher object. The actual number of threads
         //  supported is determined by thread_count_.
-        dispatcher_t (int thread_count_);
+        declspec_export dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object.
-        ~dispatcher_t ();
+        declspec_export ~dispatcher_t ();
 
         //  Returns number of threads dispatcher is preconfigured for.
-        inline int get_thread_count ()
+        declspec_export inline int get_thread_count ()
         {
             return thread_count;
         }
 
         //  Write command to the dispatcher.
-        inline void write (int source_thread_id_, int destination_thread_id_,
+        declspec_export inline void write (int source_thread_id_, int destination_thread_id_,
             const command_t &value_)
         {
             command_pipe_t &pipe = pipes [source_thread_id_ *
@@ -72,7 +72,7 @@ namespace zmq
 
         //  Read command from the dispatcher. Returns false if there is no
         //  command available.
-        inline bool read (int source_thread_id_, int destination_thread_id_,
+        declspec_export inline bool read (int source_thread_id_, int destination_thread_id_,
             command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +
@@ -81,10 +81,10 @@ namespace zmq
 
         //  Assign an thread ID to the caller. Register the supplied signaler
         //  with the thread.
-        int allocate_thread_id (i_signaler *signaler_);
+        declspec_export int allocate_thread_id (i_signaler *signaler_);
 
         //  Return thread ID to the pool of free thread IDs.
-        void deallocate_thread_id (int thread_id_);
+        declspec_export void deallocate_thread_id (int thread_id_);
 
     private:
 
