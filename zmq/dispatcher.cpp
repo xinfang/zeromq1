@@ -35,7 +35,8 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-    //  Intialise Windows sockets.
+    //  Intialise Windows sockets. Note that WSAStartup can be called multiple
+    //  times given that WSACleanup will be called for each WSAStartup.
     WORD version_requested = MAKEWORD (2, 2);
     WSADATA wsa_data;
     int rc = WSAStartup (version_requested, &wsa_data);

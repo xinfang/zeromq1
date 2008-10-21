@@ -60,8 +60,8 @@ namespace zmq
         }
 
         //  Write command to the dispatcher.
-        declspec_export inline void write (int source_thread_id_, int destination_thread_id_,
-            const command_t &value_)
+        declspec_export inline void write (int source_thread_id_,
+            int destination_thread_id_, const command_t &value_)
         {
             command_pipe_t &pipe = pipes [source_thread_id_ *
                   thread_count + destination_thread_id_];
@@ -72,8 +72,8 @@ namespace zmq
 
         //  Read command from the dispatcher. Returns false if there is no
         //  command available.
-        declspec_export inline bool read (int source_thread_id_, int destination_thread_id_,
-            command_t *command_)
+        declspec_export inline bool read (int source_thread_id_,
+            int destination_thread_id_, command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +
                 destination_thread_id_].read (command_);
