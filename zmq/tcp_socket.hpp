@@ -24,29 +24,32 @@
 
 #include "stdint.hpp"
 #include "tcp_listener.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
 
     //  The class encapsulating simple TCP read/write socket.
 
-    class declspec_export tcp_socket_t
+    class tcp_socket_t
     {
     public:
 
         //  Opens TCP socket. Hostname should be in form of <host>:<port>.
         //  By default it opens the socket in non-blocking mode. If block_ is
         //  set to true, the socket will be opened in blocking mode.
-        tcp_socket_t (const char *hostname_, bool block_ = false);
+        declspec_export tcp_socket_t (const char *hostname_, 
+            bool block_ = false);
 
         //  Opens a socket by accepting a connection from TCP listener object
-        tcp_socket_t (tcp_listener_t &listener, bool block_ = false);
+        declspec_export tcp_socket_t (tcp_listener_t &listener, 
+            bool block_ = false);
          
         //  Closes the socket.
-        ~tcp_socket_t ();
+        declspec_export ~tcp_socket_t ();
 
         //  Returns the underlying socket.
-        inline int get_fd ()
+        declspec_export inline int get_fd ()
         {
             return s;
         }
@@ -54,13 +57,13 @@ namespace zmq
         //  Writes data to the socket. Returns the number of bytes actually
         //  written (even zero is to be considered to be a success). In case
         //  of orderly shutdown by the other peer -1 is returned.
-        int write (const void *data, int size);
+        declspec_export int write (const void *data, int size);
 
         //  Reads data from the socket (up to 'size' bytes). Returns the number
         //  of bytes actually read (even zero is to be considered to be
         //  a success). In case of orderly shutdown by the other peer -1 is
         //  returned.
-        int read (void *data, int size);
+        declspec_export int read (void *data, int size);
 
     private:
 

@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <algorithm>
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -38,11 +39,11 @@ namespace zmq
     //  Decoder implements the state machine that parses the incoming buffer.
     //  Derived class should implement individual state machine actions.
 
-    template <typename T> class declspec_export decoder_t
+    template <typename T> class decoder_t
     {
     public:
 
-        inline decoder_t () :
+        declspec_export inline decoder_t () :
             read_ptr (NULL),
             to_read (0),
             next (NULL)
@@ -50,7 +51,7 @@ namespace zmq
         }
 
         //  Push the binary data to the decoder.
-        void write (unsigned char *data_, size_t size_)
+        declspec_export void write (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
             while (true) {

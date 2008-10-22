@@ -24,16 +24,17 @@
 #include "demux.hpp"
 #include "decoder.hpp"
 #include "message.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
     //  Decoder for 0MQ backend protocol. Converts data batches into messages.
 
-    class declspec_export bp_decoder_t : public decoder_t <bp_decoder_t>
+    class bp_decoder_t : public decoder_t <bp_decoder_t>
     {
     public:
 
-        bp_decoder_t (demux_t *demux_);
+        declspec_export bp_decoder_t (demux_t *demux_);
 
     private:
 

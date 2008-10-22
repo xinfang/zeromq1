@@ -21,6 +21,7 @@
 #define __ZMQ_WIRE_HPP_INCLUDED__
 
 #include "stdint.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -28,7 +29,8 @@ namespace zmq
     //  Helper functions to convert different integer types to/from network
     //  byte order.
 
-    declspec_export inline void put_uint8 (unsigned char *buffer_, uint8_t value)
+    declspec_export inline void put_uint8 (unsigned char *buffer_, 
+        uint8_t value)
     {
         *buffer_ = value;
     }
@@ -38,7 +40,8 @@ namespace zmq
         return *buffer_;
     }
 
-    declspec_export inline void put_uint16 (unsigned char *buffer_, uint16_t value)
+    declspec_export inline void put_uint16 (unsigned char *buffer_, 
+        uint16_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 8) & 0xff);
         buffer_ [1] = (unsigned char) (value & 0xff);
@@ -51,7 +54,8 @@ namespace zmq
             ((uint16_t) buffer_ [1]);
     }
 
-    declspec_export inline void put_uint32 (unsigned char *buffer_, uint32_t value)
+    declspec_export inline void put_uint32 (unsigned char *buffer_, 
+        uint32_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 24) & 0xff);
         buffer_ [1] = (unsigned char) (((value) >> 16) & 0xff);
@@ -68,7 +72,8 @@ namespace zmq
             ((uint32_t) buffer_ [3]);
     }
 
-    declspec_export inline void put_uint64 (unsigned char *buffer_, uint64_t value)
+    declspec_export inline void put_uint64 (unsigned char *buffer_, 
+        uint64_t value)
     {
         buffer_ [0] = (unsigned char) (((value) >> 56) & 0xff);
         buffer_ [1] = (unsigned char) (((value) >> 48) & 0xff);

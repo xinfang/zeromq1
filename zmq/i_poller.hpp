@@ -19,6 +19,7 @@
 
 #ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -31,11 +32,11 @@ namespace zmq
 
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
-    struct declspec_export i_poller
+    struct i_poller
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_poller () {};
+        declspec_export virtual ~i_poller () {};
 
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.

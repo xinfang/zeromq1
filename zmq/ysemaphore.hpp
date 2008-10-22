@@ -61,7 +61,7 @@ namespace zmq
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 
-    class declspec_export ysemaphore_t : public i_signaler
+    class ysemaphore_t : public i_signaler
     { 
     public:
 

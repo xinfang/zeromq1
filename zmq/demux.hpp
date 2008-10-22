@@ -26,6 +26,7 @@
 
 #include "message.hpp"
 #include "pipe.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {

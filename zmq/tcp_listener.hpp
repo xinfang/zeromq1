@@ -27,30 +27,30 @@ namespace zmq
 {
     //  The class encapsulating simple TCP listening socket.
 
-    class declspec_export tcp_listener_t
+    class tcp_listener_t
     {
     public:
 
         //  Create TCP listining socket. Interface is either interface name,
         //  in that case port number is chosen by OS and can be retrieved
         //  by get_port method, or <interface-name>:<port-number>.
-        tcp_listener_t (const char *interface_);
+        declspec_export tcp_listener_t (const char *interface_);
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
-        inline int get_fd ()
+        declspec_export inline int get_fd ()
         {
             return s;
         }
 
         //  Returns port listener is listening on.
-        inline const char *get_interface ()
+        declspec_export inline const char *get_interface ()
         {
             return iface; 
         }
 
         //  Accept the new connection.
-        int accept ();
+        declspec_export int accept ();
 
     private:
 

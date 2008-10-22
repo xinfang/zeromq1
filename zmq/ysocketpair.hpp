@@ -55,7 +55,7 @@ namespace zmq
             
             
             int rc = CreatePipe ( &r, &w, NULL, 0);
-            errno_assert (rc == 0);
+            errno_assert (rc != 0);
             
         }
 

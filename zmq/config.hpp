@@ -27,7 +27,7 @@ namespace zmq
 
     //  Compile-time settings for 0MQ
 
-    enum declspec_export 
+    enum 
     {
         //  Default port to use to connect to global locator (zmq_server).
         default_locator_port = 5682,

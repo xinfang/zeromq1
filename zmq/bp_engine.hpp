@@ -32,6 +32,7 @@
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
 #include "tcp_listener.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -66,7 +67,8 @@ namespace zmq
         declspec_export void out_event ();
         declspec_export void error_event ();
         declspec_export void unregister_event ();
-        declspec_export void process_command (const engine_command_t &command_);
+        declspec_export void process_command (
+            const engine_command_t &command_);
 
     private:
 

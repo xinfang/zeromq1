@@ -24,6 +24,7 @@
 #include "mutex.hpp"
 #include "err.hpp"
 #include "platform.hpp"
+#include "declspec_export.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #include <Windows.h>
 #endif
@@ -33,32 +34,32 @@ namespace zmq
 
     //  This class encapsulates several atomic operations on pointers.
 
-    template <typename T> class declspec_export atomic_ptr_t
+    template <typename T> class atomic_ptr_t
     {
     public:
 
         //  Initialise atomic pointer
-        inline atomic_ptr_t ()
+        declspec_export inline atomic_ptr_t ()
         {
             ptr = NULL;
         }
 
         //  Destroy atomic pointer
-        inline ~atomic_ptr_t ()
+        declspec_export inline ~atomic_ptr_t ()
         {
         }
 
         //  Set value of atomic pointer in a non-threadsafe way
         //  Use this function only when you are sure that at most one
         //  thread is accessing the pointer at the moment.
-        inline void set (T *ptr_)
+        declspec_export inline void set (T *ptr_)
         {
             this->ptr = ptr_;
         }
 
         //  Perform atomic 'exchange pointers' operation. Pointer is set
         //  to the 'val' value. Old value is returned.
-        inline T *xchg (T *val_)
+        declspec_export inline T *xchg (T *val_)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
             return (T*) InterlockedExchangePointer (&ptr, val_);
@@ -109,7 +110,7 @@ namespace zmq
         //  The pointer is compared to 'cmp' argument and if they are
         //  equal, its value is set to 'val'. Old value of the pointer
         //  is returned.
-        inline T *cas (T *cmp_, T *val_)
+        declspec_export inline T *cas (T *cmp_, T *val_)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
             return (T*) InterlockedCompareExchangePointer (

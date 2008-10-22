@@ -25,6 +25,7 @@
 #include "ypipe.hpp"
 #include "raw_message.hpp"
 #include "config.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -78,7 +79,7 @@ namespace zmq
 
     private:
 
-        void send_revive ();
+        declspec_export void send_revive ();
 
         //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>

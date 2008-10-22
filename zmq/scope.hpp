@@ -19,11 +19,12 @@
 
 #ifndef __ZMQ_SCOPE_HPP_INCLUDED__
 #define __ZMQ_SCOPE_HPP_INCLUDED__
+#include "declspec_export.hpp"
 
 namespace zmq
 {
 
-    declspec_export enum scope_t
+    enum scope_t
     {
         //  Local scope means that the object is visible only within
         //  the engine that created it.

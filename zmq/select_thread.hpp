@@ -58,7 +58,8 @@ namespace zmq
 
         //  i_thread implementation.
         declspec_export int get_thread_id ();
-        declspec_export void send_command (i_thread *destination_, const command_t &command_);
+        declspec_export void send_command (i_thread *destination_, 
+            const command_t &command_);
 
         //  i_poller implementation.
         declspec_export handle_t add_fd (int fd_, i_pollable *engine_);

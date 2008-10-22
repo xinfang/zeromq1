@@ -20,6 +20,7 @@
 #include "api_thread.hpp"
 #include "config.hpp"
 
+
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
 {

@@ -33,11 +33,11 @@ namespace zmq
 
     typedef void (thread_fn) (void*);
 
-    class declspec_export thread_t
+    class thread_t
     {
     public:
-        thread_t (thread_fn *tfn_, void *arg_);
-        ~thread_t ();
+        declspec_export thread_t (thread_fn *tfn_, void *arg_);
+        declspec_export ~thread_t ();
 
     private:
 

@@ -154,8 +154,11 @@ void zmq::select_thread_t::loop ()
         while (rc==0) { 
             rc = select(maxfdp1, &result_set_in, &result_set_out, &error_set, NULL);
         }
+#ifdef ZMQ_HAVE_WINDOWS
+        wsa_assert (rc != SOCKET_ERROR);
+#else
         errno_assert (rc != -1);
-        
+#endif
         //  First of all, process commands from other threads.
         if (FD_ISSET(fdset[0], &result_set_in))   {
             uint32_t signals = signaler.check ();

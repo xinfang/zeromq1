@@ -86,6 +86,13 @@ int main (int argc, char *argv [])
         
         return 1;
     }
+#ifdef ZMQ_HAVE_WINDOWS
+    WORD version_requested = MAKEWORD (2, 2);
+    WSADATA wsa_data;
+    int rc = WSAStartup (version_requested, &wsa_data);
+    errno_assert (rc == 0);
+    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
+#endif
 
     //  Create a tcp_listener.
     char iface [256] = "0.0.0.0:";
@@ -318,7 +325,13 @@ int main (int argc, char *argv [])
         }
 
     }
+#ifdef ZMQ_HAVE_WINDOWS
 
+    //  Uninitialise Windows sockets.
+    WSACleanup ();
+#endif
+   
     return 0;
+
 }
 

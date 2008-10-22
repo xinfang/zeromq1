@@ -22,6 +22,7 @@
 
 #include "i_engine.hpp"
 #include "i_poller.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -36,19 +37,19 @@ namespace zmq
 
         //  Called by I/O thread when engine is being registered
         //  with the thread.
-        declspec_export virtual void register_event (i_poller *poller_) = 0;
+        virtual void register_event (i_poller *poller_) = 0;
 
         //  Called by I/O thread when file descriptor is ready for reading.
-        declspec_export virtual void in_event () = 0;
+        virtual void in_event () = 0;
 
         //  Called by I/O thread when file descriptor is ready for writing.
-        declspec_export virtual void out_event () = 0;
+        virtual void out_event () = 0;
 
         //  Called by I/O thread when error occurs on the file descriptor.
-        declspec_export virtual void error_event () = 0;
+        virtual void error_event () = 0;
 
         //  Called by poll thread when unregistering the engine.
-        declspec_export virtual void unregister_event () = 0;
+        virtual void unregister_event () = 0;
 
     };
 

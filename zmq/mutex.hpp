@@ -22,6 +22,7 @@
 
 #include "platform.hpp"
 #include "err.hpp"
+#include "declspec_export.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -30,25 +31,25 @@
 namespace zmq
 {
 
-    class declspec_export mutex_t
+    class mutex_t
     {
     public:
-        inline mutex_t ()
+        declspec_export inline mutex_t ()
         {
             InitializeCriticalSection (&cs);
         }
 
-        inline ~mutex_t ()
+        declspec_export inline ~mutex_t ()
         {
             DeleteCriticalSection (&cs);
         }
 
-        inline void lock ()
+        declspec_export inline void lock ()
         {
             EnterCriticalSection (&cs);
         }
 
-        inline void unlock ()
+        declspec_export inline void unlock ()
         {
             LeaveCriticalSection (&cs);
         }

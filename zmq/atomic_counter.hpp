@@ -25,6 +25,7 @@
 #include "stdint.hpp"
 #include "mutex.hpp"
 #include "platform.hpp"
+#include "declspec_export.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
 #endif
@@ -35,30 +36,30 @@ namespace zmq
     //  This class represents an integer that can be incremented/decremented
     //  in atomic fashion.
 
-    class declspec_export atomic_counter_t
+    class atomic_counter_t
     {
     public:
 
         typedef uint32_t integer_t;
 
-        inline atomic_counter_t (integer_t value_ = 0) :
+        declspec_export inline atomic_counter_t (integer_t value_ = 0) :
             value (value_)
         {
         }
 
-        inline ~atomic_counter_t ()
+        declspec_export inline ~atomic_counter_t ()
         {
         }
 
         //  Set counter value (not thread-safe).
-        inline void set (integer_t value_)
+        declspec_export inline void set (integer_t value_)
         {
             value = value_;
         }
 
         //  Atomic addition. Returns false if counter was zero
         //  before the operation.
-        inline bool add (integer_t increment)
+        declspec_export inline bool add (integer_t increment)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
@@ -99,7 +100,7 @@ namespace zmq
         }
 
         //  Atomic subtraction. Returns false if the counter drops to zero.
-        inline bool sub (integer_t decrement)
+        declspec_export inline bool sub (integer_t decrement)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,

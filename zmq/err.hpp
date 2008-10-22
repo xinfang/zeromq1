@@ -39,8 +39,8 @@
 namespace zmq
 {
 
-    const char * wsa_error ();
-    void win_error (char *buffer_, size_t buffer_size_);
+    declspec_export const char * wsa_error ();
+    declspec_export void win_error (char *buffer_, size_t buffer_size_);
 
 }
 

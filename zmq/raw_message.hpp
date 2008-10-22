@@ -25,6 +25,7 @@
 #include "stdint.hpp"
 #include "config.hpp"
 #include "atomic_counter.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -40,7 +41,7 @@ namespace zmq
     //  If the buffer is actually shared (there are at least 2 references to it)
     //  refcount member contains number of references.
 
-    struct declspec_export  message_content_t
+    struct message_content_t
     {
         void *data;
         size_t size;
@@ -56,7 +57,7 @@ namespace zmq
     //  i.e. you have to use reference counting to manage its lifetime
     //  rather than straighforward malloc/free.
 
-    struct declspec_export raw_message_t
+    struct raw_message_t
     {
         enum {
             delimiter_tag = 0,
@@ -70,7 +71,8 @@ namespace zmq
     };
 
     //  Initialises a message of the specified size.
-    declspec_export inline void raw_message_init (raw_message_t *msg_, size_t size_)
+    declspec_export inline void raw_message_init (raw_message_t *msg_, 
+        size_t size_)
     {
         if (size_ <= max_vsm_size) {
             msg_->content = (message_content_t*) raw_message_t::vsm_tag;
@@ -107,7 +109,8 @@ namespace zmq
     }
 
     //  Initialises raw_message_t to be a pipe delimiter.
-    declspec_export inline void raw_message_init_delimiter (raw_message_t *msg_)
+    declspec_export inline void raw_message_init_delimiter (
+        raw_message_t *msg_)
     {
         msg_->content = (message_content_t*) raw_message_t::delimiter_tag;
     }
@@ -136,7 +139,8 @@ namespace zmq
     //  destination message have contained data prior to the operation
     //  these get deallocated. The source message will contain 0 bytes of data
     //  after the operation.
-    declspec_export inline void raw_message_move (raw_message_t *src_, raw_message_t *dest_)
+    declspec_export inline void raw_message_move (raw_message_t *src_, 
+        raw_message_t *dest_)
     {
         raw_message_destroy (dest_);
         *dest_ = *src_;
@@ -146,7 +150,8 @@ namespace zmq
     //  Copies the message content from one message to the another. If the
     //  destination message have contained data prior to the operation
     //  these get deallocated.
-    declspec_export inline void raw_message_copy (raw_message_t *src_, raw_message_t *dest_)
+    declspec_export inline void raw_message_copy (raw_message_t *src_, 
+        raw_message_t *dest_)
     {
         raw_message_destroy (dest_);
 

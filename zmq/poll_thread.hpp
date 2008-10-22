@@ -21,6 +21,7 @@
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
 #include "platform.hpp"
+#include "declspec_export.hpp"
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
 
 #include <stddef.h>

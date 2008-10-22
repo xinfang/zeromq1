@@ -22,6 +22,7 @@
 
 #include <vector>
 
+#include "platform.hpp"
 #include "i_thread.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
@@ -60,7 +61,8 @@ namespace zmq
         }
 
         //  Write command to the dispatcher.
-        declspec_export inline void write (int source_thread_id_,
+
+        declspec_export inline void write (int source_thread_id_, 
             int destination_thread_id_, const command_t &value_)
         {
             command_pipe_t &pipe = pipes [source_thread_id_ *
@@ -72,7 +74,8 @@ namespace zmq
 
         //  Read command from the dispatcher. Returns false if there is no
         //  command available.
-        declspec_export inline bool read (int source_thread_id_,
+
+        declspec_export inline bool read (int source_thread_id_, 
             int destination_thread_id_, command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +

@@ -24,17 +24,18 @@
 #include "i_engine.hpp"
 #include "scope.hpp"
 #include "zmq_server.hpp"
+#include "declspec_export.hpp"
 
 namespace zmq
 {
 
     
 
-    struct declspec_export i_locator
+    struct i_locator
     {
         //  The destructor shouldn't be virtual, however, not defining it as
         //  such results in compiler warnings with some compilers.
-        virtual ~i_locator () {};
+        declspec_export virtual ~i_locator () {};
 
         //  Creates an object.
         virtual void create (i_thread *calling_thread_,

@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <stddef.h>
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -39,12 +40,12 @@ namespace zmq
     //  N is granularity of the queue (how many pushes have to be done till
     //  actual memory allocation is required)
 
-    template <typename T, int N> class declspec_export yqueue_t
+    template <typename T, int N> class yqueue_t
     {
     public:
 
         //  Create the queue.
-        inline yqueue_t ()
+        declspec_export inline yqueue_t ()
         {
              begin_chunk = new chunk_t;
              assert (begin_chunk);
@@ -56,7 +57,7 @@ namespace zmq
         }
 
         //  Destroy the queue.
-        inline ~yqueue_t ()
+        declspec_export inline ~yqueue_t ()
         {
             while (true) {
                 chunk_t *o = begin_chunk;
@@ -69,20 +70,20 @@ namespace zmq
 
         //  Returns reference to the front element of the queue.
         //  If the queue is empty, behaviour is undefined.
-        inline T &front ()
+        declspec_export inline T &front ()
         {
              return begin_chunk->values [begin_pos];
         }
 
         //  Returns reference to the back element of the queue.
         //  If the queue is empty, behaviour is undefined.
-        inline T &back ()
+        declspec_export inline T &back ()
         {
             return back_chunk->values [back_pos];
         }
 
         //  Adds an element to the back end of the queue.
-        void push ()
+        declspec_export void push ()
         {
             back_chunk = end_chunk;
             back_pos = end_pos;
@@ -97,7 +98,7 @@ namespace zmq
         }
 
         //  Removes an element from the front end of the queue.
-        inline void pop ()
+        declspec_export inline void pop ()
         {
             if (++ begin_pos == N) {
                 chunk_t *o = begin_chunk;

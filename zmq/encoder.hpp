@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <string.h>
 #include <algorithm>
+#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -32,17 +33,17 @@ namespace zmq
     //  fills the outgoing buffer. Derived classes should implement individual
     //  state machine actions.
 
-    template <typename T> class declspec_export encoder_t
+    template <typename T> class encoder_t
     {
     public:
 
-        inline encoder_t ()
+        declspec_export inline encoder_t ()
         {
         }
 
         //  The function tries to fill the supplied chunk by binary data.
         //  Returns the size of data actually filled in.
-        inline size_t read (unsigned char *data_, size_t size_)
+        declspec_export inline size_t read (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
 

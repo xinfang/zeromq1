@@ -21,18 +21,16 @@
 #define __ZMQ_STDINT_HPP_INCLUDED__
 
 #include "platform.hpp"
+#include "declspec_export.hpp"
 
 #ifdef ZMQ_HAVE_SOLARIS
 #include <inttypes.h>
 #elif defined ZMQ_HAVE_WINDOWS
 
-namespace zmq
-{
-    typedef __int8 uint8_t;
-    typedef __int16 uint16_t;
-    typedef __int32 uint32_t;
-    typedef __int64 uint64_t;
-}
+typedef __int8 uint8_t;
+typedef __int16 uint16_t;
+typedef __int32 uint32_t;
+typedef __int64 uint64_t;
 
 #else
 #include <stdint.h>
