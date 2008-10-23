@@ -20,8 +20,8 @@
 #ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
 #define __ZMQ_I_ENGINE_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "command.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -31,9 +31,7 @@ namespace zmq
 
     struct i_engine
     {
-        //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings with some compilers.
-        declspec_export virtual ~i_engine () {};
+        ZMQ_EXPORT virtual ~i_engine () {};
 
         //  Called when command from a different thread is received.
         virtual void process_command (

@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 
+#include "export.hpp"
 #include "config.hpp"
 #include "i_thread.hpp"
 #include "i_engine.hpp"
@@ -39,7 +40,6 @@
 #include "zmq_server.hpp"
 #include "select_thread.hpp"
 #include "platform.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -53,45 +53,45 @@ namespace zmq
 
         //  Creates API thread and attaches it to the command dispatcher and
         //  resource locator.
-        declspec_export static api_thread_t *create (dispatcher_t *dispatcher_,
+        ZMQ_EXPORT static api_thread_t *create (dispatcher_t *dispatcher_,
             i_locator *locator_);
 
         //  Destroys API engine.
-        declspec_export ~api_thread_t ();
+        ZMQ_EXPORT ~api_thread_t ();
 
         //  Creates new exchange, returns exchange ID.
-        declspec_export int create_exchange (
+        ZMQ_EXPORT int create_exchange (
             const char *exchange_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL);
 
         //  Creates new queue, returns queue ID.
-        declspec_export int create_queue (
+        ZMQ_EXPORT int create_queue (
             const char *queue_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL);
 
         //  Binds an exchange to a queue.
-        declspec_export void bind (const char *exchange_, const char *queue_,
+        ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,
             i_thread *exchange_thread_, i_thread *queue_thread_);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
         //  messages, flush them immediately.
-        declspec_export void send (int exchange_id_, message_t &msg_);
+        ZMQ_EXPORT void send (int exchange_id_, message_t &msg_);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        declspec_export void presend (int exchange_id_, message_t &msg_);
+        ZMQ_EXPORT void presend (int exchange_id_, message_t &msg_);
 
         //  Flush all the pre-sent messages.
-        declspec_export void flush ();
+        ZMQ_EXPORT void flush ();
 
         //  Receive a message. If 'block' argument is true, it'll block till
         //  message arrives. It returns ID of the queue message was retrieved
         //  from, 0 is no message was retrieved.
-        declspec_export int receive (message_t *msg_, bool block_ = true);
+        ZMQ_EXPORT int receive (message_t *msg_, bool block_ = true);
 
     private:
 

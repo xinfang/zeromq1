@@ -20,8 +20,6 @@
 #ifndef __ZMQ_CONFIG_HPP_INCLUDED__
 #define __ZMQ_CONFIG_HPP_INCLUDED__
 
-#include "declspec_export.hpp"
-
 namespace zmq
 {
 

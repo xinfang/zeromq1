@@ -21,7 +21,6 @@
 #define __ZMQ_MESSAGE_HPP_INCLUDED__
 
 #include "raw_message.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -35,7 +34,7 @@ namespace zmq
     public:
 
         //  Creates message size_ bytes long.
-        declspec_export inline message_t (size_t size_ = 0)
+        inline message_t (size_t size_ = 0)
         {
             raw_message_init (this, size_);
         }
@@ -44,14 +43,14 @@ namespace zmq
         //  deallocating the buffer once it is not needed. The deallocation
         //  function is supplied in ffn_ parameter. If ffn_ is NULL, no
         //  deallocation happens - this is useful for sending static buffers.
-        declspec_export inline message_t (void *data_, size_t size_, 
+        inline message_t (void *data_, size_t size_, 
             free_fn *ffn_)
         {
             raw_message_init (this, data_, size_, ffn_);
         }
 
         //  Destroys the message.
-        declspec_export inline ~message_t ()
+        inline ~message_t ()
         {
             raw_message_destroy (this);
         }
@@ -59,7 +58,7 @@ namespace zmq
         //  Destroys old content of the message and allocates buffer for the
         //  new message body. Having this as a separate function allows user
         //  to reuse once-allocated message for multiple times.
-        declspec_export inline void rebuild (size_t size_)
+        inline void rebuild (size_t size_)
         {
             raw_message_destroy (this);
             raw_message_init (this, size_);            
@@ -68,7 +67,7 @@ namespace zmq
         //  Same as above, however, the message is rebuilt from the supplied
         //  buffer. See appropriate constructor for discussion of buffer
         //  deallocation mechanism.
-        declspec_export inline void rebuild (void *data_, size_t size_, free_fn *ffn_)
+        inline void rebuild (void *data_, size_t size_, free_fn *ffn_)
         {
             raw_message_destroy (this);
             raw_message_init (this, data_, size_, ffn_);            
@@ -78,7 +77,7 @@ namespace zmq
         //  destination message have contained data prior to the operation
         //  these get deallocated. The source message will contain 0 bytes
         //  of data after the operation.
-        declspec_export inline void move_to (message_t *msg_)
+        inline void move_to (message_t *msg_)
         {
             raw_message_move (this, (raw_message_t*) msg_);
         }
@@ -86,19 +85,19 @@ namespace zmq
         //  Copies the message content from one message to the another. If the
         //  destination message have contained data prior to the operation
         //  these get deallocated.
-        declspec_export inline void copy_to (message_t *msg_)
+        inline void copy_to (message_t *msg_)
         {
             raw_message_copy (this, (raw_message_t*) msg_);
         }
 
         //  Returns pointer to message's data buffer.
-        declspec_export inline void *data ()
+        inline void *data ()
         {
             return raw_message_data (this);
         }
 
         //  Returns the size of message data buffer.
-        declspec_export inline size_t size ()
+        inline size_t size ()
         {
             return raw_message_size (this);
         }

@@ -21,10 +21,10 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "demux.hpp"
 #include "decoder.hpp"
 #include "message.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -34,7 +34,7 @@ namespace zmq
     {
     public:
 
-        declspec_export bp_decoder_t (demux_t *demux_);
+        ZMQ_EXPORT bp_decoder_t (demux_t *demux_);
 
     private:
 

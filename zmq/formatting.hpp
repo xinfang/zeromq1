@@ -24,7 +24,6 @@
 //  that are missing on Windows platform.
 
 #include "platform.hpp"
-#include "declspec_export.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
 #define zmq_sprintf sprintf_s

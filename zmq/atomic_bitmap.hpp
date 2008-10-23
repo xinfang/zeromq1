@@ -24,7 +24,6 @@
 #include "err.hpp"
 #include "stdint.hpp"
 #include "mutex.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -43,18 +42,18 @@ namespace zmq
         typedef uint32_t integer_t;
 #endif
 
-        declspec_export inline atomic_bitmap_t (integer_t value_ = 0) :
+        inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
         {
         }
 
-        declspec_export inline ~atomic_bitmap_t ()
+        inline ~atomic_bitmap_t ()
         {
         }
 
         //  Bit-test-set-and-reset. Sets one bit of the value and resets
         //  another one. Returns the original value of the reset bit.
-        declspec_export inline bool btsr (int set_index_, int reset_index_)
+        inline bool btsr (int set_index_, int reset_index_)
         {
 #if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
@@ -102,7 +101,7 @@ namespace zmq
         }
 
         //  Sets value to newval. Returns the original value.
-        declspec_export inline integer_t xchg (integer_t newval_)
+        inline integer_t xchg (integer_t newval_)
         {
             integer_t oldval;
 #if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
@@ -150,7 +149,7 @@ namespace zmq
         //  izte is "if-zero-then-else" atomic operation - if the value is zero
         //  it substitutes it by 'thenval' else it rewrites it by 'elseval'.
         //  Original value of the integer is returned from this function.
-        declspec_export inline integer_t izte (integer_t thenval_, 
+        inline integer_t izte (integer_t thenval_, 
             integer_t elseval_)
         {
             integer_t oldval;

@@ -22,7 +22,6 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -45,7 +44,7 @@ namespace zmq
     public:
 
         //  Create the queue.
-        declspec_export inline yqueue_t ()
+        inline yqueue_t ()
         {
              begin_chunk = new chunk_t;
              assert (begin_chunk);
@@ -57,7 +56,7 @@ namespace zmq
         }
 
         //  Destroy the queue.
-        declspec_export inline ~yqueue_t ()
+        inline ~yqueue_t ()
         {
             while (true) {
                 chunk_t *o = begin_chunk;
@@ -70,20 +69,20 @@ namespace zmq
 
         //  Returns reference to the front element of the queue.
         //  If the queue is empty, behaviour is undefined.
-        declspec_export inline T &front ()
+        inline T &front ()
         {
              return begin_chunk->values [begin_pos];
         }
 
         //  Returns reference to the back element of the queue.
         //  If the queue is empty, behaviour is undefined.
-        declspec_export inline T &back ()
+        inline T &back ()
         {
             return back_chunk->values [back_pos];
         }
 
         //  Adds an element to the back end of the queue.
-        declspec_export void push ()
+        inline void push ()
         {
             back_chunk = end_chunk;
             back_pos = end_pos;
@@ -98,7 +97,7 @@ namespace zmq
         }
 
         //  Removes an element from the front end of the queue.
-        declspec_export inline void pop ()
+        inline void pop ()
         {
             if (++ begin_pos == N) {
                 chunk_t *o = begin_chunk;

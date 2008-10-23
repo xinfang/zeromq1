@@ -19,10 +19,13 @@
 
 #ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
-#include "declspec_export.hpp"
+
+#include "export.hpp"
 
 namespace zmq
 {
+
+    //  Handle identifying specific file descriptor registered with the thread.
     struct handle_t {
         union {
             int fd;
@@ -33,11 +36,10 @@ namespace zmq
 
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
+
     struct i_poller
     {
-        //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings with some compilers.
-        declspec_export virtual ~i_poller () {};
+        ZMQ_EXPORT virtual ~i_poller () {};
 
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.
@@ -65,7 +67,6 @@ namespace zmq
         //  Try to write to the socket (even though we are not sure the
         //  write will succeed).
         virtual void speculative_write (handle_t handle_) = 0;
-
     };
 
 }

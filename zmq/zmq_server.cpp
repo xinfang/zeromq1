@@ -86,7 +86,9 @@ int main (int argc, char *argv [])
         
         return 1;
     }
+
 #ifdef ZMQ_HAVE_WINDOWS
+    //  Initialise Windows socker layer.
     WORD version_requested = MAKEWORD (2, 2);
     WSADATA wsa_data;
     int rc = WSAStartup (version_requested, &wsa_data);
@@ -325,9 +327,9 @@ int main (int argc, char *argv [])
         }
 
     }
-#ifdef ZMQ_HAVE_WINDOWS
 
-    //  Uninitialise Windows sockets.
+#ifdef ZMQ_HAVE_WINDOWS
+    //  Uninitialise Windows socket layer.
     WSACleanup ();
 #endif
    

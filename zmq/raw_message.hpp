@@ -25,14 +25,13 @@
 #include "stdint.hpp"
 #include "config.hpp"
 #include "atomic_counter.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
 
     //  Prototype for the message body deallocation functions.
     //  It is deliberately defined in the way to comply with standard C free.
-    declspec_export typedef void (free_fn) (void *data_);
+    typedef void (free_fn) (void *data_);
 
     //  Shared message buffer. Message data are either allocated in one block
     //  with this structure - thus avoiding one malloc/free pair - or they are
@@ -71,7 +70,7 @@ namespace zmq
     };
 
     //  Initialises a message of the specified size.
-    declspec_export inline void raw_message_init (raw_message_t *msg_, 
+    inline void raw_message_init (raw_message_t *msg_, 
         size_t size_)
     {
         if (size_ <= max_vsm_size) {
@@ -96,7 +95,7 @@ namespace zmq
     //  data in case you are dealing with legacy code.
     //  In other cases, however, standard initialisation should be prefered
     //  as it is more efficient when compared to this one.
-    declspec_export inline void raw_message_init (raw_message_t *msg_,
+    inline void raw_message_init (raw_message_t *msg_,
         void *data_, size_t size_, free_fn *ffn_)
     {
         msg_->shared = false;
@@ -109,7 +108,7 @@ namespace zmq
     }
 
     //  Initialises raw_message_t to be a pipe delimiter.
-    declspec_export inline void raw_message_init_delimiter (
+    inline void raw_message_init_delimiter (
         raw_message_t *msg_)
     {
         msg_->content = (message_content_t*) raw_message_t::delimiter_tag;
@@ -118,7 +117,7 @@ namespace zmq
     //  Releases the resources associated with the message. Obviously, if
     //  message content is shared, it releases one reference only and destroys
     //  the content only if there is no reference left.
-    declspec_export inline void raw_message_destroy (raw_message_t *msg_)
+    inline void raw_message_destroy (raw_message_t *msg_)
     {
         //  For VSMs and delimiters there are no resources to free
         if (msg_->content ==
@@ -139,7 +138,7 @@ namespace zmq
     //  destination message have contained data prior to the operation
     //  these get deallocated. The source message will contain 0 bytes of data
     //  after the operation.
-    declspec_export inline void raw_message_move (raw_message_t *src_, 
+    inline void raw_message_move (raw_message_t *src_, 
         raw_message_t *dest_)
     {
         raw_message_destroy (dest_);
@@ -150,7 +149,7 @@ namespace zmq
     //  Copies the message content from one message to the another. If the
     //  destination message have contained data prior to the operation
     //  these get deallocated.
-    declspec_export inline void raw_message_copy (raw_message_t *src_, 
+    inline void raw_message_copy (raw_message_t *src_, 
         raw_message_t *dest_)
     {
         raw_message_destroy (dest_);
@@ -174,7 +173,7 @@ namespace zmq
     }
 
     //  Returns pointer to the message body.
-    declspec_export inline void *raw_message_data (raw_message_t *msg_)
+    inline void *raw_message_data (raw_message_t *msg_)
     {
         if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
             return msg_->vsm_data;
@@ -184,7 +183,7 @@ namespace zmq
     }
 
     //  Returns message size.
-    declspec_export inline size_t raw_message_size (raw_message_t *msg_)
+    inline size_t raw_message_size (raw_message_t *msg_)
     {
         if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
             return msg_->vsm_size;

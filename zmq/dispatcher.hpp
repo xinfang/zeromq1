@@ -22,13 +22,13 @@
 
 #include <vector>
 
+#include "export.hpp"
 #include "platform.hpp"
 #include "i_thread.hpp"
 #include "i_signaler.hpp"
 #include "ypipe.hpp"
 #include "mutex.hpp"
 #include "config.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -49,20 +49,19 @@ namespace zmq
 
         //  Create the dispatcher object. The actual number of threads
         //  supported is determined by thread_count_.
-        declspec_export dispatcher_t (int thread_count_);
+        ZMQ_EXPORT dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object.
-        declspec_export ~dispatcher_t ();
+        ZMQ_EXPORT ~dispatcher_t ();
 
         //  Returns number of threads dispatcher is preconfigured for.
-        declspec_export inline int get_thread_count ()
+        ZMQ_EXPORT inline int get_thread_count ()
         {
             return thread_count;
         }
 
         //  Write command to the dispatcher.
-
-        declspec_export inline void write (int source_thread_id_, 
+        ZMQ_EXPORT inline void write (int source_thread_id_, 
             int destination_thread_id_, const command_t &value_)
         {
             command_pipe_t &pipe = pipes [source_thread_id_ *
@@ -74,8 +73,7 @@ namespace zmq
 
         //  Read command from the dispatcher. Returns false if there is no
         //  command available.
-
-        declspec_export inline bool read (int source_thread_id_, 
+        ZMQ_EXPORT inline bool read (int source_thread_id_, 
             int destination_thread_id_, command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +
@@ -84,10 +82,10 @@ namespace zmq
 
         //  Assign an thread ID to the caller. Register the supplied signaler
         //  with the thread.
-        declspec_export int allocate_thread_id (i_signaler *signaler_);
+        ZMQ_EXPORT int allocate_thread_id (i_signaler *signaler_);
 
         //  Return thread ID to the pool of free thread IDs.
-        declspec_export void deallocate_thread_id (int thread_id_);
+        ZMQ_EXPORT void deallocate_thread_id (int thread_id_);
 
     private:
 

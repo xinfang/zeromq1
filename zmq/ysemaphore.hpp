@@ -24,17 +24,16 @@
 #include <assert.h>
 
 #include "platform.hpp"
-#include "declspec_export.hpp"
+#include "i_signaler.hpp"
+#include "err.hpp"
+
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
-#elif (!defined ZMQ_HAVE_LINUX && !defined ZMQ_HAVE_OSX)
+#elif defined ZMQ_HAVE_FREEBSD
 #include <semaphore.h>
 #else
 #include <pthread.h>
 #endif
-
-#include "i_signaler.hpp"
-#include "err.hpp"
 
 namespace zmq
 
@@ -58,8 +57,88 @@ namespace zmq
     //    therefore real semaphore should be used
     //  - on OS X unnamed semaphores are not supported, therefore mutex-based
     //    substitute should be used
+    //  - on Windows platform simple semaphore is implemented using event object
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+#ifdef ZMQ_HAVE_WINDOWS
+
+    class ysemaphore_t : public i_signaler
+    { 
+    public:
+
+        //  Initialise the semaphore.
+        inline ysemaphore_t ()
+        {
+            ev = CreateEvent (NULL, FALSE, FALSE, NULL);
+            win_assert (ev != NULL);
+        }
+
+        //  Destroy the semaphore.
+        inline ~ysemaphore_t ()
+        {
+            BOOL rc = CloseHandle (ev);
+            win_assert (rc != 0);    
+        }
+
+        //  Wait for the semaphore.
+        inline void wait ()
+        {
+            DWORD rc = WaitForSingleObject (ev, INFINITE);
+            win_assert (rc != WAIT_FAILED);
+        }
+
+        //  Post the semaphore (i_signaler implementation).
+        void signal (int signal_);
+
+    private:
+
+        HANDLE ev;
+
+        //  Disable copying of ysemaphore object.
+        ysemaphore_t (const ysemaphore_t&);
+        void operator = (const ysemaphore_t&);
+    };
+
+#elif defined ZMQ_HAVE_FREEBSD
+
+    class ysemaphore_t : public i_signaler
+    { 
+    public:
+
+        //  Initialise the semaphore.
+        inline ysemaphore_t ()
+        {
+             int rc = sem_init (&sem, 0, 0);
+             errno_assert (rc != -1);
+        }
+
+        //  Destroy the semaphore.
+        inline ~ysemaphore_t ()
+        {
+             int rc = sem_destroy (&sem);
+             errno_assert (rc != -1);
+        }
+
+        //  Wait for the semaphore.
+        inline void wait ()
+        {
+             int rc = sem_wait (&sem);
+             errno_assert (rc != -1);
+        }
+
+        //  Post the semaphore.
+        void signal (int signal_);
+
+    private:
+
+        //  Underlying system semaphore object.
+        sem_t sem;
+
+        //  Disable copying of ysemaphore object.
+        ysemaphore_t (const ysemaphore_t&);
+        void operator = (const ysemaphore_t&);
+    };
+
+#else
 
     class ysemaphore_t : public i_signaler
     { 
@@ -98,87 +177,6 @@ namespace zmq
         //  Simple semaphore is implemented by mutex, as it is more efficient
         //  on Linux platform.
         pthread_mutex_t mutex;
-
-        //  Disable copying of ysemaphore object.
-        ysemaphore_t (const ysemaphore_t&);
-        void operator = (const ysemaphore_t&);
-    };
-
-#elif defined ZMQ_HAVE_WINDOWS
-
-    class ysemaphore_t : public i_signaler
-    { 
-    public:
-
-        //  Initialise the semaphore.
-        declspec_export inline ysemaphore_t ()
-        {
-            ev = CreateEvent (NULL, FALSE, FALSE, NULL);
-            win_assert (ev != NULL);
-        }
-
-        //  Destroy the semaphore.
-        declspec_export inline ~ysemaphore_t ()
-        {
-            BOOL rc = CloseHandle (ev);
-            win_assert (rc != 0);
-
-            
-        }
-
-        //  Wait for the semaphore.
-        declspec_export inline void wait ()
-        {
-            DWORD rc = WaitForSingleObject (ev, INFINITE);
-            win_assert (rc != WAIT_FAILED);
-        }
-
-        //  Post the semaphore.
-        declspec_export void signal (int signal_);
-
-    private:
-
-        HANDLE ev;
-
-        //  Disable copying of ysemaphore object.
-        ysemaphore_t (const ysemaphore_t&);
-        void operator = (const ysemaphore_t&);
-    };
-
-#else
-
-    class ysemaphore_t : public i_signaler
-    { 
-    public:
-
-        //  Initialise the semaphore.
-        inline ysemaphore_t ()
-        {
-             int rc = sem_init (&sem, 0, 0);
-             errno_assert (rc != -1);
-        }
-
-        //  Destroy the semaphore.
-        inline ~ysemaphore_t ()
-        {
-             int rc = sem_destroy (&sem);
-             errno_assert (rc != -1);
-        }
-
-        //  Wait for the semaphore.
-        inline void wait ()
-        {
-             int rc = sem_wait (&sem);
-             errno_assert (rc != -1);
-        }
-
-        //  Post the semaphore.
-        void signal (int signal_);
-
-    private:
-
-        //  Underlying system semaphore object.
-        sem_t sem;
 
         //  Disable copying of ysemaphore object.
         ysemaphore_t (const ysemaphore_t&);

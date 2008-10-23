@@ -20,14 +20,17 @@
 #ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "platform.hpp"
-#include "declspec_export.hpp"
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX
+
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+    defined ZMQ_HAVE_OSX || ZMQ_HAVE_SOLARIS
 
 #include <stddef.h>
 #include <assert.h>
 #include <poll.h>
 
+#include "export.hpp"
 #include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
@@ -48,10 +51,10 @@ namespace zmq
     public:
 
         //  Create a poll thread.
-        static i_thread *create (dispatcher_t *dispatcher_);
+        ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread.
-        ~poll_thread_t ();
+        ZMQ_EXPORT ~poll_thread_t ();
 
         //  i_thread implementation.
         int get_thread_id ();

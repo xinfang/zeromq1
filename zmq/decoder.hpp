@@ -23,7 +23,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <algorithm>
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -43,7 +42,7 @@ namespace zmq
     {
     public:
 
-        declspec_export inline decoder_t () :
+        inline decoder_t () :
             read_ptr (NULL),
             to_read (0),
             next (NULL)
@@ -51,7 +50,7 @@ namespace zmq
         }
 
         //  Push the binary data to the decoder.
-        declspec_export void write (unsigned char *data_, size_t size_)
+        void write (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
             while (true) {

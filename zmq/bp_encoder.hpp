@@ -24,6 +24,7 @@
 #include <stddef.h>
 #include <assert.h>
 
+#include "export.hpp"
 #include "mux.hpp"
 #include "encoder.hpp"
 #include "message.hpp"
@@ -36,8 +37,8 @@ namespace zmq
     {
     public:
 
-        declspec_export bp_encoder_t (mux_t *mux_);
-        declspec_export ~bp_encoder_t ();
+        ZMQ_EXPORT bp_encoder_t (mux_t *mux_);
+        ZMQ_EXPORT ~bp_encoder_t ();
 
     private:
 

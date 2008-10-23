@@ -26,7 +26,6 @@
 #include "atomic_bitmap.hpp"
 #include "ysemaphore.hpp"
 #include "stdint.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -42,17 +41,17 @@ namespace zmq
         typedef atomic_bitmap_t::integer_t integer_t;
 
         //  Create the pollset.
-        declspec_export inline ypollset_t ()
+        inline ypollset_t ()
         {
         }
 
-        //  Send a signal to the pollset.
-        declspec_export void signal (int signal_);
+        //  Send a signal to the pollset (i_singnaler implementation).
+        void signal (int signal_);
 
         //  Wait for signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 3 etc.
-        declspec_export inline integer_t poll ()
+        inline integer_t poll ()
         {
             integer_t result = 0;
             while (!result) {
@@ -77,7 +76,7 @@ namespace zmq
 
         //  Same as poll, however, if there is no signal available,
         //  function returns zero immediately instead of waiting for a signal.
-        declspec_export inline integer_t check ()
+        inline integer_t check ()
         {
             return bits.xchg (0);
         }

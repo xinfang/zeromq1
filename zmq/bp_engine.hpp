@@ -23,6 +23,7 @@
 
 #include <string>
 
+#include "export.hpp"
 #include "i_engine.hpp"
 #include "i_pollable.hpp"
 #include "i_thread.hpp"
@@ -32,7 +33,6 @@
 #include "bp_decoder.hpp"
 #include "tcp_socket.hpp"
 #include "tcp_listener.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -51,24 +51,23 @@ namespace zmq
         //  host parameter. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        declspec_export static bp_engine_t *create (i_thread *calling_thread_,
+        ZMQ_EXPORT static bp_engine_t *create (i_thread *calling_thread_,
             i_thread *thread_, const char *hostname_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object.
-        declspec_export static bp_engine_t *create (i_thread *calling_thread_,
+        ZMQ_EXPORT static bp_engine_t *create (i_thread *calling_thread_,
             i_thread *thread_, tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
 
         //  i_pollable interface implementation.
-        declspec_export void register_event (i_poller *poller_);
-        declspec_export void in_event ();
-        declspec_export void out_event ();
-        declspec_export void error_event ();
-        declspec_export void unregister_event ();
-        declspec_export void process_command (
-            const engine_command_t &command_);
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void error_event ();
+        void unregister_event ();
+        void process_command (const engine_command_t &command_);
 
     private:
 

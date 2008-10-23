@@ -20,9 +20,9 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "i_engine.hpp"
 #include "i_poller.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -31,9 +31,7 @@ namespace zmq
 
     struct i_pollable : public i_engine
     {
-        //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings with some compilers.
-        declspec_export virtual ~i_pollable () {};
+        ZMQ_EXPORT virtual ~i_pollable () {};
 
         //  Called by I/O thread when engine is being registered
         //  with the thread.

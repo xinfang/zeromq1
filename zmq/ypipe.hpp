@@ -22,7 +22,6 @@
 
 #include "atomic_ptr.hpp"
 #include "yqueue.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -45,7 +44,7 @@ namespace zmq
 
         //  Initialises the pipe. If 'dead' is set to true, the pipe is
         //  created in dead state.
-        declspec_export ypipe_t (bool dead_ = true) :
+        inline ypipe_t (bool dead_ = true) :
             stop (false)
         {
             //  Insert terminator element into the queue.
@@ -58,7 +57,7 @@ namespace zmq
         }
 
         //  Write an item to the pipe.  Don't flush it yet.
-        declspec_export void write (const T &value_)
+        inline void write (const T &value_)
         {
             //  Place the value to the queue, add new terminator element.
             queue.back () = value_;
@@ -68,7 +67,7 @@ namespace zmq
         //  Flush the messages into the pipe. Returns false if the reader
         //  thread is sleeping. In that case, caller is obliged to wake the
         //  reader up before using the pipe again.
-        declspec_export bool flush ()
+        inline bool flush ()
         {
             //  If there are no un-flushed items, do nothing.
             if (w == &queue.back ())
@@ -95,7 +94,7 @@ namespace zmq
 
         //  Reads an item from the pipe. Returns false if there is no value.
         //  available.
-        declspec_export bool read (T *value_)
+        inline bool read (T *value_)
         {
             //  Was the value was prefetched already? If so, return it.
             if (&queue.front () != r) {

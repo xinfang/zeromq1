@@ -24,9 +24,9 @@
 #include <vector>
 #include <algorithm>
 
+#include "export.hpp"
 #include "message.hpp"
 #include "pipe.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -37,23 +37,23 @@ namespace zmq
     {
     public:
 
-        declspec_export demux_t ();
-        declspec_export ~demux_t ();
+        ZMQ_EXPORT demux_t ();
+        ZMQ_EXPORT ~demux_t ();
 
         //  Start sending messages to the specified pipe.
-        declspec_export void send_to (pipe_t *pipe_);
+        ZMQ_EXPORT void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush).
-        declspec_export void write (message_t &msg_);
+        ZMQ_EXPORT void write (message_t &msg_);
 
         //  Flush the messages.
-        declspec_export void flush ();
+        ZMQ_EXPORT void flush ();
 
         //  Write a delimiter to each pipe.
-        declspec_export void terminate_pipes ();
+        ZMQ_EXPORT void terminate_pipes ();
 
         //  Write a delimiter to the specified pipe.
-        declspec_export void destroy_pipe (pipe_t *pipe_);
+        ZMQ_EXPORT void destroy_pipe (pipe_t *pipe_);
 
     private:
 

@@ -20,63 +20,62 @@
 #ifndef __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 #define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
-#include "platform.hpp"
-#include "declspec_export.hpp"
+#include <assert.h>
 
-#ifndef ZMQ_HAVE_WINDOWS 
+#include "platform.hpp"
+#include "stdint.hpp"
+#include "i_signaler.hpp"
+#include "err.hpp"
+
+#ifdef ZMQ_HAVE_WINDOWS 
+#include <windows.h>
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #include <poll.h>
 #endif
 
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_WINDOWS
-
-#include <assert.h>
-#include "stdint.hpp"
-#include "i_signaler.hpp"
-#include "err.hpp"
-#endif
-
 namespace zmq
 {
 
-#ifdef ZMQ_HAVE_WINDOWS
-    //  This pipe can be used to send individual bytes from one thread to
+    //  This object can be used to send individual bytes from one thread to
     //  another. The specific of this pipe is that it has associated file
     //  descriptor and so it can be polled on.
+
+#ifdef ZMQ_HAVE_WINDOWS
 
     class ysocketpair_t : public i_signaler
     {
     public:
 
         //  Initialise the pipe.
-        declspec_export inline ysocketpair_t ()
+        inline ysocketpair_t ()
         {
-            
-            
             int rc = CreatePipe ( &r, &w, NULL, 0);
-            errno_assert (rc != 0);
-            
+            win_assert (rc != 0);
         }
 
         //  Destroy the pipe.
-        declspec_export inline ~ysocketpair_t ()
+        inline ~ysocketpair_t ()
         {
-//            close (w);
-//            close (r);
+            int rc = CloseHandle (w);
+            win_assert (rc != 0);
+            rc = CloseHandle (r);
+            win_assert (rc != 0);
         }
 
-        //  Send specific signal to the pipe.
-        declspec_export void signal (int signal_);
+        //  Send specific signal to the pipe (i_signaler implemenation).
+        void signal (int signal_);
 
         //  Waits for a signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
-        declspec_export inline uint32_t poll ()
+        inline uint32_t poll ()
         {
-            int rc = WaitForSingleObject(r, INFINITE);          
-            errno_assert (rc >= 0);
-            //  TODO find out, if r is ready to read from
+            DWORD rc = WaitForSingleObject (r, INFINITE);
+            assert (rc != WAIT_ABANDONED);
+            assert (rc != WAIT_TIMEOUT);
+            win_assert (rc != WAIT_FAILED);
             return check ();
         }
 
@@ -84,12 +83,12 @@ namespace zmq
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc. If there is no signal available,
         //  it returns zero immediately.
-        declspec_export inline uint32_t check ()
+        inline uint32_t check ()
         {
-            unsigned char buffer [256];
-           
-            int nbytes = ReadFile (r, buffer, 256, NULL, NULL);
-            errno_assert (nbytes != -1);
+            unsigned char buffer [256];           
+            BOOL rc = ReadFile (r, buffer, 256, NULL, NULL);
+            win_assert (rc);
+
             uint32_t signals = 0;
             for (int pos = 0; pos != nbytes; pos ++) {
                 assert (buffer [pos] < 31);
@@ -99,7 +98,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        declspec_export inline int get_fd ()
+        inline int get_fd ()
         {
             return (int) r;
         }
@@ -116,11 +115,8 @@ namespace zmq
         ysocketpair_t (const ysocketpair_t&);
         void operator = (const ysocketpair_t&);
     };
-#else
 
-    //  This pipe can be used to send individual bytes from one thread to
-    //  another. The specific of this pipe is that it has associated file
-    //  descriptor and so it can be polled on.
+#else
 
     class ysocketpair_t : public i_signaler
     {

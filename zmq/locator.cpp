@@ -73,30 +73,30 @@ void zmq::locator_t::create (i_thread *calling_thread_,
     //  Add the object to the global locator.
     if (scope_ == scope_global) {
 
-         assert (global_locator);
-         assert (strlen (interface_) < 256);
+        assert (global_locator);
+        assert (strlen (interface_) < 256);
          
-         //  Create a listener for the object.
-         bp_listener_t *listener = bp_listener_t::create (calling_thread_,
-             listener_thread_, interface_, handler_thread_count_,
-             handler_threads_, type_id_ == exchange_type_id ? false : true,
-             thread_, engine_, object_);
+        //  Create a listener for the object.
+        bp_listener_t *listener = bp_listener_t::create (calling_thread_,
+            listener_thread_, interface_, handler_thread_count_,
+            handler_threads_, type_id_ == exchange_type_id ? false : true,
+            thread_, engine_, object_);
                   
-         //  Send to 'create' command.
-         unsigned char cmd = create_id;
-         global_locator->write (&cmd, 1);
-         unsigned char type_id = type_id_;
-         global_locator->write (&type_id, 1);         
-         unsigned char size = strlen (object_);
-         global_locator->write (&size, 1);
-         global_locator->write (object_, size);
-         size = strlen (listener->get_interface ());
-         global_locator->write (&size, 1);
-         global_locator->write (listener->get_interface (), size);
+        //  Send to 'create' command.
+        unsigned char cmd = create_id;
+        global_locator->write (&cmd, 1);
+        unsigned char type_id = type_id_;
+        global_locator->write (&type_id, 1);         
+        unsigned char size = strlen (object_);
+        global_locator->write (&size, 1);
+        global_locator->write (object_, size);
+        size = strlen (listener->get_interface ());
+        global_locator->write (&size, 1);
+        global_locator->write (listener->get_interface (), size);
 
-         //  Read the response.
-         global_locator->read (&cmd, 1);
-         assert (cmd == create_ok_id);
+        //  Read the response.
+        global_locator->read (&cmd, 1);
+        assert (cmd == create_ok_id);
     }
 
     //  Leave critical section.
@@ -119,46 +119,46 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
     //  If the object is unknown, find it using global locator.
     if (it == objects [type_id_].end ()) {
 
-         //  If we are running without global locator, fail.
-         if (!global_locator) {
-             sync.unlock ();
-             return false;
-         }
+        //  If we are running without global locator, fail.
+        if (!global_locator) {
+            sync.unlock ();
+            return false;
+        }
 
-         //  Send 'get' command.
-         unsigned char cmd = get_id;
-         global_locator->write (&cmd, 1);
-         unsigned char type_id = type_id_;
-         global_locator->write (&type_id, 1);
-         unsigned char size = strlen (object_);
-         global_locator->write (&size, 1);
-         global_locator->write (object_, size);
+        //  Send 'get' command.
+        unsigned char cmd = get_id;
+        global_locator->write (&cmd, 1);
+        unsigned char type_id = type_id_;
+        global_locator->write (&type_id, 1);
+        unsigned char size = strlen (object_);
+        global_locator->write (&size, 1);
+        global_locator->write (object_, size);
 
-         //  Read the response.
-         global_locator->read (&cmd, 1);
-         if (cmd == fail_id) {
+        //  Read the response.
+        global_locator->read (&cmd, 1);
+        if (cmd == fail_id) {
 
-             //  Leave critical section.
-             sync.unlock ();
+            //  Leave critical section.
+            sync.unlock ();
 
-             return false;
-         }
+            return false;
+        }
 
-         assert (cmd == get_ok_id);
-         global_locator->read (&size, 1);
-         char iface [256];
-         global_locator->read (iface, size);
-         iface [size] = 0;
+        assert (cmd == get_ok_id);
+        global_locator->read (&size, 1);
+        char iface [256];
+        global_locator->read (iface, size);
+        iface [size] = 0;
 
-         //  Create the proxy engine for the object.
-         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
-             handler_thread_, iface, bp_out_batch_size, bp_in_batch_size,
-             local_object_);
+        //  Create the proxy engine for the object.
+        bp_engine_t *engine = bp_engine_t::create (calling_thread_,
+            handler_thread_, iface, bp_out_batch_size, bp_in_batch_size,
+            local_object_);
 
-         //  Write it into object repository.
-         object_info_t info = {handler_thread_, engine};
-         it = objects [type_id_].insert (
-             objects_t::value_type (object_, info)).first;
+        //  Write it into object repository.
+        object_info_t info = {handler_thread_, engine};
+        it = objects [type_id_].insert (
+            objects_t::value_type (object_, info)).first;
     }
 
     *thread_ = it->second.thread;

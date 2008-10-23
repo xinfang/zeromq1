@@ -20,7 +20,6 @@
 #ifndef __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 #define __ZMQ_ZMQ_SERVER_HPP_INCLUDED__
 
-
 namespace zmq
 {
 

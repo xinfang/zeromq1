@@ -21,7 +21,6 @@
 #define __ZMQ_STDINT_HPP_INCLUDED__
 
 #include "platform.hpp"
-#include "declspec_export.hpp"
 
 #ifdef ZMQ_HAVE_SOLARIS
 #include <inttypes.h>

@@ -20,6 +20,7 @@
 #ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
@@ -27,13 +28,12 @@
 #include "ysocketpair.hpp"
 #include "thread.hpp"
 #include "platform.hpp"
-#include "declspec_export.hpp"
 
 #ifndef ZMQ_HAVE_WINDOWS
 #include <poll.h>
+#else
+#include <sys/select.h>
 #endif
-
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_WINDOWS
 
 #include <stddef.h>
 #include <assert.h>
@@ -51,25 +51,24 @@ namespace zmq
     public:
 
         //  Create a poll thread.
-        declspec_export static i_thread *create (dispatcher_t *dispatcher_);
+        ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
 
         //  Destroy the poll thread.
-        declspec_export ~select_thread_t ();
+        ZMQ_EXPORT ~select_thread_t ();
 
         //  i_thread implementation.
-        declspec_export int get_thread_id ();
-        declspec_export void send_command (i_thread *destination_, 
-            const command_t &command_);
+        int get_thread_id ();
+        void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_poller implementation.
-        declspec_export handle_t add_fd (int fd_, i_pollable *engine_);
-        declspec_export void rm_fd (handle_t handle_);
-        declspec_export void set_pollin (handle_t handle_);
-        declspec_export void reset_pollin (handle_t handle_);
-        declspec_export void speculative_read (handle_t handle_);
-        declspec_export void set_pollout (handle_t handle_);
-        declspec_export void reset_pollout (handle_t handle_);
-        declspec_export void speculative_write (handle_t handle_);
+        handle_t add_fd (int fd_, i_pollable *engine_);
+        void rm_fd (handle_t handle_);
+        void set_pollin (handle_t handle_);
+        void reset_pollin (handle_t handle_);
+        void speculative_read (handle_t handle_);
+        void set_pollout (handle_t handle_);
+        void reset_pollout (handle_t handle_);
+        void speculative_write (handle_t handle_);
 
     private:
 
@@ -112,8 +111,6 @@ namespace zmq
         // Maximum file descriptor plus 1.
         int maxfdp1;
         
-        
-
         //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
         engines_t engines;
@@ -123,8 +120,6 @@ namespace zmq
     };
 
 }
-
-#endif
 
 #endif
 

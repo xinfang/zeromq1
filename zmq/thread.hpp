@@ -20,8 +20,9 @@
 #ifndef __ZMQ_THREAD_HPP_INCLUDED__
 #define __ZMQ_THREAD_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "platform.hpp"
-#include "declspec_export.hpp"
+
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
 #else
@@ -36,8 +37,8 @@ namespace zmq
     class thread_t
     {
     public:
-        declspec_export thread_t (thread_fn *tfn_, void *arg_);
-        declspec_export ~thread_t ();
+        ZMQ_EXPORT thread_t (thread_fn *tfn_, void *arg_);
+        ZMQ_EXPORT ~thread_t ();
 
     private:
 

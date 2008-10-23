@@ -22,10 +22,10 @@
 
 #include <vector>
 
+#include "export.hpp"
 #include "i_pollable.hpp"
 #include "i_thread.hpp"
 #include "tcp_listener.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -39,7 +39,7 @@ namespace zmq
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        declspec_export static bp_listener_t *create (
+        ZMQ_EXPORT static bp_listener_t *create (
             i_thread *calling_thread_,
             i_thread *thread_, const char *interface_,
             int handler_thread_count_, i_thread **handler_threads_,
@@ -47,19 +47,18 @@ namespace zmq
             const char *peer_name_);
 
         //  Returns port listener is listening on.
-        declspec_export inline const char *get_interface ()
+        inline const char *get_interface ()
         {
             return listener.get_interface ();
         }
 
         //  i_pollable implementation.
-        declspec_export void register_event (i_poller *poller_);
-        declspec_export void in_event ();
-        declspec_export void out_event ();
-        declspec_export void error_event ();
-        declspec_export void unregister_event ();
-        declspec_export void process_command (
-            const engine_command_t &command_);
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void error_event ();
+        void unregister_event ();
+        void process_command (const engine_command_t &command_);
 
     private:
 

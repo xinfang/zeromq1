@@ -20,17 +20,17 @@
 #ifndef __ZMQ_ERR_HPP_INCLUDED__
 #define __ZMQ_ERR_HPP_INCLUDED__
 
-#include "platform.hpp"
-#include "declspec_export.hpp"
-
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "export.hpp"
+#include "platform.hpp"
+
 #ifdef ZMQ_HAVE_WINDOWS
 #include <Winsock2.h>
 #else
-
 #include <netdb.h>
 #endif
 
@@ -39,8 +39,8 @@
 namespace zmq
 {
 
-    declspec_export const char * wsa_error ();
-    declspec_export void win_error (char *buffer_, size_t buffer_size_);
+    ZMQ_EXPORT const char * wsa_error ();
+    ZMQ_EXPORT void win_error (char *buffer_, size_t buffer_size_);
 
 }
 

@@ -22,11 +22,11 @@
 #include "select_thread.hpp"
 #include "err.hpp"
 
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_WINDOWS
-
 zmq::i_thread *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
 {
-    return new select_thread_t (dispatcher_);
+    select_thread_t *instance = new select_thread_t (dispatcher_);
+    assert (instance);
+    return instance;
 }
 
 zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
@@ -40,11 +40,11 @@ zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
     FD_ZERO (&result_set_out);
     FD_ZERO (&error_set);
     
-    //  Initialise the pollset.
+    //  Initialise the set.
     FD_SET (signaler.get_fd () , &source_set_in);
     FD_SET (signaler.get_fd () , &error_set);
     
-    //  Add file descriptor of signler into fdset
+    //  Add file descriptor of signler into the set.
     fdset.push_back (signaler.get_fd ());
     maxfdp1 = signaler.get_fd () + 1;
     
@@ -150,15 +150,16 @@ void zmq::select_thread_t::loop ()
         }
         
         int rc = 0;
-    
-        while (rc==0) { 
-            rc = select(maxfdp1, &result_set_in, &result_set_out, &error_set, NULL);
-        }
+        while (rc == 0) { 
+            rc = select(maxfdp1, &result_set_in, &result_set_out,
+                &error_set, NULL);
 #ifdef ZMQ_HAVE_WINDOWS
-        wsa_assert (rc != SOCKET_ERROR);
+            wsa_assert (rc != SOCKET_ERROR);
 #else
-        errno_assert (rc != -1);
+            errno_assert (rc != -1);
 #endif
+        }
+
         //  First of all, process commands from other threads.
         if (FD_ISSET(fdset[0], &result_set_in))   {
             uint32_t signals = signaler.check ();
@@ -266,5 +267,3 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
    
     return true;
 }
-
-#endif

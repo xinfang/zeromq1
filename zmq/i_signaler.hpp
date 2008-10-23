@@ -20,17 +20,16 @@
 #ifndef __ZMQ_I_SIGNALER_HPP_INCLUDED__
 #define __ZMQ_I_SIGNALER_HPP_INCLUDED__
 
-#include "declspec_export.hpp"
+#include "export.hpp"
 
 namespace zmq
 {
     //  Virtual interface used to send signals. Individual implementations
     //  may restrict the number of possible signal types to send.
+
     struct i_signaler
     {
-        //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings with some compilers.
-        declspec_export virtual ~i_signaler () {};
+        ZMQ_EXPORT virtual ~i_signaler () {};
 
         //  Send a signal with a specific ID.
         virtual void signal (int signal_) = 0;

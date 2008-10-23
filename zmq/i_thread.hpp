@@ -20,9 +20,8 @@
 #ifndef __ZMQ_I_THREAD_HPP_INCLUDED__
 #define __ZMQ_I_THREAD_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "command.hpp"
-#include "platform.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -33,9 +32,7 @@ namespace zmq
 
     struct i_thread
     {
-        //  The destructor shouldn't be virtual, however, not defining it as
-        //  such results in compiler warnings with some compilers.
-        declspec_export virtual ~i_thread () {};
+        ZMQ_EXPORT virtual ~i_thread () {};
 
         //  Returns unique ID of the thread.
         virtual int get_thread_id () = 0;

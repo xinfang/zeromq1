@@ -23,10 +23,10 @@
 #include <assert.h>
 #include <string.h>
 
+#include "export.hpp"
+#include "platform.hpp"
 #include "pipe.hpp"
 
-#include "platform.hpp"
-#include "declspec_export.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #pragma warning(disable : 4996)
 #endif

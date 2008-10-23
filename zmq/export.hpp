@@ -17,13 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_DECLSPEC_EXPORT_HPP_INCLUDED__
-#define __ZMQ_DECLSPEC_EXPORT_HPP_INCLUDED__
+#ifndef __ZMQ_EXPORT_HPP_INCLUDED__
+#define __ZMQ_EXPORT_HPP_INCLUDED__
 
 #include "platform.hpp"
+
 #ifdef ZMQ_HAVE_WINDOWS
-#define declspec_export  __declspec(dllexport)
+#define ZMQ_EXPORT __declspec(dllexport)
 #else 
-#define declspec_export 
+#define ZMQ_EXPORT
 #endif
+
 #endif

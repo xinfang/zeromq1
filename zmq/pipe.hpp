@@ -20,12 +20,12 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "i_thread.hpp"
 #include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "raw_message.hpp"
 #include "config.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -34,20 +34,20 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        declspec_export pipe_t (struct i_thread *source_thread_,
+        ZMQ_EXPORT pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
             struct i_thread *destination_thread_,
             struct i_engine *destination_engine_);
-        declspec_export ~pipe_t ();
+        ZMQ_EXPORT ~pipe_t ();
 
         //  Write a message to the pipe.
-        declspec_export inline void write (raw_message_t *msg_)
+        inline void write (raw_message_t *msg_)
         {
             pipe.write (*msg_);
         }
 
         //  Write pipe delimiter to the pipe.
-        declspec_export inline void write_delimiter ()
+        inline void write_delimiter ()
         {
             raw_message_t delimiter;
             raw_message_init_delimiter (&delimiter);
@@ -56,30 +56,30 @@ namespace zmq
         }
 
         //  Flush all the written messages to be accessible for reading.
-        declspec_export inline void flush ()
+        inline void flush ()
         {
             if (!pipe.flush ())
                 send_revive ();
         }
 
         //  Returns true, if pipe delimiter was already received.
-        declspec_export bool eop ()
+        inline bool eop ()
         {
             return endofpipe;
         }
 
         //  Reads a message from the pipe.
-        declspec_export bool read (raw_message_t *msg);
+        ZMQ_EXPORT bool read (raw_message_t *msg);
 
         //  Make the dead pipe alive once more.
-        declspec_export void revive ();
+        ZMQ_EXPORT void revive ();
 
         //  Notify the other end of the pipe that pipe is to be destroyed.
-        declspec_export void send_destroy_pipe ();
+        ZMQ_EXPORT void send_destroy_pipe ();
 
     private:
 
-        declspec_export void send_revive ();
+        ZMQ_EXPORT void send_revive ();
 
         //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>

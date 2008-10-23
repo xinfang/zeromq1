@@ -25,10 +25,6 @@
 #include "stdint.hpp"
 #include "mutex.hpp"
 #include "platform.hpp"
-#include "declspec_export.hpp"
-#ifdef ZMQ_HAVE_WINDOWS
-#include <windows.h>
-#endif
 
 namespace zmq
 {
@@ -42,24 +38,24 @@ namespace zmq
 
         typedef uint32_t integer_t;
 
-        declspec_export inline atomic_counter_t (integer_t value_ = 0) :
+        inline atomic_counter_t (integer_t value_ = 0) :
             value (value_)
         {
         }
 
-        declspec_export inline ~atomic_counter_t ()
+        inline ~atomic_counter_t ()
         {
         }
 
         //  Set counter value (not thread-safe).
-        declspec_export inline void set (integer_t value_)
+        inline void set (integer_t value_)
         {
             value = value_;
         }
 
         //  Atomic addition. Returns false if counter was zero
         //  before the operation.
-        declspec_export inline bool add (integer_t increment)
+        inline bool add (integer_t increment)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
@@ -100,7 +96,7 @@ namespace zmq
         }
 
         //  Atomic subtraction. Returns false if the counter drops to zero.
-        declspec_export inline bool sub (integer_t decrement)
+        inline bool sub (integer_t decrement)
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,

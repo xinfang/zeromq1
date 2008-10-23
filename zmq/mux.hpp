@@ -23,9 +23,9 @@
 #include <assert.h>
 #include <vector>
 
+#include "export.hpp"
 #include "message.hpp"
 #include "pipe.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -36,18 +36,18 @@ namespace zmq
     {
     public:
 
-        declspec_export mux_t ();
-        declspec_export ~mux_t ();
+        ZMQ_EXPORT mux_t ();
+        ZMQ_EXPORT ~mux_t ();
 
         //  Adds a pipe to receive messages from.
-        declspec_export void receive_from (pipe_t *pipe_);
+        ZMQ_EXPORT void receive_from (pipe_t *pipe_);
 
         //  Returns a message, if available. If not, returns false.
-        declspec_export bool read (message_t *msg_);
+        ZMQ_EXPORT bool read (message_t *msg_);
 
         //  Send a command to the engines on the other
         //  end of our pipes to destroy the pipe.
-        declspec_export void terminate_pipes();
+        ZMQ_EXPORT void terminate_pipes ();
 
     private:
 

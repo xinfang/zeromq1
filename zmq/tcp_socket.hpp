@@ -22,9 +22,9 @@
 
 #include <stddef.h>
 
+#include "export.hpp"
 #include "stdint.hpp"
 #include "tcp_listener.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -38,18 +38,17 @@ namespace zmq
         //  Opens TCP socket. Hostname should be in form of <host>:<port>.
         //  By default it opens the socket in non-blocking mode. If block_ is
         //  set to true, the socket will be opened in blocking mode.
-        declspec_export tcp_socket_t (const char *hostname_, 
-            bool block_ = false);
+        ZMQ_EXPORT tcp_socket_t (const char *hostname_,  bool block_ = false);
 
         //  Opens a socket by accepting a connection from TCP listener object
-        declspec_export tcp_socket_t (tcp_listener_t &listener, 
+        ZMQ_EXPORT tcp_socket_t (tcp_listener_t &listener,
             bool block_ = false);
          
         //  Closes the socket.
-        declspec_export ~tcp_socket_t ();
+        ZMQ_EXPORT ~tcp_socket_t ();
 
         //  Returns the underlying socket.
-        declspec_export inline int get_fd ()
+        inline int get_fd ()
         {
             return s;
         }
@@ -57,13 +56,13 @@ namespace zmq
         //  Writes data to the socket. Returns the number of bytes actually
         //  written (even zero is to be considered to be a success). In case
         //  of orderly shutdown by the other peer -1 is returned.
-        declspec_export int write (const void *data, int size);
+        ZMQ_EXPORT int write (const void *data, int size);
 
         //  Reads data from the socket (up to 'size' bytes). Returns the number
         //  of bytes actually read (even zero is to be considered to be
         //  a success). In case of orderly shutdown by the other peer -1 is
         //  returned.
-        declspec_export int read (void *data, int size);
+        ZMQ_EXPORT int read (void *data, int size);
 
     private:
 

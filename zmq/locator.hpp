@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 
+#include "export.hpp"
 #include "i_locator.hpp"
 #include "i_engine.hpp"
 #include "i_thread.hpp"
@@ -30,7 +31,6 @@
 #include "tcp_socket.hpp"
 #include "scope.hpp"
 #include "zmq_server.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -46,13 +46,13 @@ namespace zmq
         //  Creates the local locator and connects it to the global locator.
         //  If hostname_ is NULL, no global locator is used. Objects not found
         //  on process level are reported as unknown.
-        declspec_export locator_t (const char *hostname_ = NULL);
+        ZMQ_EXPORT locator_t (const char *hostname_ = NULL);
 
         //  Destroys the locator.
-        declspec_export ~locator_t ();
+        ZMQ_EXPORT ~locator_t ();
 
         //  Creates object.
-        declspec_export void create (i_thread *calling_thread_, 
+        void create (i_thread *calling_thread_, 
             unsigned char type_id_, const char *object_, i_thread *thread_, 
             i_engine *engine_, scope_t scope_, const char *interface_,
             i_thread *listener_thread_, int handler_thread_count_,
@@ -60,7 +60,7 @@ namespace zmq
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        declspec_export bool get (i_thread *calling_thread_, 
+        bool get (i_thread *calling_thread_, 
             unsigned char type_id_, const char *object_, i_thread **thread_, 
             i_engine **engine_, i_thread *handler_thread_, 
             const char *local_object_);

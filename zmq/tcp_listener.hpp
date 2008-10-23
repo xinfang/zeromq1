@@ -20,8 +20,8 @@
 #ifndef __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 #define __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 
+#include "export.hpp"
 #include "stdint.hpp"
-#include "declspec_export.hpp"
 
 namespace zmq
 {
@@ -34,23 +34,23 @@ namespace zmq
         //  Create TCP listining socket. Interface is either interface name,
         //  in that case port number is chosen by OS and can be retrieved
         //  by get_port method, or <interface-name>:<port-number>.
-        declspec_export tcp_listener_t (const char *interface_);
+        ZMQ_EXPORT tcp_listener_t (const char *interface_);
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
-        declspec_export inline int get_fd ()
+        inline int get_fd ()
         {
             return s;
         }
 
         //  Returns port listener is listening on.
-        declspec_export inline const char *get_interface ()
+        inline const char *get_interface ()
         {
             return iface; 
         }
 
         //  Accept the new connection.
-        declspec_export int accept ();
+        ZMQ_EXPORT int accept ();
 
     private:
 
