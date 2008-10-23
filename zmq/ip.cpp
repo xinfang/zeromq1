@@ -25,6 +25,7 @@
 
 #include "ip.hpp"
 #include "err.hpp"
+#include "stdint.hpp"
 
 #if defined ZMQ_HAVE_SOLARIS
 
@@ -182,7 +183,8 @@ void zmq::resolve_ip_interface (sockaddr_in* addr_, char const *interface_)
     }
 
     //  Resolve the port.
-    addr_->sin_port = htons (delimiter ? atoi (delimiter + 1) : 0);        
+    addr_->sin_port =
+        htons ((uint16_t) (delimiter ? atoi (delimiter + 1) : 0));
 }
 
 void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
@@ -208,5 +210,5 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
     freeaddrinfo (res);
     
     //  Fill in the port number.
-    addr_->sin_port = htons (atoi (delimiter + 1));
+    addr_->sin_port = htons ((uint16_t) atoi (delimiter + 1));
 }

@@ -140,10 +140,9 @@ const char *zmq::wsa_error()
 void zmq::win_error (char *buffer_, size_t buffer_size_)
 {
     DWORD errcode = GetLastError ();
-    char *errstr = NULL;
     DWORD rc = FormatMessageA (FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errcode, MAKELANGID(LANG_NEUTRAL,
-        SUBLANG_DEFAULT), errstr, buffer_size_, NULL );
+        SUBLANG_DEFAULT), buffer_, buffer_size_, NULL );
     assert (rc);
 }
 

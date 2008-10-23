@@ -87,10 +87,10 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         global_locator->write (&cmd, 1);
         unsigned char type_id = type_id_;
         global_locator->write (&type_id, 1);         
-        unsigned char size = strlen (object_);
+        unsigned char size = (unsigned char) strlen (object_);
         global_locator->write (&size, 1);
         global_locator->write (object_, size);
-        size = strlen (listener->get_interface ());
+        size = (unsigned char) strlen (listener->get_interface ());
         global_locator->write (&size, 1);
         global_locator->write (listener->get_interface (), size);
 
@@ -130,7 +130,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
         global_locator->write (&cmd, 1);
         unsigned char type_id = type_id_;
         global_locator->write (&type_id, 1);
-        unsigned char size = strlen (object_);
+        unsigned char size = (unsigned char) strlen (object_);
         global_locator->write (&size, 1);
         global_locator->write (object_, size);
 

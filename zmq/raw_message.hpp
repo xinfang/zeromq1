@@ -75,7 +75,7 @@ namespace zmq
     {
         if (size_ <= max_vsm_size) {
             msg_->content = (message_content_t*) raw_message_t::vsm_tag;
-            msg_->vsm_size = size_;
+            msg_->vsm_size = (uint16_t) size_;
         }
         else {
             msg_->shared = false;

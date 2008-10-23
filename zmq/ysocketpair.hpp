@@ -91,7 +91,7 @@ namespace zmq
             win_assert (rc);
 
             uint32_t signals = 0;
-            for (int pos = 0; pos != nbytes; pos ++) {
+            for (DWORD pos = 0; pos != nbytes; pos ++) {
                 assert (buffer [pos] < 31);
                 signals |= (1 << (buffer [pos]));
             }
