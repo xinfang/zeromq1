@@ -29,8 +29,8 @@
 #include "thread.hpp"
 #include "platform.hpp"
 
-#ifndef ZMQ_HAVE_WINDOWS
-#include <poll.h>
+#ifdef ZMQ_HAVE_WINDOWS
+#include "winsock2.h"
 #else
 #include <sys/select.h>
 #endif

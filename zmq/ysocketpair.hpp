@@ -85,8 +85,9 @@ namespace zmq
         //  it returns zero immediately.
         inline uint32_t check ()
         {
-            unsigned char buffer [256];           
-            BOOL rc = ReadFile (r, buffer, 256, NULL, NULL);
+            unsigned char buffer [256];
+            DWORD nbytes;
+            BOOL rc = ReadFile (r, buffer, 256, &nbytes, NULL);
             win_assert (rc);
 
             uint32_t signals = 0;
