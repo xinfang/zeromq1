@@ -62,7 +62,11 @@ namespace zmq
         //  are no unprocessed messages available, poll is done immediately.
         //  Decreasing the value trades overall latency for more real-time
         //  behaviour (less latency peaks).
-        api_thread_poll_rate = 100
+        api_thread_poll_rate = 100,
+
+        //  Maximum number of events the epoll_wait() call can return.
+        //  The higher the number, the less system calls may be invoked.
+        epoll_max_events = 256
     };
 
 }

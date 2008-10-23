@@ -27,6 +27,7 @@ namespace zmq
         union {
             int fd;
             int index;
+            void *ptr;
         };
     };
 

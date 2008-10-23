@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
     ysemaphore.hpp \
     ysocketpair.hpp \
     poll_thread.hpp \
+    epoll_thread.hpp \
     bp_encoder.hpp \
     encoder.hpp \
     stdint.hpp \
@@ -61,6 +62,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     bp_encoder.cpp \
     api_thread.cpp \
     poll_thread.cpp \
+    epoll_thread.cpp \
     bp_engine.cpp \
     mux.cpp \
     demux.cpp \
