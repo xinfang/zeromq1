@@ -31,7 +31,6 @@
 #include <poll.h>
 
 #include "export.hpp"
-#include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
@@ -46,7 +45,7 @@ namespace zmq
     //  by individual engines. Engine compatible with poll thread should
     //  expose i_pollable interface.
 
-    class poll_thread_t : public i_thread, public i_poller
+    class poll_thread_t : public i_poller
     {
     public:
 
@@ -56,11 +55,9 @@ namespace zmq
         //  Destroy the poll thread.
         ZMQ_EXPORT ~poll_thread_t ();
 
-        //  i_thread implementation.
+        //  i_poller implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
-
-        //  i_poller implementation.
         handle_t add_fd (int fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);

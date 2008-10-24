@@ -21,6 +21,7 @@
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
 #include "export.hpp"
+#include "i_thread.hpp"
 
 namespace zmq
 {
@@ -37,7 +38,7 @@ namespace zmq
     //  Virtual interface to be exposed by engines for communication with
     //  poll thread.
 
-    struct i_poller
+    struct i_poller : public i_thread
     {
         ZMQ_EXPORT virtual ~i_poller () {};
 

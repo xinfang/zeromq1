@@ -41,7 +41,7 @@ namespace zmq
     //  signals by individual engines. An engine compatible with epoll
     //  thread should implement i_pollable interface.
 
-    class epoll_thread_t : public i_thread, public i_poller
+    class epoll_thread_t : public i_poller
     {
     public:
 
@@ -51,11 +51,9 @@ namespace zmq
         //  Destroy the poll thread.
         ~epoll_thread_t ();
 
-        //  i_thread implementation.
+        //  i_poller implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
-
-        //  i_poller implementation.
         handle_t add_fd (int fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
