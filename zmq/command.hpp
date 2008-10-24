@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "export.hpp"
+#include "i_engine.hpp"
 #include "platform.hpp"
 #include "pipe.hpp"
 
@@ -82,13 +83,13 @@ namespace zmq
             struct {
             } stop;
             struct {
-                struct i_pollable *engine;
+                i_engine *engine;
             } register_engine;
             struct {
-                struct i_pollable *engine;
+                i_engine *engine;
             } unregister_engine;
             struct {
-                struct i_engine *engine;
+                i_engine *engine;
                 engine_command_t command;
             } engine_command;
         } args;
@@ -98,13 +99,13 @@ namespace zmq
             type = stop;
         }
 
-        inline void init_register_engine (i_pollable *engine_)
+        inline void init_register_engine (i_engine *engine_)
         {
             type = register_engine;
             args.register_engine.engine = engine_;
         }
 
-        inline void init_unregister_engine (i_pollable *engine_)
+        inline void init_unregister_engine (i_engine *engine_)
         {
             type = unregister_engine;
             args.unregister_engine.engine = engine_;

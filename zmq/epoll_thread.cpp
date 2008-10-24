@@ -227,7 +227,7 @@ void epoll_thread_t::loop ()
 
 bool epoll_thread_t::process_commands (uint32_t signals_)
 {
-    i_pollable *engine;
+    i_engine *engine;
 
     //  Iterate through all the threads in the process and find out which
     //  of them sent us commands.
@@ -246,22 +246,21 @@ bool epoll_thread_t::process_commands (uint32_t signals_)
 
                 //  Register the engine supplied with the poll thread.
                 case command_t::register_engine:
-
-                    //  Ask engine to register itself.
                     engine = command.args.register_engine.engine;
-                    engine->register_event (this);
-                    break;
+                    assert (engine->type () == engine_type_fd);
+                    ((i_pollable*) engine)->register_event (this);
 
                 //  Unregister the engine.
                 case command_t::unregister_engine:
 
                     //  Assert that engine still exists.
                     //  TODO: We should somehow make sure this won't happen.
-                    engine = command.args.register_engine.engine;
+                    engine = command.args.unregister_engine.engine;
                     assert (engines.find (engine) != engines.end ());
 
                     //  Ask engine to unregister itself.
-                    engine->unregister_event ();
+                    assert (engine->type () == engine_type_fd);
+                    ((i_pollable*) engine)->unregister_event ();
                     break;
 
                 //  Forward the command to the specified engine.

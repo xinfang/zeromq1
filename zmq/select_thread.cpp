@@ -214,9 +214,10 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
                 case command_t::register_engine:
                     {
                         //  Ask engine to register itself.
-                        i_pollable *engine =
+                        i_engine *engine =
                             command.args.register_engine.engine;
-                        engine->register_event (this);
+                        assert (engine->type () == engine_type_fd);
+                        ((i_pollable*) engine)->register_event (this);
                     }
                     break;
 
@@ -231,9 +232,10 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
                         assert (it != engines.end ());
 
                         //  Ask engine to unregister itself.
-                        i_pollable *engine =
-                            command.args.register_engine.engine;
-                        engine->unregister_event ();
+                        i_engine *engine =
+                            command.args.unregister_engine.engine;
+                        assert (engine->type () == engine_type_fd);
+                        ((i_pollable*) engine)->unregister_event ();
                     }
                     break;
 
