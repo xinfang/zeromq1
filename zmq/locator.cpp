@@ -25,6 +25,7 @@
 //#include "bp_listener.hpp"
 //#include "bp_engine.hpp"
 #include "pgm_sender_engine.hpp"
+#include "pgm_receiver_engine.hpp"
 #include "config.hpp"
 
 zmq::locator_t::locator_t (const char *hostname_)
@@ -182,16 +183,32 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
          global_locator->read (interface, size);
          interface [size] = 0;
 
+        //  Parse network info from zmq_server
+        //  mcast_group:port
+        std::string mcast_group (interface);
+        std::string port (interface);
+
+        //  Find : in the iface string
+        size_t delim_a = mcast_group.find_first_of (':');
+        if (delim_a == std::string::npos)
+            assert (false);
+        
+        //  Erase from : till the end of the string
+        mcast_group.erase (delim_a);
+
+        //  Erase port string from beg to ;
+        delim_a++;
+        port.erase (0, delim_a);
+    
          //  Create the proxy engine for the object.
-         assert (false);
-//         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
-//             handler_thread_, interface, bp_out_batch_size, bp_in_batch_size,
-//             local_object_);
+         pgm_receiver_engine_t *engine = new pgm_receiver_engine_t (calling_thread_,
+             handler_thread_, "eth1", mcast_group.c_str (), atoi (port.c_str ()), 
+             pgm_in_batch_size);
 
          //  Write it into object repository.
-//         object_info_t info = {handler_thread_, engine};
-//         it = objects [type_id_].insert (
-//             objects_t::value_type (object_, info)).first;
+         object_info_t info = {handler_thread_, engine};
+         it = objects [type_id_].insert (
+             objects_t::value_type (object_, info)).first;
     }
 
     *thread_ = it->second.thread;

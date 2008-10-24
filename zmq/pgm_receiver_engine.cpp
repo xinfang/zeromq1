@@ -37,8 +37,7 @@
 zmq::pgm_receiver_engine_t::pgm_receiver_engine_t (i_thread *calling_thread_, 
     i_thread *thread_, const char *iface_, const char *mcast_group_, 
     uint16_t port_, size_t readbuf_size_) :
-//    proxy (dispatcher_, engine_id_),
-//    decoder (&proxy, destination_engine_id_),
+    decoder (&demux),
     epgm_socket (true, false, iface_, mcast_group_, port_, readbuf_size_),
     iov (NULL), iov_len (0)
 {
@@ -137,6 +136,15 @@ void zmq::pgm_receiver_engine_t::unregister_event ()
 void zmq::pgm_receiver_engine_t::process_command 
     (const engine_command_t &command_)
 {
-    assert (false);
+    switch (command_.type) {
+        case engine_command_t::send_to:
+            demux.send_to (command_.args.receive_from.pipe);
+            poller->set_pollin (socket_handle);
+            poller->set_pollin (pipe_handle);
+            break;
+        default:
+            std::cout << "command_type: " << command_.type << std::endl << std::flush;
+            assert (false);
+    }
 }
 

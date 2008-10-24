@@ -24,6 +24,8 @@
 #include "bp_decoder.hpp"
 #include "epgm_socket.hpp"
 
+#include <iostream>
+
 namespace zmq
 {
 
@@ -47,9 +49,11 @@ namespace zmq
         //  Callback to poller.
         i_poller *poller;
 
-//        dispatcher_proxy_t proxy; 
-
-//        bp_decoder_t decoder;
+        //  demux & bp_decoder
+        demux_t demux;
+        bp_decoder_t decoder;
+       
+        //  PGM socket
         epgm_socket_t epgm_socket;
 
         iovec *iov;

@@ -42,6 +42,12 @@ namespace zmq
         //  unnecessary network stack traversals.
         bp_out_batch_size = 8192,
 
+        //  pgm receiver engine buffer
+        pgm_in_batch_size = 8192,
+
+        //  pgm sender engine buffer 
+        //  pgm_out_batch_size = 8192,
+
         //  Number of new messages in message pipe which triggers new memory
         //  allocation.
         message_pipe_granularity = 256,
