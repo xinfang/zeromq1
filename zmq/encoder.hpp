@@ -41,23 +41,38 @@ namespace zmq
         }
 
         //  The function tries to fill the supplied chunk by binary data.
-        //  Returns the size of data actually filled in.
-        inline size_t read (unsigned char *data_, size_t size_)
+        //  Returns the size of data actually filled in. If offset is not
+        //  NULL, it will be filled by offset of the first message in
+        //  the buffer. If there is no complete message, it will be set
+        //  to -1.
+        inline size_t read (unsigned char *data_, size_t size_,
+            ssize_t *offset_ = NULL)
         {
             size_t pos = 0;
 
             while (true) {
                 if (to_write) {
                     size_t to_copy = std::min (to_write, size_ - pos);
+                    if (beginning && offset == -1) {
+                        beginning = false;
+                        offset = pos;
+                    }
                     memcpy (data_ + pos, write_pos, to_copy);
                     pos += to_copy;
                     write_pos += to_copy;
                     to_write -= to_copy;
+                } else if (!((static_cast <T*> (this)->*next) ())) {
+                    if (offset_)
+                        *offset_ = offset;
+                    offset = -1;
+                    return pos;
                 }
-                else if (!((static_cast <T*> (this)->*next) ()))
+                if (pos == size_) {
+                    if (offset_)
+                        *offset_ = offset;
+                    offset = -1;
                     return pos;
-                if (pos == size_)
-                    return pos;
+                }
             }
         }
 
@@ -68,18 +83,20 @@ namespace zmq
         //  This function should be called from derived class to write the data
         //  to the buffer and schedule next state machine action
         inline void next_step (void *write_pos_, size_t to_write_,
-            step_t next_)
+            step_t next_, bool beginning_)
         {
+            beginning = beginning_;
             write_pos = (unsigned char*) write_pos_;
             to_write = to_write_;
             next = next_;
         }
 
     private:
-
+        bool beginning;
         unsigned char *write_pos;
         size_t to_write;
         step_t next;
+        ssize_t offset;
 
         encoder_t (const encoder_t&);
         void operator = (const encoder_t&);

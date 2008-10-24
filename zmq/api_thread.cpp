@@ -102,6 +102,10 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
 void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     i_thread *exchange_thread_, i_thread *queue_thread_)
 {
+
+    printf ("exchanges %i, queues %i, %s(%i)", 
+        (int)exchanges.size (), (int)queues.size (), __FILE__, __LINE__);
+
     //  Find the exchange.
     i_thread *exchange_thread;
     i_engine *exchange_engine;

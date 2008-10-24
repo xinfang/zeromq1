@@ -22,8 +22,9 @@
 
 #include "err.hpp"
 #include "locator.hpp"
-#include "bp_listener.hpp"
-#include "bp_engine.hpp"
+//#include "bp_listener.hpp"
+//#include "bp_engine.hpp"
+#include "pgm_sender_engine.hpp"
 #include "config.hpp"
 
 zmq::locator_t::locator_t (const char *hostname_)
@@ -69,15 +70,49 @@ void zmq::locator_t::create (i_thread *calling_thread_,
     //  Add the object to the global locator.
     if (scope_ == scope_global) {
 
-         assert (global_locator);
-         assert (strlen (interface_) < 256);
-         
+        assert (global_locator);
+        assert (strlen (interface_) < 256);
+       
+        //  Only global exchanges can be created with PGM
+        assert (type_id_ == exchange_type_id); 
+        
+        //  Parse interface string, format has to be 
+        //  interface;multicast group:port
+        //  eth1;226.0.0.1:7500
+        std::string iface (interface_);
+        std::string mcast_group (interface_);
+        std::string port (interface_);
+
+        //  Find ; in the iface string
+        size_t delim_a = iface.find_first_of (';');
+        if (delim_a == std::string::npos)
+            assert (false);
+        
+        //  Erase from ; till the end of the string
+        iface.erase (delim_a);
+
+        //  Erase mcast_group string from beg to ;
+        delim_a++;
+        mcast_group.erase (0, delim_a);
+
+        //  Find : in the mcast_group string
+        size_t delim_b = mcast_group.find_first_of (':');
+        if ( delim_b == std::string::npos)
+            assert (false);
+
+        //  Erase mcast_group from : till the end
+        mcast_group.erase (delim_b);
+    
+        //  Erase port string from beg till :
+        delim_b++;
+        port.erase (0, delim_a + delim_b);
+
          //  Create a listener for the object.
-         bp_listener_t *listener = bp_listener_t::create (calling_thread_,
-             listener_thread_, interface_, handler_thread_count_,
-             handler_threads_, type_id_ == exchange_type_id ? false : true,
-             thread_, engine_, object_);
-                  
+         pgm_sender_engine_t *sender_engine = new pgm_sender_engine_t 
+            (calling_thread_, listener_thread_, iface.c_str(), 
+            mcast_group.c_str (), atoi (port.c_str ()), thread_, engine_ , 
+            object_);
+ 
          //  Send to 'create' command.
          unsigned char cmd = create_id;
          global_locator->write (&cmd, 1);
@@ -86,9 +121,9 @@ void zmq::locator_t::create (i_thread *calling_thread_,
          unsigned char size = strlen (object_);
          global_locator->write (&size, 1);
          global_locator->write (object_, size);
-         size = strlen (listener->get_interface ());
+         size = strlen (sender_engine->get_interface ());
          global_locator->write (&size, 1);
-         global_locator->write (listener->get_interface (), size);
+         global_locator->write (sender_engine->get_interface (), size);
 
          //  Read the response.
          global_locator->read (&cmd, 1);
@@ -111,7 +146,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
 
     //  Find the object.
     objects_t::iterator it = objects [type_id_].find (object_);
-
+    
     //  If the object is unknown, find it using global locator.
     if (it == objects [type_id_].end ()) {
 
@@ -140,6 +175,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
              return false;
          }
 
+        
          assert (cmd == get_ok_id);
          global_locator->read (&size, 1);
          char interface [256];
@@ -147,14 +183,15 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
          interface [size] = 0;
 
          //  Create the proxy engine for the object.
-         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
-             handler_thread_, interface, bp_out_batch_size, bp_in_batch_size,
-             local_object_);
+         assert (false);
+//         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
+//             handler_thread_, interface, bp_out_batch_size, bp_in_batch_size,
+//             local_object_);
 
          //  Write it into object repository.
-         object_info_t info = {handler_thread_, engine};
-         it = objects [type_id_].insert (
-             objects_t::value_type (object_, info)).first;
+//         object_info_t info = {handler_thread_, engine};
+//         it = objects [type_id_].insert (
+//             objects_t::value_type (object_, info)).first;
     }
 
     *thread_ = it->second.thread;

@@ -76,6 +76,13 @@ AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.
 AC_LANG(C++)
 
 # Optional stuff
+AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
+
+if test "x$have_pkg_config" != "xno"; then
+    #  First instance of PKG_CHECK_ has to be executed
+    PKG_CHECK_EXISTS([dummy_pkg], [], [])
+fi
+
 perf="no"
 AC_ARG_WITH([perf], [AS_HELP_STRING([--with-perf], [build performance tests [default=no]])], [with_perf=yes], [with_perf=no])
 cpu_estimator="no"
@@ -122,13 +129,31 @@ if test "x$with_perf" != "xno"; then
 
 fi
 
+# OpenPGM support
+openpgm="no"
+AC_ARG_WITH([OpenPGM], [AS_HELP_STRING([--with-OpenPGM], [build OpenPGM engine [default=no]])], [with_openpgm=yes], [with_openpgm=no])
+if test "x$with_openpgm" != "xno"; then
+    if test "x$have_pkg_config" != "xyes"; then
+        AC_MSG_ERROR([To run configure with --with-OpenPGM option, pkg-config has to be installed.]);
+    fi
+
+    PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
+
+    AC_SUBST(GLIB_LIBS)
+    AC_SUBST(GLIB_CFLAGS)
+
+    PKG_CHECK_MODULES([PGM], [pgm])
+
+    AC_SUBST(PGM_LIBS)
+    AC_SUBST(PGM_CFLAGS)
+
+    openpgm="yes"
+fi
+
 # Camera example
 camera="no"
 AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [build camera example [default=no]])], [with_camera=yes], [with_camera=no])
 if test "x$with_camera" != "xno"; then
-
-    #  check for pkg-config
-    AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
     if test "x$have_pkg_config" != "xyes"; then
         AC_MSG_ERROR([To run configure with --with-camera option, pkg-config has to be installed.]);
     fi
@@ -239,6 +264,7 @@ AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
 AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
+AM_CONDITIONAL(BUILD_OPENPGM, test "x$openpgm" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -300,4 +326,7 @@ AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
 AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([])
+AC_MSG_RESULT([   OpenPGM engine: $openpgm])
+AC_MSG_RESULT([])
+
 

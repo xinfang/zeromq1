@@ -45,7 +45,7 @@ namespace zmq
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create api_thread for each of them.
 
-    class api_thread_t : private i_thread, private i_engine
+    class api_thread_t : public i_thread, private i_engine
     {
     public:
 

@@ -45,7 +45,11 @@ pkginclude_HEADERS = \
     thread.hpp \
     mutex.hpp \
     platform.hpp \
-    formatting.hpp
+    formatting.hpp \
+    pgm_socket.hpp \
+    epgm_socket.hpp \
+    pgm_receiver_engine.hpp \
+    pgm_sender_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -70,8 +74,17 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     ip.cpp \
     thread.cpp
 
+if BUILD_OPENPGM
+libzmq_la_SOURCES += pgm_socket.cpp epgm_socket.cpp \
+pgm_receiver_engine.cpp pgm_sender_engine.cpp
+
+
+libzmq_la_LDFLAGS = -version-info 0:0:0 @GLIB_LIBS@ @PGM_LIBS@
+libzmq_la_CXXFLAGS = -Wall -pedantic @GLIB_CFLAGS@ @PGM_CFLAGS@
+else
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
+endif
 
 bin_PROGRAMS = zmq_server
 zmq_server_LDADD = libzmq.la

@@ -24,7 +24,7 @@ zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
     mux (mux_)
 {
     //  Write 0 bytes to the batch and go to message_ready state.
-    next_step (NULL, 0, &bp_encoder_t::message_ready);
+    next_step (NULL, 0, &bp_encoder_t::message_ready, true);
 }
 
 zmq::bp_encoder_t::~bp_encoder_t ()
@@ -34,7 +34,7 @@ zmq::bp_encoder_t::~bp_encoder_t ()
 bool zmq::bp_encoder_t::size_ready ()
 {
     //  Write message body into the buffer.
-    next_step (message.data (), message.size (), &bp_encoder_t::message_ready);
+    next_step (message.data (), message.size (), &bp_encoder_t::message_ready, false);
     return true;
 }
 
@@ -49,12 +49,12 @@ bool zmq::bp_encoder_t::message_ready ()
     //  message size.
     if (message.size () < 255) {
         tmpbuf [0] = (unsigned char) message.size ();
-        next_step (tmpbuf, 1, &bp_encoder_t::size_ready);
+        next_step (tmpbuf, 1, &bp_encoder_t::size_ready, true);
     }
     else {
         tmpbuf [0] = 0xff;
         put_uint64 (tmpbuf + 1, message.size ());
-        next_step (tmpbuf, 9, &bp_encoder_t::size_ready);
+        next_step (tmpbuf, 9, &bp_encoder_t::size_ready, true);
     }
     return true;
 }
