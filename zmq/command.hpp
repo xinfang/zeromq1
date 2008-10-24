@@ -25,12 +25,8 @@
 
 #include "export.hpp"
 #include "i_engine.hpp"
-#include "platform.hpp"
 #include "pipe.hpp"
-
-#ifdef ZMQ_HAVE_WINDOWS
-#pragma warning(disable : 4996)
-#endif
+#include "formatting.hpp"
 
 namespace zmq
 {
@@ -119,8 +115,8 @@ namespace zmq
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::send_to;
-            strcpy (args.engine_command.command.args.send_to.exchange,
-                exchange_);
+            zmq_strncpy (args.engine_command.command.args.send_to.exchange,
+                exchange_, 16);
             args.engine_command.command.args.send_to.pipe = pipe_;
         }
 
@@ -132,8 +128,8 @@ namespace zmq
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::receive_from;
-            strcpy (args.engine_command.command.args.receive_from.queue,
-                queue_);
+            zmq_strncpy (args.engine_command.command.args.receive_from.queue,
+                queue_, 16);
             args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
