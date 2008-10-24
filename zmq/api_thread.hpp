@@ -103,6 +103,7 @@ namespace zmq
         void send_command (i_thread *destination_, const command_t &command_);
 
         //  i_engine implementation.
+        engine_type_t type ();
         void process_command (const engine_command_t &command_);
 
         //  Checks for signals and processes available commands.

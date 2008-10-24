@@ -53,12 +53,13 @@ namespace zmq
         }
 
         //  i_pollable implementation.
+        engine_type_t type ();
+        void process_command (const engine_command_t &command_);
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
         void error_event ();
         void unregister_event ();
-        void process_command (const engine_command_t &command_);
 
     private:
 

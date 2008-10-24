@@ -66,6 +66,11 @@ zmq::bp_listener_t::~bp_listener_t ()
 {
 }
 
+zmq::engine_type_t zmq::bp_listener_t::type ()
+{
+    return engine_type_fd;
+}
+
 void zmq::bp_listener_t::register_event (i_poller *poller_)
 {
     handle_t handle = poller_->add_fd (listener.get_fd (), this);

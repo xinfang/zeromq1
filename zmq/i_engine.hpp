@@ -26,12 +26,23 @@
 namespace zmq
 {
 
+    enum engine_type_t
+    {
+        //  Engines of this type expose i_pollable interface.
+        engine_type_fd,
+
+        //  Exposed by api_thread_t.
+        engine_type_api
+    };
+
     //  Virtual interface to be exposed by engines so that they can receive
     //  commands from other engines.
-
     struct i_engine
     {
         ZMQ_EXPORT virtual ~i_engine () {};
+
+        //  Returns type of the engine
+        virtual engine_type_t type () = 0;
 
         //  Called when command from a different thread is received.
         virtual void process_command (

@@ -292,6 +292,11 @@ void zmq::api_thread_t::send_command (i_thread *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
+zmq::engine_type_t zmq::api_thread_t::type ()
+{
+    return engine_type_api;
+}
+
 void zmq::api_thread_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {

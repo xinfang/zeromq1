@@ -101,6 +101,11 @@ zmq::bp_engine_t::~bp_engine_t ()
     free (writebuf);
 }
 
+zmq::engine_type_t zmq::bp_engine_t::type ()
+{
+    return engine_type_fd;
+}
+
 void zmq::bp_engine_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
