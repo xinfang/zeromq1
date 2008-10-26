@@ -49,13 +49,15 @@ namespace zmq
             return s;
         }
 
-        //  Writes as much data as possible to the socket. Returns the number
-        //  of bytes actually written.
-        size_t write (const void *data, size_t size);
+        // Writes data to the socket. Returns the number of bytes actually
+        // written (even zero is to be considered to be a success). In case
+        // of orderly shutdown by the other peer -1 is returned.
+        int write (const void *data, int size);
 
-        //  Reads data from the socket (up to 'size' bytes). Returns the number
-        //  of bytes actually read.
-        size_t read (void *data, size_t size);
+        // of bytes actually read (even zero is to be considered to be
+        // a success). In case of orderly shutdown by the other peer -1 is
+        // returned.
+        int read (void *data, int size);
 
         //  Writes all the data to the socket.
         void blocking_write (const void *data, size_t size);

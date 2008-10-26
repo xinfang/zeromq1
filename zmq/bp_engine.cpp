@@ -115,9 +115,9 @@ void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 bool zmq::bp_engine_t::in_event ()
 {
     //  Read as much data as possible to the read buffer.
-    size_t nbytes = socket.read (readbuf, readbuf_size);
+    int nbytes = socket.read (readbuf, readbuf_size);
 
-    if (!nbytes) {
+    if (nbytes == -1) {
 
         //  If the other party closed the connection, stop polling.
         //  TODO: handle the event more gracefully
@@ -150,9 +150,9 @@ bool zmq::bp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        ssize_t nbytes = (ssize_t) socket.write (writebuf + write_pos,
+        int nbytes = (ssize_t) socket.write (writebuf + write_pos,
             write_size - write_pos);
-        if (nbytes <= 0) 
+        if (nbytes == -1) 
             return false;
         write_pos += nbytes;
     }
