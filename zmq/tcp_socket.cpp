@@ -91,7 +91,6 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = closesocket(s);
     wsa_assert (rc != SOCKET_ERROR);
-    printf("Closed socket\n");
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)

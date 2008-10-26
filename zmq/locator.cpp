@@ -25,6 +25,7 @@
 #include "bp_listener.hpp"
 #include "bp_engine.hpp"
 #include "config.hpp"
+#include "formatting.hpp"
 
 zmq::locator_t::locator_t (const char *hostname_)
 {
@@ -33,11 +34,9 @@ zmq::locator_t::locator_t (const char *hostname_)
         //  If port number is not explicitly specified, use the default one.
         if (!strchr (hostname_, ':')) {
             char buf [256];
-#ifndef ZMQ_HAVE_WINDOWS
-            snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
-#else
-            _snprintf (buf, 256, "%s:%d", hostname_, (int) default_locator_port);
-#endif
+
+            zmq_snprintf (buf, 256, "%s:%d", hostname_,
+                (int) default_locator_port);
             hostname_ = buf;
         }
 

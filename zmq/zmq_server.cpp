@@ -80,7 +80,6 @@ int main (int argc, char *argv [])
     //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
-        printf ("argc %d\n", argc);
         printf ("Usage: zmq_server [port]\n");
         printf ("Default port is %d.\n", (int) default_locator_port);
         
