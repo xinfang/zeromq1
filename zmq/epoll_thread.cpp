@@ -249,6 +249,7 @@ bool epoll_thread_t::process_commands (uint32_t signals_)
                     engine = command.args.register_engine.engine;
                     assert (engine->type () == engine_type_fd);
                     ((i_pollable*) engine)->register_event (this);
+                    break;
 
                 //  Unregister the engine.
                 case command_t::unregister_engine:
