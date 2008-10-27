@@ -20,7 +20,9 @@
 #include "demux.hpp"
 #include "raw_message.hpp"
 
-zmq::demux_t::demux_t ()
+zmq::demux_t::demux_t (bool load_balance_) :
+    load_balance (load_balance_),
+    current (0)
 {
 }
 
@@ -40,13 +42,31 @@ int zmq::demux_t::write (message_t &msg_)
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 
-    //  The message has actual content. We'll handle this case in optimised
-    //  fashion.    
-    int pipes_count = pipes.size ();
-
     //  If there is no destination to send the message return straight away.
+    int pipes_count = pipes.size ();
     if (pipes_count == 0)
         return false;
+
+    //  For delimiters, the algorithm is straighforward.
+    //  Send it to all the pipes.
+    //  TODO: Delimiters are special, they should be passed via different
+    //  codepath.
+    if (msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
+        for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+            (*it)->write (msg);
+        raw_message_init (msg, 0);
+        return true;
+    }
+
+    //  Load balancing is easy. The message is sent to exactly one pipe
+    //  thus there's no need for copying.
+    if (load_balance) {
+        if (++ current == pipes_count)
+            current = 0;
+        pipes [current]->write (msg);
+        raw_message_init (msg, 0);
+        return true;
+    }
 
     //  For VSMs and delimiters, the copying is straighforward.
     if (msg->content == (message_content_t*) raw_message_t::vsm_tag ||

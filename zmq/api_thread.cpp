@@ -51,7 +51,7 @@ zmq::api_thread_t::~api_thread_t ()
 int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *interface_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
-    poll_thread_t **handler_threads_)
+    poll_thread_t **handler_threads_, bool load_balance_)
 {
     //  Insert the exchange to the local list of exchanges.
     //  If the exchange is already present, return immediately.
@@ -59,7 +59,8 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
           it != exchanges.end (); it ++)
         if (it->first == exchange_)
             return it - exchanges.begin ();
-    exchanges.push_back (exchanges_t::value_type (exchange_, demux_t ()));
+    exchanges.push_back (exchanges_t::value_type (exchange_,
+        demux_t (load_balance_)));
 
     //  If the scope of the exchange is local, we won't register it
     //  with the locator.
@@ -191,7 +192,8 @@ void zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
     else {
 
         //  Pass the message to the demux.
-        exchanges [exchange_id_].second.write (msg_);
+        if (!exchanges [exchange_id_].second.write (msg_))
+            msg_.rebuild (0);
     }
 
 

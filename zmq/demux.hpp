@@ -36,7 +36,7 @@ namespace zmq
     {
     public:
 
-        demux_t ();
+        demux_t (bool load_balance_);
         ~demux_t ();
 
         //  Start sending messages to the specified pipe.
@@ -58,6 +58,14 @@ namespace zmq
         void destroy_pipe (pipe_t *pipe_);
 
     private:
+
+        //  If true, messages are load-balanced among pipes. If false, each
+        //  message is sent to all the pipes.
+        bool load_balance;
+
+        //  Index of the current pipe w.r.t. load balancing. If the object
+        //  is in data distribution mode this variable is unused.
+        int current;
 
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;

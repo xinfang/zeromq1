@@ -60,7 +60,8 @@ namespace zmq
             const char *interface_ = NULL,
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            poll_thread_t **handler_threads_ = NULL,
+            bool load_balance_ = false);
 
         //  Creates new queue, returns queue ID.
         int create_queue (
