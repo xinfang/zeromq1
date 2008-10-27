@@ -24,7 +24,7 @@
 #include "platform.hpp"
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX || ZMQ_HAVE_SOLARIS
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS
 
 #include <stddef.h>
 #include <assert.h>
