@@ -34,11 +34,19 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
     pipes.push_back (pipe_);
 }
 
-void zmq::demux_t::write (message_t &msg_)
+int zmq::demux_t::write (message_t &msg_)
 {
     //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
+
+    //  The message has actual content. We'll handle this case in optimised
+    //  fashion.    
+    int pipes_count = pipes.size ();
+
+    //  If there is no destination to send the message return straight away.
+    if (pipes_count == 0)
+        return false;
 
     //  For VSMs and delimiters, the copying is straighforward.
     if (msg->content == (message_content_t*) raw_message_t::vsm_tag ||
@@ -46,13 +54,8 @@ void zmq::demux_t::write (message_t &msg_)
         for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
             (*it)->write (msg);
         raw_message_init (msg, 0);
-        return;
+        return true;
     }
-
-    //  The message has actual content. We'll handle this case in optimised
-    //  fashion.
-    
-    int pipes_count = pipes.size ();
 
     //  Optimisation for the case where's there only a single pipe
     //  to send the message to - no refcount adjustment (i.e. atomic
@@ -60,15 +63,7 @@ void zmq::demux_t::write (message_t &msg_)
     if (pipes_count == 1) {
         (*pipes.begin ())->write (msg);
         raw_message_init (msg, 0);
-        return;
-    }
-
-    //  If there is no destination to send the message to,
-    //  destroy it straight away.
-    if (pipes_count == 0) {
-        raw_message_destroy (msg);
-        raw_message_init (msg, 0);
-        return;
+        return true;
     }
 
     //  There are at least 2 destinations for the message. That means we have
@@ -87,6 +82,8 @@ void zmq::demux_t::write (message_t &msg_)
 
     //  Detach the original message from the data buffer.
     raw_message_init (msg, 0);
+
+    return true;
 }
 
 void zmq::demux_t::flush ()

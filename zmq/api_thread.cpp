@@ -176,20 +176,46 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
 }
 
-void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
+void zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 {
     //  Process pending commands, if any.
     process_commands ();
 
-    //  Pass the message to the demux and flush it to the dispatcher.
-    exchanges [exchange_id_].second.write (msg_);
+    if (block_) {
+
+        //  Try to write the message to at least one pipe. If there is no pipe
+        //  to write the message to, process commands and retry.
+        while (!exchanges [exchange_id_].second.write (msg_))
+            process_commands (pollset.poll ());
+    }
+    else {
+
+        //  Pass the message to the demux.
+        exchanges [exchange_id_].second.write (msg_);
+    }
+
+
+    //  Flush the message to the pipe.
+    //  TODO: This is inefficient in the case of load-balancing mode. Message
+    //  is written to a single pipe, however, the flush is done on all the
+    //  pipes.
     exchanges [exchange_id_].second.flush ();
 }
 
-void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_)
+void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
 {
-    //  Pass the message to the demux.
-    exchanges [exchange_id_].second.write (msg_);
+    if (block_) {
+
+        //  Try to write the message to at least one pipe. If there is no pipe
+        //  to write the message to, process commands and retry.
+        while (!exchanges [exchange_id_].second.write (msg_))
+            process_commands (pollset.poll ());
+    }
+    else {
+
+        //  Pass the message to the demux.
+        exchanges [exchange_id_].second.write (msg_);
+    }
 }
 
 void zmq::api_thread_t::flush ()

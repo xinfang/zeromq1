@@ -77,13 +77,15 @@ namespace zmq
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
-        //  messages, flush them immediately.
-        void send (int exchange_id_, message_t &msg_);
+        //  messages, flush them immediately. If 'block' parameter is true
+        //  and there are no queues bound to the exchange, execution will be
+        //  blocked until a binding is created.
+        void send (int exchange_id_, message_t &msg_, bool block_ = false);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        void presend (int exchange_id_, message_t &msg_);
+        void presend (int exchange_id_, message_t &msg_, bool block_ = false);
 
         //  Flush all the pre-sent messages.
         void flush ();
