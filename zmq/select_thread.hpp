@@ -21,7 +21,6 @@
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
 #include "export.hpp"
-#include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"

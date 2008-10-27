@@ -26,7 +26,6 @@
 #include <map>
 #include <sys/epoll.h>
 
-#include "i_thread.hpp"
 #include "i_pollable.hpp"
 #include "i_poller.hpp"
 #include "dispatcher.hpp"
