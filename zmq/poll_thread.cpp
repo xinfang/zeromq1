@@ -18,6 +18,7 @@
 */
 
 #include <algorithm>
+#include <sys/resource.h>
 
 #include "poll_thread.hpp"
 #include "err.hpp"
@@ -34,6 +35,13 @@ zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
     pollset (1)
 {
+    //  Get limit on open file descriptors. Resize fds to make it able to
+    //  hold all the descriptors.
+    rlimit rl;
+    int rc = getrlimit (RLIMIT_NOFILE, &rl);
+    errno_assert (rc != -1);
+    fds.resize (rl.rlim_cur, -1);
+
     //  Initialise the pollset.
     pollset [0].fd = signaler.get_fd ();
     pollset [0].events = POLLIN;
@@ -71,50 +79,65 @@ void zmq::poll_thread_t::send_command (i_thread *destination_,
 
 zmq::handle_t zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-    handle_t handle;
-
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
     engines.push_back (engine_);
-    handle.index = pollset.size() - 1;
+    assert (fds [fd_] == -1);
+    fds [fd_] = pollset.size() - 1;
+
+    handle_t handle;
+    handle.fd = fd_;
     return handle;
 }
 
 void zmq::poll_thread_t::rm_fd (handle_t handle_)
 {
-    assert (false);
+    //  Remove the descriptor from pollset and engine list.
+    int index = fds [handle_.fd];
+    assert (index != -1);
+    pollset.erase (pollset.begin () + index);
+    engines.erase (engines.begin () + index - 1);
+
+    //  Mark the fd as unused.
+    fds [handle_.fd] = -1;
+
+    //  Adjust fd list to match new indices to the pollset. To make it more
+    //  efficient we are traversing the pollset whitch is shorter than
+    //  fd list itself.
+    for (int i = index; i != (int) pollset.size (); i++)
+        fds [pollset [i].fd] = i;    
 }
 
 void zmq::poll_thread_t::set_pollin (handle_t handle_)
 {
-    pollset [handle_.index].events |= POLLIN;
+    pollset [fds [handle_.fd]].events |= POLLIN;
 }
 
 void zmq::poll_thread_t::reset_pollin (handle_t handle_)
 {
-    pollset [handle_.index].events &= ~((short) POLLIN);
+    pollset [fds [handle_.fd]].events &= ~((short) POLLIN);
 }
 
 void zmq::poll_thread_t::speculative_read (handle_t handle_)
 {
-    pollset [handle_.index].events |= POLLIN;
-    pollset [handle_.index].revents |= POLLIN;
+    pollset [fds [handle_.fd]].events |= POLLIN;
+    pollset [fds [handle_.fd]].revents |= POLLIN;
 }
 
 void zmq::poll_thread_t::set_pollout (handle_t handle_)
 {
-    pollset [handle_.index].events |= POLLOUT;
+    pollset [fds [handle_.fd]].events |= POLLOUT;
 }
 
 void zmq::poll_thread_t::reset_pollout (handle_t handle_)
 {
-    pollset [handle_.index].events &= ~((short) POLLOUT);
+    pollset [fds [handle_.fd]].events &= ~((short) POLLOUT);
 }
 
 void zmq::poll_thread_t::speculative_write (handle_t handle_)
 {
-    pollset [handle_.index].events |= POLLOUT;
-    pollset [handle_.index].revents |= POLLOUT;
+    pollset [fds [handle_.fd]].events |= POLLOUT;
+    pollset [fds [handle_.fd]].revents |= POLLOUT;
 }
 
 void zmq::poll_thread_t::worker_routine (void *arg_)
