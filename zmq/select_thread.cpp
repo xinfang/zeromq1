@@ -150,6 +150,7 @@ void zmq::select_thread_t::loop ()
         }
         
         int rc = 0;
+       
         while (rc == 0) { 
             rc = select(maxfdp1, &result_set_in, &result_set_out,
                 &error_set, NULL);

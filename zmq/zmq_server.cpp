@@ -98,10 +98,9 @@ int main (int argc, char *argv [])
     //  Create a tcp_listener.
     char iface [256] = "0.0.0.0:";
     char tmp [10];
-    if (argc == 2 && (sizeof (argc)== 4 * sizeof (char) ||
-        sizeof (argc)== 5 * sizeof (char) )) { 
-	   //  The argument is port.
-	   zmq_snprintf (tmp, sizeof(argv[1]), "%s", argv[1]);
+    if (argc == 2) { 
+	    //  The argument is port.
+	    zmq_snprintf (tmp, 10, "%s", argv [1]);
     }	
     else {
         zmq_sprintf (tmp, "%d", default_locator_port);   
@@ -119,7 +118,7 @@ int main (int argc, char *argv [])
     FD_ZERO (&source_set_fds);
     FD_ZERO (&result_set_fds);
     FD_ZERO (&error_set_fds); 
-    int fd_int = listening_socket.get_fd();
+    int fd_int = listening_socket.get_fd ();
     
     FD_SET (fd_int, &source_set_fds);
     int maxfdp1 = fd_int + 1;
@@ -138,7 +137,7 @@ int main (int argc, char *argv [])
            memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
 	            
            rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
-	   errno_assert (rc != -1);
+	       errno_assert (rc != -1);
        }    
       
        //  Traverse all the sockets.
@@ -146,7 +145,7 @@ int main (int argc, char *argv [])
              pos ++) {
  	   
            //  Get the socket being currently being processed.
-           int s = socket_list[pos]->get_fd();
+           int s = socket_list [pos]->get_fd ();
            
            if (FD_ISSET (s, &error_set_fds)) {
                
@@ -155,7 +154,7 @@ int main (int argc, char *argv [])
                 unregister (s, objects);
                 
                 //  Delete the tcp_socket from socket_list. 
-                delete socket_list[pos];
+                delete socket_list [pos];
                 socket_list.erase (socket_list.begin () + pos);
                 
                 //  Erase the whole list of file descriptors selectfds and add
@@ -164,7 +163,7 @@ int main (int argc, char *argv [])
                 FD_SET (fd_int , &source_set_fds);
                 for (socket_list_t::size_type i = 0; i < socket_list.size ();
                      i ++) 
-                    FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+                    FD_SET (socket_list [i]->get_fd (), &source_set_fds);
 		        
                  
                 continue;
@@ -177,7 +176,7 @@ int main (int argc, char *argv [])
                 int nbytes = socket_list [pos]->read (&cmd, 1);
                                 
                 //  Connection closed by peer.
-                if (nbytes == -1) {
+                if (nbytes == -1 || nbytes == 0) {
            
                     //  Unregister all the symbols registered by this connection
                     //  and delete the descriptor from pollfds vector.
@@ -194,7 +193,7 @@ int main (int argc, char *argv [])
                     FD_SET (fd_int , &source_set_fds);
 	                for (socket_list_t::size_type i = 0;
                               i < socket_list.size (); i ++)                            
-                        FD_SET (socket_list[i]->get_fd(), &source_set_fds);
+                        FD_SET (socket_list [i]->get_fd (), &source_set_fds);
 			
                 
                     continue;
@@ -246,7 +245,7 @@ int main (int argc, char *argv [])
 
                         //  Send reply command.
                         reply = create_ok_id;
-                        nbytes = socket_list [pos]->write(&reply, 1);
+                        nbytes = socket_list [pos]->write (&reply, 1);
                         assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s created (%s).\n", type_id, name,
@@ -317,8 +316,8 @@ int main (int argc, char *argv [])
 	
         //  Accept incoming connection.
         if (FD_ISSET (fd_int, &result_set_fds)) {    
-	    socket_list.push_back (new tcp_socket_t(listening_socket, true));           
-            int s = socket_list.back()->get_fd();
+	    socket_list.push_back (new tcp_socket_t (listening_socket, true));           
+            int s = socket_list.back ()->get_fd ();
             FD_SET (s, &source_set_fds);
             
             if (maxfdp1 <= s)

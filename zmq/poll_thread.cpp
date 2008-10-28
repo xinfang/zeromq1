@@ -18,7 +18,10 @@
 */
 
 #include <algorithm>
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS
 #include <sys/resource.h>
+#endif
 
 #include "poll_thread.hpp"
 #include "err.hpp"

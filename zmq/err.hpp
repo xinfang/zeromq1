@@ -41,7 +41,7 @@ namespace zmq
 
     ZMQ_EXPORT const char * wsa_error ();
     ZMQ_EXPORT void win_error (char *buffer_, size_t buffer_size_);
-
+  
 }
 
 #endif
@@ -63,8 +63,10 @@ namespace zmq
 //  Provides convenient way to check WSA-style errors on Windows.
 #define wsa_assert(x) if (!(x)){\
     const char *errstr = wsa_error ();\
-    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
-    abort ();\
+    if (errstr != NULL) {\
+        printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+        abort ();\
+    }\
 }
 
 #define win_assert(x) if (!(x)) {\

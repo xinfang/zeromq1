@@ -38,13 +38,13 @@ namespace zmq
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
-        inline int get_fd ()
+        ZMQ_EXPORT inline int get_fd ()
         {
             return s;
         }
 
         //  Returns port listener is listening on.
-        inline const char *get_interface ()
+        ZMQ_EXPORT inline const char *get_interface ()
         {
             return iface; 
         }

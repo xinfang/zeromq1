@@ -27,7 +27,6 @@
 const char *zmq::wsa_error()
 {
     int errcode = WSAGetLastError ();
-
     //  TODO: This is not a generic way to handle this...
     if (errcode == WSAEWOULDBLOCK)
         return NULL;
@@ -136,7 +135,6 @@ const char *zmq::wsa_error()
         (errcode == WSANO_DATA) ?
             "Valid name no data record of requested": "error not defined"; 
 }
-
 void zmq::win_error (char *buffer_, size_t buffer_size_)
 {
     DWORD errcode = GetLastError ();

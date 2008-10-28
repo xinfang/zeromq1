@@ -93,20 +93,16 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
-    //  Initialuse the output parameter.
-    memset (addr_, 0, sizeof (in_addr));
-
     //  TODO: Add code that'll convert interface name to IP address
     //  on Windows platform here.
-    sockaddr addr;
+    in_addr addr;
     int addr_length = sizeof (addr);
-    ((sockaddr_in*) &addr_)->sin_family = AF_INET;
+    ((sockaddr_in*) addr_)->sin_family = AF_INET;
    
-    int rc = WSAStringToAddress ((char*) interface_, AF_INET, NULL,
-        &addr, &addr_length);
-    
-    addr_ = (in_addr*) &addr;
-    wsa_assert (rc != SOCKET_ERROR);        
+    addr.S_un.S_addr  = inet_addr ((const char *) interface_);
+        
+    win_assert (addr.S_un.S_addr != INADDR_ANY || addr.S_un.S_addr != INADDR_NONE);
+    *addr_ = addr;
 }
 
 #elif (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
