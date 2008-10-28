@@ -49,7 +49,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  Allocate memory to get interface names.
     size_t ifr_size = sizeof (struct lifreq) * ifn.lifn_count;
     char *ifr = (char*) malloc (ifr_size);
-    assert (ifr);
+    errno_assert (ifr);
     
     //  Retrieve interface names.
     lifconf ifc;

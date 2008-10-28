@@ -20,6 +20,7 @@
 
 #include "bp_engine.hpp"
 #include "dispatcher.hpp"
+#include "err.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *hostname_, size_t writebuf_size_,
@@ -59,9 +60,9 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
-    assert (writebuf);
+    errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
-    assert (readbuf);
+    errno_assert (readbuf);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -85,9 +86,9 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
-    assert (writebuf);
+    errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
-    assert (readbuf);
+    errno_assert (readbuf);
 
     //  Register BP engine with the I/O thread.
     command_t command;

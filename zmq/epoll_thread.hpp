@@ -99,9 +99,6 @@ namespace zmq
             i_pollable *engine;
         };
 
-        //  Creates poll_entry structure and initializes it.
-        static poll_entry *new_poll_entry (int fd_, i_pollable *engine_);
-
         //  All registered engines are stored in a common table.
         typedef std::map <void*, int> object_table_t;
         object_table_t engines;

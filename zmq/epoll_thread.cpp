@@ -18,6 +18,7 @@
 */
 
 #include "epoll_thread.hpp"
+#include "err.hpp"
 
 #ifdef ZMQ_HAVE_LINUX
 
@@ -78,30 +79,16 @@ void epoll_thread_t::send_command (i_thread *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-epoll_thread_t::poll_entry *
-epoll_thread_t::new_poll_entry (int fd_, i_pollable *engine_)
-{
-    struct poll_entry *poll_entry;
-
-    poll_entry = (struct poll_entry*) malloc (sizeof (struct poll_entry));
-    if (poll_entry) {
-        poll_entry->ev.events = 0;
-        poll_entry->ev.data.ptr = poll_entry;
-        poll_entry->fd = fd_;
-        poll_entry->engine = engine_;
-    }
-
-    return poll_entry;
-}
-
 handle_t epoll_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-    handle_t handle;
+    poll_entry *pe = (poll_entry*) malloc (sizeof (poll_entry));
+    errno_assert (pe);
+    pe->ev.events = 0;
+    pe->ev.data.ptr = pe;
+    pe->fd = fd_;
+    pe->engine = engine_;
 
-    struct poll_entry *poll_entry = new_poll_entry (fd_, engine_);
-    assert (poll_entry != NULL);
-
-    int rc = epoll_ctl (epfd, EPOLL_CTL_ADD, fd_, &poll_entry->ev);
+    int rc = epoll_ctl (epfd, EPOLL_CTL_ADD, fd_, &pe->ev);
     errno_assert (rc != -1);
 
     object_table_t::iterator it = engines.find (engine_);
@@ -110,49 +97,50 @@ handle_t epoll_thread_t::add_fd (int fd_, i_pollable *engine_)
     else
         it->second++;
 
-    handle.ptr = poll_entry;
+    handle_t handle;
+    handle.ptr = pe;
     return handle;
 }
 
 void epoll_thread_t::rm_fd (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry *) handle_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
 
-    object_table_t::iterator it = engines.find (poll_entry->engine);
+    object_table_t::iterator it = engines.find (pe->engine);
     assert (it != engines.end ());
 
     if (--it->second == 0)
         engines.erase (it);
 
-    int rc = epoll_ctl (epfd, EPOLL_CTL_DEL, poll_entry->fd, &poll_entry->ev);
+    int rc = epoll_ctl (epfd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 
-    free (poll_entry);
+    free (pe);
 }
 
 void epoll_thread_t::set_pollin (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
-    poll_entry->ev.events |= EPOLLIN;
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, poll_entry->fd, &poll_entry->ev);
+    poll_entry *pe = (poll_entry*) handle_.ptr;
+    pe->ev.events |= EPOLLIN;
+    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
 void epoll_thread_t::reset_pollin (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
-    poll_entry->ev.events &= ~((short) EPOLLIN);
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, poll_entry->fd, &poll_entry->ev);
+    poll_entry *pe = (poll_entry*) handle_.ptr;
+    pe->ev.events &= ~((short) EPOLLIN);
+    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
 void epoll_thread_t::speculative_read (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
-    poll_entry->ev.events |= EPOLLIN;
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, poll_entry->fd, &poll_entry->ev);
+    poll_entry *pe = (poll_entry*) handle_.ptr;
+    pe->ev.events |= EPOLLIN;
+    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
-    poll_entry->engine->in_event ();
+    pe->engine->in_event ();
 }
 
 void epoll_thread_t::set_pollout (handle_t handle_)
@@ -165,19 +153,19 @@ void epoll_thread_t::set_pollout (handle_t handle_)
 
 void epoll_thread_t::reset_pollout (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
-    poll_entry->ev.events &= ~((short) EPOLLOUT);
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, poll_entry->fd, &poll_entry->ev);
+    poll_entry *pe = (poll_entry*) handle_.ptr;
+    pe->ev.events &= ~((short) EPOLLOUT);
+    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
 void epoll_thread_t::speculative_write (handle_t handle_)
 {
-    struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
-    poll_entry->ev.events |= EPOLLOUT;
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, poll_entry->fd, &poll_entry->ev);
+    poll_entry *pe = (poll_entry*) handle_.ptr;
+    pe->ev.events |= EPOLLOUT;
+    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
-    poll_entry->engine->out_event ();
+    pe->engine->out_event ();
 }
 
 void epoll_thread_t::worker_routine (void *arg_)

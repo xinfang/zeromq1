@@ -25,6 +25,7 @@
 #include "stdint.hpp"
 #include "config.hpp"
 #include "atomic_counter.hpp"
+#include "err.hpp"
 
 namespace zmq
 {
@@ -81,7 +82,7 @@ namespace zmq
             msg_->shared = false;
             msg_->content = (message_content_t*) malloc (
                 sizeof (message_content_t) + size_);
-            assert (msg_->content);
+            errno_assert (msg_->content);
             msg_->content->data = (void*) (msg_->content + 1);
             msg_->content->size = size_;
             msg_->content->ffn = NULL;
@@ -101,7 +102,7 @@ namespace zmq
         msg_->shared = false;
         msg_->content = (message_content_t*) malloc (
             sizeof (message_content_t));
-        assert (msg_->content);
+        errno_assert (msg_->content);
         msg_->content->data = data_;
         msg_->content->size = size_;
         msg_->content->ffn = ffn_;
