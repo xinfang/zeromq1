@@ -96,16 +96,9 @@ int main (int argc, char *argv [])
 #endif
 
     //  Create a tcp_listener.
-    char iface [256] = "0.0.0.0:";
-    char tmp [10];
-    if (argc == 2) { 
-	    //  The argument is port.
-	    zmq_snprintf (tmp, 10, "%s", argv [1]);
-    }	
-    else {
-        zmq_sprintf (tmp, "%d", default_locator_port);   
-    }
-    zmq_strcat (iface, tmp); 
+    char iface [256];
+    int port = (argc == 2 ? atoi (argv [1]) : default_locator_port);
+    zmq_snprintf (iface, sizeof (iface), "0.0.0.0:%d", port);
     tcp_listener_t listening_socket (iface);
      
     //	Create list of descriptors

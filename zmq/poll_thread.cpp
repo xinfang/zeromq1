@@ -17,17 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS
+
+#include <algorithm>
 #include <sys/resource.h>
-#endif
 
 #include "poll_thread.hpp"
 #include "err.hpp"
-
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS
 
 zmq::i_thread *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
 {
