@@ -27,6 +27,7 @@
 #include <zmq/message.hpp>
 #include <zmq/poll_thread.hpp>
 #include <zmq/epoll_thread.hpp>
+#include <zmq/devpoll_thread.hpp>
 
 
 
