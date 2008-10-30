@@ -15,7 +15,7 @@ BUILT_SOURCES = Jzmq.h Jzmq.class
 $(srcdir)/Jzmq.cpp: Jzmq.h
 
 Jzmq.h: Jzmq.class
-	$(CLASSPATH_ENV) $(JAVAH) -jni Jzmq
+	$(CLASSPATH_ENV) $(JAVAH) -jni -classpath ./ Jzmq
 
 Jzmq.class: classdist_noinst.stamp
 
