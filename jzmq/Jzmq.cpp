@@ -79,7 +79,7 @@ JNIEXPORT void JNICALL Java_Jzmq_finalize (JNIEnv *env, jobject obj)
 }
 
 JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
-    jstring exchange_, jint scope_, jstring nic_)
+    jstring exchange_, jint scope_, jstring nic_, jboolean load_balance_)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -101,7 +101,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
         scope = zmq::scope_global;
 
     jint eid = context->api_thread->create_exchange (exchange, scope, nic,
-        context->poll_thread, 1, &context->poll_thread);
+        context->poll_thread, 1, &context->poll_thread, (bool) load_balance_);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (exchange_, exchange);

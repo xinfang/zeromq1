@@ -35,8 +35,11 @@ class Jzmq
      //  Create an exchange. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
-     //  Exchange ID is returned.
-     public native int createExchange (String exchange, int scope, String nic);
+     //  If loadBalance is false, message is distributed to all the queues
+     //  bound to the exchange. If true messages are load balanced among
+     //  bound queues. Exchange ID is returned.
+     public native int createExchange (String exchange, int scope, String nic,
+         boolean loadBalance);
 
      //  Create a queue. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.
