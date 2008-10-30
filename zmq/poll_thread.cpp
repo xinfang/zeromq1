@@ -17,8 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "platform.hpp"
+
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OPENBSD
 
 #include <algorithm>
 #include <sys/resource.h>

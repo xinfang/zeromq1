@@ -10,3 +10,7 @@
 /* Have FreeBSD OS */
 #undef ZMQ_HAVE_FREEBSD
 
+/* Have OpenBSD OS */
+#undef ZMQ_HAVE_OPENBSD
+
+

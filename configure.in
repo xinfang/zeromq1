@@ -45,6 +45,11 @@ case "${host_os}" in
         AC_DEFINE(ZMQ_HAVE_OSX, 1, [Have DarwinOSX OS])
         LIBS="-pthread"
         ;;
+    *openbsd*)
+        AC_DEFINE(ZMQ_HAVE_OPENBSD, 1, [Have OpenBSD OS])
+        CPPFLAGS="-pthread $CPPFLAGS"
+        LIBS="-pthread"
+        ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
         ;;
@@ -216,6 +221,9 @@ if test "x$with_java" != "xno"; then
     case "${host_os}" in
         *solaris*)
             JAVA_INCLUDE="-I.. -I${JAVA_HOME}/include -I ${JAVA_HOME}/include/solaris"
+        ;;
+        *openbsd*)
+            JAVA_INCLUDE="-I.. -I${JAVA_HOME}/include -I ${JAVA_HOME}/include/openbsd"
         ;;
         *)
             JAVA_INCLUDE="-I.. -I${JAVA_HOME}/include -I ${JAVA_HOME}/include/linux"

@@ -29,7 +29,8 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
-#elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS)
+#elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OPENBSD)
 #include <semaphore.h>
 #else
 #include <pthread.h>
@@ -98,7 +99,8 @@ namespace zmq
         void operator = (const ysemaphore_t&);
     };
 
-#elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS)
+#elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OPENBSD)
 
     class ysemaphore_t : public i_signaler
     { 

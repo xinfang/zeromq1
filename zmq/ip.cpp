@@ -106,7 +106,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 }
 
 #elif (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX)
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_OPENBSD)
 
 #include <ifaddrs.h>
 
