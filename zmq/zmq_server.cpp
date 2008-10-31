@@ -46,6 +46,7 @@ using namespace std;
 #include "formatting.hpp"
 using namespace zmq;
 
+#define ZMQ_TRACE
 //  Info about a single object.
 struct object_info_t
 {
