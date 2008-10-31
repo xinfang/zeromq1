@@ -63,7 +63,7 @@ namespace zmq
             r = INVALID_SOCKET;
     
             int rc = (listener = socket (AF_INET, SOCK_STREAM, 0));
-                wsa_assert (rc != INVALID_SOCKET);
+            wsa_assert (rc != INVALID_SOCKET);
 
             memset (&addr, 0, sizeof (addr));
             addr.sin_family = AF_INET;
@@ -81,7 +81,7 @@ namespace zmq
                      
             //  Create the socket.
             w = WSASocket (AF_INET, SOCK_STREAM, 0, NULL, 0,  0);
-            wsa_assert (w != SOCKET_ERROR);
+            wsa_assert (w != INVALID_SOCKET);
                       
             //  Connect to the remote peer.
             rc = connect (w, (sockaddr *) &addr, sizeof (addr));
@@ -91,14 +91,18 @@ namespace zmq
             r = accept (listener, NULL, NULL);
             wsa_assert (r != INVALID_SOCKET);
             
-            closesocket (listener);
+            rc = closesocket (listener);
+            wsa_assert (rc != SOCKET_ERROR);
         }
 
         //  Destroy the pipe.
         inline ~ysocketpair_t ()
         {
-            closesocket (w);
-            closesocket (r);
+            int rc = closesocket (w);
+            wsa_assert (rc != SOCKET_ERROR);
+
+            rc = closesocket (r);
+            wsa_assert (rc != SOCKET_ERROR);
         }
 
         //  Send specific signal to the pipe (i_signaler implemenation).

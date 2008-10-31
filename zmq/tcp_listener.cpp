@@ -90,7 +90,7 @@ int zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     int sock = ::accept (s, NULL, NULL);
-    wsa_assert (sock != SOCKET_ERROR);
+    wsa_assert (sock != INVALID_SOCKET);
     return sock;
 }
 

@@ -28,7 +28,7 @@ zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
 {
     descriptor = CreateThread (NULL, 0, &zmq::thread_t::thread_routine,
         this, 0, NULL); 
-    win_assert (descriptor);    
+    win_assert (descriptor != NULL);    
 }
 
 zmq::thread_t::~thread_t ()

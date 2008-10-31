@@ -26,7 +26,7 @@ void zmq::ysocketpair_t::signal (int signal_)
     assert (signal_ >= 0 && signal_ < 31);
     char c = (char) signal_;
     int rc = send (w, &c, 1, 0);
-    win_assert (rc != -1);
+    win_assert (rc != SOCKET_ERROR);
 }
 
 #else

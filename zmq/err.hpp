@@ -62,7 +62,7 @@ namespace zmq
 
 //  Provides convenient way to check WSA-style errors on Windows.
 #define wsa_assert(x) if (!(x)){\
-    const char *errstr = wsa_error ();\
+    const char *errstr = zmq::wsa_error ();\
     if (errstr != NULL) {\
         printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
         abort ();\
@@ -71,7 +71,7 @@ namespace zmq
 
 #define win_assert(x) if (!(x)) {\
     char errstr [256];\
-    win_error (errstr, 256);\
+    zmq::win_error (errstr, 256);\
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }

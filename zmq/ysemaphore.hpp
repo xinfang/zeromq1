@@ -76,7 +76,7 @@ namespace zmq
         //  Destroy the semaphore.
         inline ~ysemaphore_t ()
         {
-            BOOL rc = CloseHandle (ev);
+            int rc = CloseHandle (ev);
             win_assert (rc != 0);    
         }
 

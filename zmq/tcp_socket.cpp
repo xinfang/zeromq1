@@ -48,7 +48,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    wsa_assert (s != SOCKET_ERROR);
+    wsa_assert (s != INVALID_SOCKET);
 
     
     //  Connect to the remote peer.
@@ -73,6 +73,7 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
 {
     //  Accept the socket.
     s = listener.accept ();
+    wsa_assert (s != INVALID_SOCKET);
  
     //  Set socket properties to non-blocking mode. 
     if (! block) {
@@ -103,7 +104,6 @@ int zmq::tcp_socket_t::write (const void *data, int size)
     if (nbytes == SOCKET_ERROR)
         return -1;
 
-    // TODO: check error
     return (size_t) nbytes;
 }
 
@@ -112,6 +112,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
     int nbytes = recv (s, (char*) data, size, 0);
     if (nbytes == SOCKET_ERROR)
         return -1;
+
     return (size_t) nbytes;
 }
 

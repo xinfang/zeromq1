@@ -131,7 +131,7 @@ int main (int argc, char *argv [])
            memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
 	            
            rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
-	       errno_assert (rc != -1);
+	       win_assert (rc != SOCKET_ERROR);
        }    
       
        //  Traverse all the sockets.
@@ -253,7 +253,7 @@ int main (int argc, char *argv [])
                         unsigned char type_id;
 
                         nbytes = socket_list [pos]->read (&type_id, 1);
-                        assert (nbytes == 1);
+                        assert (nbytes ==1);
 
                         //  Parse object name.
                         unsigned char size;
@@ -310,7 +310,7 @@ int main (int argc, char *argv [])
 	
         //  Accept incoming connection.
         if (FD_ISSET (fd_int, &result_set_fds)) {    
-	    socket_list.push_back (new tcp_socket_t (listening_socket, true));           
+	        socket_list.push_back (new tcp_socket_t (listening_socket, true));           
             int s = socket_list.back ()->get_fd ();
             FD_SET (s, &source_set_fds);
             
@@ -321,8 +321,10 @@ int main (int argc, char *argv [])
     }
 
 #ifdef ZMQ_HAVE_WINDOWS
+
     //  Uninitialise Windows socket layer.
-    WSACleanup ();
+    rc = WSACleanup ();
+    wsa_assert (rc != SOCKET_ERROR);
 #endif
    
     return 0;

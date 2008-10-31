@@ -33,7 +33,7 @@ void zmq::ysemaphore_t::signal (int signal_)
 void zmq::ysemaphore_t::signal (int signal_)
 {
     assert (signal_ == 0);
-    BOOL rc = SetEvent (ev);
+    int rc = SetEvent (ev);
     win_assert (rc != 0);
 }
 
