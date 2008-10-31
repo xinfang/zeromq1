@@ -30,7 +30,7 @@
 #ifdef ZMQ_HAVE_WINDOWS
 #include <windows.h>
 #elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD)
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO)
 #include <semaphore.h>
 #else
 #include <pthread.h>
@@ -100,7 +100,7 @@ namespace zmq
     };
 
 #elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD)
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO)
 
     class ysemaphore_t : public i_signaler
     { 

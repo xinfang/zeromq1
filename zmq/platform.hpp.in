@@ -13,4 +13,6 @@
 /* Have OpenBSD OS */
 #undef ZMQ_HAVE_OPENBSD
 
+/* Have QNX Neutrino OS */
+#undef ZMQ_HAVE_QNXNTO
 

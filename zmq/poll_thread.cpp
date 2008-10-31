@@ -21,7 +21,7 @@
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO
 
 #include <algorithm>
 #include <sys/resource.h>

@@ -50,6 +50,11 @@ case "${host_os}" in
         CPPFLAGS="-pthread $CPPFLAGS"
         LIBS="-pthread"
         ;;
+    *nto-qnx*)
+        AC_DEFINE(ZMQ_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
+        CPPFLAGS="-D_THREAD_SAFE $CPPFLAGS"
+        AC_CHECK_LIB(socket,main)
+        ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
         ;;
