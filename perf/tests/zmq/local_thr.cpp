@@ -83,7 +83,5 @@ int main (int argc, char *argv [])
     
     delete [] transports;
 
-    Sleep(10000);
-
     return 0;
 }

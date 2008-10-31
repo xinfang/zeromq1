@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cstdio>
-#include <conio.h>
 #include "../../transports/zmq.hpp"
 #include "../scenarios/lat.hpp"
 
@@ -51,6 +50,5 @@ int main (int argc, char *argv [])
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     local_lat (&transport, msg_size, roundtrip_count);
 
-    getch();
     return 0;
 }

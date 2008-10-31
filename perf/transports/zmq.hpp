@@ -76,7 +76,11 @@ namespace perf
 
         inline ~zmq_t ()
         {
-            Sleep (1000);
+#ifdef ZMQ_HAVE_WINDOWS
+	    Sleep (1000);
+#else
+            sleep (1000);
+#endif
         }
 
         inline virtual void send (size_t size_)
