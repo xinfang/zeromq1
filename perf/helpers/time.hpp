@@ -22,11 +22,20 @@
 
 #include <assert.h>
 #include <stdlib.h>
+
+#ifdef ZMQ_HAVE_WINDOWS
+#include <sys/types.h>
+#include <sys/timeb.h>
+#else
 #include <sys/time.h>
 #include <unistd.h>
+#endif
+
+
 #include <iostream>
 
 #include "../../zmq/stdint.hpp"
+
 
 namespace perf
 {
@@ -37,6 +46,31 @@ namespace perf
     //  is that all times are measured from the same starting point.
     typedef uint64_t time_instant_t;
 
+#ifdef ZMQ_HAVE_WINDOWS
+    
+    inline uint64_t now () {
+        
+        LARGE_INTEGER ticksPerSecond;
+        LARGE_INTEGER tick;   // A point in time
+        ULARGE_INTEGER time;   // For converting tick into real time
+
+        // get the high resolution counter's accuracy
+        QueryPerformanceFrequency (&ticksPerSecond);
+
+        // what time is it?
+        QueryPerformanceCounter (&tick);
+
+        // convert the tick number into the number of seconds
+        // since the system was started...
+        double ticksDivM = ticksPerSecond.QuadPart/1000000000;
+        time.QuadPart = tick.QuadPart / ticksDivM;
+       
+        
+        return time.QuadPart;
+
+    }
+
+#else
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
     //  Retrieves current time in processor ticks. This function is intended
     //  for internal usage - use 'now' function instead.
@@ -146,6 +180,7 @@ namespace perf
         return now_nsecs ();
 #endif
     }
+#endif
 }
 
 #endif

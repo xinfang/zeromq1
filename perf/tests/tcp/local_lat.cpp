@@ -20,9 +20,12 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cstdio>
-
+/*
 #include "../../transports/tcp.hpp"
 #include "../scenarios/lat.hpp"
+*/
+#include "tcp.hpp"
+#include "lat.hpp"
 
 using namespace std;
 

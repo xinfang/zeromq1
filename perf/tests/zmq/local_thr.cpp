@@ -39,14 +39,14 @@ int main (int argc, char *argv [])
 
     //  Parse & print command line arguments.
     const char *host = argv [1];
-    const char *interface = argv [2];
+    const char *iface = argv [2];
     size_t msg_size = atoi (argv [3]);
     int msg_count = atoi (argv [4]);
     int thread_count = atoi (argv [5]);
 
     //  Port number shouldn't be specified in the "interface" parameter,
     //  because there are possibly multiple ports used.
-    assert (strchr (interface, ':') == NULL);
+    assert (strchr (iface, ':') == NULL);
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -71,7 +71,7 @@ int main (int argc, char *argv [])
         //  Create zmq transport with bind = false. It means that global queue
         //  QX and global exchange EX will be created without any bindings.
         transports [thread_nbr] = new perf::zmq_t (host, false,
-            exchange_name.c_str (), queue_name.c_str (), interface, interface);
+            exchange_name.c_str (), queue_name.c_str (), iface, iface);
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
@@ -82,6 +82,8 @@ int main (int argc, char *argv [])
         delete transports [thread_nbr];
     
     delete [] transports;
+
+    Sleep(10000);
 
     return 0;
 }

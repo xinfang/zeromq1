@@ -46,7 +46,8 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
-#include <pthread.h>
+#include <thread.hpp>
+//#include <pthread.h>
 
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"
@@ -122,7 +123,7 @@ namespace perf
     void local_thr (i_transport **transports_, size_t msg_size_, 
         int msg_count_, int thread_count_)
     {
-        pthread_t *workers = new pthread_t [thread_count_];
+        zmq::thread_t **workers = new zmq::thread_t* [thread_count_];
 
         //  Array of thr_worker_args_t structures for worker threads.
         thr_worker_args_t *workers_args = 
@@ -139,9 +140,11 @@ namespace perf
             workers_args [thread_nbr].stop_time = 0;
             
             //  Create worker thread.
-            int rc = pthread_create (&workers [thread_nbr], NULL, 
-                local_worker_function, (void *)&workers_args [thread_nbr]);
-            assert (rc == 0);
+            zmq::thread_t *thread = new zmq::thread_t  (
+                (zmq::thread_fn *) local_worker_function, 
+                (void *)&workers_args [thread_nbr]);
+            workers [thread_nbr] = thread;
+           
         }
 
         //  Gather results from thr_worker_args_t structures.
@@ -152,9 +155,8 @@ namespace perf
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
 
             //  Wait for worker threads to finish.
-            int rc = pthread_join (workers [thread_nbr], NULL);
-            assert (rc == 0);
-
+            delete workers [thread_nbr];
+            
             //  Find max stop & min start time.
             if (workers_args [thread_nbr].start_time < min_start_time)
                 min_start_time = workers_args [thread_nbr].start_time;
@@ -208,7 +210,7 @@ namespace perf
     void remote_thr (i_transport **transports_, size_t msg_size_, 
         int msg_count_, int thread_count_)
     {
-        pthread_t *workers = new pthread_t [thread_count_];
+        zmq::thread_t **workers = new zmq::thread_t* [thread_count_];
 
         //  Array of thr_worker_args_t structures for worker threads.
         thr_worker_args_t *workers_args = 
@@ -224,15 +226,15 @@ namespace perf
             workers_args [thread_nbr].stop_time = 0;
          
             // Create worker thread.
-            int rc = pthread_create (&workers [thread_nbr], NULL, 
-                remote_worker_function, (void *)&workers_args [thread_nbr]);
-            assert (rc == 0);
+            zmq::thread_t *thread = new zmq::thread_t  (
+                (zmq::thread_fn *) remote_worker_function, 
+                (void *)&workers_args [thread_nbr]);
+            workers [thread_nbr] = thread;
         }
 
         //  Wait for worker threads to finish.
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
-            int rc = pthread_join (workers [thread_nbr], NULL);
-            assert (rc == 0);
+            delete workers [thread_nbr];
         }
     }
 }

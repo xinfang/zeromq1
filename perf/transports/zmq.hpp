@@ -76,7 +76,7 @@ namespace perf
 
         inline ~zmq_t ()
         {
-            sleep (1);
+            Sleep (1000);
         }
 
         inline virtual void send (size_t size_)
