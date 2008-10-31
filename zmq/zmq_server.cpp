@@ -131,7 +131,11 @@ int main (int argc, char *argv [])
            memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
 	            
            rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
-	       win_assert (rc != SOCKET_ERROR);
+#ifdef ZMQ_HAVE_WINDOWS
+           win_assert (rc != SOCKET_ERROR);
+#else
+           errno_assert (rc != -1);
+#endif
        }    
       
        //  Traverse all the sockets.
