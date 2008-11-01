@@ -61,7 +61,8 @@ namespace zmq
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL,
-            bool load_balance_ = false);
+            bool load_balance_ = false,
+            int hwm_ = 0, int lwm_ = 0);
 
         //  Creates new queue, returns queue ID.
         int create_queue (
@@ -70,23 +71,28 @@ namespace zmq
             const char *interface_ = NULL,
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
-            poll_thread_t **handler_threads_ = NULL);
+            poll_thread_t **handler_threads_ = NULL,
+            int hwm_ = 0, int lwm_ = 0);
 
         //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,
-            poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_);
+            poll_thread_t *exchange_thread_ = NULL,
+            poll_thread_t *queue_thread_ = NULL,
+            int hmw_ = 0, int lwm_ = 0);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
         //  messages, flush them immediately. If 'block' parameter is true
         //  and there are no queues bound to the exchange, execution will be
-        //  blocked until a binding is created.
-        void send (int exchange_id_, message_t &msg_, bool block_ = false);
+        //  blocked until a binding is created. Returns true is message was
+        //  successfully enqueued, false if it was not send because fo pipe
+        //  limits.
+        bool send (int exchange_id_, message_t &msg_, bool block_ = false);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        void presend (int exchange_id_, message_t &msg_, bool block_ = false);
+        bool presend (int exchange_id_, message_t &msg_, bool block_ = false);
 
         //  Flush all the pre-sent messages.
         void flush ();

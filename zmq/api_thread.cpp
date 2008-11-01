@@ -51,7 +51,8 @@ zmq::api_thread_t::~api_thread_t ()
 int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *interface_,
     poll_thread_t *listener_thread_, int handler_thread_count_,
-    poll_thread_t **handler_threads_, bool load_balance_)
+    poll_thread_t **handler_threads_, bool load_balance_,
+    int hwm_, int lwm_)
 {
     //  Insert the exchange to the local list of exchanges.
     //  If the exchange is already present, return immediately.
@@ -70,14 +71,15 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
     //  Register the exchange with the locator.
     locator->create (exchange_type_id, exchange_, this, this,
         scope_, interface_, listener_thread_,
-        handler_thread_count_, handler_threads_);
+        handler_thread_count_, handler_threads_, hwm_, lwm_);
 
     return exchanges.size () - 1;
 }
 
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     const char *interface_, poll_thread_t *listener_thread_,
-    int handler_thread_count_, poll_thread_t **handler_threads_)
+    int handler_thread_count_, poll_thread_t **handler_threads_,
+    int hwm_, int lwm_)
 {
     //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.
@@ -95,13 +97,14 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     //  Register the queue with the locator.
     locator->create (queue_type_id, queue_, this, this, scope_,
         interface_, listener_thread_, handler_thread_count_,
-        handler_threads_);
+        handler_threads_, hwm_, lwm_);
 
     return queues.size ();
 }
 
 void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
-    poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_)
+    poll_thread_t *exchange_thread_, poll_thread_t *queue_thread_,
+    int hwm_, int lwm_)
 {
     //  Find the exchange.
     i_context *exchange_context;
@@ -155,7 +158,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
     //  Create the pipe.
     pipe_t *pipe = new pipe_t (exchange_context, exchange_engine,
-        queue_context, queue_engine);
+        queue_context, queue_engine, hwm_, lwm_);
     assert (pipe);
 
     //  Bind the source end of the pipe.
@@ -177,10 +180,12 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
 }
 
-void zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
+bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 {
     //  Process pending commands, if any.
     process_commands ();
+
+    bool sent = true;
 
     if (block_) {
 
@@ -193,7 +198,7 @@ void zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 
         //  Pass the message to the demux.
         if (!exchanges [exchange_id_].second.write (msg_))
-            msg_.rebuild (0);
+            sent = false;
     }
 
 
@@ -202,10 +207,14 @@ void zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
     //  is written to a single pipe, however, the flush is done on all the
     //  pipes.
     exchanges [exchange_id_].second.flush ();
+
+    return sent;
 }
 
-void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
+bool zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
 {
+    bool sent = true;
+
     if (block_) {
 
         //  Try to write the message to at least one pipe. If there is no pipe
@@ -216,8 +225,11 @@ void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
     else {
 
         //  Pass the message to the demux.
-        exchanges [exchange_id_].second.write (msg_);
+        if (!exchanges [exchange_id_].second.write (msg_))
+            sent = false;
     }
+
+    return sent;
 }
 
 void zmq::api_thread_t::flush ()
@@ -321,6 +333,12 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
 
         //  Forward the revive command to the pipe.
         command_.args.revive.pipe->revive ();
+        break;
+
+    case engine_command_t::stats:
+
+        //  Forward pipe statistics to the appropriate pipe.
+        command_.args.stats.pipe->stats (command_.args.stats.head);
         break;
 
     case engine_command_t::send_to:

@@ -41,6 +41,9 @@ bool zmq::bp_encoder_t::size_ready ()
 bool zmq::bp_encoder_t::message_ready ()
 {
     //  Read new message from the dispatcher. If there is none, return false.
+    //  Note that new state is set only if write is successful. That way
+    //  unsuccessful write will cause retry on the next state machine
+    //  invocation.
     if (!mux->read (&message))
         return false;
 

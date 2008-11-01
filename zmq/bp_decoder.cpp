@@ -27,7 +27,7 @@ zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 
-void zmq::bp_decoder_t::one_byte_size_ready ()
+bool zmq::bp_decoder_t::one_byte_size_ready ()
 {
     //  First byte of size is read. If it is 0xff read 8-byte size.
     //  Otherwise allocate the buffer for message data and read the
@@ -38,21 +38,28 @@ void zmq::bp_decoder_t::one_byte_size_ready ()
         message.rebuild (*tmpbuf);
         next_step (message.data (), *tmpbuf, &bp_decoder_t::message_ready);
     }
+    return true;
 }
 
-void zmq::bp_decoder_t::eight_byte_size_ready ()
+bool zmq::bp_decoder_t::eight_byte_size_ready ()
 {
     //  8-byte size is read. Allocate the buffer for message body and
     //  read the message data into it.
     message.rebuild (get_uint64 (tmpbuf));
     next_step (message.data (), message.size (), &bp_decoder_t::message_ready);
+    return true;
 }
 
-void zmq::bp_decoder_t::message_ready ()
+bool zmq::bp_decoder_t::message_ready ()
 {
     //  Message is completely read. Push it to the dispatcher and start reading
-    //  new message.
-    demux->write (message);
+    //  new message. Note that new state is set only if write is successful.
+    //  That way unsuccessful write will cause retry on the next state machine
+    //  invocation.
+    if (!demux->write (message))
+        return false;
+
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
+    return true;    
 }
 

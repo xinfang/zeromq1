@@ -43,10 +43,10 @@ namespace zmq
         void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush). Function
-        //  return true if message is written to at least one pipe. The message
+        //  returns true if message is written to at least one pipe. The message
         //  is cleared in that case. If it returns false, message wasn't written
         //  to a pipe and it is left intact.
-        int write (message_t &msg_);
+        bool write (message_t &msg_);
 
         //  Flush the messages.
         void flush ();
@@ -56,6 +56,12 @@ namespace zmq
 
         //  Write a delimiter to the specified pipe.
         void destroy_pipe (pipe_t *pipe_);
+
+        //  Returns true if there are no pipes to sen messages to.
+        inline bool no_pipes ()
+        {
+            return pipes.empty ();
+        }
 
     private:
 

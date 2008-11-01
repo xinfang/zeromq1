@@ -36,49 +36,45 @@ namespace zmq
         pipe_t (struct i_context *source_context_,
             struct i_engine *source_engine_,
             struct i_context *destination_context_,
-            struct i_engine *destination_engine_);
+            struct i_engine *destination_engine_,
+            int hwm_ = 0, int lwm_ = 0);
         ~pipe_t ();
 
-        //  Write a message to the pipe.
-        inline void write (raw_message_t *msg_)
-        {
-            pipe.write (*msg_);
-        }
+        //  Check whether message can be written to the pipe (i.e. whether
+        //  pipe limits are exceeded. If true, it's OK to write the message
+        //  to the pipe.
+        bool check_write ();
+
+        //  Write a message to the pipe. You should call check_write beforehand
+        //  to determine whether pipe limits are exceeded.
+        void write (raw_message_t *msg_);
 
         //  Write pipe delimiter to the pipe.
-        inline void write_delimiter ()
-        {
-            raw_message_t delimiter;
-            raw_message_init_delimiter (&delimiter);
-            pipe.write (delimiter);
-            flush ();
-        }
+        void write_delimiter ();
 
         //  Flush all the written messages to be accessible for reading.
-        inline void flush ()
-        {
-            if (!pipe.flush ())
-                send_revive ();
-        }
+        void flush ();
 
         //  Returns true, if pipe delimiter was already received.
-        bool eop ()
+        inline bool eop ()
         {
             return endofpipe;
         }
 
-        //  Reads a message from the pipe.
+        //  Reads a message from the pipe. Returns false if there is no message
+        //  available.
         bool read (raw_message_t *msg);
 
         //  Make the dead pipe alive once more.
         void revive ();
 
+        //  Process the 'stats' commands from reader thread.
+        void stats (uint64_t head_);
+
         //  Notify the other end of the pipe that pipe is to be destroyed.
         void send_destroy_pipe ();
 
     private:
-
-        void send_revive ();
 
         //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>
@@ -99,6 +95,25 @@ namespace zmq
         //  True if we've already read the pipe delimiter from
         //  the underlying pipe.
         bool endofpipe;
+
+        //  If hwm is non-zero, the size of pipe is limited. In that case hwm
+        //  is the high water mark for the pipe and lwm is the low water mark.
+        int hwm;
+        int lwm;
+
+        //  Following message sequence numbers use RFC1982-like wraparound.
+
+        //  Reader thread uses this variable to track the sequence number of
+        //  the current message to read.
+        uint64_t head;
+
+        //  Writer thread uses 'tail' variable to track the sequence number of
+        //  the current message to write.
+        uint64_t tail;
+
+        //  Writer thread keeps last head position reported by reader thread
+        //  in this varaible.
+        uint64_t last_head;
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);

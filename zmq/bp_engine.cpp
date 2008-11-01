@@ -49,9 +49,11 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     context (thread_),
     demux (false),
     writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    readbuf_size (readbuf_size_),
+    read_size (0),
+    read_pos (0),
     encoder (&mux),
     decoder (&demux),
     socket (hostname_),
@@ -76,9 +78,11 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     context (thread_),
     demux (false),
     writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    readbuf_size (readbuf_size_),
+    read_size (0),
+    read_pos (0),
     encoder (&mux),
     decoder (&demux),
     socket (listener_),
@@ -116,22 +120,55 @@ void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 
 bool zmq::bp_engine_t::in_event ()
 {
-    //  Read as much data as possible to the read buffer.
-    int nbytes = socket.read (readbuf, readbuf_size);
+    //  This variable determines whether processing incoming messages is
+    //  stuck because of exceeded pipe limits.
+    bool stuck = read_pos < read_size;
 
-    if (nbytes == -1) {
+    //  If there's no data to process in the buffer, read new data.
+    if (read_pos == read_size) {
 
-        //  If the other party closed the connection, stop polling.
-        //  TODO: handle the event more gracefully
-        poller->reset_pollin (handle);
-        return false;
+        //  Read as much data as possible to the read buffer.
+        read_size = socket.read (readbuf, readbuf_size);
+        read_pos = 0;
+
+        if (read_size == -1) {
+
+            //  If the other party closed the connection, stop polling.
+            //  TODO: handle the event more gracefully.
+            poller->reset_pollin (handle);
+            return false;
+        }
     }
 
-    //  Push the data to the decoder
-    decoder.write (readbuf, nbytes);
+    //  If there's at least one unprocessed byte in the buffer, process it.
+    if (read_pos < read_size) {
 
-    //  Flush any messages decoder may have produced.
-    demux.flush ();
+        //  Push the data to the decoder and adjust read position in the buffer.
+        int  nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
+        read_pos += nbytes;
+
+         //  If processing was stuck and become unstuck start reading
+         //  from the socket. If it was unstuck and became stuck, stop polling
+         //  for new data.
+         if (stuck) {
+             if (read_pos == read_size)
+
+                 //  TODO: Speculative read should be used at this place to
+                 //  avoid excessive poll. However, it looks like this can
+                 //  result in infinite cycle in some cases, virtually
+                 //  preventing other engines' access to CPU. Fix it.
+                 poller->set_pollin (handle);
+         }
+         else {
+             if (read_pos < read_size)
+                 poller->reset_pollin (handle);
+         }
+
+        //  If at least one byte was processed, flush any messages decoder
+        //  may have produced.
+        if (nbytes > 0)
+            demux.flush ();
+    }
 
     return true;
 }
@@ -197,11 +234,27 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         poller->speculative_write (handle);
         break;
 
+    case engine_command_t::stats:
+
+        //  Forward pipe statistics to the appropriate pipe.
+        if (!socket_error) {
+            command_.args.stats.pipe->stats (command_.args.stats.head);
+            in_event ();
+        }
+        break;
+
     case engine_command_t::send_to:
 
         //  Start sending messages to a pipe.
-        if (!socket_error)
+        if (!socket_error) {
+
+            //  If pipe limits are set, POLLIN may be turned off
+            //  because there are no pipes to send messages to.
+            if (demux.no_pipes ())
+                poller->set_pollin (handle);
+
             demux.send_to (command_.args.send_to.pipe);
+        }
         break;
 
     case engine_command_t::receive_from:
@@ -214,6 +267,7 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::destroy_pipe:
+
         demux.destroy_pipe (command_.args.destroy_pipe.pipe);
         delete command_.args.destroy_pipe.pipe;
         break;

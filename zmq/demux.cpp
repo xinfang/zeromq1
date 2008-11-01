@@ -36,7 +36,7 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
     pipes.push_back (pipe_);
 }
 
-int zmq::demux_t::write (message_t &msg_)
+bool zmq::demux_t::write (message_t &msg_)
 {
     //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Demux is the component that translates between the two.
@@ -48,7 +48,7 @@ int zmq::demux_t::write (message_t &msg_)
         return false;
 
     //  For delimiters, the algorithm is straighforward.
-    //  Send it to all the pipes.
+    //  Send it to all the pipes. Don't care about pipe limits.
     //  TODO: Delimiters are special, they should be passed via different
     //  codepath.
     if (msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
@@ -61,16 +61,37 @@ int zmq::demux_t::write (message_t &msg_)
     //  Load balancing is easy. The message is sent to exactly one pipe
     //  thus there's no need for copying.
     if (load_balance) {
-        if (++ current == pipes_count)
-            current = 0;
-        pipes [current]->write (msg);
+        int old_current = current;
+        while (true) {
+
+            //  Move current to the next pipe.
+            current ++;
+            if (current == pipes_count)
+                current = 0;
+
+            //  Try to write the message to the pipe.
+            if (pipes [current]->check_write ()) {
+                pipes [current]->write (msg);
+                break;
+            }
+
+            //  If all the pipes are non-writeable fail.
+            if (current == old_current)
+                return false;
+        }
         raw_message_init (msg, 0);
         return true;
     }
 
-    //  For VSMs and delimiters, the copying is straighforward.
-    if (msg->content == (message_content_t*) raw_message_t::vsm_tag ||
-          msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
+    //  This is data distribution path (as opposed to load balancing).
+
+    //  First check whether all the pipes are available for writing.
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        if (!(*it)->check_write ())
+            return false;
+
+    //  For VSMs the copying is straighforward.
+    if (msg->content == (message_content_t*) raw_message_t::vsm_tag) {
         for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
             (*it)->write (msg);
         raw_message_init (msg, 0);

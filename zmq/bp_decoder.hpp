@@ -36,9 +36,9 @@ namespace zmq
 
     private:
 
-        void one_byte_size_ready ();
-        void eight_byte_size_ready ();
-        void message_ready ();
+        bool one_byte_size_ready ();
+        bool eight_byte_size_ready ();
+        bool message_ready ();
 
         demux_t *demux;
         unsigned char tmpbuf [8];

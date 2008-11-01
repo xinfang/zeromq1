@@ -17,19 +17,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <limits>
 #include "pipe.hpp"
 #include "command.hpp"
 
 zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
-      i_context *destination_context_, i_engine *destination_engine_) :
+      i_context *destination_context_, i_engine *destination_engine_,
+      int hwm_, int lwm_) :
     pipe (false),
     source_context (source_context_),
     source_engine (source_engine_),
     destination_context (destination_context_),
     destination_engine (destination_engine_),
     alive (true), 
-    endofpipe (false)
+    endofpipe (false),
+    hwm (hwm_),
+    lwm (lwm_),
+    head (0),
+    tail (0),
+    last_head (0)
 {
+    //  If high water mark was lower than low water mark pipe would hang up.
+    assert (lwm <= hwm);
 }
 
 zmq::pipe_t::~pipe_t ()
@@ -41,17 +50,59 @@ zmq::pipe_t::~pipe_t ()
         raw_message_destroy (&message);
 }
 
+bool zmq::pipe_t::check_write ()
+{
+    if (hwm) {
+
+        //  If pipe size have reached high watermark, reject the write.
+        //  The else branch will come into effect after 500,000 years of
+        //  passing 1,000,000 messages a second but still, it's there...
+        int size = last_head <= tail ? tail - last_head :
+            std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
+        assert (size <= hwm);
+        if (size == hwm)
+            return false;
+    }
+    return true;
+}
+
+void zmq::pipe_t::write (raw_message_t *msg_)
+{
+    //  Physically write the message to the pipe.
+    pipe.write (*msg_);
+
+    //  When pipe limits are set, move the tail.
+    if (hwm)
+        tail ++;
+}
+
+void zmq::pipe_t::write_delimiter ()
+{
+    raw_message_t delimiter;
+    raw_message_init_delimiter (&delimiter);
+    pipe.write (delimiter);
+    flush ();
+}
+
+void zmq::pipe_t::flush ()
+{
+    if (!pipe.flush ()) {
+        command_t cmd;
+        cmd.init_engine_revive (destination_engine, this);
+        source_context->send_command (destination_context, cmd);
+    }
+}
+
 void zmq::pipe_t::revive ()
 {
     assert (!alive);
     alive = true;
 }
 
-void zmq::pipe_t::send_revive ()
+void zmq::pipe_t::stats (uint64_t head_)
 {
-    command_t cmd;
-    cmd.init_engine_revive (destination_engine, this);
-    source_context->send_command (destination_context, cmd);
+    //  This may cause the next write to succeed.
+    last_head = head_;
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
@@ -71,6 +122,20 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
     if (msg_->content == (void*) raw_message_t::delimiter_tag) {
         endofpipe = true;
         return false;
+    }
+
+    //  Once in N messages send current head position to the writer thread.
+    if (hwm) {
+        head ++;
+
+        //  If high water mark is same as low water mark we have to report each
+        //  message retrieval from the pipe. Otherwise the period N is computed
+        //  as a difference between high and low water marks.
+        if (head % (hwm - lwm + 1) == 0) {
+            command_t cmd;
+            cmd.init_engine_stats (source_engine, this, head);
+            destination_context->send_command (source_context, cmd);
+        }
     }
 
     return true;

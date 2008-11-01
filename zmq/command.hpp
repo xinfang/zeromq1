@@ -22,6 +22,7 @@
 
 #include <string.h>
 
+#include "stdint.h"
 #include "ysemaphore.hpp"
 #include "pipe.hpp"
 
@@ -35,6 +36,7 @@ namespace zmq
         enum type_t
         {
             revive,
+            stats,
             send_to,
             receive_from,
             destroy_pipe
@@ -44,6 +46,10 @@ namespace zmq
             struct {
                 class pipe_t *pipe;
             } revive;
+            struct {
+                class pipe_t *pipe;
+                uint64_t head;
+            } stats;
             struct {
                 char exchange [16];
                 class pipe_t *pipe;
@@ -130,17 +136,25 @@ namespace zmq
             args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
-        inline void init_engine_revive (i_engine *engine_,
-            pipe_t *pipe_)
+        inline void init_engine_revive (i_engine *engine_, pipe_t *pipe_)
         {
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::revive;
             args.engine_command.command.args.revive.pipe = pipe_;
         }
+
+        inline void init_engine_stats (i_engine *engine_, pipe_t *pipe_,
+            uint64_t head_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::stats;
+            args.engine_command.command.args.stats.pipe = pipe_;
+            args.engine_command.command.args.stats.head = head_;
+        }
         
-        inline void init_engine_destroy_pipe (i_engine *engine_,
-            pipe_t *pipe_)
+        inline void init_engine_destroy_pipe (i_engine *engine_, pipe_t *pipe_)
         {
             type = engine_command;
             args.engine_command.engine = engine_;
