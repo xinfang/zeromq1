@@ -86,7 +86,8 @@ namespace zmq
                 "cmp      %2, %3         \n\t"
                 "bne,a,pn %%icc, 1b      \n\t"
                 "mov      %3, %2         \n\t"
-                : "+r" (set_val), "+r" (reset_val), "=&r" (tmp), "=&r" (oldval), "+m" (*valptr)
+                : "+r" (set_val), "+r" (reset_val), "=&r" (tmp), "=&r" (oldval),
+                  "+m" (*valptr)
                 : "r" (valptr)
                 : "cc");
             return oldval; 

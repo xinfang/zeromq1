@@ -40,19 +40,19 @@
 namespace zmq
 {
 
-    //  Poll thread is a I/O thread that waits for events from engines
-    //  using POSIX poll function and schedules handling of the signals
-    //  by individual engines. Engine compatible with poll thread should
+    //  Select thread is a I/O thread that waits for events from engines
+    //  using POSIX select function and schedules handling of the signals
+    //  by individual engines. Engine compatible with select thread should
     //  expose i_pollable interface.
 
     class select_thread_t : public i_poller
     {
     public:
 
-        //  Create a poll thread.
+        //  Create a select thread.
         ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
 
-        //  Destroy the poll thread.
+        //  Destroy the select thread.
         ZMQ_EXPORT ~select_thread_t ();
 
         //  i_poller implementation.

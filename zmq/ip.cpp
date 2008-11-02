@@ -98,10 +98,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     in_addr addr;
     int addr_length = sizeof (addr);
     ((sockaddr_in*) addr_)->sin_family = AF_INET;
-   
-    addr.S_un.S_addr  = inet_addr ((const char *) interface_);
-        
-    win_assert (addr.S_un.S_addr != INADDR_ANY || addr.S_un.S_addr != INADDR_NONE);
+    addr.S_un.S_addr = inet_addr ((const char *) interface_);
+    assert (addr.S_un.S_addr != INADDR_NONE);
     *addr_ = addr;
 }
 

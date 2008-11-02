@@ -36,7 +36,7 @@
 namespace zmq
 {
 
-    //  devpoll thread is an I/O thread that waits for events from engines
+    //  Devpoll thread is an I/O thread that waits for events from engines
     //  using /dev/poll mechanism and schedules handling of the
     //  signals by individual engines. An engine compatible with devpoll
     //  thread should implement i_pollable interface.
@@ -93,7 +93,6 @@ namespace zmq
         //  File descriptor referring to the "/dev/poll" pseudo-device.
         int devpoll_fd;
 
-        // poll_entry
         struct poll_entry {
             int fd;
             short events;

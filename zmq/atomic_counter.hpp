@@ -60,7 +60,7 @@ namespace zmq
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 increment);
-			return old != 0;
+            return old != 0;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             volatile integer_t *val = &value;
@@ -88,7 +88,7 @@ namespace zmq
             return result; 
 #else
             sync.lock ();
-			bool result = value ? true : false;
+            bool result = value ? true : false;
             value += increment;
             sync.unlock ();
             return result;
@@ -101,7 +101,7 @@ namespace zmq
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 -decrement);
-			return old - decrement != 0;
+            return old - decrement != 0;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t oldval = -decrement;

@@ -27,7 +27,6 @@
 #include <Winsock2.h>
 #include <Ws2tcpip.h>
 #include <Ipexport.h>
-
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
