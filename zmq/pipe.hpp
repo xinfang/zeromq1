@@ -68,8 +68,8 @@ namespace zmq
         //  Make the dead pipe alive once more.
         void revive ();
 
-        //  Process the 'stats' commands from reader thread.
-        void stats (uint64_t head_);
+        //  Process the 'head' commands from reader thread.
+        void set_head (uint64_t position_);
 
         //  Notify the other end of the pipe that pipe is to be destroyed.
         void send_destroy_pipe ();

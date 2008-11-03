@@ -99,10 +99,10 @@ void zmq::pipe_t::revive ()
     alive = true;
 }
 
-void zmq::pipe_t::stats (uint64_t head_)
+void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
-    last_head = head_;
+    last_head = position_;
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
@@ -133,7 +133,7 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         //  as a difference between high and low water marks.
         if (head % (hwm - lwm + 1) == 0) {
             command_t cmd;
-            cmd.init_engine_stats (source_engine, this, head);
+            cmd.init_engine_head (source_engine, this, head);
             destination_context->send_command (source_context, cmd);
         }
     }

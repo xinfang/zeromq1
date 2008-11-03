@@ -234,11 +234,11 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         poller->speculative_write (handle);
         break;
 
-    case engine_command_t::stats:
+    case engine_command_t::head:
 
         //  Forward pipe statistics to the appropriate pipe.
         if (!socket_error) {
-            command_.args.stats.pipe->stats (command_.args.stats.head);
+            command_.args.head.pipe->set_head (command_.args.head.position);
             in_event ();
         }
         break;

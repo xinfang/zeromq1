@@ -335,10 +335,10 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
         command_.args.revive.pipe->revive ();
         break;
 
-    case engine_command_t::stats:
+    case engine_command_t::head:
 
-        //  Forward pipe statistics to the appropriate pipe.
-        command_.args.stats.pipe->stats (command_.args.stats.head);
+        //  Forward pipe head position to the appropriate pipe.
+        command_.args.head.pipe->set_head (command_.args.head.position);
         break;
 
     case engine_command_t::send_to:
