@@ -86,7 +86,6 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
     //  If required, send tail notification once a while.
     if (tail % tail_notification_period == 0) {
-printf ("Sending tail notification\n");
         command_t cmd;
         cmd.init_engine_tail (destination_engine, this, tail);
         source_context->send_command (destination_context, cmd);
@@ -124,7 +123,6 @@ void zmq::pipe_t::set_head (uint64_t position_)
 
 void zmq::pipe_t::set_tail (uint64_t position_)
 {
-printf ("Received tail notification\n");
     //  Handle wraparound of tail position decently.
     int delta = last_tail <= position_ ? position_ - last_tail :
         std::numeric_limits <uint64_t>::max () - last_tail + position_ + 1;

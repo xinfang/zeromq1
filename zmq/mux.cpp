@@ -54,7 +54,6 @@ bool zmq::mux_t::read (message_t *msg_)
 
     //  If alert is to be sent, return it instead of regular message.
     if (alert_queued) {
-printf ("Alert dispatched\n");
         raw_message_init_alert (msg);
         alert_queued = false;
         return true;
@@ -91,14 +90,8 @@ printf ("Alert dispatched\n");
 
 void zmq::mux_t::adjust_queue_size (int delta_)
 {
-printf ("Old queue size: %d\n", (int) queue_size);
-printf ("Delta: %d\n", delta_);
     queue_size += delta_;
-printf ("New queue size: %d\n", (int) queue_size);
-printf ("Hal: %d\n", (int) hal);
-
     if (hal && queue_size > hal && !alert_sent) {
-printf ("Alert queued\n");
         alert_queued = true;
         alert_sent = true;
     }
