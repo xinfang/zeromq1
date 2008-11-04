@@ -60,7 +60,8 @@ namespace zmq
     {
         enum {
             delimiter_tag = 0,
-            vsm_tag = 1
+            vsm_tag = 1,
+            alert_tag = 2
         };
 
         message_content_t *content;
@@ -112,6 +113,12 @@ namespace zmq
         msg_->content = (message_content_t*) raw_message_t::delimiter_tag;
     }
 
+    //  Initialises raw_message_t to be an alert.
+    inline void raw_message_init_alert (raw_message_t *msg_)
+    {
+        msg_->content = (message_content_t*) raw_message_t::alert_tag;
+    }
+
     //  Releases the resources associated with the message. Obviously, if
     //  message content is shared, it releases one reference only and destroys
     //  the content only if there is no reference left.
@@ -120,7 +127,8 @@ namespace zmq
         //  For VSMs and delimiters there are no resources to free
         if (msg_->content ==
               (message_content_t*) raw_message_t::delimiter_tag ||
-              msg_->content == (message_content_t*) raw_message_t::vsm_tag)
+              msg_->content == (message_content_t*) raw_message_t::vsm_tag ||
+              msg_->content == (message_content_t*) raw_message_t::alert_tag)
             return;
 
         //  If the content is not shared, or if it is shared and the reference
@@ -150,10 +158,11 @@ namespace zmq
     {
         raw_message_destroy (dest_);
 
-        //  VSMs and delimiters require no special handling.
+        //  VSMs, alerts and delimiters require no special handling.
         if (src_->content !=
               (message_content_t*) raw_message_t::delimiter_tag &&
-              src_->content != (message_content_t*) raw_message_t::vsm_tag) {
+              src_->content != (message_content_t*) raw_message_t::vsm_tag &&
+              src_->content != (message_content_t*) raw_message_t::alert_tag) {
 
             //  One reference is added to shared messages. Non-shared messages
             //  are turned into shared messages and reference count is set to 2.
@@ -173,7 +182,8 @@ namespace zmq
     {
         if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
             return msg_->vsm_data;
-        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag)
+        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag||
+              msg_->content == (message_content_t*) raw_message_t::alert_tag)
             return NULL;
         return msg_->content->data;
     }
@@ -183,7 +193,8 @@ namespace zmq
     {
         if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
             return msg_->vsm_size;
-        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag)
+        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag||
+              msg_->content == (message_content_t*) raw_message_t::alert_tag)
             return 0;
         return msg_->content->size;
     }

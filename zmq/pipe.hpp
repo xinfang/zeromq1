@@ -40,6 +40,9 @@ namespace zmq
             int hwm_ = 0, int lwm_ = 0);
         ~pipe_t ();
 
+        //  Sets pointer to the mux object on receiving side of the pipe.
+        void set_mux (class mux_t *mux_);
+
         //  Check whether message can be written to the pipe (i.e. whether
         //  pipe limits are exceeded. If true, it's OK to write the message
         //  to the pipe.
@@ -68,8 +71,11 @@ namespace zmq
         //  Make the dead pipe alive once more.
         void revive ();
 
-        //  Process the 'head' commands from reader thread.
+        //  Process the 'head' command from reader thread.
         void set_head (uint64_t position_);
+
+        //  Process the 'tail' command from writer thread.
+        void set_tail (uint64_t position_);
 
         //  Notify the other end of the pipe that pipe is to be destroyed.
         void send_destroy_pipe ();
@@ -88,6 +94,9 @@ namespace zmq
         //  Identification of the engine receiving the messages from the pipe.
         i_context *destination_context;
         i_engine *destination_engine;
+
+        //  Pointer to the mux object on  the reading side of the pipe.
+        mux_t *mux;
 
         //  If true we can read messages from the underlying ypipe.
         bool alive; 
@@ -114,6 +123,10 @@ namespace zmq
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
         uint64_t last_head;
+
+        //  Reader thread keeps last tail position reported by writer thread
+        //  in this variable.
+        uint64_t last_tail;
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);

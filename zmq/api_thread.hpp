@@ -72,7 +72,8 @@ namespace zmq
             poll_thread_t *listener_thread_ = NULL,
             int handler_thread_count_ = 0,
             poll_thread_t **handler_threads_ = NULL,
-            int hwm_ = 0, int lwm_ = 0);
+            int hwm_ = 0, int lwm_ = 0,
+            int hal_ = 0, int lal_ = 0);
 
         //  Binds an exchange to a queue.
         void bind (const char *exchange_, const char *queue_,

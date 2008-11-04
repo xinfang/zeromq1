@@ -20,8 +20,13 @@
 #include "mux.hpp"
 #include "raw_message.hpp"
 
-zmq::mux_t::mux_t () :
-    current (0)
+zmq::mux_t::mux_t (int hal_, int lal_) :
+    current (0),
+    queue_size (0),
+    hal (hal_),
+    lal (lal_),
+    alert_queued (false),
+    alert_sent (false)
 {
 }
 
@@ -31,6 +36,9 @@ zmq::mux_t::~mux_t ()
 
 void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
+    //  Pass the mux pointer to the pipe.
+    pipe_->set_mux (this);
+
     //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
 }
@@ -43,6 +51,14 @@ bool zmq::mux_t::read (message_t *msg_)
 
     //  Deallocate old content of the message.
     raw_message_destroy (msg);
+
+    //  If alert is to be sent, return it instead of regular message.
+    if (alert_queued) {
+printf ("Alert dispatched\n");
+        raw_message_init_alert (msg);
+        alert_queued = false;
+        return true;
+    }
 
     //  Round-robin over the pipes to get next message.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
@@ -57,14 +73,35 @@ bool zmq::mux_t::read (message_t *msg_)
         if (current == pipes.size ())
             current = 0;
 
-        if (retrieved)
+        if (retrieved) {
+            if (hal) {
+                queue_size --;
+                if (queue_size <= lal)
+                    alert_sent = false;
+            }
             return true;
+        }
     }
 
     //  No message is available. Initialise the output parameter
     //  to be a 0-byte message.
     raw_message_init (msg, 0);
     return false;
+}
+
+void zmq::mux_t::adjust_queue_size (int delta_)
+{
+printf ("Old queue size: %d\n", (int) queue_size);
+printf ("Delta: %d\n", delta_);
+    queue_size += delta_;
+printf ("New queue size: %d\n", (int) queue_size);
+printf ("Hal: %d\n", (int) hal);
+
+    if (hal && queue_size > hal && !alert_sent) {
+printf ("Alert queued\n");
+        alert_queued = true;
+        alert_sent = true;
+    }
 }
 
 void zmq::mux_t::terminate_pipes()

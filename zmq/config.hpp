@@ -60,7 +60,12 @@ namespace zmq
         //  are no unprocessed messages available, poll is done immediately.
         //  Decreasing the value trades overall latency for more real-time
         //  behaviour (less latency peaks).
-        api_thread_poll_rate = 100
+        api_thread_poll_rate = 100,
+
+        //  Determines how often does pipe writer notifies pipe reader about
+        //  the position of the head. This value determines the precision of
+        //  queue overflow alert mechanism.
+        tail_notification_period = 100
     };
 
 }

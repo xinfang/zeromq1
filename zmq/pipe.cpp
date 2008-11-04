@@ -20,6 +20,7 @@
 #include <limits>
 #include "pipe.hpp"
 #include "command.hpp"
+#include "mux.hpp"
 
 zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
       i_context *destination_context_, i_engine *destination_engine_,
@@ -29,13 +30,15 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     source_engine (source_engine_),
     destination_context (destination_context_),
     destination_engine (destination_engine_),
+    mux (NULL),
     alive (true), 
     endofpipe (false),
     hwm (hwm_),
     lwm (lwm_),
     head (0),
     tail (0),
-    last_head (0)
+    last_head (0),
+    last_tail (0)
 {
     //  If high water mark was lower than low water mark pipe would hang up.
     assert (lwm <= hwm);
@@ -50,13 +53,20 @@ zmq::pipe_t::~pipe_t ()
         raw_message_destroy (&message);
 }
 
+void zmq::pipe_t::set_mux (mux_t *mux_)
+{
+    assert (!mux);
+    mux = mux_;
+}
+
 bool zmq::pipe_t::check_write ()
 {
     if (hwm) {
 
         //  If pipe size have reached high watermark, reject the write.
         //  The else branch will come into effect after 500,000 years of
-        //  passing 1,000,000 messages a second but still, it's there...
+        //  passing 1,000,000 messages a second but it's implemented just
+        //  in case ...
         int size = last_head <= tail ? tail - last_head :
             std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
         assert (size <= hwm);
@@ -71,9 +81,16 @@ void zmq::pipe_t::write (raw_message_t *msg_)
     //  Physically write the message to the pipe.
     pipe.write (*msg_);
 
-    //  When pipe limits are set, move the tail.
-    if (hwm)
-        tail ++;
+    //  Move the tail.
+    tail ++;
+
+    //  If required, send tail notification once a while.
+    if (tail % tail_notification_period == 0) {
+printf ("Sending tail notification\n");
+        command_t cmd;
+        cmd.init_engine_tail (destination_engine, this, tail);
+        source_context->send_command (destination_context, cmd);
+    }
 }
 
 void zmq::pipe_t::write_delimiter ()
@@ -103,6 +120,16 @@ void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
     last_head = position_;
+}
+
+void zmq::pipe_t::set_tail (uint64_t position_)
+{
+printf ("Received tail notification\n");
+    //  Handle wraparound of tail position decently.
+    int delta = last_tail <= position_ ? position_ - last_tail :
+        std::numeric_limits <uint64_t>::max () - last_tail + position_ + 1;
+    mux->adjust_queue_size (delta);
+    last_tail = position_;
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
