@@ -243,6 +243,11 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         }
         break;
 
+    case engine_command_t::tail:
+
+        //  Ignore the command.
+        break;
+
     case engine_command_t::send_to:
 
         //  Start sending messages to a pipe.
