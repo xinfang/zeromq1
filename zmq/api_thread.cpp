@@ -397,7 +397,7 @@ void zmq::api_thread_t::process_commands ()
         : "=a" (low), "=d" (high));
     uint64_t current_time = (uint64_t) high << 32 | low;
 
-    if (current_time - last_command_time > 3000000) {
+    if (current_time - last_command_time > api_thread_max_command_delay) {
         last_command_time = current_time;
 #endif
         signals = pollset.check ();
