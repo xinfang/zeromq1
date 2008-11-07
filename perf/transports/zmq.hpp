@@ -79,7 +79,7 @@ namespace perf
 #ifdef ZMQ_HAVE_WINDOWS
 	    Sleep (1000);
 #else
-            sleep (1000);
+            sleep (1);
 #endif
         }
 

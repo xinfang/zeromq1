@@ -60,7 +60,9 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
           it != exchanges.end (); it ++)
         if (it->first == exchange_)
             return it - exchanges.begin ();
-    exchanges.push_back (exchanges_t::value_type (exchange_, demux_t ()));
+    demux_t *demux = new demux_t ();
+    assert (demux);
+    exchanges.push_back (exchanges_t::value_type (exchange_, demux));
 
     //  If the scope of the exchange is local, we won't register it
     //  with the locator.
@@ -85,7 +87,9 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
           it != queues.end (); it ++)
         if (it->first == queue_)
             return it - queues.begin ();
-    queues.push_back (queues_t::value_type (queue_, mux_t ()));
+    mux_t *mux = new mux_t ();
+    assert (mux);
+    queues.push_back (queues_t::value_type (queue_, mux));
 
     //  If the scope of the queue is local, we won't register it
     //  with the locator.
@@ -160,7 +164,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
     //  Bind the source end of the pipe.
     if (eit != exchanges.end ())
-        eit->second.send_to (pipe);
+        eit->second->send_to (pipe);
     else {
         command_t cmd;
         cmd.init_engine_send_to (exchange_engine, exchange_, pipe);
@@ -169,7 +173,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
     //  Bind the destination end of the pipe.
     if (qit != queues.end ())
-        qit->second.receive_from (pipe);
+        qit->second->receive_from (pipe);
     else {
         command_t cmd;
         cmd.init_engine_receive_from (queue_engine, queue_, pipe);
@@ -183,14 +187,14 @@ void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
     process_commands ();
 
     //  Pass the message to the demux and flush it to the dispatcher.
-    exchanges [exchange_id_].second.write (msg_);
-    exchanges [exchange_id_].second.flush ();
+    exchanges [exchange_id_].second->write (msg_);
+    exchanges [exchange_id_].second->flush ();
 }
 
 void zmq::api_thread_t::presend (int exchange_id_, message_t &msg_)
 {
     //  Pass the message to the demux.
-    exchanges [exchange_id_].second.write (msg_);
+    exchanges [exchange_id_].second->write (msg_);
 }
 
 void zmq::api_thread_t::flush ()
@@ -201,7 +205,7 @@ void zmq::api_thread_t::flush ()
     //  Flush all the exchanges.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
-        it->second.flush ();
+        it->second->flush ();
 }
 
 int zmq::api_thread_t::receive (message_t *msg_, bool block_)
@@ -225,7 +229,7 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
             while (true) {
 
                //  Get a message.
-               retrieved = queues [current_queue].second.read (msg_);
+               retrieved = queues [current_queue].second->read (msg_);
                if (retrieved)
                    qid = current_queue + 1;
 
@@ -317,7 +321,7 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
             assert (it != exchanges.end ());
 
             //  Start sending messages to a pipe.
-            it->second.send_to (command_.args.send_to.pipe);
+            it->second->send_to (command_.args.send_to.pipe);
         }
         break;
 
@@ -332,7 +336,7 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
             assert (it != queues.end ());
 
             //  Start receiving messages from a pipe.
-            it->second.receive_from (command_.args.receive_from.pipe);
+            it->second->receive_from (command_.args.receive_from.pipe);
         }
         break;
 
@@ -340,7 +344,7 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
         {
             exchanges_t::iterator it;
             for (it = exchanges.begin (); it != exchanges.end (); it ++)
-                it->second.destroy_pipe (command_.args.destroy_pipe.pipe);
+                it->second->destroy_pipe (command_.args.destroy_pipe.pipe);
             delete command_.args.destroy_pipe.pipe;
         }
         break;

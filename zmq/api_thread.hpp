@@ -130,11 +130,11 @@ namespace zmq
         ypollset_t pollset;
 
         //  List of exchanges belonging to the API thread.
-        typedef std::vector <std::pair <std::string, demux_t> > exchanges_t;
+        typedef std::vector <std::pair <std::string, demux_t*> > exchanges_t;
         exchanges_t exchanges;
 
         //  List of queues belonging to the API thread.
-        typedef std::vector <std::pair <std::string, mux_t> > queues_t;
+        typedef std::vector <std::pair <std::string, mux_t*> > queues_t;
         queues_t queues;
 
         //  Current queue points to the queue to be used to retrieving
