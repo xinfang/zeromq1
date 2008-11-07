@@ -79,7 +79,8 @@ JNIEXPORT void JNICALL Java_Jzmq_finalize (JNIEnv *env, jobject obj)
 }
 
 JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
-    jstring exchange_, jint scope_, jstring nic_, jboolean load_balance_)
+    jstring exchange_, jint scope_, jstring nic_, jboolean load_balance_,
+    jint hwm, jint lwm)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -101,7 +102,8 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
         scope = zmq::scope_global;
 
     jint eid = context->api_thread->create_exchange (exchange, scope, nic,
-        context->poll_thread, 1, &context->poll_thread, (bool) load_balance_);
+        context->poll_thread, 1, &context->poll_thread, (bool) load_balance_,
+        hwm, lwm);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (exchange_, exchange);
@@ -112,7 +114,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
 }
 
 JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
-    jstring queue_, jint scope_, jstring nic_)
+    jstring queue_, jint scope_, jstring nic_, jint hwm, jint lwm)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -134,7 +136,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
         scope = zmq::scope_global;
 
     jint qid = context->api_thread->create_queue (queue, scope, nic,
-        context->poll_thread, 1, &context->poll_thread);
+        context->poll_thread, 1, &context->poll_thread, hwm, lwm);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (queue_, queue);
@@ -145,7 +147,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
 }
 
 JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
-    jstring exchange_, jstring queue_)
+    jstring exchange_, jstring queue_, jint hwm, jint lwm)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -162,7 +164,7 @@ JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
     assert (queue);
 
     context->api_thread->bind (exchange, queue,
-        context->poll_thread, context->poll_thread);
+        context->poll_thread, context->poll_thread, hwm, lwm);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (exchange_, exchange);

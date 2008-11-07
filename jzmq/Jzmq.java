@@ -37,18 +37,22 @@ class Jzmq
      //  Optionally you can specify the port to use this way "eth0:5555".
      //  If loadBalance is false, message is distributed to all the queues
      //  bound to the exchange. If true messages are load balanced among
-     //  bound queues. Exchange ID is returned.
+     //  bound queues. Exchange ID is returned. 'hwm' and 'lwm' specify high
+     //  and low watermarks for associated message queue.
      public native int createExchange (String exchange, int scope, String nic,
-         boolean loadBalance);
+         boolean loadBalance, int hwm, int lwm);
 
      //  Create a queue. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
-     //  Queue ID is returned.
-     public native int createQueue (String queue, int scope, String nic);
+     //  Queue ID is returned. 'hwm' and 'lwm' specify high and low watermarks
+     //  for associated message queue.
+     public native int createQueue (String queue, int scope, String nic,
+         int hwm, int lwm);
 
-     //  Bind the exchange to the queue.
-     public native void bind (String exchange, String name);
+     //  Bind the exchange to the queue. 'hwm' and 'lwm' specify high
+     //  and low watermarks for associated message queue.
+     public native void bind (String exchange, String name, int hwm, int lwm);
 
      //  Send a binary message to the specified exchange.
      public native void send (int exchangeId, byte [] data);
