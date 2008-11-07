@@ -126,9 +126,6 @@ bool zmq::bp_engine_t::in_event ()
     //  stuck because of exceeded pipe limits.
     bool stuck = read_pos < read_size;
 
-printf ("read pos: %d\n", (int) read_pos);
-printf ("read size: %d\n", (int) read_size);
-
     //  If there's no data to process in the buffer, read new data.
     if (read_pos == read_size) {
 
@@ -198,7 +195,6 @@ bool zmq::bp_engine_t::out_event ()
             write_size - write_pos);
         if (nbytes == -1) 
             return false;
-printf ("written\n");
         write_pos += nbytes;
     }
     return true;
@@ -206,9 +202,7 @@ printf ("written\n");
 
 bool zmq::bp_engine_t::close_event ()
 {
-printf ("connection broken\n");
     if (reconnect) {
-printf ("reconnecting\n");
 
         //  Clean up. First mark buffers as fully processed.
         write_pos = write_size;

@@ -88,12 +88,12 @@ namespace zmq
         //  blocked until a binding is created. Returns true is message was
         //  successfully enqueued, false if it was not send because fo pipe
         //  limits.
-        bool send (int exchange_id_, message_t &msg_, bool block_ = false);
+        bool send (int exchange_id_, message_t &msg_, bool block_ = true);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        bool presend (int exchange_id_, message_t &msg_, bool block_ = false);
+        bool presend (int exchange_id_, message_t &msg_, bool block_ = true);
 
         //  Flush all the pre-sent messages.
         void flush ();

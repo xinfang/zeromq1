@@ -124,7 +124,6 @@ void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
 void zmq::tcp_socket_t::connect ()
 {
     //  Convert the hostname into sockaddr_in structure.
-printf ("connecting to %s\n", hostname.c_str ());
     sockaddr_in ip_address;
     resolve_ip_hostname (&ip_address, hostname.c_str ());
 
@@ -154,5 +153,4 @@ printf ("connecting to %s\n", hostname.c_str ());
     int flag = 1;
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
     errno_assert (rc == 0);
-printf ("connected\n");
 }
