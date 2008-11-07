@@ -70,6 +70,7 @@ bool zmq::pipe_t::check_write ()
         int size = last_head <= tail ? tail - last_head :
             std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
         assert (size <= hwm);
+     
         if (size == hwm)
             return false;
     }

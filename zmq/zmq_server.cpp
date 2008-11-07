@@ -36,6 +36,7 @@ using namespace std;
 #include "err.hpp"
 #include "zmq_server.hpp"
 using namespace zmq;
+#define ZMQ_TRACE
 
 //  Info about a single object.
 struct object_info_t

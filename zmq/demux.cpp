@@ -153,5 +153,7 @@ void zmq::demux_t::destroy_pipe (pipe_t *pipe_)
     if (it != pipes.end ()) {
         pipe_->write_delimiter ();
         pipes.erase (it);
+        if (current >= pipes.size ())
+            current = 0;
     }
 }
