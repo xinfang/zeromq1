@@ -21,6 +21,7 @@
 #define __ZMQ_TCP_SOCKET_HPP_INCLUDED__
 
 #include <stddef.h>
+#include <string>
 
 #include "stdint.hpp"
 #include "tcp_listener.hpp"
@@ -42,6 +43,11 @@ namespace zmq
          
         //  Closes the socket.
         ~tcp_socket_t ();
+
+        //  Closes the connection to the host and reconnects anew. If hostname
+        //  in NULL, socket reconnects to the same host. Othewise it reconnects
+        //  to the host supplied.
+        void reconnect (const char *hostname_ = NULL);
 
         //  Returns the underlying socket.
         inline int get_fd ()
@@ -67,8 +73,13 @@ namespace zmq
 
     private:
 
+         void connect ();
+
         //  Underlying socket
         int s;
+
+        //  Stores the name of the host to connect to in case of reconnection.
+        std::string hostname;
 
         //  Disable copy construction of tcp_socket.
         tcp_socket_t (const tcp_socket_t&);

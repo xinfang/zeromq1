@@ -60,7 +60,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     poller (NULL),
     handle (0),
     socket_error (false),
-    local_object (local_object_)
+    local_object (local_object_),
+    reconnect (true)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -89,7 +90,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     poller (NULL),
     handle (0),
     socket_error (false),
-    local_object (local_object_)
+    local_object (local_object_),
+    reconnect (false)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -123,6 +125,9 @@ bool zmq::bp_engine_t::in_event ()
     //  This variable determines whether processing incoming messages is
     //  stuck because of exceeded pipe limits.
     bool stuck = read_pos < read_size;
+
+printf ("read pos: %d\n", (int) read_pos);
+printf ("read size: %d\n", (int) read_size);
 
     //  If there's no data to process in the buffer, read new data.
     if (read_pos == read_size) {
@@ -193,13 +198,33 @@ bool zmq::bp_engine_t::out_event ()
             write_size - write_pos);
         if (nbytes == -1) 
             return false;
+printf ("written\n");
         write_pos += nbytes;
     }
     return true;
 }
 
-void zmq::bp_engine_t::close_event ()
+bool zmq::bp_engine_t::close_event ()
 {
+printf ("connection broken\n");
+    if (reconnect) {
+printf ("reconnecting\n");
+
+        //  Clean up. First mark buffers as fully processed.
+        write_pos = write_size;
+        read_pos = read_size;
+
+        //  Cause encoder & decoder to drop any half-processed messages.
+        encoder.clear ();
+        decoder.clear ();
+
+        //  Reconnect to the remote host.
+        socket.reconnect ();
+        poller->set_fd (handle, socket.get_fd ());
+        poller->set_pollin (handle);
+        return true;
+    }
+
     if (!socket_error) {
         socket_error = true;
 
@@ -218,6 +243,8 @@ void zmq::bp_engine_t::close_event ()
         //  Notify senders that this engine is shutting down.
         mux.terminate_pipes ();
     }
+
+    return false;
 }
 
 void zmq::bp_engine_t::process_command (const engine_command_t &command_)

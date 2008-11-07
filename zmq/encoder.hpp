@@ -36,7 +36,10 @@ namespace zmq
     {
     public:
 
-        inline encoder_t ()
+        inline encoder_t () :
+            write_pos (NULL),
+            to_write (0),
+            next (NULL)
         {
         }
 

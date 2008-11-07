@@ -31,6 +31,13 @@ zmq::bp_encoder_t::~bp_encoder_t ()
 {
 }
 
+void zmq::bp_encoder_t::clear ()
+{
+    //  Clear the message and reset the state machine.
+    message.rebuild (0);
+    next_step (NULL, 0, &bp_encoder_t::message_ready);
+}
+
 bool zmq::bp_encoder_t::size_ready ()
 {
     //  Write message body into the buffer.

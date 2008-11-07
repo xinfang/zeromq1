@@ -138,9 +138,10 @@ void zmq::poll_thread_t::loop ()
               pollset_index != pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents &
                   (POLLNVAL | POLLERR | POLLHUP)) {
-                engines [pollset_index - 1]->close_event ();
-                unregister_engine (engines[pollset_index - 1]);
-                pollset_index --;
+                if (!engines [pollset_index - 1]->close_event ()) {
+                    unregister_engine (engines[pollset_index - 1]);
+                    pollset_index --;
+                }
             }
         }
 
@@ -157,9 +158,10 @@ void zmq::poll_thread_t::loop ()
               pollset_index != pollset.size (); pollset_index ++) {
             if (pollset [pollset_index].revents & POLLOUT) {
                 if (!engines [pollset_index - 1]->out_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index --;
+                    if (!engines [pollset_index - 1]->close_event ()) {
+                        unregister_engine (engines[pollset_index - 1]);
+                        pollset_index --;
+                    }
                 }
             }
         }
@@ -169,12 +171,14 @@ void zmq::poll_thread_t::loop ()
               pollset_index != pollset.size (); pollset_index ++) {
 
             //  TODO: investigate the POLLHUP issue on OS X
-            if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/))
+            if (pollset [pollset_index].revents & (POLLIN /*| POLLHUP*/)) {
                 if (!engines [pollset_index - 1]->in_event ()) {
-                    engines [pollset_index - 1]->close_event ();
-                    unregister_engine (engines[pollset_index - 1]);
-                    pollset_index--;
+                    if (!engines [pollset_index - 1]->close_event ()) {
+                        unregister_engine (engines[pollset_index - 1]);
+                        pollset_index--;
+                    }
                 }
+            }
         }
     }
 }

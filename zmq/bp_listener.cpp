@@ -144,7 +144,7 @@ bool zmq::bp_listener_t::out_event ()
     return true;
 }
 
-void zmq::bp_listener_t::close_event()
+bool zmq::bp_listener_t::close_event()
 {
     //  TODO: engine tear-down
     assert (false);

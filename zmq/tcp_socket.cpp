@@ -31,27 +31,14 @@
 #include "err.hpp"
 #include "ip.hpp"
 
-zmq::tcp_socket_t::tcp_socket_t (const char *hostname_)
+zmq::tcp_socket_t::tcp_socket_t (const char *hostname_) :
+    hostname (hostname_)
 {
-    //  Convert the hostname into sockaddr_in structure.
-    sockaddr_in ip_address;
-    resolve_ip_hostname (&ip_address, hostname_);
-
-    //  Create the socket
-    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    errno_assert (s != -1);
-
-    //  Connect to the remote peer
-    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
-    errno_assert (rc != -1);
-
-    //  Disable Nagle's algorithm
-    int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
-    errno_assert (rc == 0);
+    connect ();
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener)
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener) :
+    hostname ("")
 {
     //  Accept the socket
     s = listener.accept ();
@@ -67,6 +54,23 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = close (s);
     errno_assert (rc == 0);
+}
+
+void zmq::tcp_socket_t::reconnect (const char *hostname_)
+{
+    //  If new hostname is specified, store it.
+    if (hostname_)
+        hostname = hostname_;
+
+    //  Connections created via listener cannot be reconnected.
+    assert (hostname.size ());
+
+    //  Close the old connection.
+    int rc = close (s);
+    errno_assert (rc == 0);
+
+    //  Open the new one.
+    connect ();
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)
@@ -117,3 +121,38 @@ void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
     assert (((size_t) nbytes) == size);
 }
 
+void zmq::tcp_socket_t::connect ()
+{
+    //  Convert the hostname into sockaddr_in structure.
+printf ("connecting to %s\n", hostname.c_str ());
+    sockaddr_in ip_address;
+    resolve_ip_hostname (&ip_address, hostname.c_str ());
+
+    //  Connect to the remote peer. Do so in loop.
+    while (true) {
+        s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        errno_assert (s != -1);
+        int rc = ::connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+
+        //  Success.
+        if (rc != -1)
+            break;
+
+        //  Temporary problem.
+        if (rc == -1 && (errno == ECONNREFUSED || errno == EADDRNOTAVAIL ||
+              errno == ENETUNREACH || errno == ETIMEDOUT)) {
+            rc = close (s);
+            errno_assert (rc == 0);
+            continue;
+        }
+
+        //  Permanent problem.
+        assert (false);
+    }
+
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
+    errno_assert (rc == 0);
+printf ("connected\n");
+}

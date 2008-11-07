@@ -34,6 +34,8 @@ namespace zmq
 
         bp_decoder_t (demux_t *demux_);
 
+        void clear ();
+
     private:
 
         bool one_byte_size_ready ();

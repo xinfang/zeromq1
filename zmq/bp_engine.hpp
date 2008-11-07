@@ -62,7 +62,7 @@ namespace zmq
         void set_poller (i_poller *poller_, int handle_);
         bool in_event ();
         bool out_event ();
-        void close_event ();
+        bool close_event ();
         void process_command (const engine_command_t &command_);
 
     private:
@@ -117,6 +117,11 @@ namespace zmq
 
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
+
+        //  If true, connection was created by listener (no need to reconnect
+        //  after connection failure). Otherwise it have connected to the
+        //  remote host itself (it has to reconnect actively after failure).
+        bool reconnect;
 
         bp_engine_t (const bp_engine_t&);
         void operator = (const bp_engine_t&);

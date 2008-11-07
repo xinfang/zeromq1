@@ -38,6 +38,8 @@ namespace zmq
         bp_encoder_t (mux_t *mux_);
         ~bp_encoder_t ();
 
+        void clear ();
+
     private:
 
         bool size_ready ();
