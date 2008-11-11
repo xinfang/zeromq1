@@ -32,6 +32,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <fcntl.h>
 #endif
 
 #include "err.hpp"
@@ -128,10 +129,33 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
-
+    
+    int rc;
+    int flags;
+  
     //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
     errno_assert (rc != -1);
+
+    if (! block) {
+
+ #if defined (O_NONBLOCK)       
+        if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+            flags = 0;
+
+        //  Set to non-blocking mode.
+        rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+        errno_assert (rc != -1);
+        
+#elif defined (FIONBIO)
+       
+        //  Older unix versions.
+        flags = 1;
+        rc = ioctl(sockfd, FIONBIO, &flags);
+        errno_assert (rc != -1);
+#endif
+        
+    }
 
     //  Disable Nagle's algorithm.
     int flag = 1;
@@ -160,7 +184,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 int zmq::tcp_socket_t::write (const void *data, int size)
 {
-    ssize_t nbytes = send (s, data, size, block ? MSG_DONTWAIT : 0);
+    ssize_t nbytes = send (s, data, size, 0);
 
     //  If not a single byte can be written to the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative write).
@@ -177,7 +201,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
 int zmq::tcp_socket_t::read (void *data, int size)
 {
-    ssize_t nbytes = recv (s, data, size, block ? 0 : MSG_DONTWAIT);
+    ssize_t nbytes = recv (s, data, size, 0);
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
