@@ -54,8 +54,9 @@ class Jzmq
      //  and low watermarks for associated message queue.
      public native void bind (String exchange, String name, int hwm, int lwm);
 
-     //  Send a binary message to the specified exchange.
-     public native void send (int exchangeId, byte [] data);
+     //  Send a binary message to the specified exchange. Rerturns true if
+     //  message is successfully enqueued, false otherwise.
+     public native boolean send (int exchangeId, byte [] data, boolean block);
 
      //  Receive next message.
      public native byte [] receive ();

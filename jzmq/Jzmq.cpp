@@ -171,8 +171,8 @@ JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
     env->ReleaseStringUTFChars (queue_, queue);
 }
 
-JNIEXPORT void JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
-    jint eid_, jbyteArray data_)
+JNIEXPORT jboolean JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
+    jint eid_, jbyteArray data_, jboolean block_)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -187,7 +187,8 @@ JNIEXPORT void JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
     memcpy (msg.data (), data, size);
 
     //  Send the message.
-    context->api_thread->send (eid_, msg);
+    bool rc = context->api_thread->send (eid_, msg, (bool) block_);
+    return rc ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jbyteArray JNICALL Java_Jzmq_receive (JNIEnv *env, jobject obj)
