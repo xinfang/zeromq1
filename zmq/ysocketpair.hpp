@@ -173,25 +173,13 @@ namespace zmq
             errno_assert (rc == 0);
             w = sv [0];
             r = sv [1];
-           
-           
-            int flags;
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
-    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
-    || defined ZMQ_HAVE_QNXNTO           
-        
-            if (-1 == (flags = fcntl (r, F_GETFL, 0)))
-                flags = 0;
-
+                      
             //  Set to non-blocking mode.
+            int flags = fcntl (r, F_GETFL, 0);
+            if (flags == -1)
+                flags = 0;
             rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
             errno_assert (rc != -1);
-
-#elif 
-#error nonblocking sockets not supported on this platform
-#endif 
-
-            
         }
 
         //  Destroy the pipe.

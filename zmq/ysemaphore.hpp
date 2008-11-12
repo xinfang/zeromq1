@@ -27,13 +27,12 @@
 #include "i_signaler.hpp"
 #include "err.hpp"
 
-#ifdef ZMQ_HAVE_WINDOWS
-#include <windows.h>
-#elif (defined ZMQ_HAVE_FREEBSD || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO)
-#include <semaphore.h>
-#else
+#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 #include <pthread.h>
+#elif defined ZMQ_HAVE_WINDOWS
+#include <windows.h>
+#else
+#include <semaphore.h>
 #endif
 
 namespace zmq
