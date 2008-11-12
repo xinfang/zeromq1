@@ -40,14 +40,14 @@ class j_remote_lat
 
          //  Create the wiring.
          int eid = obj.createExchange ("EG", Jzmq.SCOPE_GLOBAL, outInterface,
-             false);
-         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface);
+             false, 0, 0);
+         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface, 0, 0);
 
          //  Bounce the messages back to LocalLat
          for (int i = 0; i != messageCount; i ++) {
              byte [] data = obj.receive ();
              assert (data.length == messageSize);
-             obj.send (eid, data);
+             obj.send (eid, data, true);
          }
 
          //  Wait a while before exiting.

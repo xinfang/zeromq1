@@ -40,17 +40,18 @@ class j_local_lat
          Jzmq obj = new Jzmq (hostname);
 
          //  Create the wiring.
-         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null, false);
-         obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null);
-         obj.bind ("EL", "QG");
-         obj.bind ("EG", "QL");
+         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null,
+             false, 0, 0);
+         obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null, 0, 0);
+         obj.bind ("EL", "QG", 0, 0);
+         obj.bind ("EG", "QL", 0, 0);
 
          //  Get the inital timestamp.
          long start = System.currentTimeMillis ();
 
          for (int i = 0; i != messageCount; i ++) {
              byte data [] = new byte [messageSize];
-             obj.send (eid, data);
+             obj.send (eid, data, true);
              byte [] data2 = obj.receive ();
              assert (data == data2);
          }

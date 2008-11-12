@@ -41,7 +41,7 @@ class j_local_thr
          Jzmq obj = new Jzmq (hostname);
 
          //  Create the wiring.
-         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface);
+         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface, 0, 0);
 
          //  Receive the first message from RemoteThr.
          byte [] data = obj.receive ();
