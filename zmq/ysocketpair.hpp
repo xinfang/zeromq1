@@ -187,21 +187,6 @@ namespace zmq
             rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
             errno_assert (rc != -1);
 
-                
-#elif 0
-            if (-1 == (flags = fcntl (r, F_GETFL, 0)))
-                flags = 0;
-
-            //  Set to non-blocking mode.
-            rc = fcntl (r, F_SETFL, flags | O_NDELAY);
-            errno_assert (rc != -1);     
-         
-#elif 0
-       
-            //  Older unix versions.
-            flags = 1;
-            rc = ioctl(r, FIONBIO, &flags);
-            errno_assert (rc != -1);
 #elif 
 #error nonblocking sockets not supported on this platform
 #endif 
