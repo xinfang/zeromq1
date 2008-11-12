@@ -139,29 +139,32 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     if (! block) {
 
-#if defined (O_NONBLOCK)       
-        if (-1 == (flags = fcntl (s, F_GETFL, 0)))
-            flags = 0;
+#if defined ZMQ_HAVE_LINUX       
+            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+                flags = 0;
 
-        //  Set to non-blocking mode.
-        rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
-        errno_assert (rc != -1);
-        
-#elif defined (O_NDELAY) 
-        if (-1 == (flags = fcntl (s, F_GETFL, 0)))
-            flags = 0;
+            //  Set to non-blocking mode.
+            rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+            errno_assert (rc != -1);
 
-        //  Set to non-blocking mode.
-        rc = fcntl (s, F_SETFL, flags | O_NDELAY);
-        errno_assert (rc != -1);     
+                
+#elif 0
+            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+                flags = 0;
+
+            //  Set to non-blocking mode.
+            rc = fcntl (s, F_SETFL, flags | O_NDELAY);
+            errno_assert (rc != -1);     
          
-#elif defined (FIONBIO)
+#elif 0
        
-        //  Older unix versions.
-        flags = 1;
-        rc = ioctl(s, FIONBIO, &flags);
-        errno_assert (rc != -1);
-#endif
+            //  Older unix versions.
+            flags = 1;
+            rc = ioctl(s, FIONBIO, &flags);
+            errno_assert (rc != -1);
+#elif 
+#error nonblocking sockets not supported on this platform
+#endif 
         
     }
 
@@ -176,10 +179,42 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
 {
     //  Accept the socket.
     s = listener.accept ();
+    
+    int rc;
+    int flags;
+    if (! block) {
+
+#if defined ZMQ_HAVE_LINUX       
+            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+                flags = 0;
+
+            //  Set to non-blocking mode.
+            rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+            errno_assert (rc != -1);
+
+                
+#elif 0
+            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+                flags = 0;
+
+            //  Set to non-blocking mode.
+            rc = fcntl (s, F_SETFL, flags | O_NDELAY);
+            errno_assert (rc != -1);     
+         
+#elif 0
+       
+            //  Older unix versions.
+            flags = 1;
+            rc = ioctl(s, FIONBIO, &flags);
+            errno_assert (rc != -1);
+#elif 
+#error nonblocking sockets not supported on this platform
+#endif 
+    }
 
     //  Disable Nagle's algorithm.
     int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     errno_assert (rc == 0);
 }

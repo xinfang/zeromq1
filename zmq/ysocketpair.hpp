@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <poll.h>
+#include <fcntl.h>
 #endif
 
 namespace zmq
@@ -173,7 +174,9 @@ namespace zmq
             w = sv [0];
             r = sv [1];
            
-#if defined (O_NONBLOCK)       
+           
+            int flags;
+#if defined ZMQ_HAVE_LINUX       
             if (-1 == (flags = fcntl (r, F_GETFL, 0)))
                 flags = 0;
 
@@ -182,7 +185,7 @@ namespace zmq
             errno_assert (rc != -1);
 
                 
-#elif defined (O_NDELAY) 
+#elif 0
             if (-1 == (flags = fcntl (r, F_GETFL, 0)))
                 flags = 0;
 
@@ -190,12 +193,14 @@ namespace zmq
             rc = fcntl (r, F_SETFL, flags | O_NDELAY);
             errno_assert (rc != -1);     
          
-#elif defined (FIONBIO)
+#elif 0
        
             //  Older unix versions.
             flags = 1;
             rc = ioctl(r, FIONBIO, &flags);
             errno_assert (rc != -1);
+#elif 
+#error nonblocking sockets not supported on this platform
 #endif 
 
             
