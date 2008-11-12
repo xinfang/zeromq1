@@ -187,7 +187,7 @@ JNIEXPORT jboolean JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
     memcpy (msg.data (), data, size);
 
     //  Release the bytearray.
-    env-> ReleaseByteArrayElements (data_, data, 0);
+    env->ReleaseByteArrayElements (data_, data, 0);
 
     //  Send the message.
     bool rc = context->api_thread->send (eid_, msg, (bool) block_);
