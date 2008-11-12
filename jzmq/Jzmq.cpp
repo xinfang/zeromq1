@@ -63,17 +63,19 @@ JNIEXPORT void JNICALL Java_Jzmq_construct (JNIEnv *env, jobject obj,
     env->ReleaseStringUTFChars (hostname_, hostname);
 
     //  Set the context.
-    env->SetLongField (obj, context_fid, (jlong) context);
-}
+    env->SetLongField (obj, context_fid, (jlong)(unsigned int) context);
+
+
+	}
 
 JNIEXPORT void JNICALL Java_Jzmq_finalize (JNIEnv *env, jobject obj)
-{
-    //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+	{
+	    //  Get the context.
+	    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
+	    assert (context);
 
-    //  Deallocate the 0MQ infrastructure.
-    delete context->dispatcher;
+	    //  Deallocate the 0MQ infrastructure.
+	    delete context->dispatcher;
     delete context->locator;
     delete context;
 }
@@ -82,7 +84,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
     jstring exchange_, jint scope_, jstring nic_)
 {
     //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
     assert (context);
 
     //  Get the exchange name.
@@ -115,7 +117,7 @@ JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
     jstring queue_, jint scope_, jstring nic_)
 {
     //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
     assert (context);
 
     //  Get the queue name.
@@ -148,7 +150,7 @@ JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
     jstring exchange_, jstring queue_)
 {
     //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
     assert (context);
 
     //  Get the exchange name.
@@ -173,7 +175,7 @@ JNIEXPORT void JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
     jint eid_, jbyteArray data_)
 {
     //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
     assert (context);
 
     //  Get the data from the bytearray.
@@ -191,7 +193,7 @@ JNIEXPORT void JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
 JNIEXPORT jbyteArray JNICALL Java_Jzmq_receive (JNIEnv *env, jobject obj)
 {
     //  Get the context.
-    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    context_t *context = (context_t*)(unsigned int) env->GetLongField (obj, context_fid);
     assert (context);
 
     //  Get new message.
