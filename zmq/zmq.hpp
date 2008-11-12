@@ -28,6 +28,7 @@
 #include <zmq/poll_thread.hpp>
 #include <zmq/epoll_thread.hpp>
 #include <zmq/devpoll_thread.hpp>
+#include <zmq/kqueue_thread.hpp>
 
 
 
