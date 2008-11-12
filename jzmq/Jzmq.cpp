@@ -184,6 +184,9 @@ JNIEXPORT void JNICALL Java_Jzmq_send (JNIEnv *env, jobject obj,
     zmq::message_t msg (size);
     memcpy (msg.data (), data, size);
 
+    //  Release the bytearray.
+    env->ReleaseByteArrayElements (data_, data, 0);
+
     //  Send the message.
     context->api_thread->send (eid_, msg);
 }
