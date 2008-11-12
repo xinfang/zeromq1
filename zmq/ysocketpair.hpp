@@ -176,7 +176,10 @@ namespace zmq
            
            
             int flags;
-#if defined ZMQ_HAVE_LINUX       
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
+    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
+    || defined ZMQ_HAVE_QNXNTO           
+        
             if (-1 == (flags = fcntl (r, F_GETFL, 0)))
                 flags = 0;
 

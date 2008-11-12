@@ -139,7 +139,9 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     if (! block) {
 
-#if defined ZMQ_HAVE_LINUX       
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
+    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
+    || defined ZMQ_HAVE_QNXNTO           
             if (-1 == (flags = fcntl (s, F_GETFL, 0)))
                 flags = 0;
 
@@ -184,7 +186,10 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
     int flags;
     if (! block) {
 
-#if defined ZMQ_HAVE_LINUX       
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
+    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
+    || defined ZMQ_HAVE_QNXNTO           
+           
             if (-1 == (flags = fcntl (s, F_GETFL, 0)))
                 flags = 0;
 
