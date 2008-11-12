@@ -172,6 +172,33 @@ namespace zmq
             errno_assert (rc == 0);
             w = sv [0];
             r = sv [1];
+           
+#if defined (O_NONBLOCK)       
+            if (-1 == (flags = fcntl (r, F_GETFL, 0)))
+                flags = 0;
+
+            //  Set to non-blocking mode.
+            rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
+            errno_assert (rc != -1);
+
+                
+#elif defined (O_NDELAY) 
+            if (-1 == (flags = fcntl (r, F_GETFL, 0)))
+                flags = 0;
+
+            //  Set to non-blocking mode.
+            rc = fcntl (r, F_SETFL, flags | O_NDELAY);
+            errno_assert (rc != -1);     
+         
+#elif defined (FIONBIO)
+       
+            //  Older unix versions.
+            flags = 1;
+            rc = ioctl(r, FIONBIO, &flags);
+            errno_assert (rc != -1);
+#endif 
+
+            
         }
 
         //  Destroy the pipe.
@@ -203,7 +230,7 @@ namespace zmq
         inline uint32_t check ()
         {
             unsigned char buffer [256];
-            ssize_t nbytes = recv (r, buffer, 256, MSG_DONTWAIT);
+            ssize_t nbytes = recv (r, buffer, 256, 0);
             errno_assert (nbytes != -1);
             uint32_t signals = 0;
             for (int pos = 0; pos != nbytes; pos ++) {

@@ -139,7 +139,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     if (! block) {
 
- #if defined (O_NONBLOCK)       
+#if defined (O_NONBLOCK)       
         if (-1 == (flags = fcntl (s, F_GETFL, 0)))
             flags = 0;
 
@@ -147,11 +147,19 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
         rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
         errno_assert (rc != -1);
         
+#elif defined (O_NDELAY) 
+        if (-1 == (flags = fcntl (s, F_GETFL, 0)))
+            flags = 0;
+
+        //  Set to non-blocking mode.
+        rc = fcntl (s, F_SETFL, flags | O_NDELAY);
+        errno_assert (rc != -1);     
+         
 #elif defined (FIONBIO)
        
         //  Older unix versions.
         flags = 1;
-        rc = ioctl(sockfd, FIONBIO, &flags);
+        rc = ioctl(s, FIONBIO, &flags);
         errno_assert (rc != -1);
 #endif
         
