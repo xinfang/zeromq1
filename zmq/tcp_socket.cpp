@@ -129,30 +129,19 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
-    
-    int rc;
-    int flags;
-  
+      
     //  Connect to the remote peer.
-    rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
     errno_assert (rc != -1);
 
     if (! block) {
 
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
-    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
-    || defined ZMQ_HAVE_QNXNTO           
-            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
-                flags = 0;
-
-            //  Set to non-blocking mode.
-            rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
-            errno_assert (rc != -1);
-
-#elif 
-#error nonblocking sockets not supported on this platform
-#endif 
-        
+        //  Set to non-blocking mode.
+        int flags = fcntl (s, F_GETFL, 0);
+        if (flags == -1)
+            flags = 0;
+        rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+        errno_assert (rc != -1);        
     }
 
     //  Disable Nagle's algorithm.
