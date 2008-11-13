@@ -138,6 +138,7 @@ bool zmq::bp_engine_t::in_event ()
             //  If the other party closed the connection, stop polling.
             //  TODO: handle the event more gracefully.
             poller->reset_pollin (handle);
+            return false;
         }
     }
 
@@ -163,7 +164,6 @@ bool zmq::bp_engine_t::in_event ()
          else {
              if (read_pos < read_size) {
                  poller->reset_pollin (handle);
-                 printf("reseting pollin\n");
              }    
          }
 
