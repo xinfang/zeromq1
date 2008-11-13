@@ -156,29 +156,19 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
     //  Accept the socket.
     s = listener.accept ();
     
-    int rc;
-    int flags;
     if (! block) {
 
-#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS \
-    || defined ZMQ_HAVE_FREEBSD  || defined ZMQ_HAVE_OPENBSD  \
-    || defined ZMQ_HAVE_QNXNTO           
-           
-            if (-1 == (flags = fcntl (s, F_GETFL, 0)))
-                flags = 0;
-
-            //  Set to non-blocking mode.
-            rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
-            errno_assert (rc != -1);
-
-#elif 
-#error nonblocking sockets not supported on this platform
-#endif 
+        // Set to non-blocking mode.
+        int flags = fcntl (s, F_GETFL, 0);
+        if (flags == -1) 
+            flags = 0;
+        int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+        errno_assert (rc != -1);
     }
 
     //  Disable Nagle's algorithm.
     int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     errno_assert (rc == 0);
 }
