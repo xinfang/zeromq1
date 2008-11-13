@@ -95,6 +95,11 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         pthread_t worker;
 
+        //  Table to map engine handlers to pollset indices. Note that index
+        //  to engines table = pollset index - 1.
+        typedef std::vector <int> fds_t;
+        fds_t fds;
+
         //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;
         pollset_t pollset;

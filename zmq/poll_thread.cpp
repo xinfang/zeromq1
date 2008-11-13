@@ -77,39 +77,39 @@ void zmq::poll_thread_t::send_command (i_context *destination_,
 
 void zmq::poll_thread_t::set_fd (int handle_, int fd_)
 {
-    pollset [handle_].fd = fd_;
+    pollset [fds [handle_]].fd = fd_;
 }
 
 void zmq::poll_thread_t::set_pollin (int handle_)
 {
-    pollset [handle_].events |= POLLIN;
+    pollset [fds [handle_]].events |= POLLIN;
 }
 
 void zmq::poll_thread_t::reset_pollin (int handle_)
 {
-    pollset [handle_].events &= ~((short) POLLIN);
+    pollset [fds [handle_]].events &= ~((short) POLLIN);
 }
 
 void zmq::poll_thread_t::speculative_read (int handle_)
 {
-    pollset [handle_].events |= POLLIN;
-    pollset [handle_].revents |= POLLIN;
+    pollset [fds [handle_]].events |= POLLIN;
+    pollset [fds [handle_]].revents |= POLLIN;
 }
 
 void zmq::poll_thread_t::set_pollout (int handle_)
 {
-    pollset [handle_].events |= POLLOUT;
+    pollset [fds [handle_]].events |= POLLOUT;
 }
 
 void zmq::poll_thread_t::reset_pollout (int handle_)
 {
-    pollset [handle_].events &= ~((short) POLLOUT);
+    pollset [fds [handle_]].events &= ~((short) POLLOUT);
 }
 
 void zmq::poll_thread_t::speculative_write (int handle_)
 {
-    pollset [handle_].events |= POLLOUT;
-    pollset [handle_].revents |= POLLOUT;
+    pollset [fds [handle_]].events |= POLLOUT;
+    pollset [fds [handle_]].revents |= POLLOUT;
 }
 
 void *zmq::poll_thread_t::worker_routine (void *arg_)
@@ -196,6 +196,21 @@ void zmq::poll_thread_t::unregister_engine (i_pollable* engine_)
     engines.erase (it);
     pollset.erase (pollset.begin () + 1 + pos);
 
+    //  Find index which belongs to unregistering engine.
+    fds_t::iterator fds_it = std::find (fds.begin (), fds.end (), pos + 1);
+    assert (fds_it != fds.end ());
+
+    //  Mark filed in pfd as not used (-1)
+    *fds_it = -1; 
+
+    //  Decrease indexes in fds bigger than position from which 
+    //  pfd has been deleted.
+    for (unsigned int i = 0; i < fds.size (); i++) {
+        if (fds [i] > pos + 1) {
+            (fds [i])--;
+        }
+    }
+
     // TODO: delete engine_;
 }
 
@@ -229,8 +244,32 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         pollfd pfd = {0, 0, 0};
                         pollset.push_back (pfd);
 
-                        //  Pass pollfd to the engine.
-                        engine->set_poller (this, pollset.size () - 1);
+                        //  Find free place (-1) in fds vector, if it is not found 
+                        //  add new one.
+                        int free_handle = -1;
+
+                        fds_t::iterator it = std::find (fds.begin (), 
+                            fds.end (), -1);
+
+                        if (it == fds.end ()) {
+
+                            //  There is not free field in fds - add new field 
+                            //  into the fds vector.
+                            fds.push_back (-1);
+                            free_handle = fds.size () - 1;
+                        } else {
+
+                            //  Found empty field in fds vector - use it.
+                            free_handle = it - fds.begin ();
+                        }
+                     
+                        assert (fds [free_handle] == -1);
+
+                        //  Map new added pfd to hew_handle.
+                        fds [free_handle] = pollset.size () - 1;
+
+                        //  Pass fds index  into the engine.
+                        engine->set_poller (this, free_handle);
 
                         //  Store the engine pointer.
                         engines.push_back (engine);
