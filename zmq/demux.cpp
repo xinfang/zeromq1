@@ -42,11 +42,6 @@ bool zmq::demux_t::write (message_t &msg_)
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 
-    //  If there is no destination to send the message return straight away.
-    int pipes_count = pipes.size ();
-    if (pipes_count == 0)
-        return false;
-
     //  For delimiters, the algorithm is straighforward.
     //  Send it to all the pipes. Don't care about pipe limits.
     //  TODO: Delimiters are special, they should be passed via different
@@ -58,9 +53,16 @@ bool zmq::demux_t::write (message_t &msg_)
         return true;
     }
 
+    int pipes_count = pipes.size ();
+
     //  Load balancing is easy. The message is sent to exactly one pipe
     //  thus there's no need for copying.
     if (load_balance) {
+
+        //  If there is no destination to send the message return straight away.
+        if (pipes_count == 0)
+            return false;
+
         int old_current = current;
         while (true) {
 
@@ -84,6 +86,12 @@ bool zmq::demux_t::write (message_t &msg_)
     }
 
     //  This is data distribution path (as opposed to load balancing).
+    //  If there are no pipes available, simply drop the message.
+    if (pipes_count == 0) {
+        raw_message_destroy (msg);
+        raw_message_init (msg, 0);
+        return true;
+    }
 
     //  First check whether all the pipes are available for writing.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
