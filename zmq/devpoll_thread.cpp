@@ -276,7 +276,7 @@ void devpoll_thread_t::loop ()
     }
 }
 
-bool zmq::poll_thread_t::process_command (const command_t &command_)
+bool zmq::devpoll_thread_t::process_command (const command_t &command_)
 {
     i_engine *engine;
 
