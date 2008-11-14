@@ -165,14 +165,6 @@ void kqueue_thread_t::reset_pollin (handle_t handle_)
     kevent_delete (pe->fd, EVFILT_READ);
 }
 
-void kqueue_thread_t::speculative_read (handle_t handle_)
-{
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
-    pe->flag_pollin = true;
-    kevent_add (pe->fd, EVFILT_READ, pe);
-    pe->engine->in_event ();
-}
-
 void kqueue_thread_t::set_pollout (handle_t handle_)
 {
     struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
@@ -185,14 +177,6 @@ void kqueue_thread_t::reset_pollout (handle_t handle_)
     struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     pe->flag_pollout = false;
     kevent_delete (pe->fd, EVFILT_WRITE);
-}
-
-void kqueue_thread_t::speculative_write (handle_t handle_)
-{
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
-    pe->flag_pollout = true;
-    kevent_add (pe->fd, EVFILT_WRITE, pe);
-    pe->engine->out_event ();
 }
 
 void kqueue_thread_t::worker_routine (void *arg_)

@@ -112,12 +112,6 @@ void zmq::select_thread_t::reset_pollin (handle_t handle_)
      FD_CLR (handle_.fd, &source_set_in);
 }
 
-void zmq::select_thread_t::speculative_read (handle_t handle_)
-{
-    FD_SET (handle_.fd, &source_set_in);
-    FD_SET (handle_.fd, &result_set_in);
-}
-
 void zmq::select_thread_t::set_pollout (handle_t handle_)
 {
     FD_SET (handle_.fd, &source_set_out);
@@ -126,12 +120,6 @@ void zmq::select_thread_t::set_pollout (handle_t handle_)
 void zmq::select_thread_t::reset_pollout (handle_t handle_)
 {
     FD_CLR (handle_.fd, &source_set_out);
-}
-
-void zmq::select_thread_t::speculative_write (handle_t handle_)
-{
-    FD_SET (handle_.fd, &result_set_out);
-    FD_SET (handle_.fd, &source_set_out);
 }
 
 void zmq::select_thread_t::worker_routine (void *arg_)

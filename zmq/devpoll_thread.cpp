@@ -179,18 +179,6 @@ void devpoll_thread_t::reset_pollin (handle_t handle_)
     }
 }
 
-void devpoll_thread_t::speculative_read (handle_t handle_)
-{
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
-
-    if ((pe->events & POLLIN) == 0) {
-        pe->events |= POLLIN;
-        devpoll_write (pe->fd, pe->events);
-    }
-
-    pe->engine->in_event ();
-}
-
 void devpoll_thread_t::set_pollout (handle_t handle_)
 {
     struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
@@ -209,18 +197,6 @@ void devpoll_thread_t::reset_pollout (handle_t handle_)
         pe->events &= ~((short) POLLOUT);
         devpoll_write (pe->fd, pe->events);
     }
-}
-
-void devpoll_thread_t::speculative_write (handle_t handle_)
-{
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
-
-    if ((pe->events & POLLOUT) == 0) {
-        pe->events |= POLLOUT;
-        devpoll_write (pe->fd, pe->events);
-    }
-
-    pe->engine->out_event ();
 }
 
 void devpoll_thread_t::worker_routine (void *arg_)

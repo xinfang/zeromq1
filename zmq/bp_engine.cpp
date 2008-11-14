@@ -181,9 +181,10 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         if (!socket_error)
             command_.args.revive.pipe->revive ();
 
-        //  There is at least one engine that has messages ready. Try to do
-        //  speculative write to the socket and thus avoid polling for POLLOUT.
-        poller->speculative_write (handle);
+        //  There is at least one engine that has messages ready. Try to
+        //  write data to the socket, thus eliminating one POLLOUT event.
+        poller->set_pollout (handle);
+        out_event ();
         break;
 
     case engine_command_t::send_to:

@@ -55,19 +55,11 @@ namespace zmq
         //  Stop polling for input from socket.
         virtual void reset_pollin (handle_t handle_) = 0;
 
-        //  Try to read from socket (even though we are not sure there's
-        //  anything to read there).
-        virtual void speculative_read (handle_t handle_) = 0;
-
         //  Start polling for availability of the socket for writing.
         virtual void set_pollout (handle_t handle_) = 0;
 
         //  Stop polling for availability of the socket for writing.
         virtual void reset_pollout (handle_t handle_) = 0;
-
-        //  Try to write to the socket (even though we are not sure the
-        //  write will succeed).
-        virtual void speculative_write (handle_t handle_) = 0;
     };
 
 }

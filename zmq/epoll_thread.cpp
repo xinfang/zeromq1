@@ -138,15 +138,6 @@ void epoll_thread_t::reset_pollin (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-void epoll_thread_t::speculative_read (handle_t handle_)
-{
-    poll_entry *pe = (poll_entry*) handle_.ptr;
-    pe->ev.events |= EPOLLIN;
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
-    errno_assert (rc != -1);
-    pe->engine->in_event ();
-}
-
 void epoll_thread_t::set_pollout (handle_t handle_)
 {
     struct poll_entry *poll_entry = (struct poll_entry*) handle_.ptr;
@@ -161,15 +152,6 @@ void epoll_thread_t::reset_pollout (handle_t handle_)
     pe->ev.events &= ~((short) EPOLLOUT);
     int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
-}
-
-void epoll_thread_t::speculative_write (handle_t handle_)
-{
-    poll_entry *pe = (poll_entry*) handle_.ptr;
-    pe->ev.events |= EPOLLOUT;
-    int rc = epoll_ctl (epfd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
-    errno_assert (rc != -1);
-    pe->engine->out_event ();
 }
 
 void epoll_thread_t::worker_routine (void *arg_)

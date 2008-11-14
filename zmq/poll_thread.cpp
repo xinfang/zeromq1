@@ -124,12 +124,6 @@ void zmq::poll_thread_t::reset_pollin (handle_t handle_)
     pollset [fds [handle_.fd]].events &= ~((short) POLLIN);
 }
 
-void zmq::poll_thread_t::speculative_read (handle_t handle_)
-{
-    pollset [fds [handle_.fd]].events |= POLLIN;
-    pollset [fds [handle_.fd]].revents |= POLLIN;
-}
-
 void zmq::poll_thread_t::set_pollout (handle_t handle_)
 {
     pollset [fds [handle_.fd]].events |= POLLOUT;
@@ -138,12 +132,6 @@ void zmq::poll_thread_t::set_pollout (handle_t handle_)
 void zmq::poll_thread_t::reset_pollout (handle_t handle_)
 {
     pollset [fds [handle_.fd]].events &= ~((short) POLLOUT);
-}
-
-void zmq::poll_thread_t::speculative_write (handle_t handle_)
-{
-    pollset [fds [handle_.fd]].events |= POLLOUT;
-    pollset [fds [handle_.fd]].revents |= POLLOUT;
 }
 
 void zmq::poll_thread_t::worker_routine (void *arg_)
