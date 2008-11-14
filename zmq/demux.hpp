@@ -49,12 +49,6 @@ namespace zmq
         //  Flush the messages.
         ZMQ_EXPORT void flush ();
 
-        //  Write a delimiter to each pipe.
-        ZMQ_EXPORT void terminate_pipes ();
-
-        //  Write a delimiter to the specified pipe.
-        ZMQ_EXPORT void destroy_pipe (pipe_t *pipe_);
-
     private:
 
         //  The list of outbound pipes.

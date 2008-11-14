@@ -49,11 +49,7 @@ bool zmq::mux_t::read (message_t *msg_)
 
         bool retrieved = pipes [current]->read ((raw_message_t*) msg_);
 
-        if (pipes [current]->eop ()) {
-            delete pipes [current];
-            pipes.erase (pipes.begin () + current);
-        } else
-            current ++;
+        current ++;
         if (current == pipes.size ())
             current = 0;
 
@@ -65,10 +61,4 @@ bool zmq::mux_t::read (message_t *msg_)
     //  to be a 0-byte message.
     raw_message_init (msg, 0);
     return false;
-}
-
-void zmq::mux_t::terminate_pipes()
-{
-    for (pipes_t::size_type i = 0; i < pipes.size () ; i ++)
-        pipes [i]->send_destroy_pipe ();
 }

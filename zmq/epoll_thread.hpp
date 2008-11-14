@@ -72,6 +72,10 @@ namespace zmq
         //  Main routine (non-static) - called from worker_routine.
         void loop ();
 
+        //  Processes individual command. Returns false if the thread should
+        //  terminate.
+        bool process_command (const command_t &command_);
+
         //  Processes commands from other threads. Returns false if the thread
         //  should terminate.
         bool process_commands (uint32_t signals_);

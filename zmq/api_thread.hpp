@@ -106,6 +106,9 @@ namespace zmq
         engine_type_t type ();
         void process_command (const engine_command_t &command_);
 
+        //  Processes single command.
+        void process_command (const command_t &command_);
+
         //  Checks for signals and processes available commands.
         void process_commands ();
 

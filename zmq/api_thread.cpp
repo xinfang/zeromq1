@@ -293,7 +293,10 @@ int zmq::api_thread_t::get_thread_id ()
 void zmq::api_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
-    dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+    if (destination_ == (i_thread*) this)
+        process_command (command_);
+    else
+        dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
 zmq::engine_type_t zmq::api_thread_t::type ()
@@ -340,21 +343,27 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
         }
         break;
 
-    case engine_command_t::destroy_pipe:
-        {
-            exchanges_t::iterator it;
-            for (it = exchanges.begin (); it != exchanges.end (); it ++)
-                it->second->destroy_pipe (command_.args.destroy_pipe.pipe);
-            delete command_.args.destroy_pipe.pipe;
-        }
-        break;
-
-
     default:
 
         //  Unsupported/unknown command.
         assert (false);
      }
+}
+
+void zmq::api_thread_t::process_command (const command_t &command_)
+{
+    switch (command_.type) {
+
+    //  Process engine command.
+    case command_t::engine_command:
+        assert (command_.args.engine_command.engine == (i_engine*) this);
+        process_command (command_.args.engine_command.command);
+        break;
+
+    //  Unsupported/unknown command.
+    default:
+        assert (false);
+    }
 }
 
 void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
@@ -363,25 +372,9 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
         if (signals_ & (1 << source_thread_id)) {
-
             command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command)) {
-
-                switch (command.type) {
-
-                //  Process engine command.
-                case command_t::engine_command:
-                    assert (command.args.engine_command.engine ==
-                        (i_engine*) this);
-                    process_command (
-                        command.args.engine_command.command);
-                    break;
-
-                //  Unsupported/unknown command.
-                default:
-                    assert (false);
-                }
-            }
+            while (dispatcher->read (source_thread_id, thread_id, &command))
+                process_command (command);
         }
     }
 }

@@ -27,8 +27,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     source_engine (source_engine_),
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
-    alive (true), 
-    endofpipe (false)
+    alive (true)
 {
 }
 
@@ -67,19 +66,10 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         return false;
     }
 
-    //  If delimiter is read from the pipe, mark the pipe as ended
-    if (msg_->content == (void*) raw_message_t::delimiter_tag) {
-        endofpipe = true;
+    //  If delimiter is read from the pipe, mark the pipe as terminated.
+    if (msg_->content == (void*) raw_message_t::delimiter_tag)
         return false;
-    }
 
     return true;
-}
-
-void zmq::pipe_t::send_destroy_pipe ()
-{
-    command_t cmd;
-    cmd.init_engine_destroy_pipe (source_engine, this);
-    destination_thread->send_command (source_thread, cmd);
 }
 

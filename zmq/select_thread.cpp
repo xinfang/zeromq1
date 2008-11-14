@@ -76,7 +76,10 @@ int zmq::select_thread_t::get_thread_id ()
 void zmq::select_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
-    dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+    if (destination_ == (i_thread*) this)
+        process_command (command_);
+    else
+        dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
 zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
@@ -191,9 +194,68 @@ void zmq::select_thread_t::loop ()
     }
 }
 
+bool zmq::select_thread_t::process_command (const command_t &command_)
+{
+    switch (command_.type) {
+
+    //  Exit the working thread.
+    case command_t::stop:
+        return false;
+
+    //  Register the engine supplied with the poll thread.
+    case command_t::register_engine:
+        {
+            //  Ask engine to register itself.
+            i_engine *engine = command_.args.register_engine.engine;
+            assert (engine->type () == engine_type_fd);
+            ((i_pollable*) engine)->register_event (this);
+        }
+        return true;
+
+    //  Unregister the engine.
+    case command_t::unregister_engine:
+        {
+            //  Assert that engine still exists.
+            //  TODO: We should somehow make sure this won't happen.
+            std::vector <i_pollable*>::iterator it = std::find (
+                engines.begin (), engines.end (),
+                command_.args.unregister_engine.engine);
+            assert (it != engines.end ());
+
+            //  Ask engine to unregister itself.
+            i_engine *engine = command_.args.unregister_engine.engine;
+            assert (engine->type () == engine_type_fd);
+            ((i_pollable*) engine)->unregister_event ();
+        }
+        return true;
+
+    //  Forward the command to the specified engine.
+    case command_t::engine_command:
+        {
+            //  Check whether engine still exists.
+            //  TODO: We should somehow make sure this won't happen.
+            std::vector <i_pollable*>::iterator it = std::find (
+                engines.begin (), engines.end (),
+                command_.args.engine_command.engine);
+
+            //  Forward the command to the engine.
+            //  TODO: If the engine doesn't exist drop the command.
+            //        However, imagine there's another engine
+            //        incidentally allocated on the same address.
+            if (it != engines.end ())
+                command_.args.engine_command.engine->process_command (
+                    command_.args.engine_command.command);
+        }
+        return true;
+
+    //  Unknown command.
+    default:
+        assert (false);
+    }
+}
+
 bool zmq::select_thread_t::process_commands (uint32_t signals_)
 {
-   
     //  Iterate through all the threads in the process and find out which
     //  of them sent us commands.
     for (int source_thread_id = 0;
@@ -203,70 +265,10 @@ bool zmq::select_thread_t::process_commands (uint32_t signals_)
 
             //  Read all the commands from particular thread.
             command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command)) {
-
-                switch (command.type) {
-
-                //  Exit the working thread.
-                case command_t::stop:
+            while (dispatcher->read (source_thread_id, thread_id, &command))
+                if (!process_command (command))
                     return false;
-
-                //  Register the engine supplied with the poll thread.
-                case command_t::register_engine:
-                    {
-                        //  Ask engine to register itself.
-                        i_engine *engine =
-                            command.args.register_engine.engine;
-                        assert (engine->type () == engine_type_fd);
-                        ((i_pollable*) engine)->register_event (this);
-                    }
-                    break;
-
-                //  Unregister the engine.
-                case command_t::unregister_engine:
-                    {
-                        //  Assert that engine still exists.
-                        //  TODO: We should somehow make sure this won't happen.
-                        std::vector <i_pollable*>::iterator it = std::find (
-                            engines.begin (), engines.end (),
-                            command.args.unregister_engine.engine);
-                        assert (it != engines.end ());
-
-                        //  Ask engine to unregister itself.
-                        i_engine *engine =
-                            command.args.unregister_engine.engine;
-                        assert (engine->type () == engine_type_fd);
-                        ((i_pollable*) engine)->unregister_event ();
-                    }
-                    break;
-
-
-                //  Forward the command to the specified engine.
-                case command_t::engine_command:
-                    {
-                        //  Check whether engine still exists.
-                        //  TODO: We should somehow make sure this won't happen.
-                        std::vector <i_pollable*>::iterator it = std::find (
-                            engines.begin (), engines.end (),
-                            command.args.engine_command.engine);
-
-                        //  Forward the command to the engine.
-                        //  TODO: If the engine doesn't exist drop the command.
-                        //        However, imagine there's another engine
-                        //        incidentally allocated on the same address.
-                        if (it != engines.end ())
-                            command.args.engine_command.engine->process_command(
-                                command.args.engine_command.command);
-                    }
-                    break;
-
-                //  Unknown command.
-                default:
-                    assert (false);
-                }
-            }
         }
     }
-   
     return true;
 }

@@ -17,10 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "platform.hpp"
+#ifdef ZMQ_HAVE_LINUX
+
 #include "epoll_thread.hpp"
 #include "err.hpp"
-
-#ifdef ZMQ_HAVE_LINUX
 
 using namespace zmq;
 
@@ -76,7 +77,10 @@ int epoll_thread_t::get_thread_id ()
 void epoll_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
-    dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+    if (destination_ == (i_thread*) this)
+        process_command (command_);
+    else
+        dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
 handle_t epoll_thread_t::add_fd (int fd_, i_pollable *engine_)
@@ -176,7 +180,7 @@ void epoll_thread_t::worker_routine (void *arg_)
 
 void epoll_thread_t::loop ()
 {
-    struct epoll_event events[epoll_max_events];
+    struct epoll_event events [epoll_max_events];
 
     while (true) {
 
@@ -185,7 +189,7 @@ void epoll_thread_t::loop ()
         errno_assert (rc != -1);
 
         // Process commands from other threads first.
-        for (struct epoll_event *ep = events; ep < &events[rc]; ep++)
+        for (struct epoll_event *ep = events; ep < &events [rc]; ep++)
 
             //  Check for commands from other threads.
             if (ep->data.ptr == NULL && ep->events & EPOLLIN) {
@@ -213,67 +217,73 @@ void epoll_thread_t::loop ()
     }
 }
 
-bool epoll_thread_t::process_commands (uint32_t signals_)
+bool zmq::epoll_thread_t::process_command (const command_t &command_)
 {
     i_engine *engine;
 
+    switch (command_.type) {
+
+    //  Exit the working thread.
+    case command_t::stop:
+        return false;
+
+    //  Register the engine supplied with the poll thread.
+    case command_t::register_engine:
+        engine = command_.args.register_engine.engine;
+        assert (engine->type () == engine_type_fd);
+        ((i_pollable*) engine)->register_event (this);
+        return true;
+
+    //  Unregister the engine.
+    case command_t::unregister_engine:
+
+        //  Assert that engine still exists.
+        //  TODO: We should somehow make sure this won't happen.
+        engine = command_.args.unregister_engine.engine;
+        assert (engines.find (engine) != engines.end ());
+
+        //  Ask engine to unregister itself.
+        assert (engine->type () == engine_type_fd);
+        ((i_pollable*) engine)->unregister_event ();
+        return true;
+
+    //  Forward the command to the specified engine.
+    case command_t::engine_command:
+
+        //  Check whether engine still exists.
+        //  TODO: We should somehow make sure this won't happen.
+
+        //  Forward the command to the engine.
+        //  TODO: If the engine doesn't exist drop the command.
+        //        However, imagine there's another engine
+        //        incidentally allocated on the same address.
+        engine = command_.args.register_engine.engine;
+        if (engines.find (engine) != engines.end ())
+            engine->process_command (command_.args.engine_command.command);
+        return true;
+
+    //  Unknown command.
+    default:
+        assert (false);
+    }
+}
+
+bool epoll_thread_t::process_commands (uint32_t signals_)
+{
     //  Iterate through all the threads in the process and find out which
     //  of them sent us commands.
-    for (int i = 0; i != dispatcher->get_thread_count (); i++)
-        if (signals_ & 1 << i) {
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals_ & (1 << source_thread_id)) {
 
             //  Read all the commands from particular thread.
             command_t command;
-            while (dispatcher->read (i, thread_id, &command))
-
-                switch (command.type) {
-
-                //  Exit the working thread.
-                case command_t::stop:
+            while (dispatcher->read (source_thread_id, thread_id, &command))
+                if (!process_command (command))
                     return false;
-
-                //  Register the engine supplied with the poll thread.
-                case command_t::register_engine:
-                    engine = command.args.register_engine.engine;
-                    assert (engine->type () == engine_type_fd);
-                    ((i_pollable*) engine)->register_event (this);
-                    break;
-
-                //  Unregister the engine.
-                case command_t::unregister_engine:
-
-                    //  Assert that engine still exists.
-                    //  TODO: We should somehow make sure this won't happen.
-                    engine = command.args.unregister_engine.engine;
-                    assert (engines.find (engine) != engines.end ());
-
-                    //  Ask engine to unregister itself.
-                    assert (engine->type () == engine_type_fd);
-                    ((i_pollable*) engine)->unregister_event ();
-                    break;
-
-                //  Forward the command to the specified engine.
-                case command_t::engine_command:
-
-                    //  Check whether engine still exists.
-                    //  TODO: We should somehow make sure this won't happen.
-
-                    //  Forward the command to the engine.
-                    //  TODO: If the engine doesn't exist drop the command.
-                    //        However, imagine there's another engine
-                    //        incidentally allocated on the same address.
-
-                    engine = command.args.register_engine.engine;
-                    if (engines.find (engine) != engines.end ())
-                        engine->process_command (
-                            command.args.engine_command.command);
-                    break;
-
-                //  Unknown command.
-                default:
-                    assert (false);
-                }
         }
+    }
     return true;
 }
 

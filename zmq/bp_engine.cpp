@@ -165,26 +165,6 @@ void zmq::bp_engine_t::out_event ()
 void zmq::bp_engine_t::error_event ()
 {
     assert (false);
-/*
-    if (!socket_error) {
-        socket_error = true;
-
-        //  Report connection failure to the client.
-        //  If there is no error handler, application crashes immediately.
-        //  If the error handler returns false, it crashes as well.
-        //  If error handler returns true, the error is ignored.       
-        error_handler_t *eh = get_error_handler ();
-        assert (eh);
-        if (!eh (local_object.c_str ()))
-            assert (false);
-
-        //  Notify all our receivers that this engine is shutting down.
-        demux.terminate_pipes ();
-
-        //  Notify senders that this engine is shutting down.
-        mux.terminate_pipes ();
-    }
-*/
 }
 
 void zmq::bp_engine_t::unregister_event ()
@@ -220,13 +200,6 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
             mux.receive_from (command_.args.receive_from.pipe);
             poller->set_pollout (handle);
         }
-        break;
-
-    case engine_command_t::destroy_pipe:
-
-        //  Delete the pipe not needed by the other side anymore.
-        demux.destroy_pipe (command_.args.destroy_pipe.pipe);
-        delete command_.args.destroy_pipe.pipe;
         break;
 
     default:
