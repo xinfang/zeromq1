@@ -163,22 +163,15 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     assert (pipe);
 
     //  Bind the source end of the pipe.
-    if (eit != exchanges.end ())
-        eit->second->send_to (pipe);
-    else {
-        command_t cmd;
-        cmd.init_engine_send_to (exchange_engine, exchange_, pipe);
-        send_command (exchange_thread, cmd);
-    }
+    command_t cmd_send_to;
+    cmd_send_to.init_engine_send_to (exchange_engine, exchange_, pipe);
+    send_command (exchange_thread, cmd_send_to);
 
     //  Bind the destination end of the pipe.
-    if (qit != queues.end ())
-        qit->second->receive_from (pipe);
-    else {
-        command_t cmd;
-        cmd.init_engine_receive_from (queue_engine, queue_, pipe);
-        send_command (queue_thread, cmd);
-    }
+    command_t cmd_receive_from;
+    cmd_receive_from.init_engine_receive_from (queue_engine, queue_, pipe);
+    send_command (queue_thread, cmd_receive_from);
+
 }
 
 void zmq::api_thread_t::send (int exchange_id_, message_t &msg_)
