@@ -26,10 +26,17 @@
 #include "platform.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
+#if (_MSC_VER >= 1400)
 #define zmq_sprintf sprintf_s
 #define zmq_snprintf _snprintf_s
 #define zmq_strcat strcat_s
 #define zmq_strncpy strncpy_s
+#else
+#define zmq_sprintf sprintf
+#define zmq_snprintf _snprintf
+#define zmq_strcat strcat
+#define zmq_strncpy strncpy
+#endif
 #else
 #define zmq_sprintf sprintf
 #define zmq_snprintf snprintf
