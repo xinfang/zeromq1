@@ -49,6 +49,15 @@ namespace zmq
         //  Flush the messages.
         ZMQ_EXPORT void flush ();
 
+        //  Returns true if there are no pipes attached.
+        ZMQ_EXPORT bool empty ();
+
+        //  Drop references to the specified pipe.
+        ZMQ_EXPORT void release_pipe (pipe_t *pipe_);
+
+        //  Initiate shutdown of all associated pipes.
+        ZMQ_EXPORT void initialise_shutdown ();
+
     private:
 
         //  The list of outbound pipes.

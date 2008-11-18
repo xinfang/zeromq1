@@ -39,7 +39,9 @@ namespace zmq
         {
             revive,
             send_to,
-            receive_from
+            receive_from,
+            terminate_pipe,
+            terminate_pipe_ack
         } type;
 
         union {
@@ -54,6 +56,12 @@ namespace zmq
                 char queue [16];
                 class pipe_t *pipe;
             } receive_from;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe_ack;
         } args;   
     };
 
@@ -136,6 +144,25 @@ namespace zmq
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::revive;
             args.engine_command.command.args.revive.pipe = pipe_;
+        }
+
+        inline void init_engine_terminate_pipe (i_engine *engine_,
+            pipe_t *pipe_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::terminate_pipe;
+            args.engine_command.command.args.terminate_pipe.pipe = pipe_;
+        }
+
+        inline void init_engine_terminate_pipe_ack (i_engine *engine_,
+            pipe_t *pipe_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type =
+                engine_command_t::terminate_pipe_ack;
+            args.engine_command.command.args.terminate_pipe_ack.pipe = pipe_;
         }
         
     };

@@ -115,11 +115,12 @@ namespace zmq
         //  Poll handle associated with this engine.
         handle_t handle;
 
-        //  If true, underlying TCP/IP connection is dead.
-        bool socket_error;
-
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
+
+        //  If true, engine is already shutting down, waiting for confirmations
+        //  from other threads.
+        bool shutting_down;
 
         bp_engine_t (const bp_engine_t&);
         void operator = (const bp_engine_t&);

@@ -46,21 +46,8 @@ namespace zmq
             pipe.write (*msg_);
         }
 
-        //  Write pipe delimiter to the pipe.
-        inline void write_delimiter ()
-        {
-            raw_message_t delimiter;
-            raw_message_init_delimiter (&delimiter);
-            pipe.write (delimiter);
-            flush ();
-        }
-
         //  Flush all the written messages to be accessible for reading.
-        inline void flush ()
-        {
-            if (!pipe.flush ())
-                send_revive ();
-        }
+        ZMQ_EXPORT void flush ();
 
         //  Reads a message from the pipe.
         ZMQ_EXPORT bool read (raw_message_t *msg);
@@ -68,9 +55,19 @@ namespace zmq
         //  Make the dead pipe alive once more.
         ZMQ_EXPORT void revive ();
 
-    private:
+        //  Used by the pipe writer to initialise pipe shut down.
+        ZMQ_EXPORT void terminate_writer ();
 
-        ZMQ_EXPORT void send_revive ();
+        //  Confirms pipe shut down to the writer.
+        ZMQ_EXPORT void writer_terminated ();
+
+        //  Used by the pipe reader to initialise  pipe shut down.
+        ZMQ_EXPORT void terminate_reader ();
+
+        //  Confirms pipe shut down to the reader.
+        ZMQ_EXPORT void reader_terminated ();
+
+    private:
 
         //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>
@@ -87,6 +84,11 @@ namespace zmq
 
         //  If true we can read messages from the underlying ypipe.
         bool alive; 
+
+        //  Determines whether writer & reader side of the pipe are in the
+        //  process of shutting down.
+        bool writer_terminating;
+        bool reader_terminating;
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);

@@ -29,10 +29,15 @@ zmq::mux_t::~mux_t ()
 {
 }
 
-void zmq::mux_t::receive_from (pipe_t *pipe_)
+void zmq::mux_t::receive_from (pipe_t *pipe_, bool shutting_down_)
 {
     //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
+
+    //  If we are already in shut down phase, initiate shut down of the pipe
+    //  immediately.
+    if (shutting_down_)
+        pipe_->terminate_reader ();
 }
 
 bool zmq::mux_t::read (message_t *msg_)
@@ -61,4 +66,34 @@ bool zmq::mux_t::read (message_t *msg_)
     //  to be a 0-byte message.
     raw_message_init (msg, 0);
     return false;
+}
+
+bool zmq::mux_t::empty ()
+{
+    return pipes.empty ();
+}
+
+void zmq::mux_t::release_pipe (pipe_t *pipe_)
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        if (*it == pipe_) {
+
+            //  At this point pipe is physically destroyed.
+            delete *it;
+
+            //  Remove the pipe from the list.
+            pipes.erase (it);
+            if (current == pipes.size ())
+                current = 0;
+            return;
+        }
+
+    //  There's a bug in shut down mechanism!
+    assert (false);
+}
+
+void zmq::mux_t::initialise_shutdown ()
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        (*it)->terminate_reader ();
 }

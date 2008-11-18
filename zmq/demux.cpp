@@ -95,3 +95,26 @@ void zmq::demux_t::flush ()
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->flush ();
 }
+
+bool zmq::demux_t::empty ()
+{
+    return pipes.empty ();
+}
+
+void zmq::demux_t::release_pipe (pipe_t *pipe_)
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        if (*it == pipe_) {
+            pipes.erase (it);
+            return;
+        }
+
+    //  There's a bug in shut down mechanism!
+    assert (false);
+}
+
+void zmq::demux_t::initialise_shutdown ()
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        (*it)->terminate_writer ();
+}

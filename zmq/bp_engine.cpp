@@ -55,8 +55,8 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     decoder (&demux),
     socket (hostname_),
     poller (NULL),
-    socket_error (false),
-    local_object (local_object_)
+    local_object (local_object_),
+    shutting_down (false)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -81,8 +81,8 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     decoder (&demux),
     socket (listener_),
     poller (NULL),
-    socket_error (false),
-    local_object (local_object_)
+    local_object (local_object_),
+    shutting_down (false)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -123,9 +123,10 @@ void zmq::bp_engine_t::in_event ()
     int nbytes = socket.read (readbuf, readbuf_size);
 
     //  The other party closed the connection.
-    //  TODO: handle the event more gracefully.
-    if (nbytes == -1)
-        assert (false);
+    if (nbytes == -1) {
+        error_event ();
+        return;
+    }
 
     //  Push the data to the decoder
     decoder.write (readbuf, nbytes);
@@ -154,9 +155,10 @@ void zmq::bp_engine_t::out_event ()
             write_size - write_pos);
 
         //  The other party closed the connection.
-        //  TODO: handle the event more gracefully.
-        if (nbytes == -1)
-            assert (false);
+        if (nbytes == -1) {
+            error_event ();
+            return;
+        }
 
         write_pos += nbytes;
     }
@@ -164,7 +166,13 @@ void zmq::bp_engine_t::out_event ()
 
 void zmq::bp_engine_t::error_event ()
 {
-    assert (false);
+    //  Remove the file descriptor from the pollset.
+    poller->rm_fd (handle);    
+
+    //  Ask all inbound & outound pipes to shut down.
+    demux.initialise_shutdown ();
+    mux.initialise_shutdown ();
+    shutting_down = true;
 }
 
 void zmq::bp_engine_t::unregister_event ()
@@ -177,30 +185,54 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     switch (command_.type) {
     case engine_command_t::revive:
 
-        //  Forward the revive command to the pipe.
-        if (!socket_error)
+        if (!shutting_down) {
+
+            //  Forward the revive command to the pipe.
             command_.args.revive.pipe->revive ();
 
-        //  There is at least one engine that has messages ready. Try to
-        //  write data to the socket, thus eliminating one POLLOUT event.
-        poller->set_pollout (handle);
-        out_event ();
+            //  There is at least one engine that has messages ready. Try to
+            //  write data to the socket, thus eliminating one polling
+            //  for POLLOUT event.
+            poller->set_pollout (handle);
+            out_event ();
+        }
         break;
 
     case engine_command_t::send_to:
 
-        //  Start sending messages to a pipe.
-        if (!socket_error)
+        //  TODO:  'send_to' command should hold reference to the pipe -
+        //         to be rewritten to avoid possible memory leak.
+        if (!shutting_down) {
+
+            //  Start sending messages to a pipe.
             demux.send_to (command_.args.send_to.pipe);
+        }
         break;
 
     case engine_command_t::receive_from:
 
         //  Start receiving messages from a pipe.
-        if (!socket_error) {
-            mux.receive_from (command_.args.receive_from.pipe);
+        mux.receive_from (command_.args.receive_from.pipe, shutting_down);
+        if (!shutting_down)
             poller->set_pollout (handle);
-        }
+        break;
+
+    case engine_command_t::terminate_pipe:
+
+        //  Forward the command to the pipe.
+        command_.args.terminate_pipe.pipe->writer_terminated ();
+
+        //  Remove all references to the pipe.
+        demux.release_pipe (command_.args.terminate_pipe.pipe);
+        break;
+
+    case engine_command_t::terminate_pipe_ack:
+
+        //  Forward the command to the pipe.
+        command_.args.terminate_pipe_ack.pipe->reader_terminated ();
+
+        //  Remove all references to the pipe.
+        mux.release_pipe (command_.args.terminate_pipe_ack.pipe);
         break;
 
     default:

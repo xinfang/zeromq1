@@ -307,7 +307,6 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::send_to:
-
         {
             //  Find the right demux.
             exchanges_t::iterator it;
@@ -322,7 +321,6 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
         break;
 
     case engine_command_t::receive_from:
-
         {
             //  Find the right mux.
             queues_t::iterator it;
@@ -332,7 +330,35 @@ void zmq::api_thread_t::process_command (const engine_command_t &command_)
             assert (it != queues.end ());
 
             //  Start receiving messages from a pipe.
-            it->second->receive_from (command_.args.receive_from.pipe);
+            it->second->receive_from (command_.args.receive_from.pipe, false);
+        }
+        break;
+
+    case engine_command_t::terminate_pipe:
+        {
+            //  Forward the command to the pipe.
+            command_.args.terminate_pipe.pipe->writer_terminated ();
+
+            //  Remove all references to the pipe.
+            //  TODO:  Iterating through all the exchanges is inefficient.
+            //  This will be solved once exchanges & queues become engines.
+            exchanges_t::iterator it;
+            for (it = exchanges.begin (); it != exchanges.end (); it ++)
+                it->second->release_pipe (command_.args.terminate_pipe.pipe);
+        }
+        break;
+
+    case engine_command_t::terminate_pipe_ack:
+        {
+            //  Forward the command to the pipe.
+            command_.args.terminate_pipe.pipe->reader_terminated ();
+
+            //  Remove all references to the pipe.
+            //  TODO:  Iterating through all the exchanges is inefficient.
+            //  This will be solved once exchanges & queues become engines.
+            queues_t::iterator it;
+            for (it = queues.begin (); it != queues.end (); it ++)
+                it->second->release_pipe (command_.args.terminate_pipe.pipe);
         }
         break;
 

@@ -158,21 +158,21 @@ void zmq::poll_thread_t::loop ()
 
         //  Process socket errors.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++)
+              pollset_index < pollset.size (); pollset_index ++)
             if (pollset [pollset_index].revents &
                   (POLLNVAL | POLLERR | POLLHUP))
                 engines [pollset_index - 1]->error_event ();
 
         //  Process out events from the engines.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++)
+              pollset_index < pollset.size (); pollset_index ++)
             if (pollset [pollset_index].revents & POLLOUT)
                 engines [pollset_index - 1]->out_event ();
 
         //  Process in events from the engines.
         //  TODO: investigate the POLLHUP issue on OS X
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index != pollset.size (); pollset_index ++)
+              pollset_index < pollset.size (); pollset_index ++)
             if (pollset [pollset_index].revents & POLLIN)
                 engines [pollset_index - 1]->in_event ();
     }
@@ -200,7 +200,7 @@ bool zmq::poll_thread_t::process_command (const command_t &command_)
     case command_t::unregister_engine:
         {
             //  Assert that engine still exists.
-            //  TODO: We should somehow make sure this won't happen.
+            //  TODO: To be removed once it works OK.
             std::vector <i_pollable*>::iterator it = std::find (
                 engines.begin (), engines.end (),
                 command_.args.unregister_engine.engine);
@@ -215,21 +215,10 @@ bool zmq::poll_thread_t::process_command (const command_t &command_)
 
     //  Forward the command to the specified engine.
     case command_t::engine_command:
-        {
-            //  Check whether engine still exists.
-            //  TODO: We should somehow make sure this won't happen.
-            std::vector <i_pollable*>::iterator it = std::find (
-                engines.begin (), engines.end (),
-                command_.args.engine_command.engine);
 
-            //  Forward the command to the engine.
-            //  TODO: If the engine doesn't exist drop the command.
-            //        However, imagine there's another engine
-            //        incidentally allocated on the same address.
-            if (it != engines.end ())
-                command_.args.engine_command.engine->process_command (
-                    command_.args.engine_command.command);
-        }
+        //  Forward the command to the engine.
+        command_.args.engine_command.engine->process_command (
+            command_.args.engine_command.command);
         return true;
 
     //  Unknown command.
