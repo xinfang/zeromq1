@@ -235,6 +235,7 @@ bool zmq::poll_thread_t::process_command (const command_t &command_)
     //  Unknown command.
     default:
         assert (false);
+        return false;
     }
 }
 

@@ -31,6 +31,7 @@
 
 #include <sys/sockio.h>
 #include <net/if.h>
+#include <unistd.h>
 
 //  On Solaris platform, network interface name can be queried by ioctl.
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
@@ -201,7 +202,8 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
     addrinfo *res;
     int rc = getaddrinfo (hostname, NULL, &req, &res);
     gai_assert (rc);
-    *addr_ = *((sockaddr_in *) res->ai_addr);
+    assert (res->ai_addr->sa_family == AF_INET);
+    memcpy (addr_, res->ai_addr, sizeof (sockaddr_in));
     freeaddrinfo (res);
     
     //  Fill in the port number.
