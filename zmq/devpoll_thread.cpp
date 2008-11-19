@@ -48,6 +48,7 @@ devpoll_thread_t::devpoll_thread_t (dispatcher_t *dispatcher_) :
     //  Get limit on open files
     int rc = getrlimit (RLIMIT_NOFILE, &rl);
     errno_assert (rc != -1);
+    maxfds = rl.rlim_cur;
 
     poll_table = (struct poll_entry**)
         calloc (maxfds, sizeof (struct poll_entry*));
