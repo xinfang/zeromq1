@@ -38,7 +38,6 @@
 #include "ypollset.hpp"
 #include "scope.hpp"
 #include "zmq_server.hpp"
-#include "select_thread.hpp"
 #include "platform.hpp"
 
 namespace zmq
