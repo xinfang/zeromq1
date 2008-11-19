@@ -244,6 +244,13 @@ else
     JAVAC=true
 fi
 
+#  zmq_server
+zmq_server="yes"
+AC_ARG_WITH([zmq_server], [AS_HELP_STRING([--with-zmq_server], [build zmq_server [default=yes]])], [with_zmq_server=yes], [])
+if test "x$with_zmq_server" = "xno"; then
+    zmq_server="no"
+fi
+
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
@@ -252,6 +259,7 @@ AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
 AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
+AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -286,7 +294,7 @@ AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile pyzmq/Makefile jzmq/Makefile \
 perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 perf/tests/tcp/Makefile perf/helpers/Makefile examples/chat/Makefile \
-man/Makefile)
+man/Makefile zmq_server/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -301,6 +309,7 @@ AC_MSG_RESULT([])
 AC_MSG_RESULT([ 0MQ install dir: $prefix])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Utilities:])
+AC_MSG_RESULT([   zmq_server: $zmq_server])
 AC_MSG_RESULT([   cpu frequency estimator: $cpu_estimator])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Addons:])

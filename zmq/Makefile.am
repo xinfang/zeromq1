@@ -1,4 +1,4 @@
-INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
+INCLUDES                = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/zmq_server
 
 include_HEADERS = zmq.hpp
 
@@ -36,7 +36,6 @@ pkginclude_HEADERS = \
     locator.hpp \
     i_engine.hpp \
     scope.hpp \
-    zmq_server.hpp \
     config.hpp \
     yqueue.hpp \
     tcp_listener.hpp \
@@ -50,7 +49,8 @@ pkginclude_HEADERS = \
     platform.hpp \
     formatting.hpp \
     select_thread.hpp \
-    export.hpp
+    export.hpp \
+    ../zmq_server/zmq_server.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -81,11 +81,6 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
-
-bin_PROGRAMS = zmq_server
-zmq_server_LDADD = libzmq.la
-zmq_server_SOURCES = zmq_server.cpp stdint.hpp err.hpp
-zmq_server_CXXFLAGS = -Wall -pedantic -Werror
 
 dist-hook:
 		-rm $(distdir)/platform.hpp
