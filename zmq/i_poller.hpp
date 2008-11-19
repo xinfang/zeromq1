@@ -35,8 +35,8 @@ namespace zmq
         };
     };
 
-    //  Virtual interface to be exposed by engines for communication with
-    //  poll thread.
+    //  Virtual interface to be exposed by file-descriptor-oriented engines
+    //  for communication with I/O threads.
 
     struct i_poller : public i_thread
     {

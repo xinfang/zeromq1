@@ -34,10 +34,18 @@ namespace zmq
 
     typedef void (thread_fn) (void*);
 
+    //  Class encapsulating OS thread. Thread is launched in the constructor.
+    //  Destructor waits for thread termination.
+
     class thread_t
     {
     public:
+
+        //  Creates OS thread. 'tfn' is main thread function. It'll be passed
+        //  'arg' as an argument.
         ZMQ_EXPORT thread_t (thread_fn *tfn_, void *arg_);
+
+        //  Waits for thread termination and destroys the object.
         ZMQ_EXPORT ~thread_t ();
 
     private:

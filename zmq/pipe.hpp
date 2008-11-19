@@ -29,6 +29,11 @@
 
 namespace zmq
 {
+
+    //  Pipe is a class to used for onw-way message transfer between two
+    //  engines. Underlying transport mechanism is ypipe_t. Pipe itself
+    //  adds support for communication with 0MQ engines.
+
     class pipe_t
     {
     public:

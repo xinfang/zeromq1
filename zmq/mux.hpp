@@ -45,9 +45,6 @@ namespace zmq
         //  Returns a message, if available. If not, returns false.
         ZMQ_EXPORT bool read (message_t *msg_);
 
-        //  Returns true if there are no pipes attached.
-        ZMQ_EXPORT bool empty ();
-
         //  Drop references to the specified pipe.
         ZMQ_EXPORT void release_pipe (pipe_t *pipe_);
 

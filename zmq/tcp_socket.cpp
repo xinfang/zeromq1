@@ -51,7 +51,6 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     wsa_assert (s != INVALID_SOCKET);
 
-    
     //  Connect to the remote peer.
     int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
     wsa_assert (rc != SOCKET_ERROR);
@@ -92,9 +91,8 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
 
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
-    int rc = closesocket(s);
+    int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
-    
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)
@@ -131,7 +129,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     errno_assert (s != -1);
       
     //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
+    int rc = connect (s, (sockaddr*) &ip_address, sizeof (ip_address));
     errno_assert (rc != -1);
 
     if (! block) {

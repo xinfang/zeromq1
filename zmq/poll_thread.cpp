@@ -199,13 +199,6 @@ bool zmq::poll_thread_t::process_command (const command_t &command_)
     //  Unregister the engine.
     case command_t::unregister_engine:
         {
-            //  Assert that engine still exists.
-            //  TODO: To be removed once it works OK.
-            std::vector <i_pollable*>::iterator it = std::find (
-                engines.begin (), engines.end (),
-                command_.args.unregister_engine.engine);
-            assert (it != engines.end ());
-
             //  Ask engine to unregister itself.
             i_engine *engine = command_.args.unregister_engine.engine;
             assert (engine->type () == engine_type_fd);

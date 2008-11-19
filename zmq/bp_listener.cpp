@@ -149,7 +149,8 @@ void zmq::bp_listener_t::out_event ()
 
 void zmq::bp_listener_t::error_event()
 {
-    //  TODO: recreation of the listener...
+    //  TODO: Can listening socket fail? And if so, what should be the action
+    //  to be taken.
     assert (false);
 }
 

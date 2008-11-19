@@ -26,7 +26,7 @@
 namespace zmq
 {
 
-    //  Lock-free and wait free queue implementation.
+    //  Lock-free queue implementation.
     //  Only a single thread can read from the pipe at any specific moment.
     //  Only a single thread can write to the pipe at any specific moment.
     //

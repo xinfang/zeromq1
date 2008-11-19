@@ -41,7 +41,7 @@ namespace zmq
     //
     //  1. Underlying transport is TCP.
     //  2. Wire-level protocol is 0MQ backend protocol.
-    //  3. Polling is done using POSIX poll function.
+    //  3. Communicates with I/O thread via file descriptors.
 
     class bp_engine_t : public i_pollable
     {

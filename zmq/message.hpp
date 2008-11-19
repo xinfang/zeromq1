@@ -25,9 +25,10 @@
 namespace zmq
 {
 
-    //  0MQ message. Don't change the body of the message once you've
+    //  0MQ message. Caution: Don't change the body of the message once you've
     //  copied it - the behaviour would be undefined. Don't change the body
-    //  of the message received.
+    //  of the message that you've received, other threads may be accessing
+    //  it in a parallel manner.
 
     class message_t : private raw_message_t
     {

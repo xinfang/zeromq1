@@ -34,7 +34,6 @@ zmq::locator_t::locator_t (const char *hostname_)
         //  If port number is not explicitly specified, use the default one.
         if (!strchr (hostname_, ':')) {
             char buf [256];
-
             zmq_snprintf (buf, 256, "%s:%d", hostname_,
                 (int) default_locator_port);
             hostname_ = buf;

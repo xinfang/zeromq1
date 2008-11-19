@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <assert.h>
 
+#include "platform.hpp"
 #include "dispatcher.hpp"
 #include "err.hpp"
 

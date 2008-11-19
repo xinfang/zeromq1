@@ -83,8 +83,8 @@ void kqueue_thread_t::send_command (i_thread *destination_,
         dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
-kqueue_thread_t::poll_entry *
-kqueue_thread_t::new_poll_entry (int fd_, i_pollable *engine_)
+kqueue_thread_t::poll_entry *kqueue_thread_t::new_poll_entry (int fd_,
+    i_pollable *engine_)
 {
     struct poll_entry *pe;
 
@@ -191,8 +191,8 @@ void kqueue_thread_t::loop ()
         struct kevent ev_buf [epoll_max_events];
 
         //  Wait for events.
-        int n = kevent (kqueue_fd, NULL, 0,
-                        &ev_buf [0], epoll_max_events, NULL);
+        int n = kevent (kqueue_fd, NULL, 0, &ev_buf [0],
+            epoll_max_events, NULL);
         errno_assert (n != -1);
 
         for (struct kevent *ev = &ev_buf [0]; ev < &ev_buf [n]; ev++) {
@@ -245,12 +245,8 @@ bool zmq::kqueue_thread_t::process_command (const command_t &command_)
     //  Unregister the engine.
     case command_t::unregister_engine:
 
-        //  Assert that engine still exists.
-        //  TODO: We should somehow make sure this won't happen.
-        engine = command_.args.unregister_engine.engine;
-        assert (engines.find (engine) != engines.end ());
-
         //  Ask engine to unregister itself.
+        engine = command_.args.unregister_engine.engine;
         assert (engine->type () == engine_type_fd);
         ((i_pollable*) engine)->unregister_event ();
         return true;
@@ -258,16 +254,9 @@ bool zmq::kqueue_thread_t::process_command (const command_t &command_)
     //  Forward the command to the specified engine.
     case command_t::engine_command:
 
-        //  Check whether engine still exists.
-        //  TODO: We should somehow make sure this won't happen.
-
         //  Forward the command to the engine.
-        //  TODO: If the engine doesn't exist drop the command.
-        //        However, imagine there's another engine
-        //        incidentally allocated on the same address.
         engine = command_.args.register_engine.engine;
-        if (engines.find (engine) != engines.end ())
-            engine->process_command (command_.args.engine_command.command);
+        engine->process_command (command_.args.engine_command.command);
         return true;
 
     //  Unknown command.

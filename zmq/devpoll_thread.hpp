@@ -36,7 +36,7 @@ namespace zmq
 {
 
     //  Devpoll thread is an I/O thread that waits for events from engines
-    //  using /dev/poll mechanism and schedules handling of the
+    //  using Solaris-specific /dev/poll mechanism and schedules handling of the
     //  signals by individual engines. An engine compatible with devpoll
     //  thread should implement i_pollable interface.
 

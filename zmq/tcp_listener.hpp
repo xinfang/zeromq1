@@ -43,7 +43,8 @@ namespace zmq
             return s;
         }
 
-        //  Returns port listener is listening on.
+        //  Returns port listener is listening on. The pointer returned is
+        //  valid only while the listener object exists.
         ZMQ_EXPORT inline const char *get_interface ()
         {
             return iface; 

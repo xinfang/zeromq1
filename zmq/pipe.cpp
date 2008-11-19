@@ -74,9 +74,9 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
     //  If 'read' is not called the pipe would hang in the memory for
     //  an indefinite amount of time. However: If there are messages in the
     //  pipe, the pipe cannot be dropped anyway. Thus the only problem is when
-    //  there's only a delimiter in the pipe, which makes memory usage very low.
-    //  Moreover, even reading from different pipes will make the CFQ mechanism
-    //  roll over these unterminated pipes and terminate them.
+    //  there's only a delimiter in the pipe, which makes memory overhead quite
+    //  low. Moreover, reading even from different pipes will make
+    //  the CFQ mechanism roll over these unterminated pipes and terminate them.
     if (msg_->content == (void*) raw_message_t::delimiter_tag) {
         terminate_reader ();
         return false;

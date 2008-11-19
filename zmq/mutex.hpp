@@ -23,6 +23,8 @@
 #include "platform.hpp"
 #include "err.hpp"
 
+//  Mutex class encapsulated OS mutex in a platform-independent way.
+
 #ifdef ZMQ_HAVE_WINDOWS
 
 #include <windows.h>

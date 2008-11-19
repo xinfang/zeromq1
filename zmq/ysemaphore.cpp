@@ -18,6 +18,7 @@
 */
 
 #include "ysemaphore.hpp"
+#include "platform.hpp"
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 

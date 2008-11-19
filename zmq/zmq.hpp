@@ -30,7 +30,5 @@
 #include <zmq/devpoll_thread.hpp>
 #include <zmq/kqueue_thread.hpp>
 
-
-
 #endif
 

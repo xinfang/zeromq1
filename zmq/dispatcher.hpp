@@ -36,13 +36,14 @@ namespace zmq
     //  Dispatcher implements bidirectional thread-safe ultra-efficient
     //  passing of commands between N threads.
     //
-    //  It consists of a pipe to pass commands and signaler to wake up receiver
-    //  thread when new commands are available.
+    //  It consists of a ypipes to pass commands and signalers to wake up
+    //  the receiver thread when new commands are available.
     //
     //  Note that dispatcher is inefficient for passing messages within a thread
     //  (sender thread = receiver thread). The optimisation is not part
-    //  of the class and should be implemented by individual threads.
-
+    //  of the class and should be implemented by individual threads
+    //  (presumably by calling the command handling function directly).
+    
     class dispatcher_t
     {
     public:

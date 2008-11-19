@@ -19,6 +19,9 @@
 
 #include "tcp_listener.hpp"
 #include "platform.hpp"
+#include "err.hpp"
+#include "ip.hpp"
+#include "formatting.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -34,11 +37,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #endif
-
-#include "err.hpp"
-#include "ip.hpp"
-#include "formatting.hpp"
-
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -127,7 +125,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface_i name.
+    //  Fill in the interface name.
     const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
         sizeof (iface));
     assert (rcp);
@@ -144,7 +142,7 @@ int zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     int sock = ::accept (s, NULL, NULL);
-       errno_assert (sock != -1); 
+    errno_assert (sock != -1); 
     return sock;
 }
 

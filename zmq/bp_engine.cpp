@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "bp_engine.hpp"
 #include "dispatcher.hpp"
 #include "err.hpp"
@@ -177,6 +176,7 @@ void zmq::bp_engine_t::error_event ()
 
 void zmq::bp_engine_t::unregister_event ()
 {
+    //  TODO: Implement this.
     assert (false);
 }
 

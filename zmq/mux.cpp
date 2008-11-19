@@ -68,11 +68,6 @@ bool zmq::mux_t::read (message_t *msg_)
     return false;
 }
 
-bool zmq::mux_t::empty ()
-{
-    return pipes.empty ();
-}
-
 void zmq::mux_t::release_pipe (pipe_t *pipe_)
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
@@ -94,6 +89,7 @@ void zmq::mux_t::release_pipe (pipe_t *pipe_)
 
 void zmq::mux_t::initialise_shutdown ()
 {
+    //  Broadcast 'terminate_reader' to all the pipes associated with the mux.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->terminate_reader ();
 }

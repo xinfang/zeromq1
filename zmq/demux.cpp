@@ -115,6 +115,7 @@ void zmq::demux_t::release_pipe (pipe_t *pipe_)
 
 void zmq::demux_t::initialise_shutdown ()
 {
+    //  Broadcast 'terminate_writer' to all associated pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->terminate_writer ();
 }

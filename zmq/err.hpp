@@ -44,7 +44,24 @@ namespace zmq
   
 }
 
-#endif
+//  Provides convenient way to check WSA-style errors on Windows.
+#define wsa_assert(x) if (!(x)){\
+    const char *errstr = zmq::wsa_error ();\
+    if (errstr != NULL) {\
+        printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+        abort ();\
+    }\
+}
+
+//  Provides convenient way to check GetLastError-style errors on Windows.
+#define win_assert(x) if (!(x)) {\
+    char errstr [256];\
+    zmq::win_error (errstr, 256);\
+    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+    abort ();\
+}
+
+#else
 
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
@@ -60,20 +77,6 @@ namespace zmq
     abort ();\
 }
 
-//  Provides convenient way to check WSA-style errors on Windows.
-#define wsa_assert(x) if (!(x)){\
-    const char *errstr = zmq::wsa_error ();\
-    if (errstr != NULL) {\
-        printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
-        abort ();\
-    }\
-}
-
-#define win_assert(x) if (!(x)) {\
-    char errstr [256];\
-    zmq::win_error (errstr, 256);\
-    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
-    abort ();\
-}
+#endif
 
 #endif

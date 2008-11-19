@@ -41,7 +41,10 @@ namespace zmq
     {
         ZMQ_EXPORT virtual ~i_engine () {};
 
-        //  Returns type of the engine
+        //  Returns type of the engine. This can be in theory implemented on
+        //  the base of standard C++ RTTI, however, it's unclear whether RTTI
+        //  is supported by all compilers and if so, what's the impact of RTTI
+        //  performance on overall performance of the product.
         virtual engine_type_t type () = 0;
 
         //  Called when command from a different thread is received.

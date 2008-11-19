@@ -37,7 +37,7 @@ namespace zmq
 
     //  Locator class locates resources in the scope of the process.
     //  If the resource cannot be found, it asks global locator service
-    //  to find it on the network.
+    //  (zmq_server) to find it on the network.
 
     class locator_t : public i_locator
     {
@@ -45,7 +45,7 @@ namespace zmq
 
         //  Creates the local locator and connects it to the global locator.
         //  If hostname_ is NULL, no global locator is used. Objects not found
-        //  on process level are reported as unknown.
+        //  on process level are reported as unknown in that case.
         ZMQ_EXPORT locator_t (const char *hostname_ = NULL);
 
         //  Destroys the locator.

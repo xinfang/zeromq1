@@ -43,20 +43,13 @@ namespace zmq
     //  was matched by corresponding wait and the waiting thread was
     //  released.
     //
-    //  ysemaphore is designed for platforms where both mutex locking
-    //  and unlocking provides full memory fence.
-    //  On the platforms where lock is implemented using one-way acquire-only
-    //  memory barrier and/or unlock uses release-only memory barrier,
-    //  real semaphore should be used instead (or a lock extended by release
-    //  barrier and unlock extended by acquire barrier).
-    //
     //  Implementation notes:
     //
-    //  - on FreeBSD platform mutex cannot be locked twice from the same thread;
-    //    therefore real semaphore should be used
-    //  - on OS X unnamed semaphores are not supported, therefore mutex-based
-    //    substitute should be used
-    //  - on Windows platform simple semaphore is implemented using event object
+    //  - Default implementation uses POSIX semaphore.
+    //  - On Linux and OS X platform optimised version is supplied using
+    //    mutex instead of semaphore.
+    //  - On Windows platform simple semaphore is implemented using
+    //    event object.
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 

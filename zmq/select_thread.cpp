@@ -19,6 +19,7 @@
 
 #include <algorithm>
 
+#include "platform.hpp"
 #include "select_thread.hpp"
 #include "err.hpp"
 
@@ -33,18 +34,18 @@ zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_)
   
 {
-    //  Clear file descriptors sets.
+    //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
     FD_ZERO (&source_set_out);
     FD_ZERO (&result_set_in);
     FD_ZERO (&result_set_out);
     FD_ZERO (&error_set);
     
-    //  Initialise the set.
+    //  Initialise the sets.
     FD_SET (signaler.get_fd () , &source_set_in);
     FD_SET (signaler.get_fd () , &error_set);
     
-    //  Add file descriptor of signler into the set.
+    //  Add file descriptor of signaler into the set.
     fdset.push_back (signaler.get_fd ());
     maxfdp1 = signaler.get_fd () + 1;
     
@@ -136,12 +137,10 @@ void zmq::select_thread_t::loop ()
         memcpy (&result_set_in, &source_set_in, sizeof (source_set_in));
         memcpy (&result_set_out, &source_set_out, sizeof (source_set_out));
         for (fd_set_t::size_type index = 0; index != fdset.size (); 
-            index ++) {
-            FD_SET (fdset [index], &error_set);        
-        }
+              index ++)
+            FD_SET (fdset [index], &error_set);
         
         int rc = 0;
-       
         while (rc == 0) { 
             rc = select(maxfdp1, &result_set_in, &result_set_out,
                 &error_set, NULL);
@@ -173,7 +172,6 @@ void zmq::select_thread_t::loop ()
                engines [index - 1]->out_event ();
        
         //  Process in events from the engines.
-        //  TODO: investigate the POLLHUP issue on OS X
         for (fd_set_t::size_type index = 1; index !=fdset.size();
             index ++) 
             if (FD_ISSET (fdset [index], &result_set_in)) 
@@ -190,7 +188,7 @@ bool zmq::select_thread_t::process_command (const command_t &command_)
     case command_t::stop:
         return false;
 
-    //  Register the engine supplied with the poll thread.
+    //  Register the engine supplied with the select thread.
     case command_t::register_engine:
         {
             //  Ask engine to register itself.
@@ -203,13 +201,6 @@ bool zmq::select_thread_t::process_command (const command_t &command_)
     //  Unregister the engine.
     case command_t::unregister_engine:
         {
-            //  Assert that engine still exists.
-            //  TODO: We should somehow make sure this won't happen.
-            std::vector <i_pollable*>::iterator it = std::find (
-                engines.begin (), engines.end (),
-                command_.args.unregister_engine.engine);
-            assert (it != engines.end ());
-
             //  Ask engine to unregister itself.
             i_engine *engine = command_.args.unregister_engine.engine;
             assert (engine->type () == engine_type_fd);
@@ -219,21 +210,10 @@ bool zmq::select_thread_t::process_command (const command_t &command_)
 
     //  Forward the command to the specified engine.
     case command_t::engine_command:
-        {
-            //  Check whether engine still exists.
-            //  TODO: We should somehow make sure this won't happen.
-            std::vector <i_pollable*>::iterator it = std::find (
-                engines.begin (), engines.end (),
-                command_.args.engine_command.engine);
 
-            //  Forward the command to the engine.
-            //  TODO: If the engine doesn't exist drop the command.
-            //        However, imagine there's another engine
-            //        incidentally allocated on the same address.
-            if (it != engines.end ())
-                command_.args.engine_command.engine->process_command (
-                    command_.args.engine_command.command);
-        }
+        //  Forward the command to the engine.
+        command_.args.engine_command.engine->process_command (
+            command_.args.engine_command.command);
         return true;
 
     //  Unknown command.

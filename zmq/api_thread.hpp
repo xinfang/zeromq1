@@ -26,7 +26,6 @@
 #include <utility>
 
 #include "export.hpp"
-#include "config.hpp"
 #include "i_thread.hpp"
 #include "i_engine.hpp"
 #include "i_locator.hpp"
@@ -37,14 +36,12 @@
 #include "demux.hpp"
 #include "ypollset.hpp"
 #include "scope.hpp"
-#include "zmq_server.hpp"
-#include "platform.hpp"
 
 namespace zmq
 {
     //  Thread object to be used as a proxy for client application thread.
     //  It is not thread-safe. In case you want to use 0MQ from several
-    //  client threads create api_thread for each of them.
+    //  client threads create an api_thread for each of them.
 
     class api_thread_t : private i_thread, private i_engine
     {
