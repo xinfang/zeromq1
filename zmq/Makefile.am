@@ -1,4 +1,4 @@
-INCLUDES                = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/zmq_server
+INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
 include_HEADERS = zmq.hpp
 
@@ -50,7 +50,7 @@ pkginclude_HEADERS = \
     formatting.hpp \
     select_thread.hpp \
     export.hpp \
-    ../zmq_server/zmq_server.hpp
+    server_protocol.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

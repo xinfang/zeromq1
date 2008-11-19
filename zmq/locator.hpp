@@ -30,7 +30,7 @@
 #include "mutex.hpp"
 #include "tcp_socket.hpp"
 #include "scope.hpp"
-#include "zmq_server.hpp"
+#include "server_protocol.hpp"
 
 namespace zmq
 {

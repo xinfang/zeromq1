@@ -41,7 +41,7 @@ using namespace std;
 #include "config.hpp"
 #include "stdint.hpp"
 #include "err.hpp"
-#include "zmq_server.hpp"
+#include "server_protocol.hpp"
 #include "tcp_socket.hpp"
 #include "formatting.hpp"
 using namespace zmq;

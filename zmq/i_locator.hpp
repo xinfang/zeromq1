@@ -24,7 +24,7 @@
 #include "i_thread.hpp"
 #include "i_engine.hpp"
 #include "scope.hpp"
-#include "zmq_server.hpp"
+#include "server_protocol.hpp"
 
 namespace zmq
 {

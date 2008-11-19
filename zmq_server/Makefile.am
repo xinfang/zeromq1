@@ -1,6 +1,4 @@
-INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
-
-pkginclude_HEADERS = zmq_server.hpp
+INCLUDES = -I$(top_builddir) -I$(top_srcdir) -I$(top_builddir)/zmq -I$(top_srcdir)/zmq
 
 bin_PROGRAMS = zmq_server
 zmq_server_LDADD = $(top_builddir)/zmq/libzmq.la
