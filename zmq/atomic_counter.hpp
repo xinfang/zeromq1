@@ -23,8 +23,14 @@
 
 #include "err.hpp"
 #include "stdint.hpp"
-#include "mutex.hpp"
 #include "platform.hpp"
+#include "mutex.hpp"
+
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#include <windows.h>
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#include <atomic.h>
+#endif
 
 namespace zmq
 {
@@ -61,6 +67,9 @@ namespace zmq
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 increment);
             return old != 0;
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+            integer_t nv = atomic_add_32_nv (&value, increment);
+            return nv != increment;             
 #elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             volatile integer_t *val = &value;
@@ -102,6 +111,9 @@ namespace zmq
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 -decrement);
             return old - decrement != 0;
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+            integer_t nv = atomic_add_32_nv (&value, -decrement);
+            return nv != 0;
 #elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t oldval = -decrement;

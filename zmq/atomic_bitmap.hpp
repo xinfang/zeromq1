@@ -24,6 +24,13 @@
 #include "err.hpp"
 #include "stdint.hpp"
 #include "mutex.hpp"
+#include "platform.hpp"
+
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#include <windows.h>
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#include <atomic.h>
+#endif
 
 namespace zmq
 {
@@ -55,7 +62,15 @@ namespace zmq
         //  another one. Returns the original value of the reset bit.
         inline bool btsr (int set_index_, int reset_index_)
         {
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+            while (true) {
+                integer_t oldval = value;
+                integer_t newval = (oldval | (integer_t (1) << set_index_)) &
+                    ~(integer_t (1) << reset_index_);
+                if (atomic_cas_32 (&value, oldval, newval) == oldval)
+                    return (oldval & (integer_t (1) << reset_index_)) ? true : false; 
+            }
+#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
             integer_t oldval, dummy;
             __asm__ volatile (
@@ -105,7 +120,9 @@ namespace zmq
         inline integer_t xchg (integer_t newval_)
         {
             integer_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+            oldval = atomic_swap_32 (&value, newval_);
+#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
@@ -153,9 +170,16 @@ namespace zmq
         inline integer_t izte (integer_t thenval_, 
             integer_t elseval_)
         {
-            integer_t oldval;
-#if (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+            while (true) {
+                integer_t oldval = value;
+                integer_t newval = oldval == 0 ? thenval_ : elseval_; 
+                if (atomic_cas_32 (&value, oldval, newval) == oldval)
+                    return oldval;
+            }
+#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
     defined (__x86_64__)) && defined (__GNUC__))
+            integer_t oldval;
             integer_t dummy;
             __asm__ volatile (
                 "mov %0, %1\n\t"
@@ -170,9 +194,9 @@ namespace zmq
                 : "+m" (value), "=&a" (oldval), "=&r" (dummy)
                 : "r" (thenval_), "r" (elseval_)
                 : "cc");
+            return oldval;
 #elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
-            oldval = value;
             volatile integer_t* ptrin = &value;
             integer_t tmp;
             integer_t prev;
@@ -191,11 +215,11 @@ namespace zmq
             return prev; 
 #else
             sync.lock ();
-            oldval = value;
+            integer_t oldval = value;
             value = oldval ? elseval_ : thenval_;
             sync.unlock ();
-#endif
             return oldval;
+#endif
         }
 
     private:

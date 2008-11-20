@@ -25,6 +25,12 @@
 #include "err.hpp"
 #include "platform.hpp"
 
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#include <windows.h>
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#include <atomic.h>
+#endif
+
 namespace zmq
 {
 
@@ -59,6 +65,8 @@ namespace zmq
         {
 #if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
             return (T*) InterlockedExchangePointer (&ptr, val_);
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
+            return (T*) atomic_swap_ptr (&ptr, val_);
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old = val_;
@@ -111,6 +119,8 @@ namespace zmq
 #if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
             return (T*) InterlockedCompareExchangePointer (
                 (volatile PVOID*) &ptr, val_, cmp_);
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
+            return (T*) atomic_cas_ptr (&ptr, cmp_, val_);
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
     defined (__GNUC__))
             T *old;
