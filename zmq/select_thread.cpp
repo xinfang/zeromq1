@@ -85,6 +85,7 @@ void zmq::select_thread_t::send_command (i_thread *destination_,
 
 zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
+//printf ("adding %d\n", fd_);
     //  Set maxfdp1 as maximum file descriptor plus 1.
     if(maxfdp1 <= fd_)
         maxfdp1 = fd_ + 1;
@@ -99,6 +100,7 @@ zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::select_thread_t::rm_fd (handle_t handle_)
 {
+//printf ("removing %d\n", handle_.fd);
     //  Stop polling on the descriptor.
     FD_CLR (handle_.fd, &source_set_in);
     FD_CLR (handle_.fd, &source_set_out);
@@ -144,13 +146,14 @@ void zmq::select_thread_t::loop ()
         //  Wait for events.
         memcpy (&result_set_in, &source_set_in, sizeof (source_set_in));
         memcpy (&result_set_out, &source_set_out, sizeof (source_set_out));
+        FD_ZERO (&error_set);
         for (fd_set_t::size_type index = 0; index != fdset.size (); 
               index ++)
             FD_SET (fdset [index], &error_set);
-        
+
         int rc = 0;
         while (rc == 0) { 
-            rc = select(maxfdp1, &result_set_in, &result_set_out,
+            rc = select (maxfdp1, &result_set_in, &result_set_out,
                 &error_set, NULL);
 #ifdef ZMQ_HAVE_WINDOWS
             wsa_assert (rc != SOCKET_ERROR);
