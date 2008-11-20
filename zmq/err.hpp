@@ -61,7 +61,7 @@ namespace zmq
     abort ();\
 }
 
-#else
+#endif
 
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) if (!(x)) {\
@@ -76,7 +76,5 @@ namespace zmq
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }
-
-#endif
 
 #endif

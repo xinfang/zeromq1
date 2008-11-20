@@ -96,7 +96,7 @@ namespace zmq
         void operator = (const ysemaphore_t&);
     };
 
-#elif ZMQ_HAVE_WINDOWS
+#elif defined ZMQ_HAVE_WINDOWS
 
     class ysemaphore_t : public i_signaler
     { 

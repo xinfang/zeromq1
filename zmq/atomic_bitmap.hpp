@@ -43,11 +43,7 @@ namespace zmq
     {
     public:
 
-#if defined (__x86_64__)
-        typedef uint64_t integer_t;
-#else
         typedef uint32_t integer_t;
-#endif
 
         inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
@@ -62,7 +58,15 @@ namespace zmq
         //  another one. Returns the original value of the reset bit.
         inline bool btsr (int set_index_, int reset_index_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+            while (true) {
+                integer_t oldval = value;
+                integer_t newval = (oldval | (integer_t (1) << set_index_)) &
+                    ~(integer_t (1) << reset_index_);
+                if (InterlockedCompareExchange ((volatile LONG*) &value, newval, oldval) == oldval)
+                    return (oldval & (integer_t (1) << reset_index_)) ? true : false; 
+            }
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = (oldval | (integer_t (1) << set_index_)) &
@@ -120,7 +124,9 @@ namespace zmq
         inline integer_t xchg (integer_t newval_)
         {
             integer_t oldval;
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+            oldval = InterlockedExchange ((volatile LONG*) &value, newval_);
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
             oldval = atomic_swap_32 (&value, newval_);
 #elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
             oldval = newval_;
@@ -170,7 +176,14 @@ namespace zmq
         inline integer_t izte (integer_t thenval_, 
             integer_t elseval_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+            while (true) {
+                integer_t oldval = value;
+                integer_t newval = oldval == 0 ? thenval_ : elseval_; 
+                if (InterlockedCompareExchange ((volatile LONG*) &value, newval, oldval) == oldval)
+                    return oldval;
+            }
+#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = oldval == 0 ? thenval_ : elseval_; 

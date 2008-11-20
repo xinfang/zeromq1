@@ -26,7 +26,7 @@
 #include <string>
 using namespace std;
 
-#include "platform.hpp"
+#include "../zmq/platform.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
 #else
 #include <unistd.h>
@@ -38,12 +38,12 @@ using namespace std;
 #include <poll.h>
 #endif
 
-#include "config.hpp"
-#include "stdint.hpp"
-#include "err.hpp"
-#include "server_protocol.hpp"
-#include "tcp_socket.hpp"
-#include "formatting.hpp"
+#include "../zmq/config.hpp"
+#include "../zmq/stdint.hpp"
+#include "../zmq/err.hpp"
+#include "../zmq/server_protocol.hpp"
+#include "../zmq/tcp_socket.hpp"
+#include "../zmq/formatting.hpp"
 using namespace zmq;
 
 //  Info about a single object.

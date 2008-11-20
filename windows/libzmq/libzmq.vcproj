@@ -42,6 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				MinimalRebuild="true"
+				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				WarningLevel="3"
@@ -112,6 +113,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -190,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\zmq\devpoll_thread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\zmq\dispatcher.cpp"
 				>
 			</File>
@@ -203,6 +209,10 @@
 			</File>
 			<File
 				RelativePath="..\..\zmq\ip.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\zmq\kqueue_thread.cpp"
 				>
 			</File>
 			<File
@@ -304,6 +314,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\zmq\devpoll_thread.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\zmq\dispatcher.hpp"
 				>
 			</File>
@@ -356,6 +370,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\zmq\kqueue_thread.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\zmq\locator.hpp"
 				>
 			</File>
@@ -376,10 +394,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\zmq\platform.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\zmq\poll_thread.hpp"
 				>
 			</File>
@@ -393,6 +407,10 @@
 			</File>
 			<File
 				RelativePath="..\..\zmq\select_thread.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\zmq\server_protocol.hpp"
 				>
 			</File>
 			<File
@@ -437,10 +455,6 @@
 			</File>
 			<File
 				RelativePath="..\..\zmq\zmq.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\zmq\zmq_server.hpp"
 				>
 			</File>
 		</Filter>
