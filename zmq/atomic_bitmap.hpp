@@ -26,9 +26,26 @@
 #include "mutex.hpp"
 #include "platform.hpp"
 
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+//  These are the conditions to choose between different implementations
+//  of atomic_bitmap.
+
+#if defined ZMQ_FORCE_MUTEXES
+#define ZMQ_ATOMIC_BITMAP_MUTEX
+#elif defined ZMQ_HAVE_WINDOWS
+#define ZMQ_ATOMIC_BITMAP_WINDOWS
+#elif defined ZMQ_HAVE_SOLARIS
+#define ZMQ_ATOMIC_BITMAP_SOLARIS
+#elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
+#define ZMQ_ATOMIC_BITMAP_X86
+#elif 0 && defined __sparc__ && defined __GNUC__
+#define ZMQ_ATOMIC_BITMAP_SPARC
+#else
+#define ZMQ_ATOMIC_BITMAP_MUTEX
+#endif
+
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
 #include <windows.h>
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
 #include <atomic.h>
 #endif
 
@@ -43,7 +60,11 @@ namespace zmq
     {
     public:
 
+#if defined ZMQ_ATOMIC_BITMAP_X86 && defined __x86_64__
+        typedef uint64_t integer_t;
+#else
         typedef uint32_t integer_t;
+#endif
 
         inline atomic_bitmap_t (integer_t value_ = 0) :
             value (value_)
@@ -58,24 +79,26 @@ namespace zmq
         //  another one. Returns the original value of the reset bit.
         inline bool btsr (int set_index_, int reset_index_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = (oldval | (integer_t (1) << set_index_)) &
                     ~(integer_t (1) << reset_index_);
-                if (InterlockedCompareExchange ((volatile LONG*) &value, newval, oldval) == oldval)
-                    return (oldval & (integer_t (1) << reset_index_)) ? true : false; 
+                if (InterlockedCompareExchange ((volatile LONG*) &value, newval,
+                      oldval) == oldval)
+                    return (oldval & (integer_t (1) << reset_index_)) ?
+                        true : false; 
             }
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = (oldval | (integer_t (1) << set_index_)) &
                     ~(integer_t (1) << reset_index_);
                 if (atomic_cas_32 (&value, oldval, newval) == oldval)
-                    return (oldval & (integer_t (1) << reset_index_)) ? true : false; 
+                    return (oldval & (integer_t (1) << reset_index_)) ?
+                        true : false; 
             }
-#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_X86
             integer_t oldval, dummy;
             __asm__ volatile (
                 "mov %0, %1\n\t"
@@ -89,8 +112,7 @@ namespace zmq
                 : "r" (integer_t(set_index_)), "r" (integer_t(reset_index_))
                 : "cc");
             return (bool) (oldval & (integer_t(1) << reset_index_));
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_SPARC
             volatile integer_t* valptr = &value;
             integer_t set_val = integer_t(1) << set_index_;
             integer_t reset_val = ~(integer_t(1) << reset_index_);
@@ -110,13 +132,15 @@ namespace zmq
                 : "r" (valptr)
                 : "cc");
             return oldval; 
-#else
+#elif defined ZMQ_ATOMIC_BITMAP_MUTEX
             sync.lock ();
             integer_t oldval = value;
             value = (oldval | (integer_t (1) << set_index_)) &
                 ~(integer_t (1) << reset_index_);
             sync.unlock ();
             return (oldval & (integer_t (1) << reset_index_)) ? true : false;
+#else
+#error
 #endif
         }
 
@@ -124,27 +148,25 @@ namespace zmq
         inline integer_t xchg (integer_t newval_)
         {
             integer_t oldval;
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
             oldval = InterlockedExchange ((volatile LONG*) &value, newval_);
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
             oldval = atomic_swap_32 (&value, newval_);
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) && defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_X86 && defined __i386__
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgl %0, %1"
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_X86 && defined __x86_64__
             oldval = newval_;
             __asm__ volatile (
                 "lock; xchgq %0, %1"
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_SPARC
             oldval = value;
             volatile integer_t* ptrin = &value;
             integer_t tmp;
@@ -161,11 +183,13 @@ namespace zmq
                 : "r" (ptrin) /* input */
                 : "cc");
             return prev; 
-#else
+#elif defined ZMQ_ATOMIC_BITMAP_MUTEX
             sync.lock ();
             oldval = value;
             value = newval_;
             sync.unlock ();
+#else
+#error
 #endif
             return oldval;
         }
@@ -176,22 +200,22 @@ namespace zmq
         inline integer_t izte (integer_t thenval_, 
             integer_t elseval_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = oldval == 0 ? thenval_ : elseval_; 
-                if (InterlockedCompareExchange ((volatile LONG*) &value, newval, oldval) == oldval)
+                if (InterlockedCompareExchange ((volatile LONG*) &value, newval,
+                      oldval) == oldval)
                     return oldval;
             }
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
             while (true) {
                 integer_t oldval = value;
                 integer_t newval = oldval == 0 ? thenval_ : elseval_; 
                 if (atomic_cas_32 (&value, oldval, newval) == oldval)
                     return oldval;
             }
-#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_X86
             integer_t oldval;
             integer_t dummy;
             __asm__ volatile (
@@ -208,8 +232,7 @@ namespace zmq
                 : "r" (thenval_), "r" (elseval_)
                 : "cc");
             return oldval;
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_BITMAP_SPARC
             volatile integer_t* ptrin = &value;
             integer_t tmp;
             integer_t prev;
@@ -226,20 +249,21 @@ namespace zmq
                 : "r" (ptrin), "r" (thenval_), "r" (elseval_)
                 : "cc");
             return prev; 
-#else
+#elif ZMQ_ATOMIC_BITMAP_MUTEX
             sync.lock ();
             integer_t oldval = value;
             value = oldval ? elseval_ : thenval_;
             sync.unlock ();
             return oldval;
+#else
+#error
 #endif
         }
 
     private:
 
         volatile integer_t value;
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
-    (!defined (__i386__) && !defined (__x86_64__)))
+#if defined ZMQ_ATOMIC_BITMAP_MUTEX
         mutex_t sync;
 #endif
 
@@ -248,5 +272,22 @@ namespace zmq
     };
 
 }
+
+//  Remove macros local to this file.
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
+#undef ZMQ_ATOMIC_BITMAP_WINDOWS
+#endif
+#if defined ZMQ_ATOMIC_BITMAP_SOLARIS
+#undef ZMQ_ATOMIC_BITMAP_SOLARIS
+#endif
+#if defined ZMQ_ATOMIC_BITMAP_X86
+#undef ZMQ_ATOMIC_BITMAP_X86
+#endif
+#if defined ZMQ_ATOMIC_BITMAP_SPARC
+#undef ZMQ_ATOMIC_BITMAP_SPARC
+#endif
+#if defined ZMQ_ATOMIC_BITMAP_MUTEX
+#undef ZMQ_ATOMIC_BITMAP_MUTEX
+#endif
 
 #endif
