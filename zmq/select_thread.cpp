@@ -85,22 +85,30 @@ void zmq::select_thread_t::send_command (i_thread *destination_,
 
 zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-    handle_t handle;
-
     //  Set maxfdp1 as maximum file descriptor plus 1.
     if(maxfdp1 <= fd_)
         maxfdp1 = fd_ + 1;
         
-    fdset.push_back(fd_);
-   
+    fdset.push_back(fd_);   
     engines.push_back (engine_);
+
+    handle_t handle;
     handle.fd = fd_;
     return handle;
 }
 
 void zmq::select_thread_t::rm_fd (handle_t handle_)
 {
-    assert (false);
+    //  Stop polling on the descriptor.
+    FD_CLR (handle_.fd, &source_set_in);
+    FD_CLR (handle_.fd, &source_set_out);
+
+    //  Forget about the descriptor and the associated engine.
+    fd_set_t::iterator it = std::find (fdset.begin (), fdset.end (),
+        handle_.fd);
+    assert (it != fdset.end ());
+    engines.erase (engines.begin () + (it - fdset.begin () - 1));
+    fdset.erase (it);
 }
 
 void zmq::select_thread_t::set_pollin (handle_t handle_)
@@ -152,7 +160,7 @@ void zmq::select_thread_t::loop ()
         }
 
         //  First of all, process commands from other threads.
-        if (FD_ISSET(fdset[0], &result_set_in))   {
+        if (FD_ISSET(fdset [0], &result_set_in))   {
             uint32_t signals = signaler.check ();
             assert (signals);
             if (!process_commands (signals))
