@@ -17,35 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ysemaphore.hpp"
-#include "platform.hpp"
+#include <zmq/ysocketpair.hpp>
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+#ifdef ZMQ_HAVE_WINDOWS
 
-void zmq::ysemaphore_t::signal (int signal_)
+void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (signal_ == 0);
-    int rc = pthread_mutex_unlock (&mutex);
-    errno_assert (rc == 0);
-}
-
-#elif defined ZMQ_HAVE_WINDOWS
-
-void zmq::ysemaphore_t::signal (int signal_)
-{
-    assert (signal_ == 0);
-    int rc = SetEvent (ev);
-    win_assert (rc != 0);
+    assert (signal_ >= 0 && signal_ < 31);
+    char c = (char) signal_;
+    int rc = send (w, &c, 1, 0);
+    win_assert (rc != SOCKET_ERROR);
 }
 
 #else
 
-void zmq::ysemaphore_t::signal (int signal_)
+void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (signal_ == 0);
-    int rc = sem_post (&sem);
-    errno_assert (rc != -1);
+    assert (signal_ >= 0 && signal_ < 31);
+    unsigned char c = (unsigned char) signal_;
+    ssize_t nbytes = send (w, &c, 1, 0);
+    errno_assert (nbytes == 1);
 }
 
 #endif
-

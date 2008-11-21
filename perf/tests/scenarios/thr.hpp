@@ -47,7 +47,7 @@
 #include <fstream>
 #include <limits>
 
-#include "../../../zmq/thread.hpp"
+#include <zmq/thread.hpp>
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"
 

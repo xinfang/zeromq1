@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS ||\
@@ -26,8 +26,8 @@
 #include <algorithm>
 #include <sys/resource.h>
 
-#include "poll_thread.hpp"
-#include "err.hpp"
+#include <zmq/poll_thread.hpp>
+#include <zmq/err.hpp>
 
 zmq::i_thread *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
 {

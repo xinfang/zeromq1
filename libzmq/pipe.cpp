@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pipe.hpp"
-#include "command.hpp"
+#include <zmq/pipe.hpp>
+#include <zmq/command.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
       i_thread *destination_thread_, i_engine *destination_engine_) :

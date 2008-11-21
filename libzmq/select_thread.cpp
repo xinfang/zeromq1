@@ -19,9 +19,9 @@
 
 #include <algorithm>
 
-#include "platform.hpp"
-#include "select_thread.hpp"
-#include "err.hpp"
+#include <zmq/platform.hpp>
+#include <zmq/select_thread.hpp>
+#include <zmq/err.hpp>
 
 zmq::i_thread *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
 {

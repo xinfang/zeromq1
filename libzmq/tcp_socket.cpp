@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "tcp_socket.hpp"
+#include <zmq/tcp_socket.hpp>
 
 #include <assert.h>
 #include <string.h>
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 #ifdef ZMQ_HAVE_WINDOWS
 #include <winsock2.h>
 #else
@@ -35,8 +35,8 @@
 #include <fcntl.h>
 #endif
 
-#include "err.hpp"
-#include "ip.hpp"
+#include <zmq/err.hpp>
+#include <zmq/ip.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 

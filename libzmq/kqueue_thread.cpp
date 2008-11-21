@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
     defined (ZMQ_HAVE_OSX)
@@ -26,8 +26,8 @@
 #include <sys/event.h>
 #include <sys/time.h>
 
-#include "err.hpp"
-#include "kqueue_thread.hpp"
+#include <zmq/err.hpp>
+#include <zmq/kqueue_thread.hpp>
 
 using namespace zmq;
 

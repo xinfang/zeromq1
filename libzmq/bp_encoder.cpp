@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bp_encoder.hpp"
-#include "wire.hpp"
+#include <zmq/bp_encoder.hpp>
+#include <zmq/wire.hpp>
 
 zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
     mux (mux_)

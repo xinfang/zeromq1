@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "demux.hpp"
-#include "raw_message.hpp"
+#include <zmq/demux.hpp>
+#include <zmq/raw_message.hpp>
 
 zmq::demux_t::demux_t ()
 {

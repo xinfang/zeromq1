@@ -6,9 +6,10 @@ dist_noinst_JAVA = Jzmq.java
 
 lib_LTLIBRARIES = libjzmq.la
 libjzmq_la_SOURCES = Jzmq.h Jzmq.cpp
-libjzmq_la_CXXFLAGS = @JAVA_INCLUDE@ -Wall
+libjzmq_la_CXXFLAGS = -I$(top_builddir)/libzmq -I$(top_srcdir)/libzmq \
+@JAVA_INCLUDE@ -Wall
 libjzmq_la_LDFLAGS = -version-info 0:0:0
-libjzmq_la_LIBADD = $(top_builddir)/zmq/libzmq.la
+libjzmq_la_LIBADD = $(top_builddir)/libzmq/libzmq.la
 
 BUILT_SOURCES = Jzmq.h Jzmq.class
 

@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "tcp_listener.hpp"
-#include "platform.hpp"
-#include "err.hpp"
-#include "ip.hpp"
-#include "formatting.hpp"
+#include <zmq/tcp_listener.hpp>
+#include <zmq/platform.hpp>
+#include <zmq/err.hpp>
+#include <zmq/ip.hpp>
+#include <zmq/formatting.hpp>
 
 #include <assert.h>
 #include <string.h>

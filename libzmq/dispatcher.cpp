@@ -20,9 +20,9 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "platform.hpp"
-#include "dispatcher.hpp"
-#include "err.hpp"
+#include <zmq/platform.hpp>
+#include <zmq/dispatcher.hpp>
+#include <zmq/err.hpp>
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :

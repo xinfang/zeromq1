@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ypollset.hpp"
+#include <zmq/ypollset.hpp>
 
 void zmq::ypollset_t::signal (int signal_)
 {

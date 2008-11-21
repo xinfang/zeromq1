@@ -25,11 +25,11 @@
 
 #include "i_transport.hpp"
 
-#include "../../zmq/err.hpp"
-#include "../../zmq/ypipe.hpp"
-#include "../../zmq/ysemaphore.hpp"
-#include "../../zmq/ysocketpair.hpp"
-#include "../../zmq/ypollset.hpp"
+#include <zmq/err.hpp>
+#include <zmq/ypipe.hpp>
+#include <zmq/ysemaphore.hpp>
+#include <zmq/ysocketpair.hpp>
+#include <zmq/ypollset.hpp>
 
 namespace perf
 {

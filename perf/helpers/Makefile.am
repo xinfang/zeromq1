@@ -1,3 +1,6 @@
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)  -I$(top_builddir)/libzmq \
+-I$(top_srcdir)/libzmq
+
 if BUILD_CPU_ESTIMATOR
 
 noinst_PROGRAMS = estimate_cpu_freq

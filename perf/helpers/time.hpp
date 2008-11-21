@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-#include "../../zmq/stdint.hpp"
+#include <zmq/stdint.hpp>
 
 
 namespace perf

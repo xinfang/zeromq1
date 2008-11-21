@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bp_decoder.hpp"
-#include "wire.hpp"
+#include <zmq/bp_decoder.hpp>
+#include <zmq/wire.hpp>
 
 zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
     demux (demux_)

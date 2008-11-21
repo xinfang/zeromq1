@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mux.hpp"
-#include "raw_message.hpp"
+#include <zmq/mux.hpp>
+#include <zmq/raw_message.hpp>
 
 zmq::mux_t::mux_t () :
     current (0)

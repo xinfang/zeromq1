@@ -18,8 +18,8 @@ if BUILD_ZMQ_SERVER
 DIR_ZMQ_SERVER = zmq_server
 endif
 
-SUBDIRS = zmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples man
-DIST_SUBDIRS = zmq czmq pyzmq jzmq perf zmq_server examples man
+SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples man
+DIST_SUBDIRS = libzmq czmq pyzmq jzmq perf zmq_server examples man
 
 EXTRA_DIST = \
     ./perf/tests/scenarios/thr.sh \

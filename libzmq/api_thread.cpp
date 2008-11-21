@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "api_thread.hpp"
-#include "config.hpp"
+#include <zmq/api_thread.hpp>
+#include <zmq/config.hpp>
 
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)

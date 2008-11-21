@@ -20,12 +20,12 @@
 #include <assert.h>
 #include <string.h>
 
-#include "err.hpp"
-#include "locator.hpp"
-#include "bp_listener.hpp"
-#include "bp_engine.hpp"
-#include "config.hpp"
-#include "formatting.hpp"
+#include <zmq/err.hpp>
+#include <zmq/locator.hpp>
+#include <zmq/bp_listener.hpp>
+#include <zmq/bp_engine.hpp>
+#include <zmq/config.hpp>
+#include <zmq/formatting.hpp>
 
 zmq::locator_t::locator_t (const char *hostname_)
 {

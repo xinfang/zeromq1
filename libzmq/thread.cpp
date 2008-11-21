@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "thread.hpp"
-#include "err.hpp"
-#include "platform.hpp"
+#include <zmq/thread.hpp>
+#include <zmq/err.hpp>
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 

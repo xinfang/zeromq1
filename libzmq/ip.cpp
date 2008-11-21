@@ -23,9 +23,9 @@
 #include <string>
 #include <stdlib.h>
 
-#include "ip.hpp"
-#include "err.hpp"
-#include "stdint.hpp"
+#include <zmq/ip.hpp>
+#include <zmq/err.hpp>
+#include <zmq/stdint.hpp>
 
 #if defined ZMQ_HAVE_SOLARIS
 

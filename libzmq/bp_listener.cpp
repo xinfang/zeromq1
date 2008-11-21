@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bp_listener.hpp"
-#include "bp_engine.hpp"
-#include "config.hpp"
-#include "formatting.hpp"
+#include <zmq/bp_listener.hpp>
+#include <zmq/bp_engine.hpp>
+#include <zmq/config.hpp>
+#include <zmq/formatting.hpp>
 
 zmq::bp_listener_t *zmq::bp_listener_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *interface_, int handler_thread_count_,

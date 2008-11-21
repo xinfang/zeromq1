@@ -3,8 +3,8 @@
 AC_PREREQ(2.61)
 AC_INIT([zmq],[dev])
 AC_CONFIG_AUX_DIR(config)
-AM_CONFIG_HEADER(zmq/config.h)
-AM_CONFIG_HEADER(zmq/platform.hpp)
+AM_CONFIG_HEADER(libzmq/zmq/config.h)
+AM_CONFIG_HEADER(libzmq/zmq/platform.hpp)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
 AM_PROG_CC_C_O
@@ -290,7 +290,7 @@ AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 
-AC_OUTPUT(Makefile zmq/Makefile czmq/Makefile pyzmq/Makefile jzmq/Makefile \
+AC_OUTPUT(Makefile libzmq/Makefile czmq/Makefile pyzmq/Makefile jzmq/Makefile \
 perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 perf/tests/tcp/Makefile perf/helpers/Makefile examples/chat/Makefile \
@@ -306,7 +306,7 @@ AC_MSG_RESULT([  See the file COPYING and COPYING.LESSER for the full ])
 AC_MSG_RESULT([  license text. ])
 AC_MSG_RESULT([ ******************************************************** ])
 AC_MSG_RESULT([])
-AC_MSG_RESULT([ 0MQ install dir: $prefix])
+AC_MSG_RESULT([ libzmq install dir: $prefix])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Utilities:])
 AC_MSG_RESULT([   zmq_server: $zmq_server])
