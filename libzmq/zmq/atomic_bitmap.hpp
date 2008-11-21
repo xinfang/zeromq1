@@ -152,17 +152,10 @@ namespace zmq
             oldval = InterlockedExchange ((volatile LONG*) &value, newval_);
 #elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
             oldval = atomic_swap_32 (&value, newval_);
-#elif defined ZMQ_ATOMIC_BITMAP_X86 && defined __i386__
+#elif defined ZMQ_ATOMIC_BITMAP_X86
             oldval = newval_;
             __asm__ volatile (
-                "lock; xchgl %0, %1"
-                : "=r" (oldval)
-                : "m" (value), "0" (oldval)
-                : "memory");
-#elif defined ZMQ_ATOMIC_BITMAP_X86 && defined __x86_64__
-            oldval = newval_;
-            __asm__ volatile (
-                "lock; xchgq %0, %1"
+                "lock; xchg %0, %1"
                 : "=r" (oldval)
                 : "m" (value), "0" (oldval)
                 : "memory");
