@@ -36,7 +36,8 @@ zmq::i_thread *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
 
 zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_),
-    pollset (1)
+    pollset (1),
+    removed_fds (false)
 {
     //  Get limit on open file descriptors. Resize fds to make it able to
     //  hold all the descriptors.
@@ -101,17 +102,15 @@ void zmq::poll_thread_t::rm_fd (handle_t handle_)
     //  Remove the descriptor from pollset and engine list.
     int index = fds [handle_.fd];
     assert (index != -1);
-    pollset.erase (pollset.begin () + index);
-    engines.erase (engines.begin () + index - 1);
+    //  Mark fd for deletion, eg. setting fd to -1 and revents 0
+    pollset [index].fd = -1;
+    pollset [index].revents = 0;
+
+    //  We have fd scheduled for deletion
+    removed_fds = true;
 
     //  Mark the fd as unused.
     fds [handle_.fd] = -1;
-
-    //  Adjust fd list to match new indices to the pollset. To make it more
-    //  efficient we are traversing the pollset whitch is shorter than
-    //  fd list itself.
-    for (int i = index; i != (int) pollset.size (); i++)
-        fds [pollset [i].fd] = i;    
 }
 
 void zmq::poll_thread_t::set_pollin (handle_t handle_)
@@ -156,25 +155,49 @@ void zmq::poll_thread_t::loop ()
                 return;
         }
 
-        //  Process socket errors.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index < pollset.size (); pollset_index ++)
-            if (pollset [pollset_index].revents &
-                  (POLLNVAL | POLLERR | POLLHUP))
-                engines [pollset_index - 1]->error_event ();
-
         //  Process out events from the engines.
         for (pollset_t::size_type pollset_index = 1;
               pollset_index < pollset.size (); pollset_index ++)
             if (pollset [pollset_index].revents & POLLOUT)
                 engines [pollset_index - 1]->out_event ();
 
-        //  Process in events from the engines.
-        //  TODO: investigate the POLLHUP issue on OS X
+
+        //  Process the rest of the socket events.
         for (pollset_t::size_type pollset_index = 1;
-              pollset_index < pollset.size (); pollset_index ++)
-            if (pollset [pollset_index].revents & POLLIN)
+              pollset_index < pollset.size (); pollset_index ++) {
+
+            //  Invalid fd in poll
+            assert (pollset [pollset_index].revents != POLLNVAL);
+
+            if (pollset [pollset_index].revents &
+                  (POLLIN | POLLERR | POLLHUP)) {
+                //  Note that error is handled  by the
+                //  in_event in the case of error reading from 
+                //  socket.
                 engines [pollset_index - 1]->in_event ();
+            }
+        }
+
+        //  Check if we have some fd to delete from pollset
+        if (removed_fds) {
+            for (pollset_t::size_type pollset_index = 1; 
+                  pollset_index < pollset.size (); pollset_index ++) {
+                if (pollset [pollset_index].fd == -1 && 
+                      pollset [pollset_index].revents == 0) {
+                    pollset.erase (pollset.begin () + pollset_index);
+                    engines.erase (engines.begin () + pollset_index - 1);
+
+                    //  Adjust fd list to match new indices to the pollset. To make it more
+                    //  efficient we are traversing the pollset whitch is shorter than
+                    //  fd list itself.
+                    for (int i = pollset_index; i != (int) pollset.size (); i++)
+                        fds [pollset [i].fd] = i; 
+
+                }
+            }
+
+            removed_fds = false;
+        }
     }
 }
 

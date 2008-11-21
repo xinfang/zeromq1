@@ -123,7 +123,13 @@ void zmq::bp_engine_t::in_event ()
 
     //  The other party closed the connection.
     if (nbytes == -1) {
-        error_event ();
+        //  Remove the file descriptor from the pollset.
+        poller->rm_fd (handle);    
+
+        //  Ask all inbound & outound pipes to shut down.
+        demux.initialise_shutdown ();
+        mux.initialise_shutdown ();
+        shutting_down = true;
         return;
     }
 
@@ -155,7 +161,6 @@ void zmq::bp_engine_t::out_event ()
 
         //  The other party closed the connection.
         if (nbytes == -1) {
-            error_event ();
             return;
         }
 
@@ -163,16 +168,14 @@ void zmq::bp_engine_t::out_event ()
     }
 }
 
+
 void zmq::bp_engine_t::error_event ()
 {
-    //  Remove the file descriptor from the pollset.
-    poller->rm_fd (handle);    
-
-    //  Ask all inbound & outound pipes to shut down.
-    demux.initialise_shutdown ();
-    mux.initialise_shutdown ();
-    shutting_down = true;
+    //  Should no be called, it is in the process 
+    //  of removing error_event at all.
+    assert (false);
 }
+
 
 void zmq::bp_engine_t::unregister_event ()
 {

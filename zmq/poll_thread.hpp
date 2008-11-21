@@ -106,6 +106,9 @@ namespace zmq
         typedef std::vector <pollfd> pollset_t;
         pollset_t pollset;
 
+        //  If we have removed some fds
+        bool removed_fds;
+
         //  List of engines handled by this poll thread.
         typedef std::vector <i_pollable*> engines_t;
         engines_t engines;
