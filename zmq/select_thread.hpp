@@ -96,16 +96,23 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         thread_t *worker;
 
-        //  Set of file descriptors that are used to retreive
-        //  information for fd_set.
-        typedef std::vector <int> fd_set_t;
-        fd_set_t fdset;
+        typedef std::vector <int> fds_t;
+
+        //  Set of registered file descriptors. Strictly speaking this vector
+        //  is redundant (all the relevant info is present in different fd_sets,
+        //  however, iterating through small set of file descriptors is more
+        //  efficient than iterating through all the possible file descriptors.
+        fds_t fds;
+
+        //  List of file descriptors to remove before calling select anew.
+        fds_t fds_to_remove;
         
         fd_set source_set_in;
         fd_set source_set_out;
+        fd_set source_set_err;
         fd_set result_set_in;
         fd_set result_set_out;
-        fd_set error_set;
+        fd_set result_set_err;
         
         // Maximum file descriptor plus 1.
         int maxfdp1;

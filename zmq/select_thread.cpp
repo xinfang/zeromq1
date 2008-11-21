@@ -37,16 +37,13 @@ zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
     FD_ZERO (&source_set_out);
-    FD_ZERO (&result_set_in);
-    FD_ZERO (&result_set_out);
-    FD_ZERO (&error_set);
+    FD_ZERO (&source_set_err);
     
     //  Initialise the sets.
-    FD_SET (signaler.get_fd () , &source_set_in);
-    FD_SET (signaler.get_fd () , &error_set);
+    FD_SET (signaler.get_fd (), &source_set_in);
     
     //  Add file descriptor of signaler into the set.
-    fdset.push_back (signaler.get_fd ());
+    fds.push_back (signaler.get_fd ());
     maxfdp1 = signaler.get_fd () + 1;
     
     //  Register the thread with command dispatcher.
@@ -85,12 +82,11 @@ void zmq::select_thread_t::send_command (i_thread *destination_,
 
 zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 {
-//printf ("adding %d\n", fd_);
     //  Set maxfdp1 as maximum file descriptor plus 1.
     if(maxfdp1 <= fd_)
         maxfdp1 = fd_ + 1;
         
-    fdset.push_back(fd_);   
+    fds.push_back(fd_);   
     engines.push_back (engine_);
 
     handle_t handle;
@@ -100,17 +96,18 @@ zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::select_thread_t::rm_fd (handle_t handle_)
 {
-//printf ("removing %d\n", handle_.fd);
     //  Stop polling on the descriptor.
     FD_CLR (handle_.fd, &source_set_in);
     FD_CLR (handle_.fd, &source_set_out);
+    FD_CLR (handle_.fd, &source_set_err);
 
-    //  Forget about the descriptor and the associated engine.
-    fd_set_t::iterator it = std::find (fdset.begin (), fdset.end (),
-        handle_.fd);
-    assert (it != fdset.end ());
-    engines.erase (engines.begin () + (it - fdset.begin () - 1));
-    fdset.erase (it);
+    //  Discard any pending events on the file descriptor.
+    FD_CLR (handle_.fd, &result_set_in);
+    FD_CLR (handle_.fd, &result_set_out);
+    FD_CLR (handle_.fd, &result_set_err);
+
+    //  Mark the file descriptor as scheduled for removal.
+    fds_to_remove.push_back (handle_.fd);
 }
 
 void zmq::select_thread_t::set_pollin (handle_t handle_)
@@ -146,15 +143,11 @@ void zmq::select_thread_t::loop ()
         //  Wait for events.
         memcpy (&result_set_in, &source_set_in, sizeof (source_set_in));
         memcpy (&result_set_out, &source_set_out, sizeof (source_set_out));
-        FD_ZERO (&error_set);
-        for (fd_set_t::size_type index = 0; index != fdset.size (); 
-              index ++)
-            FD_SET (fdset [index], &error_set);
-
+        memcpy (&result_set_err, &source_set_err, sizeof (source_set_err));
         int rc = 0;
         while (rc == 0) { 
             rc = select (maxfdp1, &result_set_in, &result_set_out,
-                &error_set, NULL);
+                &result_set_err, NULL);
 #ifdef ZMQ_HAVE_WINDOWS
             wsa_assert (rc != SOCKET_ERROR);
 #else
@@ -163,31 +156,33 @@ void zmq::select_thread_t::loop ()
         }
 
         //  First of all, process commands from other threads.
-        if (FD_ISSET(fdset [0], &result_set_in))   {
+        if (FD_ISSET (fds [0], &result_set_in))   {
             uint32_t signals = signaler.check ();
             assert (signals);
             if (!process_commands (signals))
                 return;
         }
 
-        //  Process socket errors.
-        for (fd_set_t::size_type index = 1; index != fdset.size (); 
-            index ++) 
-            if (FD_ISSET (fdset [index], &error_set)) 
-                engines [index - 1]->error_event ();
-           
-        //  Process out events from the engines.
-        for (fd_set_t::size_type index = 1; index !=fdset.size ();
-            index ++) 
-            if (FD_ISSET (fdset [index], &result_set_out)) 
-               engines [index - 1]->out_event ();
-       
-        //  Process in events from the engines.
-        for (fd_set_t::size_type index = 1; index !=fdset.size();
-            index ++) 
-            if (FD_ISSET (fdset [index], &result_set_in)) 
+        //  Handle all in/out/err socket events.
+        for (fds_t::size_type index = 1; index != fds.size (); 
+            index ++) {
+            if (FD_ISSET (fds [index], &result_set_out))
+                engines [index - 1]->out_event ();
+            if (FD_ISSET (fds [index], &result_set_in) ||
+                  FD_ISSET (fds [index], &result_set_err))
                 engines [index - 1]->in_event ();
-           
+        }
+    
+        //  Erase all file descriptors scheduled for removal.
+        for (fds_t::size_type index = 0; index != fds_to_remove.size ();
+              index ++) {
+            fds_t::iterator it = std::find (fds.begin (), fds.end (),
+                fds_to_remove [index]);
+            assert (it != fds.end ());
+            engines.erase (engines.begin () + (it - fds.begin () - 1));
+            fds.erase (it);
+        }
+        fds_to_remove.clear ();
     }
 }
 
