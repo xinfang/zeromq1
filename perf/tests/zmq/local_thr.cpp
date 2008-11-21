@@ -23,7 +23,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "../../transports/zmq.hpp"
+#include "../../transports/zmq_transport.hpp"
 #include "../scenarios/thr.hpp"
 #include "../../helpers/functions.hpp"
 

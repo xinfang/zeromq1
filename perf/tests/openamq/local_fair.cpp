@@ -23,7 +23,7 @@
 
 using namespace std;
 
-#include "../../transports/openamq.hpp"
+#include "../../transports/openamq_transport.hpp"
 
 int main (int argc, char *argv [])
 {

@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "../../transports/zmq.hpp"
+#include "../../transports/zmq_transport.hpp"
 #include "../scenarios/fo.hpp"
 
 using namespace std;

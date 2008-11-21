@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "../../transports/tcp.hpp"
+#include "../../transports/tcp_transport.hpp"
 #include "../scenarios/thr.hpp"
 
 using namespace std;

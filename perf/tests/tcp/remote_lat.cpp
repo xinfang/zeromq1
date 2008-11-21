@@ -21,7 +21,7 @@
 #include <iostream>
 #include <cstdio>
 
-#include "../../transports/tcp.hpp"
+#include "../../transports/tcp_transport.hpp"
 #include "../scenarios/lat.hpp"
 
 using namespace std;

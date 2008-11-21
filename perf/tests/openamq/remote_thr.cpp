@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-#include "../../transports/openamq.hpp"
+#include "../../transports/openamq_transport.hpp"
 #include "../scenarios/thr.hpp"
 #include "../../helpers/functions.hpp"
 

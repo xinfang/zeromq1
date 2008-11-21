@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-#include "../../transports/openamq.hpp"
+#include "../../transports/openamq_transport.hpp"
 #include "../scenarios/lat.hpp"
 
 using namespace std;

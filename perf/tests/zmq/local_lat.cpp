@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cstdio>
-#include "../../transports/zmq.hpp"
+#include "../../transports/zmq_transport.hpp"
 #include "../scenarios/lat.hpp"
 
 using namespace std;
