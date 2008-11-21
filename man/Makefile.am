@@ -6,5 +6,9 @@ install-data-hook:
 		$(INSTALL_DATA) "./man3/zmq__dispatcher_t.3" "$(DESTDIR)$(mandir)/man3/zmq::dispatcher_t.3";
 		$(INSTALL_DATA) "./man3/zmq__locator_t.3" "$(DESTDIR)$(mandir)/man3/zmq::locator_t.3";
 		$(INSTALL_DATA) "./man3/zmq__message_t.3" "$(DESTDIR)$(mandir)/man3/zmq::message_t.3";
+		$(INSTALL_DATA) "./man3/zmq__select_thread_t.3" "$(DESTDIR)$(mandir)/man3/zmq::select_thread_t.3";
 		$(INSTALL_DATA) "./man3/zmq__poll_thread_t.3" "$(DESTDIR)$(mandir)/man3/zmq::poll_thread_t.3";
+		$(INSTALL_DATA) "./man3/zmq__epoll_thread_t.3" "$(DESTDIR)$(mandir)/man3/zmq::epoll_thread_t.3";
+		$(INSTALL_DATA) "./man3/zmq__devpoll_thread_t.3" "$(DESTDIR)$(mandir)/man3/zmq::devpoll_thread_t.3";
+		$(INSTALL_DATA) "./man3/zmq__kqueue_thread_t.3" "$(DESTDIR)$(mandir)/man3/zmq::kqueue_thread_t.3";
 		$(INSTALL_DATA) "./man3/zmq__set_error_handler.3" "$(DESTDIR)$(mandir)/man3/zmq::set_error_handler.3";

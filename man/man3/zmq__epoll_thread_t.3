@@ -1,7 +1,7 @@
-.TH zmq::poll_thread_t 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.TH zmq::epoll_thread_t 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
 .SH NAME
-zmq::poll_thread_t \- I/O thread handling network traffic using
-POSIX 'poll' mechanism
+zmq::epoll_thread_t \- I/O thread handling network traffic using
+Linux 'epoll' mechanism
 .SH SYNOPSIS
 \fB
 .nf
@@ -9,7 +9,7 @@ POSIX 'poll' mechanism
 
 namespace zmq
 {
-    class poll_thread_t
+    class epoll_thread_t
     {
         static i_thread *create (dispatcher_t *dispatcher);
     };
@@ -17,15 +17,15 @@ namespace zmq
 .fi
 \fP
 .SH DESCRIPTION
-The poll thread class encapsulates an OS thread that handles 0MQ network
+The epoll thread class encapsulates an OS thread that handles 0MQ network
 traffic. The mechanism used for signaling between kernel space and
 user space is the
-.BR poll (2)
-function. Once you create a poll thread you can use it when creating exchanges,
-queues and bindings.
+.BR epoll (7)
+mechanism. Once you create an epoll thread you can use it when creating
+exchanges, queues and bindings.
 .SH METHODS
-.IP "\fBstatic poll_thread_t *create (dispatcher_t *dispatcher)\fP"
-Creates a poll thread and plugs it into the supplied
+.IP "\fBstatic epoll_thread_t *create (dispatcher_t *dispatcher)\fP"
+Creates an epoll thread and plugs it into the supplied
 .IR dispatcher .
 Note that there is no way to destroy the thread explicitly. It will be destroyed
 automatically when the dispatcher itself is deallocated.
@@ -38,7 +38,7 @@ int main ()
 {
     dispatcher_t dispatcher (2);
     locator_t locator ("localhost");
-    i_thread *pt = poll_thread_t::create (&dispatcher);
+    i_thread *pt = epoll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
     api->create_exchange ("E", scope_global, "eth0:5555", pt, 1, &pt);
     api->create_queue ("Q", scope_global, "eth0:5556", pt, 1, &pt);
@@ -46,13 +46,13 @@ int main ()
 }
 .fi
 .SH NOTE
-The object is available only on platforms that support POSIX poll function.
+The object is available only on platforms that support epoll mechanism.
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>
 .SH "SEE ALSO"
 .BR zmq::dispatcher_t (3),
 .BR zmq::api_thread_t (3),
 .BR zmq::select_thread_t (3),
-.BR zmq::epoll_thread_t (3),
+.BR zmq::poll_thread_t (3),
 .BR zmq::devpoll_thread_t (3),
 .BR zmq::kqueue_thread_t (3)

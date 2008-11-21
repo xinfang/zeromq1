@@ -196,7 +196,7 @@ int main ()
 {
     dispatcher_t dispatcher (2);
     locator_t locator ("localhost");
-    poll_thread_t *pt = poll_thread_t::create (&dispatcher);
+    i_thread *pt = poll_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
     int eid = api->create_exchange ("E", scope_global, "eth0", pt, 1, &pt);
     api->create_queue ("Q", scope_global, "eth0", pt, 1, &pt);
@@ -213,6 +213,10 @@ int main ()
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>
 .SH "SEE ALSO"
-.BR zmq_dispatcher (3),
-.BR zmq_poll_thread (3),
-.BR zmq_message (3) 
+.BR zmq::dispatcher_t (3),
+.BR zmq::message_t (3),
+.BR zmq::select_thread_t (3),
+.BR zmq::poll_thread_t (3),
+.BR zmq::epoll_thread_t (3),
+.BR zmq::devpoll_thread_t (3),
+.BR zmq::kqueue_thread_t (3)
