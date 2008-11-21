@@ -223,7 +223,10 @@ void devpoll_thread_t::loop ()
         int n = ioctl (devpoll_fd, DP_POLL, &poll_req);
         errno_assert (n != -1);
 
+        // Process individual events.
         for (struct pollfd *pfd = &poll_buf [0]; pfd < &poll_buf [n]; pfd++) {
+
+            //  "There are commands from other threads" event.
             if (pfd->fd == signaler.get_fd ()) {
                 if (pfd->revents & POLLIN) {
                     uint32_t signals = signaler.check ();
@@ -237,15 +240,11 @@ void devpoll_thread_t::loop ()
                 assert (pe != NULL);
 
                 //  Process out events from the engine.
-                if (pfd->revents & (POLLERR | POLLHUP))
-                    pe->engine->error_event ();
-
-                //  Process out events from the engine.
                 if (pfd->revents & POLLOUT)
                     pe->engine->out_event ();
 
                 //  Process in events from the engine.
-                if (pfd->revents & POLLIN)
+                if (pfd->revents & (POLLIN | POLLERR | POLLHUP))
                     pe->engine->in_event ();
             }
         }

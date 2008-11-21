@@ -168,15 +168,6 @@ void zmq::bp_engine_t::out_event ()
     }
 }
 
-
-void zmq::bp_engine_t::error_event ()
-{
-    //  Should no be called, it is in the process 
-    //  of removing error_event at all.
-    assert (false);
-}
-
-
 void zmq::bp_engine_t::unregister_event ()
 {
     //  TODO: Implement this.

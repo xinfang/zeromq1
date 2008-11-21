@@ -147,13 +147,6 @@ void zmq::bp_listener_t::out_event ()
     assert (false);
 }
 
-void zmq::bp_listener_t::error_event()
-{
-    //  TODO: Can listening socket fail? And if so, what should be the action
-    //  to be taken.
-    assert (false);
-}
-
 void zmq::bp_listener_t::unregister_event ()
 {
     //  TODO: implement this

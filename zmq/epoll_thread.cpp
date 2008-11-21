@@ -170,10 +170,10 @@ void epoll_thread_t::loop ()
         int rc = epoll_wait (epfd, events, epoll_max_events, -1);
         errno_assert (rc != -1);
 
-        // Process commands from other threads first.
-        for (struct epoll_event *ep = events; ep < &events [rc]; ep++)
+        // Process individual events.
+        for (epoll_event *ep = events; ep < &events [rc]; ep++) {
 
-            //  Check for commands from other threads.
+            //  "There are commands from other threads" event.
             if (ep->data.ptr == NULL && ep->events & EPOLLIN) {
                 uint32_t signals = signaler.check ();
                 assert (signals);
@@ -185,17 +185,14 @@ void epoll_thread_t::loop ()
                 engine = ((struct poll_entry *) ep->data.ptr)->engine;
 
                 //  Process out events from the engine.
-                if (ep->events & (EPOLLERR | EPOLLHUP))
-                    engine->error_event ();
-
-                //  Process out events from the engine.
                 if (ep->events & EPOLLOUT)
                     engine->out_event();
 
                 //  Process in events from the engine.
-                if (ep->events & EPOLLIN)
-                    engine->in_event();
+                if (ep->events & (EPOLLIN | EPOLLERR | EPOLLHUP))
+                    engine->in_event ();
             }
+        }
     }
 }
 

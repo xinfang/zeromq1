@@ -168,7 +168,7 @@ void zmq::poll_thread_t::loop ()
               pollset_index < pollset.size (); pollset_index ++) {
 
             //  Invalid fd in poll
-            assert (pollset [pollset_index].revents != POLLNVAL);
+            assert (!(pollset [pollset_index].revents & POLLNVAL));
 
             if (pollset [pollset_index].revents &
                   (POLLIN | POLLERR | POLLHUP)) {

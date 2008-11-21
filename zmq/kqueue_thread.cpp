@@ -195,7 +195,10 @@ void kqueue_thread_t::loop ()
             epoll_max_events, NULL);
         errno_assert (n != -1);
 
+        // Process individual events.
         for (struct kevent *ev = &ev_buf [0]; ev < &ev_buf [n]; ev++) {
+
+            //  "There are commands from other threads" event.
             if (ev->ident == (u_int) signaler.get_fd ()) {
                 assert ((ev->flags & EV_EOF) == 0);
                 uint32_t signals = signaler.check ();
@@ -207,16 +210,12 @@ void kqueue_thread_t::loop ()
                 struct poll_entry *pe = (struct poll_entry*) ev->udata;
                 assert (pe != NULL);
 
-                //  Handle errors
-                if (ev->flags & EV_EOF)
-                    pe->engine->error_event ();
-
                 //  Process out events from the engine.
                 if (ev->filter == EVFILT_WRITE)
                     pe->engine->out_event ();
 
                 //  Process in events from the engine.
-                if (ev->filter == EVFILT_READ)
+                if (ev->filter == EVFILT_READ || ev->flags & EV_EOF)
                     pe->engine->in_event ();
             }
         }
