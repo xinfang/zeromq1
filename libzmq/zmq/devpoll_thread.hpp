@@ -31,18 +31,17 @@
 namespace zmq
 {
 
-    //  Implements i_event_monitor interface using the Solaris-specific
+    //  Implements socket polling mechanism using the Solaris-specific
     //  "/dev/poll" interface. The class is used when instantiating the poller
     //  template to generate the devpoll_thread_t class.
 
-    class devpoll_t : public i_event_monitor
+    class devpoll_t
     {
     public:
 
         devpoll_t ();
-        virtual ~devpoll_t ();
+        ~devpoll_t ();
 
-        //  i_event_monitor interface implementation.
         cookie_t add_fd (int fd_, void *udata_);
         void rm_fd (cookie_t handle_);
         void set_pollin (cookie_t handle_);

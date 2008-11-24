@@ -30,10 +30,35 @@
 #include "ysocketpair.hpp"
 #include "thread.hpp"
 
-#include "i_event_monitor.hpp"
-
 namespace zmq
 {
+
+    union cookie_t {
+        int fd;
+        void *ptr;
+    };
+
+    enum events {
+
+        //  The file contains some data.
+        ZMQ_EVENT_IN,
+
+        //  The file can accept some more data.
+        ZMQ_EVENT_OUT,
+
+        //  There was an error on file descriptor.
+        ZMQ_EVENT_ERR
+    };
+
+    //  The wait() method uses this structure to pass an event to its caller.
+    struct event_t {
+        int fd;
+        enum events name;
+        void *udata;
+    };
+
+    typedef std::vector <event_t> event_list_t;
+
     struct event_source_t {
         i_pollable *engine;
         cookie_t cookie;

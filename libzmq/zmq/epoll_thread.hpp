@@ -27,24 +27,22 @@
 #include <sys/epoll.h>
 #include <vector>
 
-#include "i_event_monitor.hpp"
 #include "poller.hpp"
 
 namespace zmq
 {
 
-    //  Implements i_event_monitor interface using the Linux-specific
+    //  Implements socket polling mechanism using the Linux-specific
     //  epoll mechanism. The class is used when  instantiating the poller
     //  template to generate the epoll_thread_t class.
 
-    class epoll_t : public i_event_monitor
+    class epoll_t
     {
     public:
 
         epoll_t ();
         virtual ~epoll_t ();
 
-        //  i_event_monitor interface implementation.
         cookie_t add_fd (int fd_, void *udata_);
         void rm_fd (cookie_t cookie_);
         void set_pollin (cookie_t cookie_);

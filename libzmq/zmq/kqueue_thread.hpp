@@ -30,18 +30,17 @@
 namespace zmq
 {
 
-    //  Implements i_event_monitor interface using the BSD*-specific
+    //  Implements socket polling mechanism using the BSD*-specific
     //  kqueue interface. This class is used to instantiate the poller
     //  template to generate the kqueue_thread_t class.
 
-    class kqueue_t : public i_event_monitor
+    class kqueue_t
     {
     public:
 
         kqueue_t ();
-        virtual ~kqueue_t ();
+        ~kqueue_t ();
 
-        //  i_event_monitor interface implementation.
         cookie_t add_fd (int fd_, void *udata_);
         void rm_fd (cookie_t cookie_);
         void set_pollin (cookie_t cookie_);

@@ -28,18 +28,16 @@
 namespace zmq
 {
 
-    //  Implements i_event_monitor interface using POSIX.1-2001 select()
+    //  Implements socket polling mechanism using POSIX.1-2001 select()
     //  function. The class is used to instatntiate the poller template
     //  to generate the select_thread_t class.
 
-    class select_t : public i_event_monitor
+    class select_t
     {
     public:
 
         select_t ();
-        virtual ~select_t () {}
 
-        //  i_event_monitor interface
         cookie_t add_fd (int fd_, void *udata_);
         void rm_fd (cookie_t cookie_);
         void set_pollin (cookie_t cookie_);
