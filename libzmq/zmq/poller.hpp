@@ -99,10 +99,6 @@ namespace zmq
         //  terminate.
         bool process_command (const command_t &command_);
 
-        //  Processes commands from other threads. Returns false if the thread
-        //  should terminate.
-        bool process_commands (uint32_t signals_);
-
         //  Pointer to dispatcher.
         dispatcher_t *dispatcher;
 
@@ -260,8 +256,22 @@ void zmq::poller_t <T>::loop ()
             if (ev_source == &ctl_desc) {
                 uint32_t signals = signaler.check ();
                 assert (signals);
-                if (!process_commands (signals))
-                    return;
+
+                //  Iterate through all the threads in the process and find out
+                //  which of them sent us commands.
+                for (int source_thread_id = 0;
+                      source_thread_id != dispatcher->get_thread_count ();
+                      source_thread_id ++) {
+                    if (signals & (1 << source_thread_id)) {
+
+                        //  Read all the commands from particular thread.
+                        command_t command;
+                        while (dispatcher->read (source_thread_id, thread_id,
+                              &command))
+                            if (!process_command (command))
+                                return;
+                    }
+                }
             }
             else {
                 switch (events [i].name) {
@@ -337,26 +347,6 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 
     if (command_.type == command_t::stop)
         return false;
-    return true;
-}
-
-template <class T>
-bool zmq::poller_t <T>::process_commands (uint32_t signals_)
-{
-    //  Iterate through all the threads in the process and find out which
-    //  of them sent us commands.
-    for (int source_thread_id = 0;
-          source_thread_id != dispatcher->get_thread_count ();
-          source_thread_id ++) {
-        if (signals_ & (1 << source_thread_id)) {
-
-            //  Read all the commands from particular thread.
-            command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command))
-                if (!process_command (command))
-                    return false;
-        }
-    }
     return true;
 }
 
