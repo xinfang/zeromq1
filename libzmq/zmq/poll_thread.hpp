@@ -20,102 +20,60 @@
 #ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
-#include "export.hpp"
 #include "platform.hpp"
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO
 
-#include <stddef.h>
-#include <assert.h>
 #include <poll.h>
+#include <stddef.h>
+#include <vector>
 
-#include "export.hpp"
-#include "i_pollable.hpp"
-#include "i_poller.hpp"
-#include "dispatcher.hpp"
-#include "ysocketpair.hpp"
-#include "thread.hpp"
+#include "poller.hpp"
 
 namespace zmq
 {
 
-    //  Poll thread is a I/O thread that waits for events from engines
-    //  using POSIX poll function and schedules handling of the signals
-    //  by individual engines. Engine compatible with poll thread should
-    //  expose i_pollable interface.
+    //  Implements the i_event_monitor interface using the POSIX.1-2001
+    //  poll() system call. The class is used when instatntiating the poller
+    //  template to generate the poll_thread_t class.
 
-    class poll_thread_t : public i_poller
+    class poll_t : public i_event_monitor
     {
     public:
 
-        //  Create a poll thread.
-        ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
+        poll_t ();
+        virtual ~poll_t () {}
 
-        //  Destroy the poll thread.
-        ZMQ_EXPORT ~poll_thread_t ();
-
-        //  i_poller implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
-        handle_t add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (handle_t handle_);
-        void set_pollin (handle_t handle_);
-        void reset_pollin (handle_t handle_);
-        void set_pollout (handle_t handle_);
-        void reset_pollout (handle_t handle_);
+        //  i_event_monitor interface
+        cookie_t add_fd (int fd_, void *udata_);
+        void rm_fd (cookie_t cookie_);
+        void set_pollin (cookie_t cookie_);
+        void reset_pollin (cookie_t cookie_);
+        void set_pollout (cookie_t cookie_);
+        void reset_pollout (cookie_t cookie_);
+        void wait (event_list_t &event_list_);
 
     private:
 
-        poll_thread_t (dispatcher_t *dispatcher_);
+        struct fd_entry {
+            int index;
+            void *udata;
+        };
 
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main routine (non-static) - called from worker_routine.
-        void loop ();
-
-        //  Processes individual command. Returns false if the thread should
-        //  terminate.
-        bool process_command (const command_t &command_);
-
-        //  Processes commands from other threads. Returns false if the thread
-        //  should terminate.
-        bool process_commands (uint32_t signals_);
-
-        //  Pointer to dispatcher.
-        dispatcher_t *dispatcher;
-
-        //  Thread ID allocated for the poll thread by dispatcher.
-        int thread_id;
-
-        //  Poll thread gets notifications about incoming commands using
-        //  this socketpair.
-        ysocketpair_t signaler;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t *worker;
-
-        //  Table to map file descriptors to pollset indices. Note that index
-        //  to engines table = pollset index - 1.
-        typedef std::vector <int> fds_t;
-        fds_t fds;
+        //  This table stores data for registered descriptors.
+        std::vector <fd_entry> fd_table;
 
         //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;
         pollset_t pollset;
 
-        //  If we have removed some fds
-        bool removed_fds;
-
-        //  List of engines handled by this poll thread.
-        typedef std::vector <i_pollable*> engines_t;
-        engines_t engines;
-
-        poll_thread_t (const poll_thread_t&);
-        void operator = (const poll_thread_t&);
+        poll_t (const poll_t&);
+        void operator = (const poll_t&);
     };
+
+    typedef poller_t <poll_t> poll_thread_t;
 
 }
 

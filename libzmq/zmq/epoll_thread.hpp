@@ -21,93 +21,55 @@
 #define __ZMQ_EPOLL_THREAD_HPP_INCLUDED__
 
 #include "platform.hpp"
+
 #ifdef ZMQ_HAVE_LINUX
 
-#include <map>
 #include <sys/epoll.h>
+#include <vector>
 
-#include "i_pollable.hpp"
-#include "i_poller.hpp"
-#include "dispatcher.hpp"
-#include "ysocketpair.hpp"
-#include "thread.hpp"
+#include "i_event_monitor.hpp"
+#include "poller.hpp"
 
 namespace zmq
 {
 
-    //  Epoll thread is an I/O thread that waits for events from engines
-    //  using Linux-specific epoll function and schedules handling of the
-    //  signals by individual engines. An engine compatible with epoll
-    //  thread should implement i_pollable interface.
+    //  Implements i_event_monitor interface using the Linux-specific
+    //  epoll mechanism. The class is used when  instantiating the poller
+    //  template to generate the epoll_thread_t class.
 
-    class epoll_thread_t : public i_poller
+    class epoll_t : public i_event_monitor
     {
     public:
 
-        //  Create epoll thread.
-        static i_thread *create (dispatcher_t *dispatcher_);
+        epoll_t ();
+        virtual ~epoll_t ();
 
-        //  Destroy the poll thread.
-        ~epoll_thread_t ();
-
-        //  i_poller implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
-        handle_t add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (handle_t handle_);
-        void set_pollin (handle_t handle_);
-        void reset_pollin (handle_t handle_);
-        void set_pollout (handle_t handle_);
-        void reset_pollout (handle_t handle_);
+        //  i_event_monitor interface implementation.
+        cookie_t add_fd (int fd_, void *udata_);
+        void rm_fd (cookie_t cookie_);
+        void set_pollin (cookie_t cookie_);
+        void reset_pollin (cookie_t cookie_);
+        void set_pollout (cookie_t cookie_);
+        void reset_pollout (cookie_t cookie_);
+        void wait (event_list_t &event_list_);
 
     private:
 
-        epoll_thread_t (dispatcher_t *dispatcher_);
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main routine (non-static) - called from worker_routine.
-        void loop ();
-
-        //  Processes individual command. Returns false if the thread should
-        //  terminate.
-        bool process_command (const command_t &command_);
-
-        //  Processes commands from other threads. Returns false if the thread
-        //  should terminate.
-        bool process_commands (uint32_t signals_);
-
         // Epoll file descriptor
-        int epfd;
-
-        //  Pointer to dispatcher.
-        dispatcher_t *dispatcher;
-
-        //  Thread ID allocated for the poll thread by dispatcher.
-        int thread_id;
-
-        //  We get notifications about incoming commands using
-        //  this socketpair.
-        ysocketpair_t signaler;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t *worker;
+        int epoll_fd;
 
         // poll_entry
         struct poll_entry {
             int fd;
             struct epoll_event ev;
-            i_pollable *engine;
+            void *udata;
         };
 
-        //  All registered engines are stored in a common table.
-        typedef std::map <void*, int> object_table_t;
-        object_table_t engines;
-
-        epoll_thread_t (const epoll_thread_t&);
-        void operator = (const epoll_thread_t&);
+        epoll_t (const epoll_t&);
+        void operator = (const epoll_t&);
     };
+
+    typedef poller_t <epoll_t> epoll_thread_t;
 
 }
 

@@ -17,233 +17,120 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "platform.hpp"
+
 #include <algorithm>
+#include <string.h>
 
-#include <zmq/platform.hpp>
-#include <zmq/select_thread.hpp>
+#ifdef ZMQ_HAVE_WINDOWS
+#include "winsock2.h"
+#else
+#include <sys/select.h>
+#endif
+
 #include <zmq/err.hpp>
+#include <zmq/select_thread.hpp>
 
-zmq::i_thread *zmq::select_thread_t::create (dispatcher_t *dispatcher_)
-{
-    select_thread_t *instance = new select_thread_t (dispatcher_);
-    assert (instance);
-    return instance;
-}
-
-zmq::select_thread_t::select_thread_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_)
-  
+zmq::select_t::select_t () :
+    fd_table (FD_SETSIZE), maxfd (-1)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
     FD_ZERO (&source_set_out);
     FD_ZERO (&source_set_err);
-    
-    //  Initialise the sets.
-    FD_SET (signaler.get_fd (), &source_set_in);
-    
-    //  Add file descriptor of signaler into the set.
-    fds.push_back (signaler.get_fd ());
-    maxfdp1 = signaler.get_fd () + 1;
-    
-    //  Register the thread with command dispatcher.
-    thread_id = dispatcher->allocate_thread_id (&signaler);
 
-    //  Create the worker thread.
-    worker = new thread_t (worker_routine, this);
+    for (int i = 0; i < FD_SETSIZE; i ++)
+        fd_table [i].in_use = false;
 }
 
-zmq::select_thread_t::~select_thread_t ()
+zmq::cookie_t zmq::select_t::add_fd (int fd_, void *udata_)
 {
-    //  Send a 'stop' event ot the worker thread.
-    //  TODO: Analyse whether using the 'to-self' command pipe here
-    //        is appropriate.
-    command_t cmd;
-    cmd.init_stop ();
-    dispatcher->write (thread_id, thread_id, cmd);
+    assert (!fd_table [fd_].in_use);
+    fd_table [fd_].udata = udata_;
+    fd_table [fd_].in_use = true;
 
-    //  Wait till worker thread terminates.
-    delete worker;
+    fds.push_back (fd_);
+    FD_SET (fd_, &source_set_err);
+
+    //  Adjust maxfd if necessary.
+    if (fd_ > maxfd)
+        maxfd = fd_;
+
+    cookie_t cookie;
+    cookie.fd = fd_;
+    return cookie;
 }
 
-int zmq::select_thread_t::get_thread_id ()
+void zmq::select_t::rm_fd (cookie_t cookie_)
 {
-    return thread_id;
+    //  Mark descriptor as unused.
+    int fd = cookie_.fd;
+    fd_table [fd].in_use = false;
+
+    //  Update descriptor sets.
+    FD_CLR (fd, &source_set_in);
+    FD_CLR (fd, &source_set_out);
+    FD_CLR (fd, &source_set_err);
+
+    //  Adjust the maxfd attribute if we have removed the
+    //  highest-numbered file descriptor.
+    while (maxfd >= 0 && !fd_table [maxfd].in_use)
+        maxfd --;
+
+    fd_set_t::iterator it = std::find (fds.begin (), fds.end (), fd);
+    assert (it != fds.end ());
+    fds.erase (it);
 }
 
-void zmq::select_thread_t::send_command (i_thread *destination_,
-    const command_t &command_)
+void zmq::select_t::set_pollin (cookie_t cookie_)
 {
-    if (destination_ == (i_thread*) this)
-        process_command (command_);
-    else
-        dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+    FD_SET (cookie_.fd, &source_set_in);
 }
 
-zmq::handle_t zmq::select_thread_t::add_fd (int fd_, i_pollable *engine_)
+void zmq::select_t::reset_pollin (cookie_t cookie_)
 {
-    //  Set maxfdp1 as maximum file descriptor plus 1.
-    if(maxfdp1 <= fd_)
-        maxfdp1 = fd_ + 1;
-        
-    fds.push_back(fd_);   
-    engines.push_back (engine_);
-
-    handle_t handle;
-    handle.fd = fd_;
-    return handle;
+    FD_CLR (cookie_.fd, &source_set_in);
 }
 
-void zmq::select_thread_t::rm_fd (handle_t handle_)
+void zmq::select_t::set_pollout (cookie_t cookie_)
 {
-    //  Stop polling on the descriptor.
-    FD_CLR (handle_.fd, &source_set_in);
-    FD_CLR (handle_.fd, &source_set_out);
-    FD_CLR (handle_.fd, &source_set_err);
-
-    //  Discard any pending events on the file descriptor.
-    FD_CLR (handle_.fd, &result_set_in);
-    FD_CLR (handle_.fd, &result_set_out);
-    FD_CLR (handle_.fd, &result_set_err);
-
-    //  Mark the file descriptor as scheduled for removal.
-    fds_to_remove.push_back (handle_.fd);
+    FD_SET (cookie_.fd, &source_set_out);
 }
 
-void zmq::select_thread_t::set_pollin (handle_t handle_)
+void zmq::select_t::reset_pollout (cookie_t cookie_)
 {
-    FD_SET (handle_.fd, &source_set_in);
+    FD_CLR (cookie_.fd, &source_set_out);
 }
 
-void zmq::select_thread_t::reset_pollin (handle_t handle_)
+void zmq::select_t::wait (event_list_t &event_list)
 {
-     FD_CLR (handle_.fd, &source_set_in);
-}
+    memcpy (&readfds, &source_set_in, sizeof source_set_in);
+    memcpy (&writefds, &source_set_out, sizeof source_set_out);
+    memcpy (&exceptfds, &source_set_err, sizeof source_set_err);
 
-void zmq::select_thread_t::set_pollout (handle_t handle_)
-{
-    FD_SET (handle_.fd, &source_set_out);
-}
-
-void zmq::select_thread_t::reset_pollout (handle_t handle_)
-{
-    FD_CLR (handle_.fd, &source_set_out);
-}
-
-void zmq::select_thread_t::worker_routine (void *arg_)
-{
-    select_thread_t *self = (select_thread_t*) arg_;
-    self->loop ();
-}
-
-void zmq::select_thread_t::loop ()
-{
-    while (true)
-    {  
-        //  Wait for events.
-        memcpy (&result_set_in, &source_set_in, sizeof (source_set_in));
-        memcpy (&result_set_out, &source_set_out, sizeof (source_set_out));
-        memcpy (&result_set_err, &source_set_err, sizeof (source_set_err));
-        int rc = 0;
-        while (rc == 0) { 
-            rc = select (maxfdp1, &result_set_in, &result_set_out,
-                &result_set_err, NULL);
+    while (true) {
+        int rc = select (maxfd + 1, &readfds, &writefds, &exceptfds, NULL);
 #ifdef ZMQ_HAVE_WINDOWS
-            wsa_assert (rc != SOCKET_ERROR);
+        wsa_assert (rc != SOCKET_ERROR);
 #else
-            errno_assert (rc != -1);
+        errno_assert (rc != -1);
 #endif
-        }
-
-        //  First of all, process commands from other threads.
-        if (FD_ISSET (fds [0], &result_set_in))   {
-            uint32_t signals = signaler.check ();
-            assert (signals);
-            if (!process_commands (signals))
-                return;
-        }
-
-        //  Handle all in/out/err socket events.
-        for (fds_t::size_type index = 1; index != fds.size (); 
-            index ++) {
-            if (FD_ISSET (fds [index], &result_set_out))
-                engines [index - 1]->out_event ();
-            if (FD_ISSET (fds [index], &result_set_in) ||
-                  FD_ISSET (fds [index], &result_set_err))
-                engines [index - 1]->in_event ();
-        }
-    
-        //  Erase all file descriptors scheduled for removal.
-        for (fds_t::size_type index = 0; index != fds_to_remove.size ();
-              index ++) {
-            fds_t::iterator it = std::find (fds.begin (), fds.end (),
-                fds_to_remove [index]);
-            assert (it != fds.end ());
-            engines.erase (engines.begin () + (it - fds.begin () - 1));
-            fds.erase (it);
-        }
-        fds_to_remove.clear ();
+        if (rc > 0)
+            break;
     }
-}
 
-bool zmq::select_thread_t::process_command (const command_t &command_)
-{
-    switch (command_.type) {
-
-    //  Exit the working thread.
-    case command_t::stop:
-        return false;
-
-    //  Register the engine supplied with the select thread.
-    case command_t::register_engine:
-        {
-            //  Ask engine to register itself.
-            i_engine *engine = command_.args.register_engine.engine;
-            assert (engine->type () == engine_type_fd);
-            ((i_pollable*) engine)->register_event (this);
+    for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
+        if (FD_ISSET (fds [i], &writefds)) {
+            event_t ev = {fds [i], ZMQ_EVENT_OUT, fd_table [fds [i]].udata};
+            event_list.push_back (ev);
         }
-        return true;
-
-    //  Unregister the engine.
-    case command_t::unregister_engine:
-        {
-            //  Ask engine to unregister itself.
-            i_engine *engine = command_.args.unregister_engine.engine;
-            assert (engine->type () == engine_type_fd);
-            ((i_pollable*) engine)->unregister_event ();
+        if (FD_ISSET (fds [i], &readfds)) {
+            event_t ev = {fds [i], ZMQ_EVENT_IN, fd_table [fds [i]].udata};
+            event_list.push_back (ev);
         }
-        return true;
-
-    //  Forward the command to the specified engine.
-    case command_t::engine_command:
-
-        //  Forward the command to the engine.
-        command_.args.engine_command.engine->process_command (
-            command_.args.engine_command.command);
-        return true;
-
-    //  Unknown command.
-    default:
-        assert (false);
-        return false;
-    }
-}
-
-bool zmq::select_thread_t::process_commands (uint32_t signals_)
-{
-    //  Iterate through all the threads in the process and find out which
-    //  of them sent us commands.
-    for (int source_thread_id = 0;
-          source_thread_id != dispatcher->get_thread_count ();
-          source_thread_id ++) {
-        if (signals_ & (1 << source_thread_id)) {
-
-            //  Read all the commands from particular thread.
-            command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command))
-                if (!process_command (command))
-                    return false;
+        if (FD_ISSET (fds [i], &exceptfds)) {
+            event_t ev = {fds [i], ZMQ_EVENT_ERR, fd_table [fds [i]].udata};
+            event_list.push_back (ev);
         }
     }
-    return true;
 }

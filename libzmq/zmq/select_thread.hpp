@@ -20,110 +20,64 @@
 #ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_pollable.hpp"
-#include "i_poller.hpp"
-#include "dispatcher.hpp"
-#include "ysocketpair.hpp"
-#include "thread.hpp"
-#include "platform.hpp"
-
-#ifdef ZMQ_HAVE_WINDOWS
-#include "winsock2.h"
-#else
-#include <sys/select.h>
-#endif
-
 #include <stddef.h>
-#include <assert.h>
+#include <vector>
+
+#include "poller.hpp"
 
 namespace zmq
 {
 
-    //  Select thread is a I/O thread that waits for events from engines
-    //  using POSIX select function and schedules handling of the signals
-    //  by individual engines. Engine compatible with select thread should
-    //  expose i_pollable interface.
+    //  Implements i_event_monitor interface using POSIX.1-2001 select()
+    //  function. The class is used to instatntiate the poller template
+    //  to generate the select_thread_t class.
 
-    class select_thread_t : public i_poller
+    class select_t : public i_event_monitor
     {
     public:
 
-        //  Create a select thread.
-        ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
+        select_t ();
+        virtual ~select_t () {}
 
-        //  Destroy the select thread.
-        ZMQ_EXPORT ~select_thread_t ();
-
-        //  i_poller implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
-        handle_t add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (handle_t handle_);
-        void set_pollin (handle_t handle_);
-        void reset_pollin (handle_t handle_);
-        void set_pollout (handle_t handle_);
-        void reset_pollout (handle_t handle_);
+        //  i_event_monitor interface
+        cookie_t add_fd (int fd_, void *udata_);
+        void rm_fd (cookie_t cookie_);
+        void set_pollin (cookie_t cookie_);
+        void reset_pollin (cookie_t cookie_);
+        void set_pollout (cookie_t cookie_);
+        void reset_pollout (cookie_t cookie_);
+        void wait (event_list_t &event_list_);
 
     private:
 
-        select_thread_t (dispatcher_t *dispatcher_);
+        struct fd_entry {
+            void *udata;
+            bool in_use;
+        };
 
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
+        //  Set of file descriptors that are used to retreive
+        //  information for fd_set.
+        typedef std::vector <int> fd_set_t;
+        fd_set_t fds;
 
-        //  Main routine (non-static) - called from worker_routine.
-        void loop ();
+        std::vector <fd_entry> fd_table;
 
-        //  Processes individual command. Returns false if the thread should
-        //  terminate.
-        bool process_command (const command_t &command_);
-
-        //  Processes commands from other threads. Returns false if the thread
-        //  should terminate.
-        bool process_commands (uint32_t signals_);
-
-        //  Pointer to dispatcher.
-        dispatcher_t *dispatcher;
-
-        //  Thread ID allocated for the poll thread by dispatcher.
-        int thread_id;
-
-        //  Poll thread gets notifications about incoming commands using
-        //  this socketpair.
-        ysocketpair_t signaler;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t *worker;
-
-        typedef std::vector <int> fds_t;
-
-        //  Set of registered file descriptors. Strictly speaking this vector
-        //  is redundant (all the relevant info is present in different fd_sets,
-        //  however, iterating through small set of file descriptors is more
-        //  efficient than iterating through all the possible file descriptors.
-        fds_t fds;
-
-        //  List of file descriptors to remove before calling select anew.
-        fds_t fds_to_remove;
-        
         fd_set source_set_in;
         fd_set source_set_out;
         fd_set source_set_err;
-        fd_set result_set_in;
-        fd_set result_set_out;
-        fd_set result_set_err;
-        
-        // Maximum file descriptor plus 1.
-        int maxfdp1;
-        
-        //  List of engines handled by this poll thread.
-        typedef std::vector <i_pollable*> engines_t;
-        engines_t engines;
 
-        select_thread_t (const select_thread_t&);
-        void operator = (const select_thread_t&);
+        fd_set readfds;
+        fd_set writefds;
+        fd_set exceptfds;
+
+        // Maximum file descriptor.
+        int maxfd;
+
+        select_t (const select_t&);
+        void operator = (const select_t&);
     };
+
+    typedef poller_t <select_t> select_thread_t;
 
 }
 

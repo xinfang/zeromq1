@@ -17,41 +17,59 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
-#define __ZMQ_I_POLLER_HPP_INCLUDED__
+#ifndef __ZMQ_I_EVENT_MONITOR_HPP_INCLUDED__
+#define __ZMQ_I_EVENT_MONITOR_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_thread.hpp"
+#include <vector>
 
 namespace zmq
 {
-    typedef void *handle_t;
+    union cookie_t {
+        int fd;
+        void *ptr;
+    };
 
-    //  Virtual interface to be exposed by file-descriptor-oriented engines
-    //  for communication with I/O threads.
+    enum events {
+        //  The file contains some data.
+        ZMQ_EVENT_IN,
+        //  The file can accept some more data.
+        ZMQ_EVENT_OUT,
+        //  There was an error on file descriptor.
+        ZMQ_EVENT_ERR
+    };
 
-    struct i_poller : public i_thread
+    //  The wait() method uses this structure to pass an event to its caller.
+    struct event_t {
+        int fd;
+        enum events name;
+        void *udata;
+    };
+
+    typedef std::vector <event_t> event_list_t;
+
+    struct i_event_monitor
     {
-        ZMQ_EXPORT virtual ~i_poller () {};
-
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.
-        virtual handle_t add_fd (int fd_, struct i_pollable *engine_) = 0;
+        virtual cookie_t add_fd (int fd_, void *udata_) = 0;
 
         //  Remove file descriptor identified by handle from the polling set.
-        virtual void rm_fd (handle_t handle_) = 0;
+        virtual void rm_fd (cookie_t cookie_) = 0;
 
         //  Start polling for input from socket.
-        virtual void set_pollin (handle_t handle_) = 0;
+        virtual void set_pollin (cookie_t cookie_) = 0;
 
         //  Stop polling for input from socket.
-        virtual void reset_pollin (handle_t handle_) = 0;
+        virtual void reset_pollin (cookie_t cookie_) = 0;
 
         //  Start polling for availability of the socket for writing.
-        virtual void set_pollout (handle_t handle_) = 0;
+        virtual void set_pollout (cookie_t cookie_) = 0;
 
         //  Stop polling for availability of the socket for writing.
-        virtual void reset_pollout (handle_t handle_) = 0;
+        virtual void reset_pollout (cookie_t cookie_) = 0;
+
+        //  Wait until one or more descriptors become ready.
+        virtual void wait (event_list_t &event_list_) = 0;
     };
 
 }

@@ -20,250 +20,107 @@
 #include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_QNXNTO
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO
 
-#include <algorithm>
 #include <sys/resource.h>
+#include <poll.h>
 
-#include <zmq/poll_thread.hpp>
 #include <zmq/err.hpp>
+#include <zmq/poll_thread.hpp>
 
-zmq::i_thread *zmq::poll_thread_t::create (dispatcher_t *dispatcher_)
+zmq::poll_t::poll_t ()
 {
-    return new poll_thread_t (dispatcher_);
-}
-
-zmq::poll_thread_t::poll_thread_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_),
-    pollset (1),
-    removed_fds (false)
-{
-    //  Get limit on open file descriptors. Resize fds to make it able to
-    //  hold all the descriptors.
+    //  Get the limit on open file descriptors. Resize fds so that it
+    //  can hold all descriptors.
     rlimit rl;
     int rc = getrlimit (RLIMIT_NOFILE, &rl);
     errno_assert (rc != -1);
-    fds.resize (rl.rlim_cur, -1);
+    fd_table.resize (rl.rlim_cur);
 
-    //  Initialise the pollset.
-    pollset [0].fd = signaler.get_fd ();
-    pollset [0].events = POLLIN;
-
-    //  Register the thread with command dispatcher.
-    thread_id = dispatcher->allocate_thread_id (&signaler);
-
-    //  Create the worker thread.
-    worker = new thread_t (worker_routine, this);
+    for (rlim_t i = 0; i < rl.rlim_cur; i ++)
+        fd_table [i].index = -1;
 }
 
-zmq::poll_thread_t::~poll_thread_t ()
-{
-    //  Send a 'stop' event ot the worker thread.
-    //  TODO: Analyse whether using the 'to-self' command pipe here
-    //        is appropriate.
-    command_t cmd;
-    cmd.init_stop ();
-    dispatcher->write (thread_id, thread_id, cmd);
-
-    //  Wait till worker thread terminates.
-    delete worker;
-}
-
-int zmq::poll_thread_t::get_thread_id ()
-{
-    return thread_id;
-}
-
-void zmq::poll_thread_t::send_command (i_thread *destination_,
-    const command_t &command_)
-{
-    if (destination_ == (i_thread*) this)
-        process_command (command_);
-    else
-        dispatcher->write (thread_id, destination_->get_thread_id (), command_);
-}
-
-zmq::handle_t zmq::poll_thread_t::add_fd (int fd_, i_pollable *engine_)
+zmq::cookie_t zmq::poll_t::add_fd (int fd_, void *udata_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
-    engines.push_back (engine_);
-    assert (fds [fd_] == -1);
-    fds [fd_] = pollset.size() - 1;
+    assert (fd_table [fd_].index == -1);
 
-    handle_t handle;
-    handle.fd = fd_;
-    return handle;
+    fd_table [fd_].index = pollset.size() - 1;
+    fd_table [fd_].udata = udata_;
+
+    cookie_t cookie;
+    cookie.fd = fd_;
+    return cookie;
 }
 
-void zmq::poll_thread_t::rm_fd (handle_t handle_)
+void zmq::poll_t::rm_fd (cookie_t cookie_)
 {
-    //  Remove the descriptor from pollset and engine list.
-    int index = fds [handle_.fd];
+    //  Remove the descriptor from pollset and fd table.
+    int index = fd_table [cookie_.fd].index;
     assert (index != -1);
-
-    //  Mark fd for deletion, eg. setting fd to -1 and revents 0.
-    pollset [index].fd = -1;
-    pollset [index].revents = 0;
-
-    //  We have fd scheduled for deletion.
-    removed_fds = true;
+    pollset.erase (pollset.begin () + index);
 
     //  Mark the fd as unused.
-    fds [handle_.fd] = -1;
+    fd_table [cookie_.fd].index = -1;
+
+    //  Adjust fd table to match new indices to the pollset. To make it more
+    //  efficient we are traversing the pollset which is shorter than
+    //  fd list itself.
+    for (pollset_t::size_type i = index; i < pollset.size (); i ++)
+        fd_table [pollset [i].fd].index = i;
 }
 
-void zmq::poll_thread_t::set_pollin (handle_t handle_)
+void zmq::poll_t::set_pollin (cookie_t cookie_)
 {
-    pollset [fds [handle_.fd]].events |= POLLIN;
+    int index = fd_table [cookie_.fd].index;
+    pollset [index].events |= POLLIN;
 }
 
-void zmq::poll_thread_t::reset_pollin (handle_t handle_)
+void zmq::poll_t::reset_pollin (cookie_t cookie_)
 {
-    pollset [fds [handle_.fd]].events &= ~((short) POLLIN);
+    int index = fd_table [cookie_.fd].index;
+    pollset [index].events &= ~((short) POLLIN);
 }
 
-void zmq::poll_thread_t::set_pollout (handle_t handle_)
+void zmq::poll_t::set_pollout (cookie_t cookie_)
 {
-    pollset [fds [handle_.fd]].events |= POLLOUT;
+    int index = fd_table [cookie_.fd].index;
+    pollset [index].events |= POLLOUT;
 }
 
-void zmq::poll_thread_t::reset_pollout (handle_t handle_)
+void zmq::poll_t::reset_pollout (cookie_t cookie_)
 {
-    pollset [fds [handle_.fd]].events &= ~((short) POLLOUT);
+    int index = fd_table [cookie_.fd].index;
+    pollset [index].events &= ~((short) POLLOUT);
 }
 
-void zmq::poll_thread_t::worker_routine (void *arg_)
+void zmq::poll_t::wait (event_list_t &event_list_)
 {
-    poll_thread_t *self = (poll_thread_t*) arg_;
-    self->loop ();
-}
+    //  Wait for events.
+    int rc = poll (&pollset [0], pollset.size (), -1);
+    errno_assert (rc != -1);
 
-void zmq::poll_thread_t::loop ()
-{
-    while (true)
-    {
-        //  Wait for events.
-        int rc = poll (&pollset [0], pollset.size (), -1);
-        errno_assert (rc != -1);
+    for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
+        int fd = pollset [i].fd;
 
-        //  First of all, process commands from other threads.
-        if (pollset [0].revents & POLLIN) {
-            uint32_t signals = signaler.check ();
-            assert (signals);
-            if (!process_commands (signals))
-                return;
+        assert (!(pollset [i].revents & POLLNVAL));
+
+        if (pollset [i].revents & (POLLERR | POLLHUP)) {
+            event_t ev = {fd, ZMQ_EVENT_ERR, fd_table [fd].udata};
+            event_list_.push_back (ev);
         }
-
-        //  Process out events from the engines.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index < pollset.size (); pollset_index ++)
-            if (pollset [pollset_index].revents & POLLOUT)
-                engines [pollset_index - 1]->out_event ();
-
-
-        //  Process the rest of the socket events.
-        for (pollset_t::size_type pollset_index = 1;
-              pollset_index < pollset.size (); pollset_index ++) {
-
-            //  Invalid fd in poll
-            assert (!(pollset [pollset_index].revents & POLLNVAL));
-
-            if (pollset [pollset_index].revents &
-                  (POLLIN | POLLERR | POLLHUP)) {
-                //  Note that error is handled  by the
-                //  in_event in the case of error reading from the socket.
-                engines [pollset_index - 1]->in_event ();
-            }
+        if (pollset [i].revents & POLLOUT) {
+            event_t ev = {fd, ZMQ_EVENT_OUT, fd_table [fd].udata};
+            event_list_.push_back (ev);
         }
-
-        //  Check if we have some fd to delete from pollset.
-        if (removed_fds) {
-            for (pollset_t::size_type pollset_index = 1; 
-                  pollset_index < pollset.size (); pollset_index ++) {
-                if (pollset [pollset_index].fd == -1) {
-                    pollset.erase (pollset.begin () + pollset_index);
-                    engines.erase (engines.begin () + pollset_index - 1);
-
-                    //  Adjust fd list to match new indices to the pollset.
-                    //  To make it more efficient we are traversing the pollset
-                    //  whitch is shorter than fd list itself.
-                    for (pollset_t::size_type i = pollset_index;
-                          i != pollset.size (); i ++)
-                        fds [pollset [i].fd] = i; 
-
-                    //  Adjust index to the pollset to compensate for the
-                    //  file descriptor removal.
-                    pollset_index --;
-                }
-            }
-
-            removed_fds = false;
+        if (pollset [i].revents & POLLIN) {
+            event_t ev = {fd, ZMQ_EVENT_IN, fd_table [fd].udata};
+            event_list_.push_back (ev);
         }
     }
-}
-
-bool zmq::poll_thread_t::process_command (const command_t &command_)
-{
-    switch (command_.type) {
-
-    //  Exit the working thread.
-    case command_t::stop:
-        return false;
-
-    //  Register the engine supplied with the poll thread.
-    case command_t::register_engine:
-        {
-            //  Ask engine to register itself.
-            i_engine *engine = command_.args.register_engine.engine;
-            assert (engine->type () == engine_type_fd);
-            ((i_pollable*) engine)->register_event (this);
-        }
-        return true;
-
-    //  Unregister the engine.
-    case command_t::unregister_engine:
-        {
-            //  Ask engine to unregister itself.
-            i_engine *engine = command_.args.unregister_engine.engine;
-            assert (engine->type () == engine_type_fd);
-            ((i_pollable*) engine)->unregister_event ();
-        }
-        return true;
-
-    //  Forward the command to the specified engine.
-    case command_t::engine_command:
-
-        //  Forward the command to the engine.
-        command_.args.engine_command.engine->process_command (
-            command_.args.engine_command.command);
-        return true;
-
-    //  Unknown command.
-    default:
-        assert (false);
-        return false;
-    }
-}
-
-bool zmq::poll_thread_t::process_commands (uint32_t signals_)
-{
-    //  Iterate through all the threads in the process and find out which
-    //  of them sent us commands.
-    for (int source_thread_id = 0;
-          source_thread_id != dispatcher->get_thread_count ();
-          source_thread_id ++) {
-        if (signals_ & (1 << source_thread_id)) {
-
-            //  Read all the commands from particular thread.
-            command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command))
-                if (!process_command (command))
-                    return false;
-        }
-    }
-    return true;
 }
 
 #endif

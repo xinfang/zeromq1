@@ -66,9 +66,9 @@ namespace zmq
         //  This setting is used only on x86 platform with GCC compiler.
         api_thread_max_command_delay = 3000000,
 
-        //  Maximum number of events the epoll_wait() call can return.
-        //  The higher the number, the less system calls may be invoked.
-        epoll_max_events = 256
+        //  Maximum number of events a wait() method of I/O thread
+        //  (poll_thread_t, select_thread_t ...) can return.
+        max_io_events = 256
     };
 
 }

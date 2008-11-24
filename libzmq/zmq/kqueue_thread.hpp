@@ -25,72 +25,38 @@
 #if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
     defined (ZMQ_HAVE_OSX)
 
-#include <map>
-
-#include "i_pollable.hpp"
-#include "i_poller.hpp"
-#include "dispatcher.hpp"
-#include "ysocketpair.hpp"
-#include "thread.hpp"
+#include "poller.hpp"
 
 namespace zmq
 {
 
-    //  Kqueue thread is an I/O thread that waits for events from engines
-    //  using kqueue mechanism and schedules handling of the
-    //  signals by individual engines. An engine compatible with kqueue
-    //  thread should implement i_pollable interface.
+    //  Implements i_event_monitor interface using the BSD*-specific
+    //  kqueue interface. This class is used to instantiate the poller
+    //  template to generate the kqueue_thread_t class.
 
-    class kqueue_thread_t : public i_poller
+    class kqueue_t : public i_event_monitor
     {
     public:
 
-        //  Creates a kqueue thread.
-        static i_thread *create (dispatcher_t *dispatcher_);
+        kqueue_t ();
+        virtual ~kqueue_t ();
 
-        //  Destroys the devpoll thread.
-        ~kqueue_thread_t ();
-
-        //  i_poller implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
-        handle_t add_fd (int fd_, i_pollable *engine_);
-        void rm_fd (handle_t handle_);
-        void set_pollin (handle_t handle_);
-        void reset_pollin (handle_t handle_);
-        void set_pollout (handle_t handle_);
-        void reset_pollout (handle_t handle_);
+        //  i_event_monitor interface implementation.
+        cookie_t add_fd (int fd_, void *udata_);
+        void rm_fd (cookie_t cookie_);
+        void set_pollin (cookie_t cookie_);
+        void reset_pollin (cookie_t cookie_);
+        void set_pollout (cookie_t cookie_);
+        void reset_pollout (cookie_t cookie_);
+        void wait (event_list_t &event_list_);
 
     private:
 
-        kqueue_thread_t (dispatcher_t *dispatcher_);
+        //  Adds the event to the kqueue.
+        void kevent_add (int fd_, short filter_, void *udata_);
 
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main routine (non-static) - called from worker_routine.
-        void loop ();
-
-        //  Processes individual command. Returns false if the thread should
-        //  terminate.
-        bool process_command (const command_t &command_);
-
-        //  Processes commands from other threads. Returns false if the thread
-        //  should terminate.
-        bool process_commands (uint32_t signals_);
-
-        //  Pointer to dispatcher.
-        dispatcher_t *dispatcher;
-
-        //  Thread ID allocated for the poll thread by dispatcher.
-        int thread_id;
-
-        //  Thread gets notifications about incoming commands using
-        //  this socketpair.
-        ysocketpair_t signaler;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t *worker;
+        //  Deletes the event from the kqueue.
+        void kevent_delete (int fd_, short filter_);
 
         //  File descriptor referring to the kernel event queue.
         int kqueue_fd;
@@ -100,25 +66,14 @@ namespace zmq
             int fd;
             bool flag_pollin;
             bool flag_pollout;
-            i_pollable *engine;
+            void *udata;
         };
 
-        //  Allocates poll_entry structure and initializes it.
-        static poll_entry *new_poll_entry (int fd_, i_pollable *engine_);
-
-        //  Adds the event to the kqueue.
-        void kevent_add (int fd_, short filter_, void *udata_);
-
-        //  Deletes the event from the kqueue.
-        void kevent_delete (int fd_, short filter_);
-
-        //  All registered engines are stored in a common table.
-        typedef std::map <void*, int> object_table_t;
-        object_table_t engines;
-
-        kqueue_thread_t (const kqueue_thread_t&);
-        void operator = (const kqueue_thread_t&);
+        kqueue_t (const kqueue_t&);
+        void operator = (const kqueue_t&);
     };
+
+    typedef poller_t <kqueue_t> kqueue_thread_t;
 
 }
 
