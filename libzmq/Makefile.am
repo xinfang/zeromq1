@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
     ./zmq/ypollset.hpp \
     ./zmq/ysemaphore.hpp \
     ./zmq/ysocketpair.hpp \
+    ./zmq/io_thread.hpp \
     ./zmq/poller.hpp \
     ./zmq/poll_thread.hpp \
     ./zmq/epoll_thread.hpp \
