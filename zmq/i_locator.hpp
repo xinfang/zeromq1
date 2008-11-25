@@ -48,7 +48,8 @@ namespace zmq
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
-            poll_thread_t **handler_threads_, int hwm_, int lwm_) = 0;
+            poll_thread_t **handler_threads_, int hwm_, int lwm_,
+            int notification_period_) = 0;
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is not known.

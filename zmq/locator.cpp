@@ -61,7 +61,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
     i_context *context_, i_engine *engine_, scope_t scope_,
     const char *interface_, poll_thread_t *listener_thread_,
     int handler_thread_count_, poll_thread_t **handler_threads_,
-    int hwm_, int lwm_)
+    int hwm_, int lwm_, int notification_period_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -84,7 +84,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
          bp_listener_t *listener = bp_listener_t::create (listener_thread_,
              interface_, handler_thread_count_, handler_threads_,
              type_id_ == exchange_type_id ? false : true, context_,
-             engine_, object_, hwm_, lwm_);
+             engine_, object_, hwm_, lwm_, notification_period_);
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;
@@ -164,7 +164,7 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          //  Create the proxy engine for the object.
          bp_engine_t *engine = bp_engine_t::create (thread_,
              interface, bp_out_batch_size, bp_in_batch_size,
-             local_object_);
+             local_object_, 0);
 
          //  Write it into object repository.
          object_info_t info = {thread_, engine};

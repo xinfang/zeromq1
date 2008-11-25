@@ -23,10 +23,10 @@
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     const char *hostname_, size_t writebuf_size_,
-    size_t readbuf_size_, const char *local_object_)
+    size_t readbuf_size_, const char *local_object_, int notification_period_)
 {
-    bp_engine_t *instance = new bp_engine_t (
-        thread_, hostname_, writebuf_size_, readbuf_size_, local_object_);
+    bp_engine_t *instance = new bp_engine_t (thread_, hostname_,
+        writebuf_size_, readbuf_size_, local_object_, notification_period_);
     assert (instance);
 
     return instance;
@@ -34,10 +34,10 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
     tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-    const char *local_object_)
+    const char *local_object_, int notification_period_)
 {
-    bp_engine_t *instance = new bp_engine_t (
-        thread_, listener_, writebuf_size_, readbuf_size_, local_object_);
+    bp_engine_t *instance = new bp_engine_t (thread_, listener_,
+        writebuf_size_, readbuf_size_, local_object_, notification_period_);
     assert (instance);
 
     return instance;
@@ -45,8 +45,9 @@ zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
       size_t writebuf_size_, size_t readbuf_size_,
-      const char *local_object_) :
+      const char *local_object_, int notification_period_) :
     context (thread_),
+    mux (0),
     demux (false),
     writebuf_size (writebuf_size_),
     write_size (0),
@@ -61,7 +62,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     handle (0),
     socket_error (false),
     local_object (local_object_),
-    reconnect (true)
+    reconnect (true),
+    notification_period (notification_period_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -75,8 +77,9 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
 
 zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-      const char *local_object_) :
+      const char *local_object_, int notification_period_) :
     context (thread_),
+    mux (0),
     demux (false),
     writebuf_size (writebuf_size_),
     write_size (0),
@@ -91,7 +94,8 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     handle (0),
     socket_error (false),
     local_object (local_object_),
-    reconnect (false)
+    reconnect (false),
+    notification_period (notification_period_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);

@@ -25,6 +25,7 @@
 #include "stdint.hpp"
 #include "config.hpp"
 #include "atomic_counter.hpp"
+#include "wire.hpp"
 
 namespace zmq
 {
@@ -114,9 +115,12 @@ namespace zmq
     }
 
     //  Initialises raw_message_t to be an alert.
-    inline void raw_message_init_alert (raw_message_t *msg_)
+    inline void raw_message_init_alert (raw_message_t *msg_,
+        uint64_t queue_size_)
     {
         msg_->content = (message_content_t*) raw_message_t::alert_tag;
+        put_uint64 (msg_->vsm_data, queue_size_);
+        msg_->vsm_size = sizeof (uint64_t);
     }
 
     //  Releases the resources associated with the message. Obviously, if
@@ -180,10 +184,10 @@ namespace zmq
     //  Returns pointer to the message body.
     inline void *raw_message_data (raw_message_t *msg_)
     {
-        if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
-            return msg_->vsm_data;
-        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag||
+        if (msg_->content == (message_content_t*) raw_message_t::vsm_tag ||
               msg_->content == (message_content_t*) raw_message_t::alert_tag)
+            return msg_->vsm_data;
+        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag)
             return NULL;
         return msg_->content->data;
     }
@@ -191,10 +195,10 @@ namespace zmq
     //  Returns message size.
     inline size_t raw_message_size (raw_message_t *msg_)
     {
-        if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
-            return msg_->vsm_size;
-        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag||
+        if (msg_->content == (message_content_t*) raw_message_t::vsm_tag ||
               msg_->content == (message_content_t*) raw_message_t::alert_tag)
+            return msg_->vsm_size;
+        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag)
             return 0;
         return msg_->content->size;
     }

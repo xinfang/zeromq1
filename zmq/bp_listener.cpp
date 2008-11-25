@@ -25,11 +25,11 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, int handler_thread_count_,
     poll_thread_t **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
-    const char *peer_name_, int hwm_, int lwm_)
+    const char *peer_name_, int hwm_, int lwm_, int notification_period_)
 {
     bp_listener_t *instance = new bp_listener_t (thread_, interface_,
         handler_thread_count_, handler_threads_, source_, peer_context_,
-        peer_engine_, peer_name_, hwm_, lwm_);
+        peer_engine_, peer_name_, hwm_, lwm_, notification_period_);
     assert (instance);
 
     return instance;
@@ -39,14 +39,15 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
       const char *interface_, int handler_thread_count_,
       poll_thread_t **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
-      const char *peer_name_, int hwm_, int lwm_) :
+      const char *peer_name_, int hwm_, int lwm_, int notification_period_) :
     source (source_),
     context (thread_),
     peer_context (peer_context_),
     peer_engine (peer_engine_),
     listener (interface_),
     hwm (hwm_),
-    lwm (lwm_)
+    lwm (lwm_),
+    notification_period (notification_period_)
 {
     //  Copy the peer name.
     assert (strlen (peer_name_) < 16);
@@ -78,7 +79,7 @@ bool zmq::bp_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
         handler_threads [current_handler_thread], listener,
-        bp_out_batch_size, bp_in_batch_size, peer_name);
+        bp_out_batch_size, bp_in_batch_size, peer_name, notification_period);
     assert (engine);
 
     if (source) {
@@ -91,7 +92,7 @@ bool zmq::bp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (source_context, source_engine,
-            peer_context, peer_engine, hwm, lwm);
+            peer_context, peer_engine, hwm, lwm, notification_period);
         assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
@@ -115,7 +116,8 @@ bool zmq::bp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (peer_context, peer_engine,
-            destination_context, destination_engine, hwm, lwm);
+            destination_context, destination_engine, hwm, lwm,
+            notification_period);
         assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.

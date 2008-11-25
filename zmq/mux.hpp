@@ -35,7 +35,7 @@ namespace zmq
     {
     public:
 
-        mux_t (int hal_ = 0, int lal_ = 0);
+        mux_t (int notification_period_);
         ~mux_t ();
 
         //  Adds a pipe to receive messages from.
@@ -65,20 +65,14 @@ namespace zmq
         //  Count of all the messages in all the pipes.
         int queue_size;
 
-        //  High alert limit and low alert limit.
-        //  If there are more messages in the queue than the number specified
-        //  in 'hal', alert is issued. If it is zero, alerts are
-        //  disabled. Alert is sent once only. It'll be send again only if
-        //  message coutn drops below 'lal' in the meantime.
-        int hal;
-        int lal;
+        //  How often should we report number of outgoing messages.
+        int notification_period;
+
+        //  Portion of the notification period already elapsed.
+        int elapsed;
 
         //  If true, next receive will get alert instead of message.
         bool alert_queued;
-
-        //  If true, alert was already sent. It won't be send again unless
-        //  queue size drops below 'lal'.
-        bool alert_sent;
 
         //  If true, alert will be dispatched instead of the 
 

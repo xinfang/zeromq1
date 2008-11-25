@@ -20,13 +20,12 @@
 #include "mux.hpp"
 #include "raw_message.hpp"
 
-zmq::mux_t::mux_t (int hal_, int lal_) :
+zmq::mux_t::mux_t (int notification_period_) :
     current (0),
     queue_size (0),
-    hal (hal_),
-    lal (lal_),
-    alert_queued (false),
-    alert_sent (false)
+    notification_period (notification_period_),
+    elapsed (0),
+    alert_queued (false)
 {
 }
 
@@ -54,7 +53,10 @@ bool zmq::mux_t::read (message_t *msg_)
 
     //  If alert is to be sent, return it instead of regular message.
     if (alert_queued) {
-        raw_message_init_alert (msg);
+
+        //  Queue size can be negative if messages are processed before the
+        //  notification about enqueueing them arrives.
+        raw_message_init_alert (msg, queue_size < 0 ? 0 : queue_size);
         alert_queued = false;
         return true;
     }
@@ -73,10 +75,11 @@ bool zmq::mux_t::read (message_t *msg_)
             current = 0;
 
         if (retrieved) {
-            if (hal) {
+            if (notification_period) {
                 queue_size --;
-                if (queue_size <= lal)
-                    alert_sent = false;
+                elapsed ++;
+                if (elapsed >= notification_period)
+                    alert_queued = true;
             }
             return true;
         }
@@ -90,11 +93,10 @@ bool zmq::mux_t::read (message_t *msg_)
 
 void zmq::mux_t::adjust_queue_size (int delta_)
 {
+    assert (notification_period);
+
     queue_size += delta_;
-    if (hal && queue_size > hal && !alert_sent) {
-        alert_queued = true;
-        alert_sent = true;
-    }
+    alert_queued = true;
 }
 
 void zmq::mux_t::terminate_pipes()
