@@ -199,38 +199,33 @@ zmq::handle_t zmq::poller_t <T>::add_fd (int fd_, i_pollable *engine_)
 template <class T>
 void zmq::poller_t <T>::rm_fd (handle_t handle_)
 {
-    event_source_t *ev_source = (event_source_t*) handle_;
-    event_monitor.rm_fd (ev_source->cookie);
-    ev_source->retired = true;
-    retired_list.push_back (ev_source);
+    event_monitor.rm_fd (handle_->cookie);
+    handle_->retired = true;
+    retired_list.push_back (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollin (handle_t handle_)
 {
-    event_source_t *ev_source = (event_source_t*) handle_;
-    event_monitor.set_pollin (ev_source->cookie);
+    event_monitor.set_pollin (handle_->cookie);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollin (handle_t handle_)
 {
-    event_source_t *ev_source = (event_source_t*) handle_;
-    event_monitor.reset_pollin (ev_source->cookie);
+    event_monitor.reset_pollin (handle_->cookie);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollout (handle_t handle_)
 {
-    event_source_t *ev_source = (event_source_t*) handle_;
-    event_monitor.set_pollout (ev_source->cookie);
+    event_monitor.set_pollout (handle_->cookie);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 {
-    event_source_t *ev_source = (event_source_t*) handle_;
-    event_monitor.reset_pollout (ev_source->cookie);
+    event_monitor.reset_pollout (handle_->cookie);
 }
 
 template <class T>
