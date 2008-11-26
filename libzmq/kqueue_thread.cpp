@@ -62,7 +62,7 @@ void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
     errno_assert (rc != -1);
 }
 
-zmq::cookie_t zmq::kqueue_t::add_fd (int fd_, void *udata_)
+zmq::cookie_t zmq::kqueue_t::add_fd (int fd_, event_source_t *ev_source_)
 {
     struct poll_entry *pe;
     pe = (struct poll_entry*) malloc (sizeof (struct poll_entry));
@@ -70,7 +70,7 @@ zmq::cookie_t zmq::kqueue_t::add_fd (int fd_, void *udata_)
     pe->fd = fd_;
     pe->flag_pollin = 0;
     pe->flag_pollout = 0;
-    pe->udata = udata_;
+    pe->ev_source = ev_source_;
 
     cookie_t cookie;
     cookie.ptr = pe;
@@ -128,15 +128,15 @@ void zmq::kqueue_t::wait (event_list_t &event_list_)
         struct poll_entry *pe = (struct poll_entry*) ev_buf [i].udata;
 
         if (ev_buf [i].flags & EV_EOF) {
-            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].filter == EVFILT_WRITE) {
-            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].filter == EVFILT_READ) {
-            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->ev_source};
             event_list_.push_back (ev);
         }
     }

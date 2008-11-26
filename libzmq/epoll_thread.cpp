@@ -40,14 +40,14 @@ zmq::epoll_t::~epoll_t ()
     close (epoll_fd);
 }
 
-zmq::cookie_t zmq::epoll_t::add_fd (int fd_, void *udata_)
+zmq::cookie_t zmq::epoll_t::add_fd (int fd_, event_source_t *ev_source_)
 {
     poll_entry *pe = (poll_entry*) malloc (sizeof (poll_entry));
     assert (pe != NULL);
     pe->fd = fd_;
     pe->ev.events = 0;
     pe->ev.data.ptr = pe;
-    pe->udata = udata_;
+    pe->ev_source = ev_source_;
 
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_ADD, fd_, &pe->ev);
     errno_assert (rc != -1);
@@ -109,15 +109,15 @@ void zmq::epoll_t::wait (event_list_t &event_list_)
         poll_entry *pe = ((poll_entry*) ev_buf [i].data.ptr);
 
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP)) {
-            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].events & EPOLLOUT) {
-            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].events & EPOLLIN) {
-            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->udata};
+            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->ev_source};
             event_list_.push_back (ev);
         }
     }

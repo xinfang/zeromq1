@@ -44,14 +44,14 @@ zmq::poll_t::poll_t ()
         fd_table [i].index = -1;
 }
 
-zmq::cookie_t zmq::poll_t::add_fd (int fd_, void *udata_)
+zmq::cookie_t zmq::poll_t::add_fd (int fd_, event_source_t *ev_source_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
     assert (fd_table [fd_].index == -1);
 
     fd_table [fd_].index = pollset.size() - 1;
-    fd_table [fd_].udata = udata_;
+    fd_table [fd_].ev_source = ev_source_;
 
     cookie_t cookie;
     cookie.fd = fd_;
@@ -111,15 +111,15 @@ void zmq::poll_t::wait (event_list_t &event_list_)
         assert (!(pollset [i].revents & POLLNVAL));
 
         if (pollset [i].revents & (POLLERR | POLLHUP)) {
-            event_t ev = {fd, ZMQ_EVENT_ERR, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_ERR, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
         if (pollset [i].revents & POLLOUT) {
-            event_t ev = {fd, ZMQ_EVENT_OUT, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_OUT, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
         if (pollset [i].revents & POLLIN) {
-            event_t ev = {fd, ZMQ_EVENT_IN, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_IN, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
     }

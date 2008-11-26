@@ -38,7 +38,7 @@ namespace zmq
 
         ZMQ_EXPORT select_t ();
 
-        ZMQ_EXPORT cookie_t add_fd (int fd_, void *udata_);
+        ZMQ_EXPORT cookie_t add_fd (int fd_, event_source_t *ev_source_);
         ZMQ_EXPORT void rm_fd (cookie_t cookie_);
         ZMQ_EXPORT void set_pollin (cookie_t cookie_);
         ZMQ_EXPORT void reset_pollin (cookie_t cookie_);
@@ -49,7 +49,7 @@ namespace zmq
     private:
 
         struct fd_entry {
-            void *udata;
+            event_source_t *ev_source;
             bool in_use;
         };
 

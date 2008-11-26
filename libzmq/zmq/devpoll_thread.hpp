@@ -42,7 +42,7 @@ namespace zmq
         devpoll_t ();
         ~devpoll_t ();
 
-        cookie_t add_fd (int fd_, void *udata_);
+        cookie_t add_fd (int fd_, event_source_t *ev_source_);
         void rm_fd (cookie_t handle_);
         void set_pollin (cookie_t handle_);
         void reset_pollin (cookie_t handle_);
@@ -57,7 +57,7 @@ namespace zmq
 
         struct fd_entry {
             short events;
-            void *udata;
+            event_source_t *ev_source;
             bool in_use;
         };
 

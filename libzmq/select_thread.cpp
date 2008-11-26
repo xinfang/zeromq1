@@ -43,10 +43,10 @@ zmq::select_t::select_t () :
         fd_table [i].in_use = false;
 }
 
-zmq::cookie_t zmq::select_t::add_fd (int fd_, void *udata_)
+zmq::cookie_t zmq::select_t::add_fd (int fd_, event_source_t *ev_source_)
 {
     assert (!fd_table [fd_].in_use);
-    fd_table [fd_].udata = udata_;
+    fd_table [fd_].ev_source = ev_source_;
     fd_table [fd_].in_use = true;
 
     fds.push_back (fd_);
@@ -121,15 +121,15 @@ void zmq::select_t::wait (event_list_t &event_list)
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
         if (FD_ISSET (fds [i], &writefds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_OUT, fd_table [fds [i]].udata};
+            event_t ev = {fds [i], ZMQ_EVENT_OUT, fd_table [fds [i]].ev_source};
             event_list.push_back (ev);
         }
         if (FD_ISSET (fds [i], &readfds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_IN, fd_table [fds [i]].udata};
+            event_t ev = {fds [i], ZMQ_EVENT_IN, fd_table [fds [i]].ev_source};
             event_list.push_back (ev);
         }
         if (FD_ISSET (fds [i], &exceptfds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_ERR, fd_table [fds [i]].udata};
+            event_t ev = {fds [i], ZMQ_EVENT_ERR, fd_table [fds [i]].ev_source};
             event_list.push_back (ev);
         }
     }

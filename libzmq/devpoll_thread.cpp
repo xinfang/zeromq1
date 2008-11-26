@@ -63,12 +63,12 @@ void zmq::devpoll_t::devpoll_ctl (int fd_, short events_)
     errno_assert (rc == sizeof pfd);
 }
 
-zmq::cookie_t zmq::devpoll_t::add_fd (int fd_, void *udata_)
+zmq::cookie_t zmq::devpoll_t::add_fd (int fd_, event_source_t *ev_source_)
 {
     assert (!fd_table [fd_].in_use);
 
     fd_table [fd_].events = 0;
-    fd_table [fd_].udata = udata_;
+    fd_table [fd_].ev_source = ev_source_;
     fd_table [fd_].in_use = true;
 
     devpoll_ctl (fd_, 0);
@@ -136,15 +136,15 @@ void zmq::devpoll_t::wait (event_list_t &event_list_)
         int fd = ev_buf [i].fd;
 
         if (ev_buf [i].revents & (POLLERR | POLLHUP)) {
-            event_t ev = {fd, ZMQ_EVENT_ERR, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_ERR, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].revents & POLLOUT) {
-            event_t ev = {fd, ZMQ_EVENT_OUT, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_OUT, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
         if (ev_buf [i].revents & POLLIN) {
-            event_t ev = {fd, ZMQ_EVENT_IN, fd_table [fd].udata};
+            event_t ev = {fd, ZMQ_EVENT_IN, fd_table [fd].ev_source};
             event_list_.push_back (ev);
         }
     }

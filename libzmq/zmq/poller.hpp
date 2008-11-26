@@ -50,20 +50,20 @@ namespace zmq
         ZMQ_EVENT_ERR
     };
 
-    //  The wait() method uses this structure to pass an event to its caller.
-    struct event_t {
-        int fd;
-        enum events name;
-        void *udata;
-    };
-
-    typedef std::vector <event_t> event_list_t;
-
     struct event_source_t {
         i_pollable *engine;
         cookie_t cookie;
         bool retired;
     };
+
+    //  The wait() method uses this structure to pass an event to its caller.
+    struct event_t {
+        int fd;
+        enum events name;
+        event_source_t *ev_source;
+    };
+
+    typedef std::vector <event_t> event_list_t;
 
     template <class T> class poller_t : public i_poller
     {
@@ -249,7 +249,7 @@ void zmq::poller_t <T>::loop ()
         event_monitor.wait (events);
 
         for (event_list_t::size_type i = 0; i < events.size (); i ++) {
-            event_source_t *ev_source = (event_source_t*) events [i].udata;
+            event_source_t *ev_source = events [i].ev_source;
 
             if (ev_source->retired)
                 continue;

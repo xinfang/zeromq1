@@ -41,7 +41,7 @@ namespace zmq
         kqueue_t ();
         ~kqueue_t ();
 
-        cookie_t add_fd (int fd_, void *udata_);
+        cookie_t add_fd (int fd_, event_source_t *ev_source_);
         void rm_fd (cookie_t cookie_);
         void set_pollin (cookie_t cookie_);
         void reset_pollin (cookie_t cookie_);
@@ -65,7 +65,7 @@ namespace zmq
             int fd;
             bool flag_pollin;
             bool flag_pollout;
-            void *udata;
+            event_source_t *ev_source;
         };
 
         kqueue_t (const kqueue_t&);

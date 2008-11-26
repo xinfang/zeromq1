@@ -43,7 +43,7 @@ namespace zmq
         epoll_t ();
         virtual ~epoll_t ();
 
-        cookie_t add_fd (int fd_, void *udata_);
+        cookie_t add_fd (int fd_, event_source_t *ev_source_);
         void rm_fd (cookie_t cookie_);
         void set_pollin (cookie_t cookie_);
         void reset_pollin (cookie_t cookie_);
@@ -60,7 +60,7 @@ namespace zmq
         struct poll_entry {
             int fd;
             struct epoll_event ev;
-            void *udata;
+            event_source_t *ev_source;
         };
 
         epoll_t (const epoll_t&);
