@@ -44,7 +44,7 @@
 #endif
 
 #if defined ZMQ_ATOMIC_BITMAP_WINDOWS
-#include <windows.h>
+#include <zmq/windows.hpp>
 #elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
 #include <atomic.h>
 #endif

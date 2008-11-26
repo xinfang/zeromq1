@@ -27,7 +27,7 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-#include <windows.h>
+#include <zmq/windows.hpp>
 
 namespace zmq
 {

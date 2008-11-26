@@ -32,7 +32,7 @@
 #include <zmq/ip.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS 
-#include <windows.h>
+#include <zmq/windows.hpp>
 #else
 #include <unistd.h>
 #include <sys/socket.h>

@@ -27,7 +27,7 @@
 #include <zmq/mutex.hpp>
 
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
-#include <windows.h>
+#include <zmq/windows.hpp>
 #elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
 #include <atomic.h>
 #endif

@@ -30,7 +30,7 @@
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 #include <pthread.h>
 #elif defined ZMQ_HAVE_WINDOWS
-#include <windows.h>
+#include <zmq/windows.hpp>
 #else
 #include <semaphore.h>
 #endif
