@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Kustarova\trunk\libzmq\zmq&quot;;&quot;C:\Documents and Settings\Kustarova\trunk\libzmq&quot;"
+				AdditionalIncludeDirectories="../../libzmq"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
@@ -114,6 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../libzmq"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
