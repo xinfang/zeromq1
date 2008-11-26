@@ -20,8 +20,8 @@
 #ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
 #define __ZMQ_I_ENGINE_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "command.hpp"
+#include <zmq/export.hpp>
+#include <zmq/command.hpp>
 
 namespace zmq
 {

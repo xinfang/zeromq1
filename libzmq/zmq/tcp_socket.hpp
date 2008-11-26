@@ -22,9 +22,9 @@
 
 #include <stddef.h>
 
-#include "export.hpp"
-#include "stdint.hpp"
-#include "tcp_listener.hpp"
+#include <zmq/export.hpp>
+#include <zmq/stdint.hpp>
+#include <zmq/tcp_listener.hpp>
 
 namespace zmq
 {

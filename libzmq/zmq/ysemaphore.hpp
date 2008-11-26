@@ -23,9 +23,9 @@
 
 #include <assert.h>
 
-#include "platform.hpp"
-#include "i_signaler.hpp"
-#include "err.hpp"
+#include <zmq/platform.hpp>
+#include <zmq/i_signaler.hpp>
+#include <zmq/err.hpp>
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
 #include <pthread.h>

@@ -22,10 +22,10 @@
 
 #include <assert.h>
 
-#include "i_signaler.hpp"
-#include "atomic_bitmap.hpp"
-#include "ysemaphore.hpp"
-#include "stdint.hpp"
+#include <zmq/i_signaler.hpp>
+#include <zmq/atomic_bitmap.hpp>
+#include <zmq/ysemaphore.hpp>
+#include <zmq/stdint.hpp>
 
 namespace zmq
 {

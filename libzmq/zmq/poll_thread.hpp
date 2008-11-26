@@ -20,7 +20,7 @@
 #ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
     defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
@@ -30,7 +30,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include "poller.hpp"
+#include <zmq/poller.hpp>
 
 namespace zmq
 {

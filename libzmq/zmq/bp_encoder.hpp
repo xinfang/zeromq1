@@ -24,10 +24,10 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include "export.hpp"
-#include "mux.hpp"
-#include "encoder.hpp"
-#include "message.hpp"
+#include <zmq/export.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/encoder.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {

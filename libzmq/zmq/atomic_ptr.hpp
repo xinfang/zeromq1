@@ -21,9 +21,9 @@
 #ifndef __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_PTR_HPP_INCLUDED__
 
-#include "mutex.hpp"
-#include "err.hpp"
-#include "platform.hpp"
+#include <zmq/mutex.hpp>
+#include <zmq/err.hpp>
+#include <zmq/platform.hpp>
 
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
 #include <windows.h>

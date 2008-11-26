@@ -20,13 +20,13 @@
 #ifndef __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
 #define __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_SOLARIS
 
 #include <vector>
 
-#include "poller.hpp"
+#include <zmq/poller.hpp>
 
 namespace zmq
 {

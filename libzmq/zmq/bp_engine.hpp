@@ -23,16 +23,16 @@
 
 #include <string>
 
-#include "export.hpp"
-#include "i_engine.hpp"
-#include "i_pollable.hpp"
-#include "i_thread.hpp"
-#include "mux.hpp"
-#include "demux.hpp"
-#include "bp_encoder.hpp"
-#include "bp_decoder.hpp"
-#include "tcp_socket.hpp"
-#include "tcp_listener.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_pollable.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/demux.hpp>
+#include <zmq/bp_encoder.hpp>
+#include <zmq/bp_decoder.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/tcp_listener.hpp>
 
 namespace zmq
 {

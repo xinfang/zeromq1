@@ -20,9 +20,9 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_engine.hpp"
-#include "i_poller.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_poller.hpp>
 
 namespace zmq
 {

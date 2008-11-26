@@ -20,7 +20,7 @@
 #ifndef __ZMQ_STDINT_HPP_INCLUDED__
 #define __ZMQ_STDINT_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_SOLARIS
 #include <inttypes.h>

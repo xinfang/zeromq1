@@ -23,7 +23,7 @@
 //  Include this file to define standard POSIX text formatting functions
 //  that are missing on Windows platform.
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #if (_MSC_VER >= 1400)

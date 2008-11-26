@@ -20,7 +20,7 @@
 #ifndef __ZMQ_WIRE_HPP_INCLUDED__
 #define __ZMQ_WIRE_HPP_INCLUDED__
 
-#include "stdint.hpp"
+#include <zmq/stdint.hpp>
 
 namespace zmq
 {

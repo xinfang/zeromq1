@@ -23,12 +23,12 @@
 #include <vector>
 #include <cstdlib>
 
-#include "export.hpp"
-#include "i_poller.hpp"
-#include "i_pollable.hpp"
-#include "dispatcher.hpp"
-#include "ysocketpair.hpp"
-#include "thread.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_poller.hpp>
+#include <zmq/i_pollable.hpp>
+#include <zmq/dispatcher.hpp>
+#include <zmq/ysocketpair.hpp>
+#include <zmq/thread.hpp>
 
 namespace zmq
 {

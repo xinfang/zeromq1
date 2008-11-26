@@ -23,9 +23,9 @@
 #include <assert.h>
 #include <vector>
 
-#include "export.hpp"
-#include "message.hpp"
-#include "pipe.hpp"
+#include <zmq/export.hpp>
+#include <zmq/message.hpp>
+#include <zmq/pipe.hpp>
 
 namespace zmq
 {

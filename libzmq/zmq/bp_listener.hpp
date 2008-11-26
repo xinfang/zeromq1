@@ -22,10 +22,10 @@
 
 #include <vector>
 
-#include "export.hpp"
-#include "i_pollable.hpp"
-#include "i_thread.hpp"
-#include "tcp_listener.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_pollable.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/tcp_listener.hpp>
 
 namespace zmq
 {

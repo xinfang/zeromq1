@@ -23,7 +23,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include "poller.hpp"
+#include <zmq/poller.hpp>
 
 namespace zmq
 {

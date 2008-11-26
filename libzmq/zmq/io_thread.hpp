@@ -20,13 +20,13 @@
 #ifndef __ZMQ_IO_THREAD_HPP_INCLUDED__
 #define __ZMQ_IO_THREAD_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
-#include "poll_thread.hpp"
-#include "select_thread.hpp"
-#include "epoll_thread.hpp"
-#include "devpoll_thread.hpp"
-#include "kqueue_thread.hpp"
+#include <zmq/poll_thread.hpp>
+#include <zmq/select_thread.hpp>
+#include <zmq/epoll_thread.hpp>
+#include <zmq/devpoll_thread.hpp>
+#include <zmq/kqueue_thread.hpp>
 
 namespace zmq
 {

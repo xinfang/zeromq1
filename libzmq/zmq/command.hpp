@@ -23,10 +23,10 @@
 #include <assert.h>
 #include <string.h>
 
-#include "export.hpp"
-#include "i_engine.hpp"
-#include "pipe.hpp"
-#include "formatting.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/pipe.hpp>
+#include <zmq/formatting.hpp>
 
 namespace zmq
 {

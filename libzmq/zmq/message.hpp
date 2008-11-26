@@ -20,7 +20,7 @@
 #ifndef __ZMQ_MESSAGE_HPP_INCLUDED__
 #define __ZMQ_MESSAGE_HPP_INCLUDED__
 
-#include "raw_message.hpp"
+#include <zmq/raw_message.hpp>
 
 namespace zmq
 {

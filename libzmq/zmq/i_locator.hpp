@@ -20,11 +20,11 @@
 #ifndef __ZMQ_I_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_I_LOCATOR_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_thread.hpp"
-#include "i_engine.hpp"
-#include "scope.hpp"
-#include "server_protocol.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/scope.hpp>
+#include <zmq/server_protocol.hpp>
 
 namespace zmq
 {

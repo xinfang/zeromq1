@@ -20,12 +20,12 @@
 #ifndef __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
 #define __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
     defined (ZMQ_HAVE_OSX)
 
-#include "poller.hpp"
+#include <zmq/poller.hpp>
 
 namespace zmq
 {

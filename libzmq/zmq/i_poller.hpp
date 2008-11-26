@@ -20,8 +20,8 @@
 #ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_thread.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_thread.hpp>
 
 namespace zmq
 {

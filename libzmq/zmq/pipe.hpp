@@ -20,12 +20,12 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "i_thread.hpp"
-#include "i_engine.hpp"
-#include "ypipe.hpp"
-#include "raw_message.hpp"
-#include "config.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/ypipe.hpp>
+#include <zmq/raw_message.hpp>
+#include <zmq/config.hpp>
 
 namespace zmq
 {

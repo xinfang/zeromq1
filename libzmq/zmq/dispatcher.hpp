@@ -22,13 +22,13 @@
 
 #include <vector>
 
-#include "export.hpp"
-#include "platform.hpp"
-#include "i_thread.hpp"
-#include "i_signaler.hpp"
-#include "ypipe.hpp"
-#include "mutex.hpp"
-#include "config.hpp"
+#include <zmq/export.hpp>
+#include <zmq/platform.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/i_signaler.hpp>
+#include <zmq/ypipe.hpp>
+#include <zmq/mutex.hpp>
+#include <zmq/config.hpp>
 
 namespace zmq
 {

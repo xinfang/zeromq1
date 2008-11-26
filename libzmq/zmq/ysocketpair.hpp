@@ -22,14 +22,14 @@
 
 #include <assert.h>
 
-#include "platform.hpp"
-#include "stdint.hpp"
-#include "i_signaler.hpp"
-#include "err.hpp"
-#include "tcp_socket.hpp"
-#include "tcp_listener.hpp"
-#include "formatting.hpp"
-#include "ip.hpp"
+#include <zmq/platform.hpp>
+#include <zmq/stdint.hpp>
+#include <zmq/i_signaler.hpp>
+#include <zmq/err.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/tcp_listener.hpp>
+#include <zmq/formatting.hpp>
+#include <zmq/ip.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS 
 #include <windows.h>

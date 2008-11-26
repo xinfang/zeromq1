@@ -21,10 +21,10 @@
 #ifndef __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 
-#include "err.hpp"
-#include "stdint.hpp"
-#include "mutex.hpp"
-#include "platform.hpp"
+#include <zmq/err.hpp>
+#include <zmq/stdint.hpp>
+#include <zmq/mutex.hpp>
+#include <zmq/platform.hpp>
 
 //  These are the conditions to choose between different implementations
 //  of atomic_bitmap.

@@ -1,5 +1,4 @@
-INCLUDES                = -I$(top_builddir) -I$(top_srcdir) \
--I$(top_builddir)/libzmq -I$(top_srcdir)/libzmq
+INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
 include_HEADERS = zmq.hpp
 

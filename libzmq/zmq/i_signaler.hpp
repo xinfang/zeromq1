@@ -20,7 +20,7 @@
 #ifndef __ZMQ_I_SIGNALER_HPP_INCLUDED__
 #define __ZMQ_I_SIGNALER_HPP_INCLUDED__
 
-#include "export.hpp"
+#include <zmq/export.hpp>
 
 namespace zmq
 {

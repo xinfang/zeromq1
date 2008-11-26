@@ -20,7 +20,7 @@
 #ifndef __ZMQ_EXPORT_HPP_INCLUDED__
 #define __ZMQ_EXPORT_HPP_INCLUDED__
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #define ZMQ_EXPORT __declspec(dllexport)

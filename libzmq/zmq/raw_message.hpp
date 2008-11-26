@@ -22,10 +22,10 @@
 
 #include <assert.h>
 
-#include "stdint.hpp"
-#include "config.hpp"
-#include "atomic_counter.hpp"
-#include "err.hpp"
+#include <zmq/stdint.hpp>
+#include <zmq/config.hpp>
+#include <zmq/atomic_counter.hpp>
+#include <zmq/err.hpp>
 
 namespace zmq
 {

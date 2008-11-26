@@ -25,17 +25,17 @@
 #include <string>
 #include <utility>
 
-#include "export.hpp"
-#include "i_thread.hpp"
-#include "i_engine.hpp"
-#include "i_locator.hpp"
-#include "i_poller.hpp"
-#include "message.hpp"
-#include "dispatcher.hpp"
-#include "mux.hpp"
-#include "demux.hpp"
-#include "ypollset.hpp"
-#include "scope.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_locator.hpp>
+#include <zmq/i_poller.hpp>
+#include <zmq/message.hpp>
+#include <zmq/dispatcher.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/demux.hpp>
+#include <zmq/ypollset.hpp>
+#include <zmq/scope.hpp>
 
 namespace zmq
 {

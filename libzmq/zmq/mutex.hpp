@@ -20,8 +20,8 @@
 #ifndef __ZMQ_MUTEX_HPP_INCLUDED__
 #define __ZMQ_MUTEX_HPP_INCLUDED__
 
-#include "platform.hpp"
-#include "err.hpp"
+#include <zmq/platform.hpp>
+#include <zmq/err.hpp>
 
 //  Mutex class encapsulated OS mutex in a platform-independent way.
 

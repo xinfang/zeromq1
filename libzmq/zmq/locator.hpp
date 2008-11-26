@@ -23,14 +23,14 @@
 #include <string>
 #include <map>
 
-#include "export.hpp"
-#include "i_locator.hpp"
-#include "i_engine.hpp"
-#include "i_thread.hpp"
-#include "mutex.hpp"
-#include "tcp_socket.hpp"
-#include "scope.hpp"
-#include "server_protocol.hpp"
+#include <zmq/export.hpp>
+#include <zmq/i_locator.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/mutex.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/scope.hpp>
+#include <zmq/server_protocol.hpp>
 
 namespace zmq
 {

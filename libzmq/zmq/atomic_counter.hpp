@@ -21,10 +21,10 @@
 #ifndef __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 
-#include "err.hpp"
-#include "stdint.hpp"
-#include "platform.hpp"
-#include "mutex.hpp"
+#include <zmq/err.hpp>
+#include <zmq/stdint.hpp>
+#include <zmq/platform.hpp>
+#include <zmq/mutex.hpp>
 
 #if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
 #include <windows.h>

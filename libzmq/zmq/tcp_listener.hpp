@@ -20,8 +20,8 @@
 #ifndef __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 #define __ZMQ_TCP_LISTENER_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "stdint.hpp"
+#include <zmq/export.hpp>
+#include <zmq/stdint.hpp>
 
 namespace zmq
 {

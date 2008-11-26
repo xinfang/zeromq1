@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "export.hpp"
-#include "platform.hpp"
+#include <zmq/export.hpp>
+#include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <Winsock2.h>

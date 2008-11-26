@@ -20,8 +20,8 @@
 #ifndef __ZMQ_YPIPE_HPP_INCLUDED__
 #define __ZMQ_YPIPE_HPP_INCLUDED__
 
-#include "atomic_ptr.hpp"
-#include "yqueue.hpp"
+#include <zmq/atomic_ptr.hpp>
+#include <zmq/yqueue.hpp>
 
 namespace zmq
 {

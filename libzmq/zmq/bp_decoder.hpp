@@ -21,10 +21,10 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
-#include "export.hpp"
-#include "demux.hpp"
-#include "decoder.hpp"
-#include "message.hpp"
+#include <zmq/export.hpp>
+#include <zmq/demux.hpp>
+#include <zmq/decoder.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {
