@@ -7,7 +7,7 @@ DIR_C = libczmq
 endif
 
 if BUILD_PYTHON
-DIR_P = pyzmq
+DIR_P = libpyzmq
 endif
 
 if BUILD_JAVA
@@ -19,7 +19,7 @@ DIR_ZMQ_SERVER = zmq_server
 endif
 
 SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples man
-DIST_SUBDIRS = libzmq libczmq pyzmq jzmq perf zmq_server examples man
+DIST_SUBDIRS = libzmq libczmq libpyzmq jzmq perf zmq_server examples man
 
 EXTRA_DIST = \
     ./perf/tests/scenarios/thr.sh \
