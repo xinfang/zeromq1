@@ -23,6 +23,8 @@
     defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO
 
+#include <sys/types.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 #include <poll.h>
 
