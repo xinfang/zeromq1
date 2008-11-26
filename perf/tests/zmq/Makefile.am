@@ -66,22 +66,22 @@ remote_thr_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
 
 if BUILD_C
-c_local_lat_SOURCES = c_local_lat.c ../../../libczmq/czmq.h
+c_local_lat_SOURCES = c_local_lat.c ../../../libczmq/zmq/czmq.h
 c_local_lat_LDADD = $(top_builddir)/libczmq/libczmq.la \
 $(top_builddir)/libzmq/libzmq.la -lstdc++
 c_local_lat_CFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 
-c_remote_lat_SOURCES = c_remote_lat.c ../../../libczmq/czmq.h
+c_remote_lat_SOURCES = c_remote_lat.c ../../../libczmq/zmq/czmq.h
 c_remote_lat_LDADD = $(top_builddir)/libczmq/libczmq.la \
 $(top_builddir)/libzmq/libzmq.la -lstdc++
 c_remote_lat_CFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 
-c_local_thr_SOURCES = c_local_thr.c ../../../libczmq/czmq.h
+c_local_thr_SOURCES = c_local_thr.c ../../../libczmq/zmq/czmq.h
 c_local_thr_LDADD = $(top_builddir)/libczmq/libczmq.la \
 $(top_builddir)/libzmq/libzmq.la -lstdc++
 c_local_thr_CFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 
-c_remote_thr_SOURCES = c_remote_thr.c ../../../libczmq/czmq.h
+c_remote_thr_SOURCES = c_remote_thr.c ../../../libczmq/zmq/czmq.h
 c_remote_thr_LDADD = $(top_builddir)/libczmq/libczmq.la \
 $(top_builddir)/libzmq/libzmq.la -lstdc++
 c_remote_thr_CFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
