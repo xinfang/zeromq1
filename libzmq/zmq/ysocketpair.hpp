@@ -54,7 +54,7 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        inline ysocketpair_t ()
+        ZMQ_EXPORT inline ysocketpair_t ()
         {
             struct sockaddr_in addr;
             SOCKET listener;
@@ -97,7 +97,7 @@ namespace zmq
         }
 
         //  Destroy the pipe.
-        inline ~ysocketpair_t ()
+        ZMQ_EXPORT inline ~ysocketpair_t ()
         {
             int rc = closesocket (w);
             wsa_assert (rc != SOCKET_ERROR);
@@ -107,12 +107,12 @@ namespace zmq
         }
 
         //  Send specific signal to the pipe (i_signaler implemenation).
-        void signal (int signal_);
+        ZMQ_EXPORT void signal (int signal_);
 
         //  Waits for a signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
-        inline uint32_t poll ()
+        ZMQ_EXPORT inline uint32_t poll ()
         {
             DWORD rc = WaitForSingleObject ((HANDLE) r, INFINITE);
             assert (rc != WAIT_ABANDONED);
@@ -125,7 +125,7 @@ namespace zmq
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc. If there is no signal available,
         //  it returns zero immediately.
-        inline uint32_t check ()
+        ZMQ_EXPORT inline uint32_t check ()
         {
             char buffer [256];
           
@@ -141,7 +141,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        inline int get_fd ()
+        ZMQ_EXPORT inline int get_fd ()
         {
             return (int) r;
         }

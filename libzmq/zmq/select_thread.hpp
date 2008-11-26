@@ -36,15 +36,15 @@ namespace zmq
     {
     public:
 
-        select_t ();
+        ZMQ_EXPORT select_t ();
 
-        cookie_t add_fd (int fd_, void *udata_);
-        void rm_fd (cookie_t cookie_);
-        void set_pollin (cookie_t cookie_);
-        void reset_pollin (cookie_t cookie_);
-        void set_pollout (cookie_t cookie_);
-        void reset_pollout (cookie_t cookie_);
-        void wait (event_list_t &event_list_);
+        ZMQ_EXPORT cookie_t add_fd (int fd_, void *udata_);
+        ZMQ_EXPORT void rm_fd (cookie_t cookie_);
+        ZMQ_EXPORT void set_pollin (cookie_t cookie_);
+        ZMQ_EXPORT void reset_pollin (cookie_t cookie_);
+        ZMQ_EXPORT void set_pollout (cookie_t cookie_);
+        ZMQ_EXPORT void reset_pollout (cookie_t cookie_);
+        ZMQ_EXPORT void wait (event_list_t &event_list_);
 
     private:
 
