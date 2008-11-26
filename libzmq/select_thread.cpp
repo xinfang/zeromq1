@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "platform.hpp"
+#include <zmq/platform.hpp>
 
 #include <algorithm>
 #include <string.h>
