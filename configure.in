@@ -290,7 +290,7 @@ AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset socket getifaddrs freeifaddrs)
 
-AC_OUTPUT(Makefile libzmq/Makefile czmq/Makefile pyzmq/Makefile jzmq/Makefile \
+AC_OUTPUT(Makefile libzmq/Makefile libczmq/Makefile pyzmq/Makefile jzmq/Makefile \
 perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 perf/tests/tcp/Makefile perf/helpers/Makefile examples/chat/Makefile \

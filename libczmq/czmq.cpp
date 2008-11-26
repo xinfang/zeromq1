@@ -17,13 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "czmq.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <zmq.hpp>
+#include <zmq/czmq.h>
 
 struct context_t
 {

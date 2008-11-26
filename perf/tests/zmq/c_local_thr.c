@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#include "../../../czmq/czmq.h"
+#include <zmq/czmq.h>
 
 inline uint64_t now_usecs ()
 {

@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../../../czmq/czmq.h"
+#include <zmq/czmq.h>
 
 int main (int argc, char *argv [])
 {
