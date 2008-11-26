@@ -88,7 +88,7 @@ c_remote_thr_CFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 endif
 
 if BUILD_JAVA
-AM_JAVACFLAGS=-classpath $(top_builddir)/jzmq
+AM_JAVACFLAGS=-classpath $(top_builddir)/libjzmq 
 
 dist_noinst_JAVA = j_local_lat.java j_remote_lat.java j_local_thr.java \
 j_remote_thr.java

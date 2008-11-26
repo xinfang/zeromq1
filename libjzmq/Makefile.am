@@ -5,20 +5,20 @@
 dist_noinst_JAVA = Jzmq.java
 
 lib_LTLIBRARIES = libjzmq.la
-libjzmq_la_SOURCES = Jzmq.h Jzmq.cpp
+libjzmq_la_SOURCES = ./zmq/Jzmq.h Jzmq.cpp
 libjzmq_la_CXXFLAGS = -I$(top_builddir)/libzmq -I$(top_srcdir)/libzmq \
-@JAVA_INCLUDE@ -Wall
+@JAVA_INCLUDE@ -I$(top_builddir)/libjzmq -I$(top_srcdir)/libjzmq -Wall
 libjzmq_la_LDFLAGS = -version-info 0:0:0
 libjzmq_la_LIBADD = $(top_builddir)/libzmq/libzmq.la
 
-BUILT_SOURCES = Jzmq.h Jzmq.class
+BUILT_SOURCES = ./zmq/Jzmq.h Jzmq.class
 
-$(srcdir)/Jzmq.cpp: Jzmq.h
+$(srcdir)/Jzmq.cpp: ./zmq/Jzmq.h
 
-Jzmq.h: Jzmq.class
-	$(CLASSPATH_ENV) $(JAVAH) -jni -classpath ./ Jzmq
+./zmq/Jzmq.h: Jzmq.class
+	$(CLASSPATH_ENV) $(JAVAH) -jni -d ./zmq -classpath ./ Jzmq
 
 Jzmq.class: classdist_noinst.stamp
 
 dist-hook:
-		-rm $(distdir)/Jzmq.h
+		-rm $(distdir)/zmq/Jzmq.h
