@@ -53,7 +53,7 @@ JNIEXPORT void JNICALL Java_Jzmq_construct (JNIEnv *env, jobject obj,
     assert (context->locator);
     context->dispatcher = new zmq::dispatcher_t (2);
     assert (context->dispatcher);
-    context->io_thread = zmq::poll_thread_t::create (context->dispatcher);
+    context->io_thread = zmq::io_thread_t::create (context->dispatcher);
     assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);

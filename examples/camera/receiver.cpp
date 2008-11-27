@@ -26,7 +26,6 @@
 #include <SDL.h>
 
 #include <zmq.hpp>
-#include <zmq/wire.hpp>
 
 int main (int argc, char *argv [])
 {
@@ -51,7 +50,7 @@ int main (int argc, char *argv [])
     zmq::locator_t locator (argv [1]);
 
     //  3. Start one working thread (to receive data from the sender)
-    zmq::i_thread *pt = zmq::poll_thread_t::create (&dispatcher);
+    zmq::i_thread *pt = zmq::io_thread_t::create (&dispatcher);
 
     //  5. Register one API thread (the application thread - the one that
     //     is being executed at the moment)

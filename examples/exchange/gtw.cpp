@@ -39,7 +39,7 @@ public:
     {
         //  Initialise 0MQ infrastructure
         api = zmq::api_thread_t::create (dispatcher_, locator_);
-        pt = zmq::poll_thread_t::create (dispatcher_);
+        pt = zmq::io_thread_t::create (dispatcher_);
 
         //  Initialise the wiring
         oe_id = api->create_exchange ("OE");
@@ -124,7 +124,7 @@ public:
     {
         //  Initialise 0MQ infrastructure
         api = zmq::api_thread_t::create (dispatcher_, locator_);
-        pt = zmq::poll_thread_t::create (dispatcher_);
+        pt = zmq::io_thread_t::create (dispatcher_);
 
         //  Initialise the wiring
         api->create_queue ("TQ");

@@ -78,7 +78,7 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
     self->dispatcher = new zmq::dispatcher_t (2);
     self->locator = new zmq::locator_t (hostname);
-    self->io_thread = zmq::poll_thread_t::create (self->dispatcher);
+    self->io_thread = zmq::io_thread_t::create (self->dispatcher);
     self->api_thread = zmq::api_thread_t::create (self->dispatcher,
         self->locator);
 

@@ -43,7 +43,7 @@ namespace perf
         {
 
             api = zmq::api_thread_t::create (&dispatcher, &locator);
-            worker = zmq::select_thread_t::create (&dispatcher);
+            worker = zmq::io_thread_t::create (&dispatcher);
 
             if (bind_) {
 

@@ -30,6 +30,7 @@
 #include <zmq/epoll_thread.hpp>
 #include <zmq/devpoll_thread.hpp>
 #include <zmq/kqueue_thread.hpp>
+#include <zmq/wire.hpp>
 
 #endif
 
