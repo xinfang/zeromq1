@@ -32,7 +32,8 @@
 #include <zmq/config.hpp>
 #include <zmq/kqueue_thread.hpp>
 
-zmq::kqueue_t::kqueue_t ()
+zmq::kqueue_t::kqueue_t (kqueue_thread_t *poller_) :
+    poller (poller_)
 {
     //  Create event queue
     kqueue_fd = kqueue ();
@@ -115,7 +116,7 @@ void zmq::kqueue_t::reset_pollout (cookie_t cookie_)
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
 
-void zmq::kqueue_t::wait (event_list_t &event_list_)
+bool zmq::kqueue_t::process_events ()
 {
     struct kevent ev_buf [max_io_events];
 
@@ -126,20 +127,19 @@ void zmq::kqueue_t::wait (event_list_t &event_list_)
 
     for (int i = 0; i < n; i ++) {
         struct poll_entry *pe = (struct poll_entry*) ev_buf [i].udata;
+        event_source_t *ev_source = pe->ev_source;
 
-        if (ev_buf [i].flags & EV_EOF) {
-            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->ev_source};
-            event_list_.push_back (ev);
-        }
-        if (ev_buf [i].filter == EVFILT_WRITE) {
-            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->ev_source};
-            event_list_.push_back (ev);
-        }
-        if (ev_buf [i].filter == EVFILT_READ) {
-            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->ev_source};
-            event_list_.push_back (ev);
-        }
+        if (ev_buf [i].flags & EV_EOF)
+            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+                return true;
+        if (ev_buf [i].filter == EVFILT_WRITE)
+            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+                return true;
+        if (ev_buf [i].filter == EVFILT_READ)
+            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+                return true;
     }
+    return false;
 }
 
 #endif

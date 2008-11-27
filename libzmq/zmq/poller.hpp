@@ -63,8 +63,6 @@ namespace zmq
         event_source_t *ev_source;
     };
 
-    typedef std::vector <event_t> event_list_t;
-
     template <class T> class poller_t : public i_poller
     {
     public:
@@ -82,6 +80,10 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
+
+        //  Callback function called by event_monitor in
+        //  process_events () function.
+        bool process_event (event_source_t *ev_source, enum events ev_name);
 
     private:
 
@@ -136,7 +138,7 @@ zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
 
 template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_)
+    dispatcher (dispatcher_), event_monitor (this)
 {
     ctl_desc.engine = NULL;
     ctl_desc.cookie = event_monitor.add_fd (signaler.get_fd (), &ctl_desc);
@@ -238,54 +240,51 @@ void zmq::poller_t <T>::worker_routine (void *arg_)
 template <class T>
 void zmq::poller_t <T>::loop ()
 {
-    event_list_t events;
+    bool stopped = false;
 
-    while (true) {
-        event_monitor.wait (events);
-
-        for (event_list_t::size_type i = 0; i < events.size (); i ++) {
-            event_source_t *ev_source = events [i].ev_source;
-
-            if (ev_source->retired)
-                continue;
-            if (ev_source == &ctl_desc) {
-                uint32_t signals = signaler.check ();
-                assert (signals);
-
-                //  Iterate through all the threads in the process and find out
-                //  which of them sent us commands.
-                for (int source_thread_id = 0;
-                      source_thread_id != dispatcher->get_thread_count ();
-                      source_thread_id ++) {
-                    if (signals & (1 << source_thread_id)) {
-
-                        //  Read all the commands from particular thread.
-                        command_t command;
-                        while (dispatcher->read (source_thread_id, thread_id,
-                              &command))
-                            if (!process_command (command))
-                                return;
-                    }
-                }
-            }
-            else {
-                switch (events [i].name) {
-                case ZMQ_EVENT_OUT:
-                    ev_source->engine->out_event ();
-                    break;
-                case ZMQ_EVENT_IN:
-                case ZMQ_EVENT_ERR:
-                    ev_source->engine->in_event ();
-                    break;
-                }
-            }
-        }
-
-        events.clear ();
-
+    while (!stopped) {
+        stopped = event_monitor.process_events ();
         if (!retired_list.empty ())
             free_retired_event_sources ();
     }
+}
+
+template <class T>
+bool zmq::poller_t <T>::process_event (event_source_t *ev_source,
+    enum events ev_name)
+{
+    if (ev_source == &ctl_desc) {
+        uint32_t signals = signaler.check ();
+        assert (signals);
+
+        //  Iterate through all the threads in the process and find out
+        //  which of them sent us commands.
+        for (int source_thread_id = 0;
+              source_thread_id != dispatcher->get_thread_count ();
+              source_thread_id ++) {
+            if (signals & (1 << source_thread_id)) {
+
+                //  Read all the commands from particular thread.
+                command_t command;
+                while (dispatcher->read (source_thread_id, thread_id,
+                      &command))
+                    if (!process_command (command))
+                        return true;
+            }
+        }
+    }
+    else if (!ev_source->retired) {
+        switch (ev_name) {
+        case ZMQ_EVENT_OUT:
+            ev_source->engine->out_event ();
+            break;
+        case ZMQ_EVENT_IN:
+        case ZMQ_EVENT_ERR:
+            ev_source->engine->in_event ();
+            break;
+        }
+    }
+    return false;
 }
 
 template <class T>

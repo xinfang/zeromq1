@@ -29,7 +29,8 @@
 #include <zmq/config.hpp>
 #include <zmq/epoll_thread.hpp>
 
-zmq::epoll_t::epoll_t ()
+zmq::epoll_t::epoll_t (epoll_thread_t *poller_) :
+    poller (poller_)
 {
     epoll_fd = epoll_create (1);
     errno_assert (epoll_fd != -1);
@@ -97,7 +98,7 @@ void zmq::epoll_t::reset_pollout (cookie_t cookie_)
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::wait (event_list_t &event_list_)
+bool zmq::epoll_t::process_events ()
 {
     struct epoll_event ev_buf [max_io_events];
 
@@ -108,19 +109,17 @@ void zmq::epoll_t::wait (event_list_t &event_list_)
     for (int i = 0; i < n; i ++) {
         poll_entry *pe = ((poll_entry*) ev_buf [i].data.ptr);
 
-        if (ev_buf [i].events & (EPOLLERR | EPOLLHUP)) {
-            event_t ev = {pe->fd, ZMQ_EVENT_ERR, pe->ev_source};
-            event_list_.push_back (ev);
-        }
-        if (ev_buf [i].events & EPOLLOUT) {
-            event_t ev = {pe->fd, ZMQ_EVENT_OUT, pe->ev_source};
-            event_list_.push_back (ev);
-        }
-        if (ev_buf [i].events & EPOLLIN) {
-            event_t ev = {pe->fd, ZMQ_EVENT_IN, pe->ev_source};
-            event_list_.push_back (ev);
-        }
+        if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
+            if (poller->process_event (pe->ev_source, ZMQ_EVENT_ERR))
+                return true;
+        if (ev_buf [i].events & EPOLLOUT)
+            if (poller->process_event (pe->ev_source, ZMQ_EVENT_OUT))
+                return true;
+        if (ev_buf [i].events & EPOLLIN)
+            if (poller->process_event (pe->ev_source, ZMQ_EVENT_IN))
+                return true;
     }
+    return false;
 }
 
 #endif

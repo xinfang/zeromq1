@@ -43,7 +43,7 @@ namespace zmq
     {
     public:
 
-        poll_t ();
+        poll_t (poller_t <poll_t> *poller);
         virtual ~poll_t () {}
 
         cookie_t add_fd (int fd_, event_source_t *ev_source_);
@@ -52,9 +52,11 @@ namespace zmq
         void reset_pollin (cookie_t cookie_);
         void set_pollout (cookie_t cookie_);
         void reset_pollout (cookie_t cookie_);
-        void wait (event_list_t &event_list_);
+        bool process_events ();
 
     private:
+
+        poller_t <poll_t> *poller;
 
         struct fd_entry {
             int index;

@@ -40,7 +40,7 @@ namespace zmq
     {
     public:
 
-        epoll_t ();
+        epoll_t (poller_t <epoll_t> *poller_);
         virtual ~epoll_t ();
 
         cookie_t add_fd (int fd_, event_source_t *ev_source_);
@@ -49,9 +49,11 @@ namespace zmq
         void reset_pollin (cookie_t cookie_);
         void set_pollout (cookie_t cookie_);
         void reset_pollout (cookie_t cookie_);
-        void wait (event_list_t &event_list_);
+        bool process_events ();
 
     private:
+
+        poller_t <epoll_t> *poller;
 
         // Epoll file descriptor
         int epoll_fd;

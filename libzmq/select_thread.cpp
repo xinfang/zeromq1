@@ -31,8 +31,8 @@
 #include <zmq/err.hpp>
 #include <zmq/select_thread.hpp>
 
-zmq::select_t::select_t () :
-    fd_table (FD_SETSIZE), maxfd (-1)
+zmq::select_t::select_t (select_thread_t *poller_) :
+    poller (poller_), fd_table (FD_SETSIZE), maxfd (-1)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
@@ -102,7 +102,7 @@ void zmq::select_t::reset_pollout (cookie_t cookie_)
     FD_CLR (cookie_.fd, &source_set_out);
 }
 
-void zmq::select_t::wait (event_list_t &event_list)
+bool zmq::select_t::process_events ()
 {
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
     memcpy (&writefds, &source_set_out, sizeof source_set_out);
@@ -120,17 +120,16 @@ void zmq::select_t::wait (event_list_t &event_list)
     }
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-        if (FD_ISSET (fds [i], &writefds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_OUT, fd_table [fds [i]].ev_source};
-            event_list.push_back (ev);
-        }
-        if (FD_ISSET (fds [i], &readfds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_IN, fd_table [fds [i]].ev_source};
-            event_list.push_back (ev);
-        }
-        if (FD_ISSET (fds [i], &exceptfds)) {
-            event_t ev = {fds [i], ZMQ_EVENT_ERR, fd_table [fds [i]].ev_source};
-            event_list.push_back (ev);
-        }
+        event_source_t *ev_source = fd_table [fds [i]].ev_source;
+        if (FD_ISSET (fds [i], &writefds))
+            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+                return true;
+        if (FD_ISSET (fds [i], &readfds))
+            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+                return true;
+        if (FD_ISSET (fds [i], &exceptfds))
+            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+                return true;
     }
+    return false;
 }

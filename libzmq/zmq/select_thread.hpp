@@ -36,7 +36,7 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT select_t ();
+        ZMQ_EXPORT select_t (poller_t <select_t> *poller_);
 
         ZMQ_EXPORT cookie_t add_fd (int fd_, event_source_t *ev_source_);
         ZMQ_EXPORT void rm_fd (cookie_t cookie_);
@@ -44,9 +44,11 @@ namespace zmq
         ZMQ_EXPORT void reset_pollin (cookie_t cookie_);
         ZMQ_EXPORT void set_pollout (cookie_t cookie_);
         ZMQ_EXPORT void reset_pollout (cookie_t cookie_);
-        ZMQ_EXPORT void wait (event_list_t &event_list_);
+        ZMQ_EXPORT bool process_events ();
 
     private:
+
+        poller_t <select_t> *poller;
 
         struct fd_entry {
             event_source_t *ev_source;
