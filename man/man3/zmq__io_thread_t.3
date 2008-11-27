@@ -1,7 +1,7 @@
-.TH zmq::select_thread_t 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
+.TH zmq::io_thread_t 3 "" "(c)2007-2008 FastMQ Inc." "0MQ User Manuals"
 .SH NAME
-zmq::select_thread_t \- I/O thread handling network traffic using
-POSIX 'select' mechanism
+zmq::io_thread_t \- I/O thread handling network traffic using optimal polling
+mechanism on the given platform
 .SH SYNOPSIS
 \fB
 .nf
@@ -9,7 +9,7 @@ POSIX 'select' mechanism
 
 namespace zmq
 {
-    class select_thread_t
+    class io_thread_t
     {
         static i_thread *create (dispatcher_t *dispatcher);
     };
@@ -17,15 +17,19 @@ namespace zmq
 .fi
 \fP
 .SH DESCRIPTION
-The select thread class encapsulates an OS thread that handles 0MQ network
-traffic. The mechanism used for signaling between kernel space and
-user space is the
-.BR select (2)
-function. Once you create a select thread you can use it when creating exchanges,
-queues and bindings.
+.IR io_thread_t
+is a typedef for the optimal I/O thread implementation on the given
+platform (operating system). So say on Linux it resolves to
+.IR epoll_thread_t
+while on FreeBSD it resolves to
+.IR kqueue_thread_t .
+Use
+.IR io_thread_t
+instead of specific I/O thread types unless you want to explicitly specify
+the polling mechanism to use.
 .SH METHODS
-.IP "\fBstatic select_thread_t *create (dispatcher_t *dispatcher)\fP"
-Creates a poll thread and plugs it into the supplied
+.IP "\fBstatic io_thread_t *create (dispatcher_t *dispatcher)\fP"
+Creates an I/O thread and plugs it into the supplied
 .IR dispatcher .
 Note that there is no way to destroy the thread explicitly. It will be destroyed
 automatically when the dispatcher itself is deallocated.
@@ -38,21 +42,19 @@ int main ()
 {
     dispatcher_t dispatcher (2);
     locator_t locator ("localhost");
-    i_thread *pt = select_thread_t::create (&dispatcher);
+    i_thread *pt = io_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
     api->create_exchange ("E", scope_global, "eth0:5555", pt, 1, &pt);
     api->create_queue ("Q", scope_global, "eth0:5556", pt, 1, &pt);
     api->bind ("E", "Q", pt, pt);
 }
 .fi
-.SH NOTE
-The object is available only on platforms that support POSIX select function.
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>
 .SH "SEE ALSO"
 .BR zmq::dispatcher_t (3),
 .BR zmq::api_thread_t (3),
-.BR zmq::io_thread_t (3),
+.BR zmq::select_thread_t (3),
 .BR zmq::poll_thread_t (3),
 .BR zmq::epoll_thread_t (3),
 .BR zmq::devpoll_thread_t (3),
