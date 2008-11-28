@@ -22,7 +22,7 @@ class j_local_lat
      public static void main (String [] args)
      {
          if (args.length != 3) {
-             System.out.println ("usage: java LocalLat <hostname> " +
+             System.out.println ("usage: java j_local_lat <hostname> " +
                  "<message size> <message count>");
              return;
          }

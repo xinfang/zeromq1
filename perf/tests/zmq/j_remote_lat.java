@@ -22,7 +22,7 @@ class j_remote_lat
      public static void main (String [] args)
      {
          if (args.length != 5) {
-             System.out.println ("usage: java RemoteLat <hostname> " +
+             System.out.println ("usage: java j_remote_lat <hostname> " +
                  "<in interface> <out interface> <message size> " +
                  "<message count>");
              return;

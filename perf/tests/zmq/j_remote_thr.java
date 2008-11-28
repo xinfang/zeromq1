@@ -22,7 +22,7 @@ class j_remote_thr
      public static void main (String [] args)
      {
          if (args.length != 3) {
-             System.out.println ("usage: java RemoteThr <hostname> " +
+             System.out.println ("usage: java j_remote_thr <hostname> " +
                  "<message size> <message count>");
              return;
          }

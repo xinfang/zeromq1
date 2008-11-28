@@ -22,7 +22,7 @@ class j_local_thr
      public static void main (String [] args)
      {
          if (args.length != 4) {
-             System.out.println ("usage: java LocalThr <hostname> " +
+             System.out.println ("usage: java j_local_thr <hostname> " +
                  "<interface> <message size> <message count>");
              return;
          }
