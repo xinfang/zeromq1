@@ -95,6 +95,12 @@ time_measure="gettime"
 if test "x$with_perf" != "xno"; then
     perf="yes"
 
+    case "${host_os}" in
+        *openbsd*)
+            AC_CHECK_LIB(m, main)
+        ;;
+    esac
+
     # Test for __GNUC__ && (__i386__ || __x86_64__) macros
     AC_MSG_CHECKING([wheter rtdsc can be used])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
