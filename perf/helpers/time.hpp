@@ -48,26 +48,20 @@ namespace perf
 
 #ifdef ZMQ_HAVE_WINDOWS
     
-    inline uint64_t now () {
-        
-        LARGE_INTEGER ticksPerSecond;
-        LARGE_INTEGER tick;   // A point in time
-        ULARGE_INTEGER time;   // For converting tick into real time
+    inline uint64_t now ()
+    {
+        //  Get the high resolution counter's accuracy.
+		LARGE_INTEGER ticks_per_second;
+        QueryPerformanceFrequency (&ticks_per_second);
 
-        // get the high resolution counter's accuracy
-        QueryPerformanceFrequency (&ticksPerSecond);
-
-        // what time is it?
+        //  What time is it?
+		LARGE_INTEGER tick;
         QueryPerformanceCounter (&tick);
 
-        // convert the tick number into the number of seconds
-        // since the system was started...
-        double ticksDivM = ticksPerSecond.QuadPart/1000000000;
-        time.QuadPart = tick.QuadPart / ticksDivM;
-       
-        
-        return time.QuadPart;
-
+        //  Convert the tick number into the number of seconds
+        //  since the system was started...
+        return (uint64_t) (tick.QuadPart /
+            (double (ticks_per_second.QuadPart) / 1000000000));
     }
 
 #else
