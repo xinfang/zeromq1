@@ -27,8 +27,8 @@ zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
     tfn (tfn_),
     arg (arg_)
 {
-    descriptor = CreateThread (NULL, 0, &zmq::thread_t::thread_routine,
-        this, 0, NULL); 
+    descriptor = (HANDLE) _beginthreadex (NULL, 0, &zmq::thread_t::thread_routine, 
+        this, 0 , NULL);
     win_assert (descriptor != NULL);    
 }
 
@@ -38,7 +38,7 @@ zmq::thread_t::~thread_t ()
     win_assert (rc != WAIT_FAILED);
 }
 
-DWORD WINAPI zmq::thread_t::thread_routine (LPVOID arg_)
+unsigned int __stdcall zmq::thread_t::thread_routine (void *arg_)
 {
     thread_t *self = (thread_t*) arg_;
     self->tfn (self->arg);
