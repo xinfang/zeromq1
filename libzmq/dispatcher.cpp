@@ -48,6 +48,16 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
 
 zmq::dispatcher_t::~dispatcher_t ()
 {
+    //  Initiate termination of worker threads.
+    for (std::vector <i_thread*>::iterator it = threads.begin ();
+          it != threads.end (); it ++)
+        (*it)->stop ();
+
+    //  Wait while worker thread termination is completed.
+    for (std::vector <i_thread*>::iterator it = threads.begin ();
+          it != threads.end (); it ++)
+        delete *it;
+
     //  Deallocate the pipe matrix.
     delete [] pipes;
 
@@ -59,7 +69,8 @@ zmq::dispatcher_t::~dispatcher_t ()
 #endif
 }
 
-int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
+int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
+    i_signaler *signaler_)
 {
     //  Lock the mutex.
     sync.lock ();
@@ -81,22 +92,9 @@ int zmq::dispatcher_t::allocate_thread_id (i_signaler *signaler_)
     //  Set the signaler.
     signalers [thread_id] = signaler_;
 
+    //  Store the pointer to the thread to be used during shutdown.
+    threads.push_back (thread_);
+
     return thread_id;
-}
-
-void zmq::dispatcher_t::deallocate_thread_id (int thread_id_)
-{
-    //  Lock the mutex.
-    sync.lock ();
-
-    //  Free the specified thread ID.
-    assert (used [thread_id_] == true);
-    used [thread_id_] = false;
-
-    //  Unregister signaler.
-    signalers [thread_id_] = NULL;
-
-    //  Unlock the mutex.
-    sync.unlock ();
 }
 

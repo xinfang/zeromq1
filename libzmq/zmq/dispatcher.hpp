@@ -49,20 +49,20 @@ namespace zmq
     public:
 
         //  Create the dispatcher object. The actual number of threads
-        //  supported is determined by thread_count_.
+        //  supported is determined by 'thread_count'.
         ZMQ_EXPORT dispatcher_t (int thread_count_);
 
         //  Destroy the dispatcher object.
         ZMQ_EXPORT ~dispatcher_t ();
 
         //  Returns number of threads dispatcher is preconfigured for.
-        ZMQ_EXPORT inline int get_thread_count ()
+        inline int get_thread_count ()
         {
             return thread_count;
         }
 
         //  Write command to the dispatcher.
-        ZMQ_EXPORT inline void write (int source_thread_id_, 
+        inline void write (int source_thread_id_, 
             int destination_thread_id_, const command_t &value_)
         {
             command_pipe_t &pipe = pipes [source_thread_id_ *
@@ -74,7 +74,7 @@ namespace zmq
 
         //  Read command from the dispatcher. Returns false if there is no
         //  command available.
-        ZMQ_EXPORT inline bool read (int source_thread_id_, 
+        inline bool read (int source_thread_id_, 
             int destination_thread_id_, command_t *command_)
         {
             return pipes [source_thread_id_ * thread_count +
@@ -83,10 +83,8 @@ namespace zmq
 
         //  Assign an thread ID to the caller. Register the supplied signaler
         //  with the thread.
-        ZMQ_EXPORT int allocate_thread_id (i_signaler *signaler_);
-
-        //  Return thread ID to the pool of free thread IDs.
-        ZMQ_EXPORT void deallocate_thread_id (int thread_id_);
+        ZMQ_EXPORT int allocate_thread_id (i_thread *thread_,
+            i_signaler *signaler_);
 
     private:
 
@@ -102,6 +100,9 @@ namespace zmq
 
         //  Signalers to wake up individual threads.
         std::vector <i_signaler*> signalers;
+
+        //  Threads to destroy on shutdown.
+        std::vector <i_thread*> threads;
 
         //  Vector specifying which thread IDs are used and which are not.
         //  The access to the vector is synchronised using mutex - this is OK

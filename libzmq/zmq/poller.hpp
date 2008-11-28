@@ -74,6 +74,7 @@ namespace zmq
         //  i_poller implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
+        void stop ();
         handle_t add_fd (int fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
@@ -146,7 +147,7 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
     event_monitor.set_pollin (ctl_desc.cookie);
 
     //  Register the thread with command dispatcher.
-    thread_id = dispatcher->allocate_thread_id (&signaler);
+    thread_id = dispatcher->allocate_thread_id (this, &signaler);
 
     //  Create the worker thread.
     worker = new thread_t (worker_routine, this);
@@ -155,17 +156,8 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 template <class T>
 zmq::poller_t <T>::~poller_t ()
 {
-    //  Send a 'stop' event to the worker thread.
-    //  TODO: Analyse whether using the 'to-self' command pipe here
-    //        is appropriate.
-    command_t cmd;
-    cmd.init_stop ();
-    dispatcher->write (thread_id, thread_id, cmd);
-
     //  Wait till worker thread terminates.
     delete worker;
-
-    dispatcher->deallocate_thread_id (thread_id);
 
     //  TODO: Is this needed?
     event_monitor.rm_fd (ctl_desc.cookie);
@@ -186,6 +178,17 @@ void zmq::poller_t <T>::send_command (i_thread *destination_,
     else
         dispatcher->write (thread_id,
             destination_->get_thread_id (), command_);
+}
+
+template <class T>
+void zmq::poller_t <T>::stop ()
+{
+    //  'to-self' command pipe is used solely for the 'stop' command.
+    //  This way there's no danger of 2 threads accessing the pipe
+    //  at the same time.
+    command_t cmd;
+    cmd.init_stop ();
+    dispatcher->write (thread_id, thread_id, cmd);
 }
 
 template <class T>

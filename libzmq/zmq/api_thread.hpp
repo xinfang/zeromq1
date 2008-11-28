@@ -97,6 +97,7 @@ namespace zmq
         dispatcher_t *get_dispatcher ();
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
+		void stop ();
 
         //  i_engine implementation.
         engine_type_t type ();

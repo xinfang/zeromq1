@@ -39,13 +39,11 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
 #endif
 
     //  Register the thread with the command dispatcher.
-    thread_id = dispatcher->allocate_thread_id (&pollset);
+    thread_id = dispatcher->allocate_thread_id (this, &pollset);
 }
 
 zmq::api_thread_t::~api_thread_t ()
 {
-    //  Unregister the thread from the command dispatcher.
-    dispatcher->deallocate_thread_id (thread_id);
 }
 
 int zmq::api_thread_t::create_exchange (const char *exchange_,
@@ -289,6 +287,12 @@ void zmq::api_thread_t::send_command (i_thread *destination_,
         process_command (command_);
     else
         dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+}
+
+void zmq::api_thread_t::stop ()
+{
+    //  There's nothing to do to stop the API thread. API (application) threads
+    //  should be already stopped by the time dispatcher is being destroyed.
 }
 
 zmq::engine_type_t zmq::api_thread_t::type ()
