@@ -25,6 +25,7 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <zmq/windows.hpp>
+#include <process.h>
 #else
 #include <pthread.h>
 #endif
@@ -51,7 +52,7 @@ namespace zmq
     private:
 
 #ifdef ZMQ_HAVE_WINDOWS
-        static DWORD WINAPI thread_routine (LPVOID arg_);
+        static unsigned int __stdcall thread_routine (void *arg_);
         HANDLE descriptor;
 #else
         static void *thread_routine (void *arg_);
