@@ -38,7 +38,7 @@ namespace zmq
     {
     public:
 
-        kqueue_t (poller_t <kqueue_t> *poller_);
+        kqueue_t ();
         ~kqueue_t ();
 
         cookie_t add_fd (int fd_, event_source_t *ev_source_);
@@ -47,11 +47,9 @@ namespace zmq
         void reset_pollin (cookie_t cookie_);
         void set_pollout (cookie_t cookie_);
         void reset_pollout (cookie_t cookie_);
-        bool process_events ();
+        bool process_events (poller_t <kqueue_t> *poller_);
 
     private:
-
-        poller_t <kqueue_t> *poller;
 
         //  Adds the event to the kqueue.
         void kevent_add (int fd_, short filter_, void *udata_);

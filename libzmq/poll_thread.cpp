@@ -31,8 +31,7 @@
 #include <zmq/err.hpp>
 #include <zmq/poll_thread.hpp>
 
-zmq::poll_t::poll_t (poll_thread_t *poller_) :
-    poller (poller_)
+zmq::poll_t::poll_t ()
 {
     //  Get the limit on open file descriptors. Resize fds so that it
     //  can hold all descriptors.
@@ -100,7 +99,7 @@ void zmq::poll_t::reset_pollout (cookie_t cookie_)
     pollset [index].events &= ~((short) POLLOUT);
 }
 
-bool zmq::poll_t::process_events ()
+bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
 {
     //  Wait for events.
     int rc = poll (&pollset [0], pollset.size (), -1);
@@ -112,13 +111,13 @@ bool zmq::poll_t::process_events ()
         int fd = pollset [i].fd;
         event_source_t *ev_source = fd_table [fd].ev_source;
         if (pollset [i].revents & (POLLERR | POLLHUP))
-            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
         if (pollset [i].revents & POLLOUT)
-            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
         if (pollset [i].revents & POLLIN)
-            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
                 return true;
     }
     return false;

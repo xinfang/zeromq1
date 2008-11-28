@@ -35,8 +35,7 @@
 #include <zmq/config.hpp>
 #include <zmq/devpoll_thread.hpp>
 
-zmq::devpoll_t::devpoll_t (devpoll_thread_t *poller_) :
-    poller (poller_)
+zmq::devpoll_t::devpoll_t ()
 {
     struct rlimit rl;
 
@@ -114,7 +113,7 @@ void zmq::devpoll_t::reset_pollout (cookie_t cookie_)
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-bool zmq::devpoll_t::process_events ()
+bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
@@ -138,13 +137,13 @@ bool zmq::devpoll_t::process_events ()
         event_source_t *ev_source = fd_table [fd].ev_source;
 
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
-            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
         if (ev_buf [i].revents & POLLOUT)
-            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
         if (ev_buf [i].revents & POLLIN)
-            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
                 return true;
     }
     return false;

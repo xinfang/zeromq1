@@ -39,7 +39,7 @@ namespace zmq
     {
     public:
 
-        devpoll_t (poller_t <devpoll_t> *poller_);
+        devpoll_t ();
         ~devpoll_t ();
 
         cookie_t add_fd (int fd_, event_source_t *ev_source_);
@@ -48,11 +48,9 @@ namespace zmq
         void reset_pollin (cookie_t handle_);
         void set_pollout (cookie_t handle_);
         void reset_pollout (cookie_t handle_);
-        bool process_events ();
+        bool process_events (poller_t <devpoll_t> *poller_);
 
     private:
-
-        poller_t <devpoll_t> *poller;
 
         //  File descriptor referring to "/dev/poll" pseudo-device.
         int devpoll_fd;

@@ -32,8 +32,7 @@
 #include <zmq/config.hpp>
 #include <zmq/kqueue_thread.hpp>
 
-zmq::kqueue_t::kqueue_t (kqueue_thread_t *poller_) :
-    poller (poller_)
+zmq::kqueue_t::kqueue_t ()
 {
     //  Create event queue
     kqueue_fd = kqueue ();
@@ -116,7 +115,7 @@ void zmq::kqueue_t::reset_pollout (cookie_t cookie_)
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
 
-bool zmq::kqueue_t::process_events ()
+bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
 {
     struct kevent ev_buf [max_io_events];
 
@@ -130,13 +129,13 @@ bool zmq::kqueue_t::process_events ()
         event_source_t *ev_source = pe->ev_source;
 
         if (ev_buf [i].flags & EV_EOF)
-            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
         if (ev_buf [i].filter == EVFILT_WRITE)
-            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
         if (ev_buf [i].filter == EVFILT_READ)
-            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
                 return true;
     }
     return false;

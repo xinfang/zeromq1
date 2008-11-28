@@ -30,8 +30,8 @@
 #include <zmq/err.hpp>
 #include <zmq/select_thread.hpp>
 
-zmq::select_t::select_t (select_thread_t *poller_) :
-    poller (poller_), maxfd (-1)
+zmq::select_t::select_t () :
+    maxfd (-1)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
@@ -105,7 +105,7 @@ void zmq::select_t::reset_pollout (cookie_t cookie_)
     FD_CLR (cookie_.fd, &source_set_out);
 }
 
-bool zmq::select_t::process_events ()
+bool zmq::select_t::process_events (poller_t <select_t> *poller_)
 {
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
     memcpy (&writefds, &source_set_out, sizeof source_set_out);
@@ -124,13 +124,13 @@ bool zmq::select_t::process_events ()
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
         if (FD_ISSET (fds [i].fd, &writefds))
-            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_OUT))
                 return true;
         if (FD_ISSET (fds [i].fd, &readfds))
-            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_IN))
                 return true;
         if (FD_ISSET (fds [i].fd, &exceptfds))
-            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_ERR))
                 return true;
     }
     return false;
