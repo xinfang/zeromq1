@@ -1,3 +1,7 @@
+Version 0.3.2
+
+ZMQ-54: Test programs are compiled with --rpath
+
 Version 0.3.1
 
 ZMQ-25: Allow to use network interface name instead of IP address
