@@ -60,7 +60,7 @@ int main (int argc, char *argv [])
         czmq_send (handle, eid, out_buf, message_size, NULL);
 
     /*  Wait till all messages are sent.  */
-    sleep (3600);
+    sleep (5);
 
     /*  Destroy 0MQ transport.  */
     czmq_destroy (handle);
