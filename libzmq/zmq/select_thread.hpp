@@ -20,8 +20,16 @@
 #ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #include <stddef.h>
 #include <vector>
+
+#ifdef ZMQ_HAVE_WINDOWS
+#include "winsock2.h"
+#else
+#include <sys/select.h>
+#endif
 
 #include <zmq/poller.hpp>
 
