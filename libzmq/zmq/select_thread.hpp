@@ -50,17 +50,15 @@ namespace zmq
 
         poller_t <select_t> *poller;
 
-        struct fd_entry {
+        struct fd_entry_t {
+            int fd;
             event_source_t *ev_source;
-            bool in_use;
         };
 
         //  Set of file descriptors that are used to retreive
         //  information for fd_set.
-        typedef std::vector <int> fd_set_t;
+        typedef std::vector <fd_entry_t> fd_set_t;
         fd_set_t fds;
-
-        std::vector <fd_entry> fd_table;
 
         fd_set source_set_in;
         fd_set source_set_out;

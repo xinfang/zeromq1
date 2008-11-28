@@ -19,7 +19,6 @@
 
 #include <zmq/platform.hpp>
 
-#include <algorithm>
 #include <string.h>
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -32,24 +31,21 @@
 #include <zmq/select_thread.hpp>
 
 zmq::select_t::select_t (select_thread_t *poller_) :
-    poller (poller_), fd_table (FD_SETSIZE), maxfd (-1)
+    poller (poller_), maxfd (-1)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
     FD_ZERO (&source_set_out);
     FD_ZERO (&source_set_err);
-
-    for (int i = 0; i < FD_SETSIZE; i ++)
-        fd_table [i].in_use = false;
 }
 
 zmq::cookie_t zmq::select_t::add_fd (int fd_, event_source_t *ev_source_)
 {
-    assert (!fd_table [fd_].in_use);
-    fd_table [fd_].ev_source = ev_source_;
-    fd_table [fd_].in_use = true;
+    //  Store the file descriptor.
+    fd_entry_t entry = {fd_, ev_source_};
+    fds.push_back (entry);
 
-    fds.push_back (fd_);
+    //  Start polling on errors.
     FD_SET (fd_, &source_set_err);
 
     //  Adjust maxfd if necessary.
@@ -63,21 +59,28 @@ zmq::cookie_t zmq::select_t::add_fd (int fd_, event_source_t *ev_source_)
 
 void zmq::select_t::rm_fd (cookie_t cookie_)
 {
-    //  Mark descriptor as unused.
+    //  Get file descriptor.
     int fd = cookie_.fd;
-    fd_table [fd].in_use = false;
 
-    //  Update descriptor sets.
+    //  Stop polling on the descriptor.
     FD_CLR (fd, &source_set_in);
     FD_CLR (fd, &source_set_out);
     FD_CLR (fd, &source_set_err);
 
     //  Adjust the maxfd attribute if we have removed the
     //  highest-numbered file descriptor.
-    while (maxfd >= 0 && !fd_table [maxfd].in_use)
-        maxfd --;
+    if (fd == maxfd) {
+        maxfd = 0;
+        for (fd_set_t::iterator it = fds.begin (); it != fds.end (); it ++)
+            if (it->fd > maxfd)
+                maxfd = it->fd;
+    }
 
-    fd_set_t::iterator it = std::find (fds.begin (), fds.end (), fd);
+    //  Remove the descriptor from the pollset.
+    fd_set_t::iterator it;
+    for (it = fds.begin (); it != fds.end (); it ++)
+        if (it->fd == fd)
+            break;
     assert (it != fds.end ());
     fds.erase (it);
 }
@@ -120,15 +123,14 @@ bool zmq::select_t::process_events ()
     }
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-        event_source_t *ev_source = fd_table [fds [i]].ev_source;
-        if (FD_ISSET (fds [i], &writefds))
-            if (poller->process_event (ev_source, ZMQ_EVENT_OUT))
+        if (FD_ISSET (fds [i].fd, &writefds))
+            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_OUT))
                 return true;
-        if (FD_ISSET (fds [i], &readfds))
-            if (poller->process_event (ev_source, ZMQ_EVENT_IN))
+        if (FD_ISSET (fds [i].fd, &readfds))
+            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_IN))
                 return true;
-        if (FD_ISSET (fds [i], &exceptfds))
-            if (poller->process_event (ev_source, ZMQ_EVENT_ERR))
+        if (FD_ISSET (fds [i].fd, &exceptfds))
+            if (poller->process_event (fds [i].ev_source, ZMQ_EVENT_ERR))
                 return true;
     }
     return false;

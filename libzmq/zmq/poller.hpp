@@ -138,7 +138,8 @@ zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
 
 template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_), event_monitor (this)
+    dispatcher (dispatcher_),
+    event_monitor (this)
 {
     ctl_desc.engine = NULL;
     ctl_desc.cookie = event_monitor.add_fd (signaler.get_fd (), &ctl_desc);
@@ -167,6 +168,7 @@ zmq::poller_t <T>::~poller_t ()
 
     dispatcher->deallocate_thread_id (thread_id);
 
+    //  TODO: Is this needed?
     event_monitor.rm_fd (ctl_desc.cookie);
 }
 
