@@ -85,6 +85,6 @@ libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
 
 dist-hook:
-		-rm $(distdir)/platform.hpp
+		-rm $(distdir)/zmq/platform.hpp
 
 
