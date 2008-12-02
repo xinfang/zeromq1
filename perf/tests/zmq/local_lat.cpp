@@ -43,7 +43,7 @@ int main (int argc, char *argv [])
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl;
 
-    //  Create zmq transport.
+    //  Create zmq transport. 
     perf::zmq_t transport (host, false, "EOUT", "QIN", exchange_interface,
         queue_interface);
 
