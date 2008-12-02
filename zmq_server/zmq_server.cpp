@@ -39,7 +39,6 @@ using namespace std;
 #endif
 
 #include <zmq.hpp>
-#define ZMQ_TRACE
 
 using namespace zmq;
 

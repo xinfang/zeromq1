@@ -55,13 +55,6 @@ namespace zmq
         cookie_t cookie;
     };
 
-    //  The wait() method uses this structure to pass an event to its caller.
-    struct event_t {
-        int fd;
-        enum events name;
-        event_source_t *ev_source;
-    };
-
     template <class T> class poller_t : public i_poller
     {
     public:
