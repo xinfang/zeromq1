@@ -17,16 +17,63 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
+
+#ifdef ZMQ_HAVE_WINDOWS
+#include <sys/types.h>
+#include <sys/timeb.h>
+#include <Windows.h>
+#else
 #include <sys/time.h>
+#endif
+
+#ifdef ZMQ_HAVE_SOLARIS
+#include <inttypes.h>
+#elif defined ZMQ_HAVE_WINDOWS
+
+typedef __int8 uint8_t;
+typedef __int16 uint16_t;
+typedef __int32 uint32_t;
+typedef __int64 uint64_t;
+
+#else
+#include <stdint.h>
+#endif
 
 #include <zmq/czmq.h>
 
-inline uint64_t now_usecs ()
+#ifdef ZMQ_HAVE_WINDOWS
+
+    __inline uint64_t now () {
+        
+        double ticksDivM;
+        LARGE_INTEGER ticksPerSecond;
+        LARGE_INTEGER tick;   // A point in time
+        ULARGE_INTEGER time;   // For converting tick into real time
+
+        // get the high resolution counter's accuracy
+        QueryPerformanceFrequency (&ticksPerSecond);
+
+        // what time is it?
+        QueryPerformanceCounter (&tick);
+
+        // convert the tick number into the number of seconds
+        // since the system was started...
+       
+        ticksDivM = ticksPerSecond.QuadPart / 1000000000;
+        time.QuadPart = tick.QuadPart / ticksDivM;
+       
+      
+        return time.QuadPart;
+
+    }
+
+#else
+inline uint64_t now ()
 {
     struct timeval tv;
     int rc;
@@ -35,11 +82,12 @@ inline uint64_t now_usecs ()
     assert (rc == 0);
     return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
 }
+#endif
 
 int main (int argc, char *argv [])
 {
     const char *host;
-    const char *interface;
+    const char *iface;
     int message_size;
     int message_count;
     void *handle;
@@ -59,7 +107,7 @@ int main (int argc, char *argv [])
         return 1;
     }
     host = argv [1];
-    interface = argv [2];
+    iface = argv [2];
     message_size = atoi (argv [3]);
     message_count = atoi (argv [4]);
 
@@ -71,7 +119,7 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, interface);
+    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, iface);
 
     /*  Receive first message.  */
     czmq_receive (handle, &buf, &size, &ffn);
@@ -80,7 +128,7 @@ int main (int argc, char *argv [])
         ffn (buf);
 
     /*  Get initial timestamp.  */
-    start = now_usecs ();
+    start = now ();
 
     for (counter = 0; counter != message_count; counter ++) {
         czmq_receive (handle, &buf, &size, &ffn);
@@ -90,7 +138,7 @@ int main (int argc, char *argv [])
     }
 
     /*  Get terminal timestamp.  */
-    end = now_usecs ();
+    end = now ();
 
     /*  Compute and print out the throughput.  */
     message_throughput = 1000000 * (uint64_t) message_count /

@@ -16,58 +16,140 @@
     You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <zmq/platform.hpp>
+#include <zmq/czmq.h>
 
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
-#include <zmq/czmq.h>
+#ifdef ZMQ_HAVE_WINDOWS
+#include <sys/types.h>
+#include <sys/timeb.h>
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#endif
+
+#ifdef ZMQ_HAVE_SOLARIS
+#include <inttypes.h>
+#elif defined ZMQ_HAVE_WINDOWS
+
+typedef __int8 uint8_t;
+typedef __int16 uint16_t;
+typedef __int32 uint32_t;
+typedef __int64 uint64_t;
+
+#else
+#include <stdint.h>
+#endif
+
+#ifdef ZMQ_HAVE_WINDOWS
+
+    __inline uint64_t now () {
+        
+        double ticksDivM;
+        LARGE_INTEGER ticksPerSecond;
+        LARGE_INTEGER tick;   // A point in time
+        ULARGE_INTEGER time;   // For converting tick into real time
+
+        // get the high resolution counter's accuracy
+        QueryPerformanceFrequency (&ticksPerSecond);
+
+        // what time is it?
+        QueryPerformanceCounter (&tick);
+
+        // convert the tick number into the number of seconds
+        // since the system was started...
+       
+        ticksDivM = ticksPerSecond.QuadPart / 1000000000;
+        time.QuadPart = tick.QuadPart / ticksDivM;
+       
+      
+        return time.QuadPart;
+
+    }
+
+#else
+inline uint64_t now ()
+{
+    struct timeval tv;
+    int rc;
+
+    rc = gettimeofday (&tv, NULL);
+    assert (rc == 0);
+    return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
+}
+#endif
 
 int main (int argc, char *argv [])
 {
     const char *host;
-    const char *in_interface;
-    const char *out_interface;
     int message_size;
     int roundtrip_count;
     void *handle;
     int eid;
     int counter;
-    void *buf;
-    size_t size;
-    czmq_free_fn *ffn;
+    void *out_buf;
+    void *in_buf;
+    size_t in_size;
+    czmq_free_fn *in_ffn;
+    uint64_t start;
+    uint64_t end; 
+    double latency;
 
     /*  Parse command line arguments.  */
-    if (argc != 6) {
-        printf ("usage: c_local_lat <hostname> <in-interface> <out-interface> "
-            "<message-size> <roundtrip-count>\n");
+    if (argc != 4) {
+        printf ("usage: local_lat <hostname> <message-size> "
+            "<roundtrip-count>\n");
         return 1;
     }
     host = argv [1];
-    in_interface = argv [2];
-    out_interface = argv [3];
-    message_size = atoi (argv [4]);
-    roundtrip_count = atoi (argv [5]);
+    message_size = atoi (argv [2]);
+    roundtrip_count = atoi (argv [3]);
+
+    /*  Print out the test parameters.  */
+    printf ("message size: %d [B]\n", message_size);
+    printf ("roundtrip count: %d\n", roundtrip_count);
+
 
     /*  Create 0MQ transport.  */
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "EG", CZMQ_SCOPE_GLOBAL, out_interface);
-    czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface);
+    eid = czmq_create_exchange (handle, "EL", CZMQ_SCOPE_LOCAL, NULL);
+    czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL);
+    czmq_bind (handle, "EL", "QG");
+    czmq_bind (handle, "EG", "QL");
 
+    /*  Create message data to send.  */
+    out_buf = malloc (message_size);
+    assert (out_buf);
+
+    /*  Get initial timestamp.  */
+    start = now ();
+    
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        czmq_receive (handle, &buf, &size, &ffn);
-        assert (size == message_size);
-        czmq_send (handle, eid, buf, size, ffn);
+        czmq_send (handle, eid, out_buf, message_size, NULL);
+        czmq_receive (handle, &in_buf, &in_size, &in_ffn);
+        assert (in_size == message_size);
+        if (in_ffn)
+            in_ffn (in_buf);
     }
 
-    sleep (2);
+    /*  Get final timestamp.  */
+    end = now ();
+
+    /*  Compute and print out the latency.  */
+    latency = (double) (end - start) / roundtrip_count / 2;
+    printf ("Your average latency is %.2f [us]\n", latency);
 
     /*  Destroy 0MQ transport.  */
     czmq_destroy (handle);
+
+    /*  Clean up.  */
+    free (out_buf);
 
     return 0;
 }
