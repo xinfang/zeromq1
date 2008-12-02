@@ -129,17 +129,17 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         struct poll_entry *pe = (struct poll_entry*) ev_buf [i].udata;
         event_source_t *ev_source = pe->ev_source;
 
-        if (pe.fd == -1)
+        if (pe->fd == -1)
             continue;
         if (ev_buf [i].flags & EV_EOF)
             if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
-        if (pe.fd == -1)
+        if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_WRITE)
             if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
-        if (pe.fd == -1)
+        if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
             if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
@@ -149,8 +149,8 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
     //  Destroy retired event sources.
     for (retired_t::iterator it = retired.begin (); it != retired.end ();
           it ++) {
-        delete pe->ev_source;
-        delete pe;
+        delete (*it)->ev_source;
+        delete *it;
     }
 
     return false;

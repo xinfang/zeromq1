@@ -140,8 +140,8 @@ void zmq::poller_t <T>::destroy ()
     //  Stop the thread.
     worker.stop ();
 
-    //  Destroy the object.
-    delete this;
+    //  TODO: At this point terminal handshaking should be done.
+    //  Afterwards 'delete this' can be executed. 
 }
 
 template <class T>
