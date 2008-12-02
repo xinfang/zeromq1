@@ -26,8 +26,8 @@
 
 struct context_t
 {
-    zmq::locator_t *locator;
     zmq::dispatcher_t *dispatcher;
+    zmq::locator_t *locator;    
     zmq::i_thread *io_thread;
     zmq::api_thread_t *api_thread;
 };
@@ -37,10 +37,10 @@ void *czmq_create (const char *host_)
     //  Create the context.
     context_t *context = new context_t;
     assert (context);
-    context->locator = new zmq::locator_t (host_);
-    assert (context->locator);
     context->dispatcher = new zmq::dispatcher_t (2);
     assert (context->dispatcher);
+    context->locator = new zmq::locator_t (host_);
+    assert (context->locator);    
     context->io_thread = zmq::io_thread_t::create (context->dispatcher);
     assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
