@@ -32,7 +32,6 @@ namespace zmq
 
     struct i_thread
     {
-        //  Wait for thread termination.
         ZMQ_EXPORT virtual ~i_thread () {};
 
         //  Returns unique ID of the thread.
@@ -42,8 +41,11 @@ namespace zmq
         virtual void send_command (i_thread *destination_,
             const struct command_t &command_) = 0;
 
-		//  Initiate thread termination.
-		virtual void stop () = 0;
+        //  Initiate thread termination.
+        virtual void stop () = 0;
+
+        //  Wait while thread terminates and destroy it.
+        virtual void destroy () = 0;
     };
 
 }

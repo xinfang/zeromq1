@@ -122,7 +122,7 @@ namespace perf
     void local_thr (i_transport **transports_, size_t msg_size_, 
         int msg_count_, int thread_count_)
     {
-        zmq::thread_t **workers = new zmq::thread_t* [thread_count_];
+        zmq::thread_t *workers = new zmq::thread_t [thread_count_];
 
         //  Array of thr_worker_args_t structures for worker threads.
         thr_worker_args_t *workers_args = 
@@ -138,12 +138,10 @@ namespace perf
             workers_args [thread_nbr].start_time = 0;
             workers_args [thread_nbr].stop_time = 0;
             
-            //  Create worker thread.
-            zmq::thread_t *thread = new zmq::thread_t  (
-                (zmq::thread_fn *) local_worker_function, 
-                (void *)&workers_args [thread_nbr]);
-            workers [thread_nbr] = thread;
-           
+            //  Start worker thread.
+            workers [thread_nbr].start (
+                (zmq::thread_fn*) local_worker_function, 
+                (void*) &workers_args [thread_nbr]);           
         }
 
         //  Gather results from thr_worker_args_t structures.
@@ -154,7 +152,7 @@ namespace perf
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
 
             //  Wait for worker threads to finish.
-            delete workers [thread_nbr];
+            workers [thread_nbr].stop ();
             
             //  Find max stop & min start time.
             if (workers_args [thread_nbr].start_time < min_start_time)
@@ -209,7 +207,7 @@ namespace perf
     void remote_thr (i_transport **transports_, size_t msg_size_, 
         int msg_count_, int thread_count_)
     {
-        zmq::thread_t **workers = new zmq::thread_t* [thread_count_];
+        zmq::thread_t *workers = new zmq::thread_t [thread_count_];
 
         //  Array of thr_worker_args_t structures for worker threads.
         thr_worker_args_t *workers_args = 
@@ -225,16 +223,17 @@ namespace perf
             workers_args [thread_nbr].stop_time = 0;
          
             // Create worker thread.
-            zmq::thread_t *thread = new zmq::thread_t  (
+            workers [thread_nbr].start (
                 (zmq::thread_fn *) remote_worker_function, 
                 (void *)&workers_args [thread_nbr]);
-            workers [thread_nbr] = thread;
         }
 
         //  Wait for worker threads to finish.
-        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
-            delete workers [thread_nbr];
-        }
+        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++)
+            workers [thread_nbr].stop ();
+
+        delete workers_args;
+        delete workers;
     }
 }
 #endif

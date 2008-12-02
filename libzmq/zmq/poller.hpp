@@ -68,13 +68,12 @@ namespace zmq
     public:
 
         ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
-
-        ZMQ_EXPORT ~poller_t ();
-
+        
         //  i_poller implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
         void stop ();
+        void destroy ();
         handle_t add_fd (int fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
@@ -89,6 +88,7 @@ namespace zmq
     private:
 
         poller_t (dispatcher_t *dispatcher_);
+        ~poller_t ();
 
         //  Main worker thread routine.
         static void worker_routine (void *arg_);
@@ -116,7 +116,7 @@ namespace zmq
         event_source_t ctl_desc;
 
         //  Handle of the physical thread doing the I/O work.
-        thread_t *worker;
+        thread_t worker;
 
         //  We perform I/O multiplexing using event monitor.
         T event_monitor;
@@ -134,7 +134,24 @@ namespace zmq
 template <class T>
 zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
 {
-    return new poller_t <T> (dispatcher_);
+    //  Create the object.
+    poller_t <T> *poller = new poller_t <T> (dispatcher_);
+    assert (poller);
+
+    //  Start the thread.
+    poller->worker.start (worker_routine, poller);
+
+    return poller;
+}
+
+template <class T>
+void zmq::poller_t <T>::destroy ()
+{
+    //  Stop the thread.
+    worker.stop ();
+
+    //  Destroy the object.
+    delete this;
 }
 
 template <class T>
@@ -148,18 +165,11 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (this, &signaler);
-
-    //  Create the worker thread.
-    worker = new thread_t (worker_routine, this);
 }
 
 template <class T>
 zmq::poller_t <T>::~poller_t ()
 {
-    //  Wait till worker thread terminates.
-    delete worker;
-
-    //  TODO: Is this needed?
     event_monitor.rm_fd (ctl_desc.cookie);
 }
 

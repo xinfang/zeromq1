@@ -50,8 +50,7 @@ namespace zmq
     typedef poll_thread_t io_thread_t;
 
 #else
-    typedef select_thread_t io_thread_t;
-
+#error "Unsupported platform"
 #endif
 
 }

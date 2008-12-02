@@ -23,16 +23,16 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
-    tfn (tfn_),
-    arg (arg_)
+void zmq::thread_t::start (thread_fn *tfn_, void *arg_)
 {
+    tfn = tfn_;
+    arg =arg_;
     descriptor = (HANDLE) _beginthreadex (NULL, 0, &zmq::thread_t::thread_routine, 
         this, 0 , NULL);
     win_assert (descriptor != NULL);    
 }
 
-zmq::thread_t::~thread_t ()
+void zmq::thread_t::stop ()
 {
     DWORD rc = WaitForSingleObject (descriptor, INFINITE);
     win_assert (rc != WAIT_FAILED);
@@ -47,15 +47,15 @@ unsigned int __stdcall zmq::thread_t::thread_routine (void *arg_)
 
 #else
 
-zmq::thread_t::thread_t (thread_fn *tfn_, void *arg_) :
-    tfn (tfn_),
-    arg (arg_)
+void zmq::thread_t::start (thread_fn *tfn_, void *arg_)
 {
+    tfn = tfn_;
+    arg =arg_;
     int rc = pthread_create (&descriptor, NULL, thread_routine, this);
     errno_assert (rc == 0);
 }
 
-zmq::thread_t::~thread_t ()
+void zmq::thread_t::stop ()
 {
     int rc = pthread_join (descriptor, NULL);
     errno_assert (rc == 0);

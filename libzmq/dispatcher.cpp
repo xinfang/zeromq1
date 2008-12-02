@@ -56,7 +56,7 @@ zmq::dispatcher_t::~dispatcher_t ()
     //  Wait while worker thread termination is completed.
     for (std::vector <i_thread*>::iterator it = threads.begin ();
           it != threads.end (); it ++)
-        delete *it;
+        (*it)->destroy ();
 
     //  Deallocate the pipe matrix.
     delete [] pipes;

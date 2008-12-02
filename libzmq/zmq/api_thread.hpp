@@ -52,9 +52,6 @@ namespace zmq
         ZMQ_EXPORT static api_thread_t *create (dispatcher_t *dispatcher_,
             i_locator *locator_);
 
-        //  Destroys API engine.
-        ZMQ_EXPORT ~api_thread_t ();
-
         //  Creates new exchange, returns exchange ID.
         ZMQ_EXPORT int create_exchange (
             const char *exchange_, scope_t scope_ = scope_local,
@@ -92,12 +89,14 @@ namespace zmq
     private:
 
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
+        ~api_thread_t ();
 
         //  i_thread implementation.
         dispatcher_t *get_dispatcher ();
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
-		void stop ();
+        void stop ();
+        void destroy ();
 
         //  i_engine implementation.
         engine_type_t type ();

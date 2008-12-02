@@ -295,6 +295,12 @@ void zmq::api_thread_t::stop ()
     //  should be already stopped by the time dispatcher is being destroyed.
 }
 
+void zmq::api_thread_t::destroy ()
+{
+    //  Nothing special to do here.
+    delete this;
+}
+
 zmq::engine_type_t zmq::api_thread_t::type ()
 {
     return engine_type_api;

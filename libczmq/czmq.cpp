@@ -56,8 +56,8 @@ void czmq_destroy (void *obj_)
     context_t *context = (context_t*) obj_;
 
     //  Deallocate the 0MQ infrastructure.
-    delete context->locator;
     delete context->dispatcher;
+    delete context->locator;
     delete context;
 }
 

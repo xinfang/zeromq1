@@ -32,21 +32,13 @@ struct pyZMQ
 
 void pyZMQ_dealloc (pyZMQ *self)
 {
-    if (self->api_thread) {
-        delete self->api_thread;
-        self->api_thread = NULL;
-    }
-    if (self->io_thread) {
-        delete self->io_thread;
-        self->io_thread = NULL;
+    if (self->dispatcher) {
+        delete self->dispatcher;
+        self->dispatcher = NULL;
     }
     if (self->locator) {
         delete self->locator;
         self->locator = NULL;
-    }
-    if (self->dispatcher) {
-        delete self->dispatcher;
-        self->dispatcher = NULL;
     }
 
     self->ob_type->tp_free ((PyObject*) self);
