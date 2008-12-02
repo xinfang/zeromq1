@@ -32,6 +32,35 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remote_thr", "remote_thr\re
 		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libczmq", "libczmq\libczmq.vcproj", "{162C0EE3-FDAD-4B1C-83F2-82C5997783CA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c_local_lat", "c_local_lat\c_local_lat.vcproj", "{705B0F57-3649-4FD4-BE87-01B698873602}"
+	ProjectSection(ProjectDependencies) = postProject
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA} = {162C0EE3-FDAD-4B1C-83F2-82C5997783CA}
+		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c_remote_lat", "c_remote_lat\c_remote_lat.vcproj", "{B22DBF61-F479-4B7C-82FF-F44D1E9EE4BA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA} = {162C0EE3-FDAD-4B1C-83F2-82C5997783CA}
+		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c_local_thr", "c_local_thr\c_local_thr.vcproj", "{2216F58C-9E6D-4FC1-87C7-2E74EE55DBCE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA} = {162C0EE3-FDAD-4B1C-83F2-82C5997783CA}
+		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c_remote_thr", "c_remote_thr\c_remote_thr.vcproj", "{B9B13C62-72AC-4DC7-8A6E-304B086742D8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA} = {162C0EE3-FDAD-4B1C-83F2-82C5997783CA}
+		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -62,6 +91,26 @@ Global
 		{74E3086F-53EB-4BE3-9C1F-2CAE3275F785}.Debug|Win32.Build.0 = Debug|Win32
 		{74E3086F-53EB-4BE3-9C1F-2CAE3275F785}.Release|Win32.ActiveCfg = Release|Win32
 		{74E3086F-53EB-4BE3-9C1F-2CAE3275F785}.Release|Win32.Build.0 = Release|Win32
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA}.Debug|Win32.Build.0 = Debug|Win32
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA}.Release|Win32.ActiveCfg = Release|Win32
+		{162C0EE3-FDAD-4B1C-83F2-82C5997783CA}.Release|Win32.Build.0 = Release|Win32
+		{705B0F57-3649-4FD4-BE87-01B698873602}.Debug|Win32.ActiveCfg = Debug|Win32
+		{705B0F57-3649-4FD4-BE87-01B698873602}.Debug|Win32.Build.0 = Debug|Win32
+		{705B0F57-3649-4FD4-BE87-01B698873602}.Release|Win32.ActiveCfg = Release|Win32
+		{705B0F57-3649-4FD4-BE87-01B698873602}.Release|Win32.Build.0 = Release|Win32
+		{B22DBF61-F479-4B7C-82FF-F44D1E9EE4BA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B22DBF61-F479-4B7C-82FF-F44D1E9EE4BA}.Debug|Win32.Build.0 = Debug|Win32
+		{B22DBF61-F479-4B7C-82FF-F44D1E9EE4BA}.Release|Win32.ActiveCfg = Release|Win32
+		{B22DBF61-F479-4B7C-82FF-F44D1E9EE4BA}.Release|Win32.Build.0 = Release|Win32
+		{2216F58C-9E6D-4FC1-87C7-2E74EE55DBCE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2216F58C-9E6D-4FC1-87C7-2E74EE55DBCE}.Debug|Win32.Build.0 = Debug|Win32
+		{2216F58C-9E6D-4FC1-87C7-2E74EE55DBCE}.Release|Win32.ActiveCfg = Release|Win32
+		{2216F58C-9E6D-4FC1-87C7-2E74EE55DBCE}.Release|Win32.Build.0 = Release|Win32
+		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Debug|Win32.Build.0 = Debug|Win32
+		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Release|Win32.ActiveCfg = Release|Win32
+		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
