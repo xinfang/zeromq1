@@ -31,7 +31,8 @@
 #include <zmq/select_thread.hpp>
 
 zmq::select_t::select_t () :
-    maxfd (-1)
+    maxfd (-1),
+    retired (false)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
@@ -76,13 +77,14 @@ void zmq::select_t::rm_fd (cookie_t cookie_)
                 maxfd = it->fd;
     }
 
-    //  Remove the descriptor from the pollset.
+    //  Mark the descriptor as retired.
     fd_set_t::iterator it;
     for (it = fds.begin (); it != fds.end (); it ++)
         if (it->fd == fd)
             break;
     assert (it != fds.end ());
-    fds.erase (it);
+    it->fd = -1;
+    retired = true;
 }
 
 void zmq::select_t::set_pollin (cookie_t cookie_)
@@ -123,15 +125,34 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     }
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
+        if (fds [i].fd == -1)
+            continue;
         if (FD_ISSET (fds [i].fd, &writefds))
             if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_OUT))
                 return true;
+        if (fds [i].fd == -1)
+            continue;
         if (FD_ISSET (fds [i].fd, &readfds))
             if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_IN))
                 return true;
+        if (fds [i].fd == -1)
+            continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
             if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_ERR))
                 return true;
     }
+
+    //  Destroy retired event sources.
+    if (retired) {
+        for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
+            if (fds [i].fd == -1) {
+                delete fds [i].ev_source;
+                fds.erase (fds.begin () + i);
+                i --;
+            }
+        }
+        retired = false;
+    }
+
     return false;
 }

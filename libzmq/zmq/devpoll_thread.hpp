@@ -63,6 +63,10 @@ namespace zmq
 
         std::vector <fd_entry> fd_table;
 
+        //  List of retired file descriptors.
+        typedef std::vector <int> retired_t;
+        retired_t retired;
+
         //  Pollset manipulation function.
         void devpoll_ctl (int fd_, short events_);
 

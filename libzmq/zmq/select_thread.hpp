@@ -74,8 +74,11 @@ namespace zmq
         fd_set writefds;
         fd_set exceptfds;
 
-        // Maximum file descriptor.
+        //  Maximum file descriptor.
         int maxfd;
+
+        //  If true, at least one file descriptor is retired.
+        bool retired;
 
         select_t (const select_t&);
         void operator = (const select_t&);

@@ -53,7 +53,6 @@ namespace zmq
     struct event_source_t {
         i_pollable *engine;
         cookie_t cookie;
-        bool retired;
     };
 
     //  The wait() method uses this structure to pass an event to its caller.
@@ -96,8 +95,6 @@ namespace zmq
         //  Main routine (non-static) - called from worker_routine.
         void loop ();
 
-        void free_retired_event_sources ();
-
         //  Processes individual command. Returns false if the thread should
         //  terminate.
         bool process_command (const command_t &command_);
@@ -120,13 +117,6 @@ namespace zmq
 
         //  We perform I/O multiplexing using event monitor.
         T event_monitor;
-
-        //  We cannot free event source in rm_fd() method immediately. Rather
-        //  we mark it as retired and put it onto retired list. The memory
-        //  associated with the event source is released only after all
-        //  events returned from wait() method have been processed. This is
-        //  necessary to prevent use-after-free error.
-        std::vector <event_source_t*> retired_list;
     };
 
 }
@@ -160,7 +150,6 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 {
     ctl_desc.engine = NULL;
     ctl_desc.cookie = event_monitor.add_fd (signaler.get_fd (), &ctl_desc);
-    ctl_desc.retired = false;
     event_monitor.set_pollin (ctl_desc.cookie);
 
     //  Register the thread with command dispatcher.
@@ -208,7 +197,6 @@ zmq::handle_t zmq::poller_t <T>::add_fd (int fd_, i_pollable *engine_)
     assert (ev_source != NULL);
     ev_source->engine = engine_;
     ev_source->cookie = event_monitor.add_fd (fd_, ev_source);
-    ev_source->retired = false;
     return ev_source;
 }
 
@@ -216,8 +204,6 @@ template <class T>
 void zmq::poller_t <T>::rm_fd (handle_t handle_)
 {
     event_monitor.rm_fd (handle_->cookie);
-    handle_->retired = true;
-    retired_list.push_back (handle_);
 }
 
 template <class T>
@@ -254,13 +240,7 @@ void zmq::poller_t <T>::worker_routine (void *arg_)
 template <class T>
 void zmq::poller_t <T>::loop ()
 {
-    bool stopped = false;
-
-    while (!stopped) {
-        stopped = event_monitor.process_events (this);
-        if (!retired_list.empty ())
-            free_retired_event_sources ();
-    }
+    while (!event_monitor.process_events (this));
 }
 
 template <class T>
@@ -287,7 +267,7 @@ bool zmq::poller_t <T>::process_event (event_source_t *ev_source,
             }
         }
     }
-    else if (!ev_source->retired) {
+    else {
         switch (ev_name) {
         case ZMQ_EVENT_OUT:
             ev_source->engine->out_event ();
@@ -299,16 +279,6 @@ bool zmq::poller_t <T>::process_event (event_source_t *ev_source,
         }
     }
     return false;
-}
-
-template <class T>
-void zmq::poller_t <T>::free_retired_event_sources ()
-{
-    while (!retired_list.empty ()) {
-        event_source_t *ev_source = retired_list.back ();
-        retired_list.pop_back ();
-        free (ev_source);
-    }
 }
 
 template <class T>

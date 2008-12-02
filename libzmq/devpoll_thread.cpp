@@ -83,6 +83,7 @@ void zmq::devpoll_t::rm_fd (cookie_t cookie_)
     assert (fd_table [cookie_.fd].in_use);
     devpoll_ctl (cookie_.fd, POLLREMOVE);
     fd_table [cookie_.fd].in_use = false;
+    retired.push_back (cookie_.fd);
 }
 
 void zmq::devpoll_t::set_pollin (cookie_t cookie_)
@@ -136,16 +137,27 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         int fd = ev_buf [i].fd;
         event_source_t *ev_source = fd_table [fd].ev_source;
 
+        if (!fd_table [fd].in_use)
+            continue;
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
             if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
+        if (!fd_table [fd].in_use)
+            continue;
         if (ev_buf [i].revents & POLLOUT)
             if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
+        if (!fd_table [fd].in_use)
+            continue;
         if (ev_buf [i].revents & POLLIN)
             if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
                 return true;
     }
+
+    //  Destroy retired event sources.
+    for (retired_t::iterator it = retired.begin (); it != retired.end (); it ++)
+        delete fd_table [*it].ev_source;
+    
     return false;
 }
 

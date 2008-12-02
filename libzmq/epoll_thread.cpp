@@ -62,7 +62,8 @@ void zmq::epoll_t::rm_fd (cookie_t cookie_)
     poll_entry *pe = (poll_entry*) cookie_.ptr;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
-    free (pe);
+    pe->fd = -1;
+    retired.push_back (pe);
 }
 
 void zmq::epoll_t::set_pollin (cookie_t cookie_)
@@ -108,16 +109,30 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
     for (int i = 0; i < n; i ++) {
         poll_entry *pe = ((poll_entry*) ev_buf [i].data.ptr);
 
+        if (pe->fd == -1)
+            continue;
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
             if (poller_->process_event (pe->ev_source, ZMQ_EVENT_ERR))
                 return true;
+        if (pe->fd == -1)
+            continue;
         if (ev_buf [i].events & EPOLLOUT)
             if (poller_->process_event (pe->ev_source, ZMQ_EVENT_OUT))
                 return true;
+        if (pe->fd == -1)
+            continue;
         if (ev_buf [i].events & EPOLLIN)
             if (poller_->process_event (pe->ev_source, ZMQ_EVENT_IN))
                 return true;
     }
+
+    //  Destroy retired event sources.
+    for (retired_t::iterator it = retired.begin (); it != retired.end ();
+          it ++) {
+        delete (*it)->ev_source;
+        delete *it;
+    }
+
     return false;
 }
 

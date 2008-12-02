@@ -31,7 +31,8 @@
 #include <zmq/err.hpp>
 #include <zmq/poll_thread.hpp>
 
-zmq::poll_t::poll_t ()
+zmq::poll_t::poll_t () :
+    retired (false)
 {
     //  Get the limit on open file descriptors. Resize fds so that it
     //  can hold all descriptors.
@@ -73,6 +74,8 @@ void zmq::poll_t::rm_fd (cookie_t cookie_)
     //  fd list itself.
     for (pollset_t::size_type i = index; i < pollset.size (); i ++)
         fd_table [pollset [i].fd].index = i;
+
+    retired = true;
 }
 
 void zmq::poll_t::set_pollin (cookie_t cookie_)
@@ -110,16 +113,36 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
 
         int fd = pollset [i].fd;
         event_source_t *ev_source = fd_table [fd].ev_source;
+
+        if (fd_table [pollset [i].fd].index == -1)
+           continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
             if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
                 return true;
+        if (fd_table [pollset [i].fd].index == -1)
+           continue;
         if (pollset [i].revents & POLLOUT)
             if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
                 return true;
+        if (fd_table [pollset [i].fd].index == -1)
+           continue;
         if (pollset [i].revents & POLLIN)
             if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
                 return true;
     }
+
+    //  Destroy retired event sources.
+    if (retired) {
+        for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
+            if (fd_table [pollset [i].fd].index == -1) {
+                delete fd_table [pollset [i].fd].ev_source;
+                pollset.erase (pollset.begin () + i);
+                i --;
+            }
+        }
+        retired = false;
+    }
+   
     return false;
 }
 

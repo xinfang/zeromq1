@@ -68,6 +68,10 @@ namespace zmq
             event_source_t *ev_source;
         };
 
+        //  List of retired event sources.
+        typedef std::vector <poll_entry*> retired_t;
+        retired_t retired;
+
         kqueue_t (const kqueue_t&);
         void operator = (const kqueue_t&);
     };

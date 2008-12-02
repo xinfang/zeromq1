@@ -68,6 +68,9 @@ namespace zmq
         typedef std::vector <pollfd> pollset_t;
         pollset_t pollset;
 
+        //  If true, there's at least one retired event source.
+        bool retired;
+
         poll_t (const poll_t&);
         void operator = (const poll_t&);
     };
