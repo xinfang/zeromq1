@@ -63,53 +63,52 @@ void zmq::devpoll_t::devpoll_ctl (int fd_, short events_)
     errno_assert (rc == sizeof pfd);
 }
 
-zmq::cookie_t zmq::devpoll_t::add_fd (int fd_, event_source_t *ev_source_)
+zmq::handle_t zmq::devpoll_t::add_fd (int fd_, i_pollable *engine_)
 {
     assert (!fd_table [fd_].in_use);
 
     fd_table [fd_].events = 0;
-    fd_table [fd_].ev_source = ev_source_;
+    fd_table [fd_].engine = engine_;
     fd_table [fd_].in_use = true;
 
     devpoll_ctl (fd_, 0);
 
-    cookie_t cookie;
-    cookie.fd = fd_;
-    return cookie;
+    handle_t handle;
+    handle.fd = fd_;
+    return handle;
 }
 
-void zmq::devpoll_t::rm_fd (cookie_t cookie_)
+void zmq::devpoll_t::rm_fd (handle_t handle_)
 {
-    assert (fd_table [cookie_.fd].in_use);
-    devpoll_ctl (cookie_.fd, POLLREMOVE);
-    fd_table [cookie_.fd].in_use = false;
-    retired.push_back (cookie_.fd);
+    assert (fd_table [handle_.fd].in_use);
+    devpoll_ctl (handle_.fd, POLLREMOVE);
+    fd_table [handle_.fd].in_use = false;
 }
 
-void zmq::devpoll_t::set_pollin (cookie_t cookie_)
+void zmq::devpoll_t::set_pollin (handle_t handle_)
 {
-    int fd = cookie_.fd;
+    int fd = handle_.fd;
     fd_table [fd].events |= POLLIN;
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-void zmq::devpoll_t::reset_pollin (cookie_t cookie_)
+void zmq::devpoll_t::reset_pollin (handle_t handle_)
 {
-    int fd = cookie_.fd;
+    int fd = handle_.fd;
     fd_table [fd].events &= ~((short) POLLIN);
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-void zmq::devpoll_t::set_pollout (cookie_t cookie_)
+void zmq::devpoll_t::set_pollout (handle_t handle_)
 {
-    int fd = cookie_.fd;
+    int fd = handle_.fd;
     fd_table [fd].events |= POLLOUT;
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-void zmq::devpoll_t::reset_pollout (cookie_t cookie_)
+void zmq::devpoll_t::reset_pollout (handle_t handle_)
 {
-    int fd = cookie_.fd;
+    int fd = handle_.fd;
     fd_table [fd].events &= ~((short) POLLOUT);
     devpoll_ctl (fd, fd_table [fd].events);
 }
@@ -135,28 +134,24 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
 
     for (int i = 0; i < n; i ++) {
         int fd = ev_buf [i].fd;
-        event_source_t *ev_source = fd_table [fd].ev_source;
+        i_pollable *engine = fd_table [fd].engine;
 
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (ev_source, event_err))
+            if (poller_->process_event (engine, event_err))
                 return true;
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & POLLOUT)
-            if (poller_->process_event (ev_source, event_out))
+            if (poller_->process_event (engine, event_out))
                 return true;
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & POLLIN)
-            if (poller_->process_event (ev_source, event_in))
+            if (poller_->process_event (engine, event_in))
                 return true;
     }
-
-    //  Destroy retired event sources.
-    for (retired_t::iterator it = retired.begin (); it != retired.end (); it ++)
-        delete fd_table [*it].ev_source;
     
     return false;
 }

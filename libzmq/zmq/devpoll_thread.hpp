@@ -42,12 +42,12 @@ namespace zmq
         devpoll_t ();
         ~devpoll_t ();
 
-        cookie_t add_fd (int fd_, event_source_t *ev_source_);
-        void rm_fd (cookie_t handle_);
-        void set_pollin (cookie_t handle_);
-        void reset_pollin (cookie_t handle_);
-        void set_pollout (cookie_t handle_);
-        void reset_pollout (cookie_t handle_);
+        handle_t add_fd (int fd_, i_pollable *engine_);
+        void rm_fd (handle_t handle_);
+        void set_pollin (handle_t handle_);
+        void reset_pollin (handle_t handle_);
+        void set_pollout (handle_t handle_);
+        void reset_pollout (handle_t handle_);
         bool process_events (poller_t <devpoll_t> *poller_);
 
     private:
@@ -57,15 +57,11 @@ namespace zmq
 
         struct fd_entry {
             short events;
-            event_source_t *ev_source;
+            i_pollable *engine;
             bool in_use;
         };
 
         std::vector <fd_entry> fd_table;
-
-        //  List of retired file descriptors.
-        typedef std::vector <int> retired_t;
-        retired_t retired;
 
         //  Pollset manipulation function.
         void devpoll_ctl (int fd_, short events_);
