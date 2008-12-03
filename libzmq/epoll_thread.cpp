@@ -42,7 +42,7 @@ zmq::epoll_t::~epoll_t ()
 
 zmq::handle_t zmq::epoll_t::add_fd (int fd_, i_pollable *engine_)
 {
-    poll_entry *pe = (poll_entry*) malloc (sizeof (poll_entry));
+    poll_entry_t *pe = (poll_entry_t*) malloc (sizeof (poll_entry_t));
     assert (pe != NULL);
 
     pe->fd = fd_;
@@ -60,7 +60,7 @@ zmq::handle_t zmq::epoll_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::epoll_t::rm_fd (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
     pe->fd = -1;
@@ -69,7 +69,7 @@ void zmq::epoll_t::rm_fd (handle_t handle_)
 
 void zmq::epoll_t::set_pollin (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->ev.events |= EPOLLIN;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -77,7 +77,7 @@ void zmq::epoll_t::set_pollin (handle_t handle_)
 
 void zmq::epoll_t::reset_pollin (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->ev.events &= ~((short) EPOLLIN);
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -85,7 +85,7 @@ void zmq::epoll_t::reset_pollin (handle_t handle_)
 
 void zmq::epoll_t::set_pollout (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->ev.events |= EPOLLOUT;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -93,7 +93,7 @@ void zmq::epoll_t::set_pollout (handle_t handle_)
 
 void zmq::epoll_t::reset_pollout (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->ev.events &= ~((short) EPOLLOUT);
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -101,14 +101,14 @@ void zmq::epoll_t::reset_pollout (handle_t handle_)
 
 bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
 {
-    struct epoll_event ev_buf [max_io_events];
+    epoll_event ev_buf [max_io_events];
 
     //  Wait for events.
     int n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events, -1);
     errno_assert (n != -1);
 
     for (int i = 0; i < n; i ++) {
-        poll_entry *pe = ((poll_entry*) ev_buf [i].data.ptr);
+        poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
 
         if (pe->fd == -1)
             continue;

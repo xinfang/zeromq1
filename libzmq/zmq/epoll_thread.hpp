@@ -56,15 +56,15 @@ namespace zmq
         // Epoll file descriptor
         int epoll_fd;
 
-        // poll_entry
-        struct poll_entry {
+        struct poll_entry_t
+        {
             int fd;
             epoll_event ev;
             i_pollable *engine;
         };
 
         //  List of retired event sources.
-        typedef std::vector <poll_entry*> retired_t;
+        typedef std::vector <poll_entry_t*> retired_t;
         retired_t retired;
 
         epoll_t (const epoll_t&);

@@ -60,7 +60,7 @@ namespace zmq
         //  File descriptor referring to the kernel event queue.
         int kqueue_fd;
 
-        struct poll_entry
+        struct poll_entry_t
         {
             int fd;
             bool flag_pollin;
@@ -69,7 +69,7 @@ namespace zmq
         };
 
         //  List of retired event sources.
-        typedef std::vector <poll_entry*> retired_t;
+        typedef std::vector <poll_entry_t*> retired_t;
         retired_t retired;
 
         kqueue_t (const kqueue_t&);

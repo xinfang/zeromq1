@@ -46,7 +46,7 @@ zmq::kqueue_t::~kqueue_t ()
 
 void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
 {
-    struct kevent ev;
+    kevent ev;
 
     EV_SET (&ev, fd_, filter_, EV_ADD, 0, 0, udata_);
     int rc = kevent (kqueue_fd, &ev, 1, NULL, 0, NULL);
@@ -55,7 +55,7 @@ void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
 
 void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
 {
-    struct kevent ev;
+    kevent ev;
 
     EV_SET (&ev, fd_, filter_, EV_DELETE, 0, 0, NULL);
     int rc = kevent (kqueue_fd, &ev, 1, NULL, 0, NULL);
@@ -64,8 +64,8 @@ void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
 
 zmq::handle_t zmq::kqueue_t::add_fd (int fd_, i_pollable *engine_)
 {
-    poll_entry *pe;
-    pe = (poll_entry*) malloc (sizeof (poll_entry));
+    poll_entry_t *pe;
+    pe = (poll_entry_t*) malloc (sizeof (poll_entry_t));
     assert (pe != NULL);
     pe->fd = fd_;
     pe->flag_pollin = 0;
@@ -79,7 +79,7 @@ zmq::handle_t zmq::kqueue_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::kqueue_t::rm_fd (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     if (pe->flag_pollin)
         kevent_delete (pe->fd, EVFILT_READ);
     if (pe->flag_pollout)
@@ -90,28 +90,28 @@ void zmq::kqueue_t::rm_fd (handle_t handle_)
 
 void zmq::kqueue_t::set_pollin (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->flag_pollin = true;
     kevent_add (pe->fd, EVFILT_READ, pe);
 }
 
 void zmq::kqueue_t::reset_pollin (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->flag_pollin = false;
     kevent_delete (pe->fd, EVFILT_READ);
 }
 
 void zmq::kqueue_t::set_pollout (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->flag_pollout = true;
     kevent_add (pe->fd, EVFILT_WRITE, pe);
 }
 
 void zmq::kqueue_t::reset_pollout (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
+    poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     pe->flag_pollout = false;
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
@@ -126,7 +126,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
     errno_assert (n != -1);
 
     for (int i = 0; i < n; i ++) {
-        poll_entry *pe = (poll_entry*) ev_buf [i].udata;
+        poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
 
         if (pe->fd == -1)
             continue;

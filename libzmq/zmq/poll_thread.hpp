@@ -56,13 +56,14 @@ namespace zmq
 
     private:
 
-        struct fd_entry {
+        struct fd_entry_t
+        {
             int index;
             i_pollable *engine;
         };
 
         //  This table stores data for registered descriptors.
-        std::vector <fd_entry> fd_table;
+        std::vector <fd_entry_t> fd_table;
 
         //  Pollset to pass to the poll function.
         typedef std::vector <pollfd> pollset_t;

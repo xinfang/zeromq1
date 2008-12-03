@@ -55,13 +55,14 @@ namespace zmq
         //  File descriptor referring to "/dev/poll" pseudo-device.
         int devpoll_fd;
 
-        struct fd_entry {
+        struct fd_entry_t
+        {
             short events;
             i_pollable *engine;
             bool in_use;
         };
 
-        std::vector <fd_entry> fd_table;
+        std::vector <fd_entry_t> fd_table;
 
         //  Pollset manipulation function.
         void devpoll_ctl (int fd_, short events_);
