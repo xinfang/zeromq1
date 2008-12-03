@@ -33,12 +33,6 @@
 namespace zmq
 {
 
-    union cookie_t
-    {
-        int fd;
-        void *ptr;
-    };
-
     enum event_t
     {
         //  The file contains some data.
@@ -51,11 +45,13 @@ namespace zmq
         event_err
     };
 
+/*
     struct event_source_t
     {
         i_pollable *engine;
         cookie_t cookie;
     };
+*/
 
     template <class T> class poller_t : public i_poller
     {
@@ -75,9 +71,8 @@ namespace zmq
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
 
-        //  Callback function called by event_monitor in
-        //  process_events () function.
-        bool process_event (event_source_t *source_, event_t event_);
+        //  Callback function called by event_monitor.
+        bool process_event (i_pollable *engine_, event_t event_);
 
     private:
 
@@ -104,8 +99,8 @@ namespace zmq
         //  this socketpair.
         ysocketpair_t signaler;
 
-        //  Event source for signaler socket.
-        event_source_t ctl_desc;
+        //  Handle associated with signaler's file descriptor.
+        handle_t signaler_handle;
 
         //  Handle of the physical thread doing the I/O work.
         thread_t worker;
@@ -143,9 +138,8 @@ template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_)
 {
-    ctl_desc.engine = NULL;
-    ctl_desc.cookie = event_monitor.add_fd (signaler.get_fd (), &ctl_desc);
-    event_monitor.set_pollin (ctl_desc.cookie);
+    signaler_handle = event_monitor.add_fd (signaler.get_fd (), NULL);
+    event_monitor.set_pollin (signaler_handle);
 
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (this, &signaler);
@@ -154,7 +148,7 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 template <class T>
 zmq::poller_t <T>::~poller_t ()
 {
-    event_monitor.rm_fd (ctl_desc.cookie);
+    event_monitor.rm_fd (signaler_handle);
 }
 
 template <class T>
@@ -188,41 +182,37 @@ void zmq::poller_t <T>::stop ()
 template <class T>
 zmq::handle_t zmq::poller_t <T>::add_fd (int fd_, i_pollable *engine_)
 {
-    event_source_t *ev_source = (event_source_t*) malloc (sizeof *ev_source);
-    assert (ev_source != NULL);
-    ev_source->engine = engine_;
-    ev_source->cookie = event_monitor.add_fd (fd_, ev_source);
-    return ev_source;
+    return event_monitor.add_fd (fd_, engine_);
 }
 
 template <class T>
 void zmq::poller_t <T>::rm_fd (handle_t handle_)
 {
-    event_monitor.rm_fd (handle_->cookie);
+    event_monitor.rm_fd (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollin (handle_t handle_)
 {
-    event_monitor.set_pollin (handle_->cookie);
+    event_monitor.set_pollin (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollin (handle_t handle_)
 {
-    event_monitor.reset_pollin (handle_->cookie);
+    event_monitor.reset_pollin (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollout (handle_t handle_)
 {
-    event_monitor.set_pollout (handle_->cookie);
+    event_monitor.set_pollout (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 {
-    event_monitor.reset_pollout (handle_->cookie);
+    event_monitor.reset_pollout (handle_);
 }
 
 template <class T>
@@ -239,10 +229,9 @@ void zmq::poller_t <T>::loop ()
 }
 
 template <class T>
-bool zmq::poller_t <T>::process_event (event_source_t *source_,
-    event_t event_)
+bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
 {
-    if (source_ == &ctl_desc) {
+    if (!engine_) {
         uint32_t signals = signaler.check ();
         assert (signals);
 
@@ -265,11 +254,11 @@ bool zmq::poller_t <T>::process_event (event_source_t *source_,
     else {
         switch (event_) {
         case event_out:
-            source_->engine->out_event ();
+            engine_->out_event ();
             break;
         case event_in:
         case event_err:
-            source_->engine->in_event ();
+            engine_->in_event ();
             break;
         }
     }

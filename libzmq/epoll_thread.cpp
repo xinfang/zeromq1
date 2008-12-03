@@ -40,59 +40,60 @@ zmq::epoll_t::~epoll_t ()
     close (epoll_fd);
 }
 
-zmq::cookie_t zmq::epoll_t::add_fd (int fd_, event_source_t *ev_source_)
+zmq::handle_t zmq::epoll_t::add_fd (int fd_, i_pollable *engine_)
 {
     poll_entry *pe = (poll_entry*) malloc (sizeof (poll_entry));
     assert (pe != NULL);
+
     pe->fd = fd_;
     pe->ev.events = 0;
     pe->ev.data.ptr = pe;
-    pe->ev_source = ev_source_;
+    pe->engine = engine_;
 
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_ADD, fd_, &pe->ev);
     errno_assert (rc != -1);
 
-    cookie_t cookie;
-    cookie.ptr = pe;
-    return cookie;
+    handle_t handle;
+    handle.ptr = pe;
+    return handle;
 }
 
-void zmq::epoll_t::rm_fd (cookie_t cookie_)
+void zmq::epoll_t::rm_fd (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) cookie_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
     pe->fd = -1;
     retired.push_back (pe);
 }
 
-void zmq::epoll_t::set_pollin (cookie_t cookie_)
+void zmq::epoll_t::set_pollin (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) cookie_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
     pe->ev.events |= EPOLLIN;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::reset_pollin (cookie_t cookie_)
+void zmq::epoll_t::reset_pollin (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) cookie_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
     pe->ev.events &= ~((short) EPOLLIN);
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::set_pollout (cookie_t cookie_)
+void zmq::epoll_t::set_pollout (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) cookie_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
     pe->ev.events |= EPOLLOUT;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::reset_pollout (cookie_t cookie_)
+void zmq::epoll_t::reset_pollout (handle_t handle_)
 {
-    poll_entry *pe = (poll_entry*) cookie_.ptr;
+    poll_entry *pe = (poll_entry*) handle_.ptr;
     pe->ev.events &= ~((short) EPOLLOUT);
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -112,26 +113,24 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-            if (poller_->process_event (pe->ev_source, event_err))
+            if (poller_->process_event (pe->engine, event_err))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & EPOLLOUT)
-            if (poller_->process_event (pe->ev_source, event_out))
+            if (poller_->process_event (pe->engine, event_out))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & EPOLLIN)
-            if (poller_->process_event (pe->ev_source, event_in))
+            if (poller_->process_event (pe->engine, event_in))
                 return true;
     }
 
     //  Destroy retired event sources.
     for (retired_t::iterator it = retired.begin (); it != retired.end ();
-          it ++) {
-        delete (*it)->ev_source;
+          it ++)
         delete *it;
-    }
 
     return false;
 }

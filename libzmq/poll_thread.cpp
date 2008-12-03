@@ -45,29 +45,29 @@ zmq::poll_t::poll_t () :
         fd_table [i].index = -1;
 }
 
-zmq::cookie_t zmq::poll_t::add_fd (int fd_, event_source_t *ev_source_)
+zmq::handle_t zmq::poll_t::add_fd (int fd_, i_pollable *engine_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
     assert (fd_table [fd_].index == -1);
 
     fd_table [fd_].index = pollset.size() - 1;
-    fd_table [fd_].ev_source = ev_source_;
+    fd_table [fd_].engine = engine_;
 
-    cookie_t cookie;
-    cookie.fd = fd_;
-    return cookie;
+    handle_t handle;
+    handle.fd = fd_;
+    return handle;
 }
 
-void zmq::poll_t::rm_fd (cookie_t cookie_)
+void zmq::poll_t::rm_fd (handle_t handle_)
 {
     //  Remove the descriptor from pollset and fd table.
-    int index = fd_table [cookie_.fd].index;
+    int index = fd_table [handle_.fd].index;
     assert (index != -1);
     pollset.erase (pollset.begin () + index);
 
     //  Mark the fd as unused.
-    fd_table [cookie_.fd].index = -1;
+    fd_table [handle_.fd].index = -1;
 
     //  Adjust fd table to match new indices to the pollset. To make it more
     //  efficient we are traversing the pollset which is shorter than
@@ -78,27 +78,27 @@ void zmq::poll_t::rm_fd (cookie_t cookie_)
     retired = true;
 }
 
-void zmq::poll_t::set_pollin (cookie_t cookie_)
+void zmq::poll_t::set_pollin (handle_t handle_)
 {
-    int index = fd_table [cookie_.fd].index;
+    int index = fd_table [handle_.fd].index;
     pollset [index].events |= POLLIN;
 }
 
-void zmq::poll_t::reset_pollin (cookie_t cookie_)
+void zmq::poll_t::reset_pollin (handle_t handle_)
 {
-    int index = fd_table [cookie_.fd].index;
+    int index = fd_table [handle_.fd].index;
     pollset [index].events &= ~((short) POLLIN);
 }
 
-void zmq::poll_t::set_pollout (cookie_t cookie_)
+void zmq::poll_t::set_pollout (handle_t handle_)
 {
-    int index = fd_table [cookie_.fd].index;
+    int index = fd_table [handle_.fd].index;
     pollset [index].events |= POLLOUT;
 }
 
-void zmq::poll_t::reset_pollout (cookie_t cookie_)
+void zmq::poll_t::reset_pollout (handle_t handle_)
 {
-    int index = fd_table [cookie_.fd].index;
+    int index = fd_table [handle_.fd].index;
     pollset [index].events &= ~((short) POLLOUT);
 }
 
@@ -112,22 +112,22 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         assert (!(pollset [i].revents & POLLNVAL));
 
         int fd = pollset [i].fd;
-        event_source_t *ev_source = fd_table [fd].ev_source;
+        i_pollable *engine = fd_table [fd].engine;
 
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (ev_source, event_err))
+            if (poller_->process_event (engine, event_err))
                 return true;
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & POLLOUT)
-            if (poller_->process_event (ev_source, event_out))
+            if (poller_->process_event (engine, event_out))
                 return true;
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & POLLIN)
-            if (poller_->process_event (ev_source, event_in))
+            if (poller_->process_event (engine, event_in))
                 return true;
     }
 
@@ -135,7 +135,6 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
     if (retired) {
         for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
             if (fd_table [pollset [i].fd].index == -1) {
-                delete fd_table [pollset [i].fd].ev_source;
                 pollset.erase (pollset.begin () + i);
                 i --;
             }

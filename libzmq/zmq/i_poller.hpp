@@ -25,7 +25,11 @@
 
 namespace zmq
 {
-    typedef struct event_source_t *handle_t;
+    union handle_t
+    {
+        int fd;
+        void *ptr;
+    };
 
     //  Virtual interface to be exposed by file-descriptor-oriented engines
     //  for communication with I/O threads.

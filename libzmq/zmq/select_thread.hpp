@@ -46,19 +46,20 @@ namespace zmq
 
         ZMQ_EXPORT select_t ();
 
-        ZMQ_EXPORT cookie_t add_fd (int fd_, event_source_t *ev_source_);
-        ZMQ_EXPORT void rm_fd (cookie_t cookie_);
-        ZMQ_EXPORT void set_pollin (cookie_t cookie_);
-        ZMQ_EXPORT void reset_pollin (cookie_t cookie_);
-        ZMQ_EXPORT void set_pollout (cookie_t cookie_);
-        ZMQ_EXPORT void reset_pollout (cookie_t cookie_);
+        ZMQ_EXPORT handle_t add_fd (int fd_, i_pollable *engine_);
+        ZMQ_EXPORT void rm_fd (handle_t handle_);
+        ZMQ_EXPORT void set_pollin (handle_t handle_);
+        ZMQ_EXPORT void reset_pollin (handle_t handle_);
+        ZMQ_EXPORT void set_pollout (handle_t handle_);
+        ZMQ_EXPORT void reset_pollout (handle_t handle_);
         ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_);
 
     private:
 
-        struct fd_entry_t {
+        struct fd_entry_t
+        {
             int fd;
-            event_source_t *ev_source;
+            i_pollable *engine;
         };
 
         //  Set of file descriptors that are used to retreive

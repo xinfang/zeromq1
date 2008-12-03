@@ -46,19 +46,19 @@ namespace zmq
         poll_t ();
         virtual ~poll_t () {}
 
-        cookie_t add_fd (int fd_, event_source_t *ev_source_);
-        void rm_fd (cookie_t cookie_);
-        void set_pollin (cookie_t cookie_);
-        void reset_pollin (cookie_t cookie_);
-        void set_pollout (cookie_t cookie_);
-        void reset_pollout (cookie_t cookie_);
+        handle_t add_fd (int fd_, i_pollable *engine_);
+        void rm_fd (handle_t handle_);
+        void set_pollin (handle_t handle_);
+        void reset_pollin (handle_t handle_);
+        void set_pollout (handle_t handle_);
+        void reset_pollout (handle_t handle_);
         bool process_events (poller_t <poll_t> *poller_);
 
     private:
 
         struct fd_entry {
             int index;
-            event_source_t *ev_source;
+            i_pollable *engine;
         };
 
         //  This table stores data for registered descriptors.

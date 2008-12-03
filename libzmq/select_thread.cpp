@@ -40,10 +40,10 @@ zmq::select_t::select_t () :
     FD_ZERO (&source_set_err);
 }
 
-zmq::cookie_t zmq::select_t::add_fd (int fd_, event_source_t *ev_source_)
+zmq::handle_t zmq::select_t::add_fd (int fd_, i_pollable *engine_)
 {
     //  Store the file descriptor.
-    fd_entry_t entry = {fd_, ev_source_};
+    fd_entry_t entry = {fd_, engine_};
     fds.push_back (entry);
 
     //  Start polling on errors.
@@ -53,15 +53,15 @@ zmq::cookie_t zmq::select_t::add_fd (int fd_, event_source_t *ev_source_)
     if (fd_ > maxfd)
         maxfd = fd_;
 
-    cookie_t cookie;
-    cookie.fd = fd_;
-    return cookie;
+    handle_t handle;
+    handle.fd = fd_;
+    return handle;
 }
 
-void zmq::select_t::rm_fd (cookie_t cookie_)
+void zmq::select_t::rm_fd (handle_t handle_)
 {
     //  Get file descriptor.
-    int fd = cookie_.fd;
+    int fd = handle_.fd;
 
     //  Stop polling on the descriptor.
     FD_CLR (fd, &source_set_in);
@@ -87,24 +87,24 @@ void zmq::select_t::rm_fd (cookie_t cookie_)
     retired = true;
 }
 
-void zmq::select_t::set_pollin (cookie_t cookie_)
+void zmq::select_t::set_pollin (handle_t handle_)
 {
-    FD_SET (cookie_.fd, &source_set_in);
+    FD_SET (handle_.fd, &source_set_in);
 }
 
-void zmq::select_t::reset_pollin (cookie_t cookie_)
+void zmq::select_t::reset_pollin (handle_t handle_)
 {
-    FD_CLR (cookie_.fd, &source_set_in);
+    FD_CLR (handle_.fd, &source_set_in);
 }
 
-void zmq::select_t::set_pollout (cookie_t cookie_)
+void zmq::select_t::set_pollout (handle_t handle_)
 {
-    FD_SET (cookie_.fd, &source_set_out);
+    FD_SET (handle_.fd, &source_set_out);
 }
 
-void zmq::select_t::reset_pollout (cookie_t cookie_)
+void zmq::select_t::reset_pollout (handle_t handle_)
 {
-    FD_CLR (cookie_.fd, &source_set_out);
+    FD_CLR (handle_.fd, &source_set_out);
 }
 
 bool zmq::select_t::process_events (poller_t <select_t> *poller_)
@@ -128,17 +128,17 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
-            if (poller_->process_event (fds [i].ev_source, event_out))
+            if (poller_->process_event (fds [i].engine, event_out))
                 return true;
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
-            if (poller_->process_event (fds [i].ev_source, event_in))
+            if (poller_->process_event (fds [i].engine, event_in))
                 return true;
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
-            if (poller_->process_event (fds [i].ev_source, event_err))
+            if (poller_->process_event (fds [i].engine, event_err))
                 return true;
     }
 
@@ -146,7 +146,6 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     if (retired) {
         for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
             if (fds [i].fd == -1) {
-                delete fds [i].ev_source;
                 fds.erase (fds.begin () + i);
                 i --;
             }
