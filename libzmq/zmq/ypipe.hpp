@@ -120,7 +120,10 @@ namespace zmq
                 r = c.xchg (NULL);
 
                 //  If there are no elements prefetched, exit and go asleep.
-                if (&queue.front () == r) {
+                //  During pipe's lifetime r should never be NULL, however,
+                //  during pipe shutdown when retrieving messages from it
+                //  to deallocate them, this can happen.
+                if (&queue.front () == r || !r) {
                     stop = false;
                     return false;
                 }
@@ -141,7 +144,10 @@ namespace zmq
                 r = c.cas (&queue.front (), NULL);
 
                 //  If there are no elements prefetched, exit.
-                if (&queue.front () == r)
+                //  During pipe's lifetime r should never be NULL, however,
+                //  during pipe shutdown when retrieving messages from it
+                //  to deallocate them, this can happen.
+                if (&queue.front () == r | !r)
                     return false;
             }
 
