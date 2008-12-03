@@ -41,7 +41,7 @@ namespace zmq
         kqueue_t ();
         ~kqueue_t ();
 
-        handle_t add_fd (int fd_, i_engine *engine_);
+        handle_t add_fd (int fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
