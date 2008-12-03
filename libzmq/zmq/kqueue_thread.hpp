@@ -41,12 +41,12 @@ namespace zmq
         kqueue_t ();
         ~kqueue_t ();
 
-        cookie_t add_fd (int fd_, event_source_t *ev_source_);
-        void rm_fd (cookie_t cookie_);
-        void set_pollin (cookie_t cookie_);
-        void reset_pollin (cookie_t cookie_);
-        void set_pollout (cookie_t cookie_);
-        void reset_pollout (cookie_t cookie_);
+        handle_t add_fd (int fd_, i_engine *engine_);
+        void rm_fd (handle_t handle_);
+        void set_pollin (handle_t handle_);
+        void reset_pollin (handle_t handle_);
+        void set_pollout (handle_t handle_);
+        void reset_pollout (handle_t handle_);
         bool process_events (poller_t <kqueue_t> *poller_);
 
     private:
@@ -60,12 +60,12 @@ namespace zmq
         //  File descriptor referring to the kernel event queue.
         int kqueue_fd;
 
-        // poll_entry
-        struct poll_entry {
+        struct poll_entry
+        {
             int fd;
             bool flag_pollin;
             bool flag_pollout;
-            event_source_t *ev_source;
+            i_pollable *engine;
         };
 
         //  List of retired event sources.

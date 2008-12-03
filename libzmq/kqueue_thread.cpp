@@ -62,24 +62,24 @@ void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
     errno_assert (rc != -1);
 }
 
-zmq::cookie_t zmq::kqueue_t::add_fd (int fd_, event_source_t *ev_source_)
+zmq::handle_t zmq::kqueue_t::add_fd (int fd_, i_pollable *engine_)
 {
-    struct poll_entry *pe;
-    pe = (struct poll_entry*) malloc (sizeof (struct poll_entry));
+    poll_entry *pe;
+    pe = (poll_entry*) malloc (sizeof (poll_entry));
     assert (pe != NULL);
     pe->fd = fd_;
     pe->flag_pollin = 0;
     pe->flag_pollout = 0;
-    pe->ev_source = ev_source_;
+    pe->engine = engine_;
 
-    cookie_t cookie;
-    cookie.ptr = pe;
-    return cookie;
+    handle_t handle;
+    handle.ptr = pe;
+    return handle;
 }
 
-void zmq::kqueue_t::rm_fd (cookie_t cookie_)
+void zmq::kqueue_t::rm_fd (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) cookie_.ptr;
+    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     if (pe->flag_pollin)
         kevent_delete (pe->fd, EVFILT_READ);
     if (pe->flag_pollout)
@@ -88,30 +88,30 @@ void zmq::kqueue_t::rm_fd (cookie_t cookie_)
     retired.push_back (pe);
 }
 
-void zmq::kqueue_t::set_pollin (cookie_t cookie_)
+void zmq::kqueue_t::set_pollin (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) cookie_.ptr;
+    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     pe->flag_pollin = true;
     kevent_add (pe->fd, EVFILT_READ, pe);
 }
 
-void zmq::kqueue_t::reset_pollin (cookie_t cookie_)
+void zmq::kqueue_t::reset_pollin (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) cookie_.ptr;
+    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     pe->flag_pollin = false;
     kevent_delete (pe->fd, EVFILT_READ);
 }
 
-void zmq::kqueue_t::set_pollout (cookie_t cookie_)
+void zmq::kqueue_t::set_pollout (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) cookie_.ptr;
+    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     pe->flag_pollout = true;
     kevent_add (pe->fd, EVFILT_WRITE, pe);
 }
 
-void zmq::kqueue_t::reset_pollout (cookie_t cookie_)
+void zmq::kqueue_t::reset_pollout (handle_t handle_)
 {
-    struct poll_entry *pe = (struct poll_entry*) cookie_.ptr;
+    struct poll_entry *pe = (struct poll_entry*) handle_.ptr;
     pe->flag_pollout = false;
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
@@ -126,32 +126,30 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
     errno_assert (n != -1);
 
     for (int i = 0; i < n; i ++) {
-        struct poll_entry *pe = (struct poll_entry*) ev_buf [i].udata;
-        event_source_t *ev_source = pe->ev_source;
+        poll_entry *pe = (poll_entry*) ev_buf [i].udata;
 
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].flags & EV_EOF)
-            if (poller_->process_event (ev_source, event_err))
+            if (poller_->process_event (pe->engine, event_err))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_WRITE)
-            if (poller_->process_event (ev_source, event_out))
+            if (poller_->process_event (pe->engine, event_out))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
-            if (poller_->process_event (ev_source, event_in))
+            if (poller_->process_event (pe->engine, event_in))
                 return true;
     }
 
     //  Destroy retired event sources.
     for (retired_t::iterator it = retired.begin (); it != retired.end ();
-          it ++) {
-        delete (*it)->ev_source;
+          it ++)
         delete *it;
-    }
+    retired.clear ();
 
     return false;
 }
