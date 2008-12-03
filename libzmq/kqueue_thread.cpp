@@ -46,7 +46,7 @@ zmq::kqueue_t::~kqueue_t ()
 
 void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
 {
-    kevent ev;
+    struct kevent ev;
 
     EV_SET (&ev, fd_, filter_, EV_ADD, 0, 0, udata_);
     int rc = kevent (kqueue_fd, &ev, 1, NULL, 0, NULL);
@@ -55,7 +55,7 @@ void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
 
 void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
 {
-    kevent ev;
+    struct kevent ev;
 
     EV_SET (&ev, fd_, filter_, EV_DELETE, 0, 0, NULL);
     int rc = kevent (kqueue_fd, &ev, 1, NULL, 0, NULL);
