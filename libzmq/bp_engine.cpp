@@ -123,6 +123,16 @@ void zmq::bp_engine_t::in_event ()
 
     //  The other party closed the connection.
     if (nbytes == -1) {
+
+        //  Report connection failure to the client.
+        //  If there is no error handler, application crashes immediately.
+        //  If the error handler returns false, it crashes as well.
+        //  If error handler returns true, the error is ignored.       
+        error_handler_t *eh = get_error_handler ();
+        assert (eh);
+        if (!eh (local_object.c_str ()))
+            assert (false);
+
         //  Remove the file descriptor from the pollset.
         poller->rm_fd (handle);    
 
