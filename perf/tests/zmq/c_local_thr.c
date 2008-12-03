@@ -52,18 +52,21 @@ typedef __int64 uint64_t;
         
         double ticksDivM;
         LARGE_INTEGER ticksPerSecond;
-        LARGE_INTEGER tick;   // A point in time
-        ULARGE_INTEGER time;   // For converting tick into real time
 
-        // get the high resolution counter's accuracy
+        /*  A point in time.  */
+        LARGE_INTEGER tick;
+
+        /*  For converting tick into real time.  */
+        ULARGE_INTEGER time;
+
+        /*  Get the high resolution counter's accuracy.  */
         QueryPerformanceFrequency (&ticksPerSecond);
 
-        // what time is it?
+        /*  What time is it?  */
         QueryPerformanceCounter (&tick);
 
-        // convert the tick number into the number of seconds
-        // since the system was started...
-       
+        /*  Convert the tick number into the number of seconds  */
+        /*  since the system was started...  */
         ticksDivM = ticksPerSecond.QuadPart / 1000000000;
         time.QuadPart = tick.QuadPart / ticksDivM;
        
