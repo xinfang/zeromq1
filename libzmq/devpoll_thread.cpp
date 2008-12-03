@@ -140,17 +140,17 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, event_err))
                 return true;
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & POLLOUT)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, event_out))
                 return true;
         if (!fd_table [fd].in_use)
             continue;
         if (ev_buf [i].revents & POLLIN)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, event_in))
                 return true;
     }
 

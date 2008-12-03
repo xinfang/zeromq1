@@ -112,17 +112,17 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-            if (poller_->process_event (pe->ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (pe->ev_source, event_err))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & EPOLLOUT)
-            if (poller_->process_event (pe->ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (pe->ev_source, event_out))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].events & EPOLLIN)
-            if (poller_->process_event (pe->ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (pe->ev_source, event_in))
                 return true;
     }
 

@@ -128,17 +128,17 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
-            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (fds [i].ev_source, event_out))
                 return true;
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
-            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (fds [i].ev_source, event_in))
                 return true;
         if (fds [i].fd == -1)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
-            if (poller_->process_event (fds [i].ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (fds [i].ev_source, event_err))
                 return true;
     }
 

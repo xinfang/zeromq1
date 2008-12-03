@@ -117,17 +117,17 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, event_err))
                 return true;
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & POLLOUT)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, event_out))
                 return true;
         if (fd_table [pollset [i].fd].index == -1)
            continue;
         if (pollset [i].revents & POLLIN)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, event_in))
                 return true;
     }
 

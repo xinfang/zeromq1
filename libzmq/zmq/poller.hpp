@@ -33,24 +33,26 @@
 namespace zmq
 {
 
-    union cookie_t {
+    union cookie_t
+    {
         int fd;
         void *ptr;
     };
 
-    enum events {
-
+    enum event_t
+    {
         //  The file contains some data.
-        ZMQ_EVENT_IN,
+        event_in,
 
         //  The file can accept some more data.
-        ZMQ_EVENT_OUT,
+        event_out,
 
         //  There was an error on file descriptor.
-        ZMQ_EVENT_ERR
+        event_err
     };
 
-    struct event_source_t {
+    struct event_source_t
+    {
         i_pollable *engine;
         cookie_t cookie;
     };
@@ -75,7 +77,7 @@ namespace zmq
 
         //  Callback function called by event_monitor in
         //  process_events () function.
-        bool process_event (event_source_t *ev_source, enum events ev_name);
+        bool process_event (event_source_t *source_, event_t event_);
 
     private:
 
@@ -237,10 +239,10 @@ void zmq::poller_t <T>::loop ()
 }
 
 template <class T>
-bool zmq::poller_t <T>::process_event (event_source_t *ev_source,
-    enum events ev_name)
+bool zmq::poller_t <T>::process_event (event_source_t *source_,
+    event_t event_)
 {
-    if (ev_source == &ctl_desc) {
+    if (source_ == &ctl_desc) {
         uint32_t signals = signaler.check ();
         assert (signals);
 
@@ -261,13 +263,13 @@ bool zmq::poller_t <T>::process_event (event_source_t *ev_source,
         }
     }
     else {
-        switch (ev_name) {
-        case ZMQ_EVENT_OUT:
-            ev_source->engine->out_event ();
+        switch (event_) {
+        case event_out:
+            source_->engine->out_event ();
             break;
-        case ZMQ_EVENT_IN:
-        case ZMQ_EVENT_ERR:
-            ev_source->engine->in_event ();
+        case event_in:
+        case event_err:
+            source_->engine->in_event ();
             break;
         }
     }

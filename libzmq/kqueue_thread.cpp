@@ -132,17 +132,17 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].flags & EV_EOF)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_ERR))
+            if (poller_->process_event (ev_source, event_err))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_WRITE)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_OUT))
+            if (poller_->process_event (ev_source, event_out))
                 return true;
         if (pe->fd == -1)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
-            if (poller_->process_event (ev_source, ZMQ_EVENT_IN))
+            if (poller_->process_event (ev_source, event_in))
                 return true;
     }
 
