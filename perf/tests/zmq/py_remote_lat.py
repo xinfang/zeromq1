@@ -35,18 +35,18 @@ def main ():
         print 'message-size and message-count must be integers'
         sys.exit (1)
 
-    z = pyzmq.ZMQ (hostname = sys.argv [1])
+    z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EG', scope = pyzmq.SCOPE_GLOBAL,
+    eid = z.create_exchange (exchange_name = 'EG', scope = libpyzmq.SCOPE_GLOBAL,
         interface = sys.argv [3])
-    qid = z.create_queue (queue_name = 'QG', scope = pyzmq.SCOPE_GLOBAL,
+    qid = z.create_queue (queue_name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
         interface = sys.argv [2])
 
     for i in range (0, roundtrip_count):
         msg = z.receive ()
         z.send (eid, msg)
 
-    time.sleep (2000)
+    time.sleep (2)
 
 if __name__ == "__main__":
     main ()

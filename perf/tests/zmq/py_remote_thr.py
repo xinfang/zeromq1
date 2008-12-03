@@ -34,16 +34,16 @@ def main ():
         print 'message-size and message-count must be integers'
         sys.exit (1)
 
-    z = pyzmq.ZMQ (hostname = sys.argv [1])
+    z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EL', scope = pyzmq.SCOPE_LOCAL)
+    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL)
     z.bind ('EL', 'QG')
 
     msg = ''.join ([' ' for n in range (0, message_size)])
     for i in range (0, message_count):
         z.send (eid, msg)
 
-    time.sleep (2000)
+    time.sleep (2)
 
 if __name__ == "__main__":
     main ()

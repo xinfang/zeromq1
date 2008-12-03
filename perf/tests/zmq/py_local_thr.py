@@ -37,9 +37,9 @@ def main ():
     print "message size:", message_size, "[B]"
     print "message count:", message_count
 
-    z = pyzmq.ZMQ (hostname = sys.argv [1])
+    z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
-    z.create_queue (queue_name = 'QG', scope = pyzmq.SCOPE_GLOBAL,
+    z.create_queue (queue_name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
         interface = sys.argv [2])
 
     msg = z.receive ()
