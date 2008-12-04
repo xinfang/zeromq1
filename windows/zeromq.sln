@@ -61,6 +61,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c_remote_thr", "c_remote_th
 		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpyzmq", "libpyzmq\libpyzmq.vcproj", "{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjzmq", "libjzmq\libjzmq.vcproj", "{1A719351-FE75-4C3E-9C51-CA33537F06CD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -111,6 +121,14 @@ Global
 		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Debug|Win32.Build.0 = Debug|Win32
 		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Release|Win32.ActiveCfg = Release|Win32
 		{B9B13C62-72AC-4DC7-8A6E-304B086742D8}.Release|Win32.Build.0 = Release|Win32
+		{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}.Debug|Win32.Build.0 = Debug|Win32
+		{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}.Release|Win32.ActiveCfg = Release|Win32
+		{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}.Release|Win32.Build.0 = Release|Win32
+		{1A719351-FE75-4C3E-9C51-CA33537F06CD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1A719351-FE75-4C3E-9C51-CA33537F06CD}.Debug|Win32.Build.0 = Debug|Win32
+		{1A719351-FE75-4C3E-9C51-CA33537F06CD}.Release|Win32.ActiveCfg = Release|Win32
+		{1A719351-FE75-4C3E-9C51-CA33537F06CD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
