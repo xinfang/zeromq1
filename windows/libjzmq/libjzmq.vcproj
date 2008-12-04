@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../libzmq;../../libjzmq"
+				AdditionalIncludeDirectories="../../libzmq;../../libjzmq;&quot;C:\Program Files\Java\jdk1.6.0_10\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_10\include\win32&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -58,7 +58,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib libzmq.lib"
+				AdditionalLibraryDirectories="&quot;..\..\windows\Debug&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -111,7 +112,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../libzmq;../../libjzmq"
+				AdditionalIncludeDirectories="../../libzmq;../../libjzmq;&quot;C:\Program Files\Java\jdk1.6.0_10\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_10\include\win32&quot;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -128,7 +129,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib libzmq.lib"
+				AdditionalLibraryDirectories="&quot;..\..\windows\Debug&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
