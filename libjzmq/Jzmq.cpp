@@ -53,18 +53,17 @@ JNIEXPORT void JNICALL Java_Jzmq_construct (JNIEnv *env, jobject obj,
     assert (hostname_);
     char *hostname = (char*) env->GetStringUTFChars (hostname_, 0);
     assert (hostname);
-
+    
     //  Set error handler function (to ignore disconnected receivers).
     zmq::set_error_handler (error_handler);
 
     //  Create the context.
     context_t *context = new context_t;
     assert (context);
-    context->locator = new zmq::locator_t (hostname);
-    assert (context->locator);
     context->dispatcher = new zmq::dispatcher_t (2);
     assert (context->dispatcher);
-//    context->io_thread = zmq::io_thread_t::create (context->dispatcher);
+    context->locator = new zmq::locator_t (hostname);
+    assert (context->locator);
     context->io_thread = zmq::select_thread_t::create (context->dispatcher);
     assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
@@ -85,8 +84,8 @@ JNIEXPORT void JNICALL Java_Jzmq_finalize (JNIEnv *env, jobject obj)
     assert (context);
 
     //  Deallocate the 0MQ infrastructure.
-    delete context->dispatcher;
     delete context->locator;
+    delete context->dispatcher;   
     delete context;
 }
 
