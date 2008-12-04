@@ -98,10 +98,17 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 int zmq::tcp_socket_t::write (const void *data, int size)
 {
     int nbytes = send (s, (char*) data, size, 0);
+
+    //  If not a single byte can be written to the socket in non-blocking mode
+    //  we'll get an error (this may happen during the speculative write).
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
+        return 0;
 		
     //  Signalise peer failure.
-    if (nbytes == SOCKET_ERROR)
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAECONNRESET)
         return -1;
+
+    wsa_assert (nbytes != SOCKET_ERROR);
 
     return (size_t) nbytes;
 }
@@ -109,8 +116,21 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 int zmq::tcp_socket_t::read (void *data, int size)
 {
     int nbytes = recv (s, (char*) data, size, 0);
-    if (nbytes == SOCKET_ERROR)
+
+    //  If not a single byte can be read from the socket in non-blocking mode
+    //  we'll get an error (this may happen during the speculative read).
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
+        return 0;
+
+    //  Signalise peer failure.
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAECONNRESET)
         return -1;
+
+    wsa_assert (nbytes != SOCKET_ERROR);
+
+    //  Orderly shutdown by the other peer.
+    if (nbytes == 0)
+        return -1; 
 
     return (size_t) nbytes;
 }
@@ -203,11 +223,16 @@ int zmq::tcp_socket_t::read (void *data, int size)
     if (nbytes == -1 && errno == EAGAIN)
         return 0;
 
+    //  Signalise peer failure.
+    if (nbytes == -1 && errno == ECONNRESET)
+        return -1;
+
+    errno_assert (nbytes != -1);
+
     //  Orderly shutdown by the other peer.
     if (nbytes == 0)
         return -1;
 
-    errno_assert (nbytes != -1);
     return (size_t) nbytes;
 }
 
