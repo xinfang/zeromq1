@@ -30,6 +30,12 @@ struct pyZMQ
     zmq::api_thread_t *api_thread;
 };
 
+bool error_handler (const char*)
+{
+    //  We don't want to fail when peer disconnects
+    return true;
+}
+
 void pyZMQ_dealloc (pyZMQ *self)
 {
     if (self->dispatcher) {
@@ -67,6 +73,9 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s", (char**) kwlist,
           &hostname))
         return -1;
+
+    //  Set error handler function (to ignore disconnected receivers).
+    zmq::set_error_handler (error_handler);
 
     self->dispatcher = new zmq::dispatcher_t (2);
     self->locator = new zmq::locator_t (hostname);

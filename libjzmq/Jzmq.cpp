@@ -35,6 +35,13 @@ struct context_t
     zmq::api_thread_t *api_thread;
 };
 
+bool error_handler (const char*)
+{
+    //  We don't want to fail when peer disconnects
+    return true;
+}
+
+
 JNIEXPORT void JNICALL Java_Jzmq_construct (JNIEnv *env, jobject obj,
     jstring hostname_)
 {
@@ -46,6 +53,9 @@ JNIEXPORT void JNICALL Java_Jzmq_construct (JNIEnv *env, jobject obj,
     assert (hostname_);
     char *hostname = (char*) env->GetStringUTFChars (hostname_, 0);
     assert (hostname);
+
+    //  Set error handler function (to ignore disconnected receivers).
+    zmq::set_error_handler (error_handler);
 
     //  Create the context.
     context_t *context = new context_t;
