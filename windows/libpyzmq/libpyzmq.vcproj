@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libjzmq"
-	ProjectGUID="{1A719351-FE75-4C3E-9C51-CA33537F06CD}"
-	RootNamespace="libjzmq"
+	Name="libpyzmq"
+	ProjectGUID="{DD1B0B19-BAFA-48F3-A817-C75CFEC44363}"
+	RootNamespace="libpyzmq"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../libzmq;../../libjzmq"
+				AdditionalIncludeDirectories="../../libzmq; C:\Python26\include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -59,6 +59,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib"
+				AdditionalLibraryDirectories="C:\Python26\libs"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -111,7 +112,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../libzmq;../../libjzmq"
+				AdditionalIncludeDirectories="../../libzmq; C:\Python26\include"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -129,6 +130,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib"
+				AdditionalLibraryDirectories="C:\Python26\libs"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -166,17 +168,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\libjzmq\Jzmq.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath="..\..\libjzmq\zmq\Jzmq.h"
+				RelativePath="..\..\libpyzmq\pyzmq.cpp"
 				>
 			</File>
 		</Filter>
