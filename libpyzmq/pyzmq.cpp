@@ -80,18 +80,18 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
 PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     char const *exchange_name = NULL;
-    char const *interface = NULL;
+    char const *iface = NULL;
     int scope = zmq::scope_local;
 
     static const char *kwlist [] = {"exchange_name", "scope", "interface",
         NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s|is", (char**) kwlist, 
-          &exchange_name, &scope, &interface))
+          &exchange_name, &scope, &iface))
         return NULL;
     
     int eid = self->api_thread->create_exchange (exchange_name, 
-        (zmq::scope_t) scope, interface, self->io_thread, 1,
+        (zmq::scope_t) scope, iface, self->io_thread, 1,
         &self->io_thread);
 
     return PyInt_FromLong (eid);
@@ -100,17 +100,17 @@ PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
 PyObject *pyZMQ_create_queue (pyZMQ *self, PyObject *args, PyObject *kw)
 {
     char const *queue_name = NULL;
-    char const *interface = NULL;
+    char const *iface = NULL;
     int scope = zmq::scope_local;
 
     static const char* kwlist [] = {"queue_name", "scope", "interface", NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kw, "s|is", (char**) kwlist,
-          &queue_name, &scope, &interface)) 
+          &queue_name, &scope, &iface)) 
         return NULL;
 
     int qid = self->api_thread->create_queue (queue_name, 
-        (zmq::scope_t) scope, interface, self->io_thread, 1,
+        (zmq::scope_t) scope, iface, self->io_thread, 1,
         &self->io_thread);
 
     return PyInt_FromLong (qid);
