@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../libzmq"
+				AdditionalIncludeDirectories="../../libzmq; C:\Python26\include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -58,8 +58,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
-				AdditionalLibraryDirectories=""
+				AdditionalDependencies="ws2_32.lib python26.lib libzmq.lib"
+				AdditionalLibraryDirectories="C:\Python26\libs; ../../windows/Debug"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -90,7 +90,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -112,7 +112,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../libzmq"
+				AdditionalIncludeDirectories="../../libzmq; C:\Python26\include"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -129,8 +129,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
-				AdditionalLibraryDirectories=""
+				AdditionalDependencies="ws2_32.lib python26.lib libzmq.lib"
+				OutputFile="$(OutDir)\$(ProjectName).pyd"
+				AdditionalLibraryDirectories="C:\Python26\libs; ../../windows/Debug"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
