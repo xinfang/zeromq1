@@ -107,25 +107,24 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
     struct ifreq ifr; 
 
-    // Copy interface name for ioctl get
-    zmq_strncpy(ifr.ifr_name, interface_, sizeof(ifr.ifr_name));
+    //  Copy interface name for ioctl get.
+    zmq_strncpy (ifr.ifr_name, interface_, sizeof (ifr.ifr_name));
 
-    // Fetch interface address
-    int rc = ioctl (sd, SIOCGIFADDR, (caddr_t)&ifr, sizeof(struct ifreq));
+    //  Fetch interface address.
+    int rc = ioctl (sd, SIOCGIFADDR, (caddr_t) &ifr, sizeof (struct ifreq));
 
-    if(rc != -1)
-    {
+    if(rc != -1) {
         struct sockaddr *sa = (struct sockaddr *)&(ifr.ifr_addr);
         *addr_ = ((sockaddr_in*)sa)->sin_addr;
     }
-    else
-    {
-        // assume interface_ is in IP format xxx.xxx.xxx.xxx
+    else {
+
+        //  Assume interface_ is in IP format xxx.xxx.xxx.xxx.
         rc = inet_pton (AF_INET, interface_, addr_);
         assert (rc != 0);
     }
 
-    // Clean up
+    //  Clean up.
     close (sd);
 
     return;
