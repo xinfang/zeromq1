@@ -61,20 +61,12 @@ zmq::handle_t zmq::poll_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::poll_t::rm_fd (handle_t handle_)
 {
-    //  Remove the descriptor from pollset and fd table.
     int index = fd_table [handle_.fd].index;
     assert (index != -1);
-    pollset.erase (pollset.begin () + index);
 
     //  Mark the fd as unused.
+    pollset [index].fd = -1;
     fd_table [handle_.fd].index = -1;
-
-    //  Adjust fd table to match new indices to the pollset. To make it more
-    //  efficient we are traversing the pollset which is shorter than
-    //  fd list itself.
-    for (pollset_t::size_type i = index; i < pollset.size (); i ++)
-        fd_table [pollset [i].fd].index = i;
-
     retired = true;
 }
 
@@ -114,34 +106,38 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         int fd = pollset [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
-        if (fd_table [pollset [i].fd].index == -1)
+        if (pollset [i].fd == -1)
            continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
             if (poller_->process_event (engine, event_err))
                 return true;
-        if (fd_table [pollset [i].fd].index == -1)
+        if (pollset [i].fd == -1)
            continue;
         if (pollset [i].revents & POLLOUT)
             if (poller_->process_event (engine, event_out))
                 return true;
-        if (fd_table [pollset [i].fd].index == -1)
+        if (pollset [i].fd == -1)
            continue;
         if (pollset [i].revents & POLLIN)
             if (poller_->process_event (engine, event_in))
                 return true;
     }
 
-    //  Destroy retired event sources.
+    //  Clean up the pollset and update the fd_table accordingly.
     if (retired) {
-        for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
-            if (fd_table [pollset [i].fd].index == -1) {
+        pollset_t::size_type i = 0;
+        while (i < pollset.size ()) {
+            if (pollset [i].fd == -1)
                 pollset.erase (pollset.begin () + i);
-                i --;
+            else {
+                fd_table [pollset [i].fd].index = i;
+                i ++;
             }
         }
+
         retired = false;
     }
-   
+
     return false;
 }
 
