@@ -88,6 +88,7 @@ void zmq::devpoll_t::rm_fd (handle_t handle_)
 void zmq::devpoll_t::set_pollin (handle_t handle_)
 {
     int fd = handle_.fd;
+    devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events |= POLLIN;
     devpoll_ctl (fd, fd_table [fd].events);
 }
@@ -95,6 +96,7 @@ void zmq::devpoll_t::set_pollin (handle_t handle_)
 void zmq::devpoll_t::reset_pollin (handle_t handle_)
 {
     int fd = handle_.fd;
+    devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events &= ~((short) POLLIN);
     devpoll_ctl (fd, fd_table [fd].events);
 }
@@ -102,6 +104,7 @@ void zmq::devpoll_t::reset_pollin (handle_t handle_)
 void zmq::devpoll_t::set_pollout (handle_t handle_)
 {
     int fd = handle_.fd;
+    devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events |= POLLOUT;
     devpoll_ctl (fd, fd_table [fd].events);
 }
@@ -109,6 +112,7 @@ void zmq::devpoll_t::set_pollout (handle_t handle_)
 void zmq::devpoll_t::reset_pollout (handle_t handle_)
 {
     int fd = handle_.fd;
+    devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events &= ~((short) POLLOUT);
     devpoll_ctl (fd, fd_table [fd].events);
 }
