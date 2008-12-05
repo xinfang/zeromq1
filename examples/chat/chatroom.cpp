@@ -16,7 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <zmq/platform.hpp>
+#include <zmq/formatting.hpp>
 #include <time.h>
 #include <string.h>
 #include <iostream>
@@ -59,11 +60,11 @@ int main (int argc, const char *argv [])
 
     //  Create a queue to receive messages sent to the chatroom
     char tmp [16];
-    snprintf (tmp, 16, "Q_%s", chatroom_name);
+    zmq_snprintf (tmp, 16, "Q_%s", chatroom_name);
     api->create_queue (tmp, scope_global, in_interface, pt, 1, &pt);
 
     //  Create an exchange to send messages from the chatroom
-    snprintf (tmp, 16, "E_%s", chatroom_name);
+    zmq_snprintf (tmp, 16, "E_%s", chatroom_name);
     int eid = api->create_exchange (tmp, scope_global, out_interface,
         pt, 1, &pt);
 
@@ -78,7 +79,7 @@ int main (int argc, const char *argv [])
         char timebuf [256];
         time_t current_time;
         time (&current_time);
-        snprintf (timebuf, 256, ctime (&current_time));
+        zmq_snprintf (timebuf, 256, ctime (&current_time));
         timebuf [strlen (timebuf) - 1] = ' ';
 
         //  Create and fill in the message

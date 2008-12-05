@@ -16,7 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <zmq/platform.hpp>
+#include <zmq\formatting.hpp>
 #include <string.h>
 #include <string>
 #include <iostream>
@@ -54,7 +55,7 @@ int main (int argc, const char *argv [])
     //  Bind the exchange to globally accessible queue exposed by chatroom.
     //  If the queue is not available, assert.
     char tmp [16];
-    snprintf (tmp, 16, "Q_%s", chatroom_name);
+    zmq_snprintf (tmp, 16, "Q_%s", chatroom_name);
     api->bind ("E", tmp, pt, pt);
     
     while (true) {

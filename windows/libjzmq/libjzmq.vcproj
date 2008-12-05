@@ -112,7 +112,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../libzmq;../../libjzmq;&quot;C:\Program Files\Java\jdk1.6.0_10\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_10\include\win32&quot;"
+				AdditionalIncludeDirectories="../../libzmq;../../libjzmq"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"

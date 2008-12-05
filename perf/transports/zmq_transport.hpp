@@ -71,7 +71,7 @@ namespace perf
             }
             //  Set error handler function (to ignore disconnected receivers).
             zmq::set_error_handler (error_handler);
-
+          
         }
 
         inline ~zmq_t ()

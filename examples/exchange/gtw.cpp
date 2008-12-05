@@ -18,7 +18,9 @@
 */
 
 #include <stdlib.h>
+
 #include <zmq.hpp>
+#include <zmq/thread.hpp>
 
 #include "../../perf/helpers/ticker.hpp"
 using namespace perf;
@@ -26,6 +28,10 @@ using namespace perf;
 #include "messages.hpp"
 #include "frequency_meter.hpp"
 using namespace exchange;
+
+#ifdef ZMQ_HAVE_WINDOWS
+#define _CRT_RAND_S
+#endif
 
 //  Sender half of the gateway application
 //  i.e. Automated order feeder sending orders to the matching engine
@@ -61,10 +67,15 @@ public:
 
             //  Create random order
             order_id ++;
+#ifdef ZMQ_HAVE_WINDOWS
+            order_type_t type = (rand () % 2) ? ask : bid;
+            price_t price = rand () % 100 + 450;
+            volume_t volume = rand () % 100 + 1;
+#else
             order_type_t type = (random () % 2) ? ask : bid;
             price_t price = random () % 100 + 450;
             volume_t volume = random () % 100 + 1;
-
+#endif
             //  Send a timestamp to the stat component
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
@@ -243,14 +254,13 @@ int main (int argc, char *argv [])
     zmq::locator_t locator (argv [1]);
 
     //  Run the sender thread
-    pthread_t sender_thread;
+    zmq::thread_t sender_thread;
     sender_routine_args_t args = {&dispatcher, &locator, atoi (argv [2])};
-    int rc = pthread_create (&sender_thread, NULL, sender_routine, &args);
-    assert (rc == 0);
-
+    sender_thread.start ((zmq::thread_fn *) sender_routine, &args);
+    
     //  Run the receiving loop
     receiver_t receiver (&dispatcher, &locator);
     receiver.run ();
-
+    
     return 0;
 }
