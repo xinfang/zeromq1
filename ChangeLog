@@ -1,3 +1,50 @@
+
+Version 0.4
+
+ZMQ-21: Clean up the command passing code
+ZMQ-36: autogen/configure fails on Solaris
+ZMQ-39: Check whether using CAS for btsr and izte on x86 platform improves latency
+ZMQ-40: Check autogen on FreeBSD
+ZMQ-41: Check autogen on OS X
+ZMQ-43: Use +m instead of memory in atomic operations
+ZMQ-46: Get rid of administrative pseudo-thread
+ZMQ-63: -mcpu=v9 CPPFLAG should be used only at sparc achitecture
+ZMQ-64: gcc 3.4.3 on opensolaris complains about -mcpu flag
+ZMQ-65: No error report when host name resolving fails
+ZMQ-66: Several files use atoi without including stdlib.h
+ZMQ-69: Make stdint.hpp hand-written rather than generated
+ZMQ-71: Virtualise thread management
+ZMQ-72: Remove platform.hpp
+ZMQ-74: Implement win32 version of tcp_socket and tcp_listener
+ZMQ-75: Virtualise mutexes
+ZMQ-76: Implement win32 version of ysemaphore_t
+ZMQ-80: Virtualise polling mechanisms
+ZMQ-81: Implement 'select' polling mechanism
+ZMQ-82: Rename i_context to i_thread
+ZMQ-83: "Resource temporarily unavailable" when running on 266MHz box
+ZMQ-84: zmq_server stops to respond
+ZMQ-89: Make i_pollable derived from i_engine
+ZMQ-94: Report error when malloc fails
+ZMQ-95: Add /dev/poll method of polling
+ZMQ-96: Add support for kqueue method of polling
+ZMQ-97: OpenBSD port
+ZMQ-98: QNX port
+ZMQ-99: use pyexec_LTLIBRARIES primary for libpyzmq
+ZMQ-103: Use non blocking sockets
+ZMQ-106: memory leak when sending message from Java
+ZMQ-111: Get rid of speculative operations
+ZMQ-113: Windows compiler (_MSC_VER 1310) doesn't support strncpy_s function
+ZMQ-117: select_thread doesn't implement rm_fd function
+ZMQ-119: select thread fails on shudown
+ZMQ-121: Fix all I/O threads to handle rm_fd correctly
+ZMQ-124: include gaurd is wrong
+ZMQ-126: Refactor I/O threads implementation to avoid duplication of common functionality.
+ZMQ-131: select_thread fails on Windows
+ZMQ-132: Pointer to poller_t is used before it is fully initialised
+ZMQ-134: Thread management in constructors/destructors
+ZMQ-135: Move retired list to the polling strategy-specific object
+ZMQ-137: Assertion fails at bp_engine, line 132, error_handler is not set
+
 Version 0.3.2
 
 ZMQ-54: Test programs are compiled with --rpath
