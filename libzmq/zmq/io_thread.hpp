@@ -44,7 +44,7 @@ namespace zmq
     typedef kqueue_thread_t io_thread_t;
 
 #elif defined (ZMQ_HAVE_SOLARIS)
-    typedef devpoll_thread_t io_thread_t;
+    typedef poll_thread_t io_thread_t;
 
 #elif defined (ZMQ_HAVE_OSX)
     typedef kqueue_thread_t io_thread_t;

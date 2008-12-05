@@ -18,10 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # GL_* only for zmq transport test
-GL_IP="localhost"
+GL_IP="62.176.172.207"
 GL_PORT=5682
 
-REC_IP="192.168.101.1"
+REC_IP="192.168.1.1"
 REC_PORT=5672
 
 MSG_SIZE_START=1
@@ -32,8 +32,8 @@ RUNS=3
 
 TEST_TIME=5000
 
-LOCAL_THR_BIN="taskset -c 1,3,5,7 chrt --fifo 1 /home/malosek/fast-svn/perf/tests/zmq/local_thr"
-REMOTE_THR_BIN="taskset -c 0,2,4,6 chrt --fifo 1 ./remote_thr"
+LOCAL_THR_BIN="taskset -c 1,3,5,7 chrt --fifo 1 /home/sustrik/zeromq/perf/tests/zmq/local_thr"
+REMOTE_THR_BIN="taskset -c 1,3,5,7 chrt --fifo 1 /home/sustrik/zeromq/perf/tests/zmq/remote_thr"
 
 ################### Do not edit below this line ###############################
 
