@@ -78,8 +78,10 @@ bool zmq::mux_t::read (message_t *msg_)
             if (notification_period) {
                 queue_size --;
                 elapsed ++;
-                if (elapsed >= notification_period)
+                if (elapsed >= notification_period) {
+                    elapsed = 0;
                     alert_queued = true;
+                }
             }
             return true;
         }
