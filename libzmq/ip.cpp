@@ -90,6 +90,47 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     }
 }
 
+#elif defined ZMQ_HAVE_AIX
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+
+#include <zmq/formatting.hpp>
+
+void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
+{
+    //  Create a socket.
+    int sd = socket (AF_INET, SOCK_DGRAM, 0);
+    assert (sd != -1);
+
+    struct ifreq ifr; 
+
+    // Copy interface name for ioctl get
+    zmq_strncpy(ifr.ifr_name, interface_, sizeof(ifr.ifr_name));
+
+    // Fetch interface address
+    int rc = ioctl (sd, SIOCGIFADDR, (caddr_t)&ifr, sizeof(struct ifreq));
+
+    if(rc != -1)
+    {
+        struct sockaddr *sa = (struct sockaddr *)&(ifr.ifr_addr);
+        *addr_ = ((sockaddr_in*)sa)->sin_addr;
+    }
+    else
+    {
+        // assume interface_ is in IP format xxx.xxx.xxx.xxx
+        rc = inet_pton (AF_INET, interface_, addr_);
+        assert (rc != 0);
+    }
+
+    // Clean up
+    close (sd);
+
+    return;
+}
+
 #elif defined ZMQ_HAVE_WINDOWS
 
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)

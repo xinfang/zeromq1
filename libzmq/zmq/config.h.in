@@ -130,6 +130,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Have AIX OS */
+#undef ZMQ_HAVE_AIX
+
 /* Have FreeBSD OS */
 #undef ZMQ_HAVE_FREEBSD
 

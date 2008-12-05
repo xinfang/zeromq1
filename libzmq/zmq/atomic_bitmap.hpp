@@ -242,7 +242,7 @@ namespace zmq
                 : "r" (ptrin), "r" (thenval_), "r" (elseval_)
                 : "cc");
             return prev; 
-#elif ZMQ_ATOMIC_BITMAP_MUTEX
+#elif defined ZMQ_ATOMIC_BITMAP_MUTEX
             sync.lock ();
             integer_t oldval = value;
             value = oldval ? elseval_ : thenval_;

@@ -16,3 +16,6 @@
 /* Have QNX Neutrino OS */
 #undef ZMQ_HAVE_QNXNTO
 
+/* Have AIX OS */
+#undef ZMQ_HAVE_AIX
+

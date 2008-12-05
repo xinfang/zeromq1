@@ -52,6 +52,9 @@ namespace zmq
 #elif defined (ZMQ_HAVE_QNXNTO)
     typedef poll_thread_t io_thread_t;
 
+#elif defined (ZMQ_HAVE_AIX)
+    typedef select_thread_t io_thread_t;
+
 #else
 #error "Unsupported platform"
 #endif
