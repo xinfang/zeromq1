@@ -19,7 +19,7 @@
 
 #include <zmq/platform.hpp>
 
-#ifdef ZMQ_HAVE_SOLARIS
+#if defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_HPUX
 
 #include <sys/devpoll.h>
 #include <sys/time.h>

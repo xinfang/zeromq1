@@ -136,6 +136,9 @@
 /* Have FreeBSD OS */
 #undef ZMQ_HAVE_FREEBSD
 
+/* Have HPUX OS */
+#undef ZMQ_HAVE_HPUX
+
 /* Have Linux OS */
 #undef ZMQ_HAVE_LINUX
 

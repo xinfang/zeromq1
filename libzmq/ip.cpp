@@ -90,7 +90,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     }
 }
 
-#elif defined ZMQ_HAVE_AIX
+#elif defined ZMQ_HAVE_AIX || ZMQ_HAVE_HPUX
 
 #include <sys/types.h>
 #include <unistd.h>

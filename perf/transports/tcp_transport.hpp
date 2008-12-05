@@ -20,6 +20,7 @@
 #ifndef __PERF_TCP_HPP_INCLUDED__
 #define __PERF_TCP_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
 #include "i_transport.hpp"
 
 #include <stdlib.h>
