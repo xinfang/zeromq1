@@ -147,7 +147,7 @@ namespace zmq
                 //  During pipe's lifetime r should never be NULL, however,
                 //  during pipe shutdown when retrieving messages from it
                 //  to deallocate them, this can happen.
-                if (&queue.front () == r | !r)
+                if (&queue.front () == r || !r)
                     return false;
             }
 
