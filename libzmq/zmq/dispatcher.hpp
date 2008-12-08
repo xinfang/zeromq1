@@ -122,7 +122,7 @@ namespace zmq
     extern error_handler_t * volatile eh;
 
     //  Returns pointer to the current error handling function.
-    ZMQ_EXPORT error_handler_t * volatile get_error_handler();
+    ZMQ_EXPORT error_handler_t * get_error_handler();
  
     //  Sets error function. Error function will be called when a connection
     //  breaks. Name of the object (exchange or queue) on the local side

@@ -99,7 +99,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
 }
 zmq::error_handler_t * volatile zmq::eh = NULL;
 
-zmq::error_handler_t  * volatile zmq::get_error_handler ()
+zmq::error_handler_t *zmq::get_error_handler ()
 {
     return eh;
 }
