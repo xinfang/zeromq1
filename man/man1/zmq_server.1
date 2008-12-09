@@ -2,7 +2,7 @@
 .SH NAME
 zmq_server \- starts directory service used by 0MQ messaging system 
 .SH SYNOPSIS
-.B zmq_server [--port
+.B zmq_server [
 .I port-number
 .B ]
 .SH DESCRIPTION
@@ -13,8 +13,7 @@ will connect to the running instance of
 to register or query objects (exchanges and queues) intended to by globally
 visible.
 .SH OPTIONS
-.IP --port
-Specifies the TCP port zmq_server will listen on. If no port is specified,
-port 5682 is used.
+Optional command line argument specifies the TCP port zmq_server will listen on.
+If no port is specified, port 5682 is used.
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>
