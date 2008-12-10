@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../libzmq; C:\Python26\include"
+				AdditionalIncludeDirectories="../../libzmq"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,7 +60,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib python26.lib"
 				OutputFile="$(ProjectName).pyd"
-				AdditionalLibraryDirectories="C:\Python26\libs; ../../windows/Debug"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
