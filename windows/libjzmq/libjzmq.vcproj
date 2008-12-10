@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="javac ..\..\libjzmq\Jzmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Jzmq"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -58,7 +59,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib libzmq.lib"
+				AdditionalDependencies="ws2_32.lib"
 				AdditionalLibraryDirectories="&quot;..\..\windows\Debug&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -95,6 +96,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="javac ..\..\libjzmq\Jzmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Jzmq"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -129,7 +131,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib libzmq.lib"
+				AdditionalDependencies="ws2_32.lib"
 				AdditionalLibraryDirectories="&quot;..\..\windows\Debug&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"

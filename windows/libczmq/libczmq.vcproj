@@ -60,8 +60,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libzmq.lib ws2_32.lib"
-				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\Kustarova\trunk\windows\Debug&quot;"
+				AdditionalDependencies="Ws2_32.lib"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -131,7 +131,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="Ws2_32.lib"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
