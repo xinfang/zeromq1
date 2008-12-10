@@ -58,7 +58,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib python26.lib libzmq.lib"
+				AdditionalDependencies="ws2_32.lib python26.lib"
 				OutputFile="$(ProjectName).pyd"
 				AdditionalLibraryDirectories="C:\Python26\libs; ../../windows/Debug"
 				GenerateDebugInformation="true"
@@ -130,7 +130,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib python26.lib libzmq.lib"
+				AdditionalDependencies="ws2_32.lib python26.lib"
 				OutputFile="$(ProjectName).pyd"
 				AdditionalLibraryDirectories="../../windows/Debug"
 				GenerateDebugInformation="true"
