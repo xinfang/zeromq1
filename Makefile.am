@@ -22,13 +22,13 @@ SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) exampl
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man
 
 EXTRA_DIST = \
-    ./perf/tests/scenarios/thr.sh \
-    ./perf/tests/scenarios/lat.sh \
-    ./perf/tests/scenarios/fo.sh \
-    ./perf/tests/scenarios/fi.sh \
-    ./examples/exchange/graph.pl \
-    ./perf/tests/zmq/py_local_lat.py \
-    ./perf/tests/zmq/py_local_thr.py \
-    ./perf/tests/zmq/py_remote_lat.py \
-    ./perf/tests/zmq/py_remote_thr.py \
-    ./man/man3/*.3
+    $(top_srcdir)/perf/tests/scenarios/thr.sh \
+    $(top_srcdir)/perf/tests/scenarios/lat.sh \
+    $(top_srcdir)/perf/tests/scenarios/fo.sh \
+    $(top_srcdir)/perf/tests/scenarios/fi.sh \
+    $(top_srcdir)/examples/exchange/graph.pl \
+    $(top_srcdir)/perf/tests/zmq/py_local_lat.py \
+    $(top_srcdir)/perf/tests/zmq/py_local_thr.py \
+    $(top_srcdir)/perf/tests/zmq/py_remote_lat.py \
+    $(top_srcdir)/perf/tests/zmq/py_remote_thr.py \
+    $(top_srcdir)/man/man3/*.3
