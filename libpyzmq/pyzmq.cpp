@@ -301,7 +301,7 @@ static const char* pyZMQ_doc =
     "\n"
     "For more information see http://www.zeromq.org.\n"
     "\n"
-    "0MQ is distributed under GNU General Public License v3\n";
+    "0MQ is distributed under GNU Lesser General Public License v3\n";
 
 PyMODINIT_FUNC initlibpyzmq (void)
 {
