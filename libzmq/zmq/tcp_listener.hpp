@@ -36,6 +36,9 @@ namespace zmq
         //  by get_port method, or <interface-name>:<port-number>.
         ZMQ_EXPORT tcp_listener_t (const char *interface_);
 
+        //  Closes the socket.
+        ZMQ_EXPORT ~tcp_listener_t ();
+
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
         ZMQ_EXPORT inline int get_fd ()

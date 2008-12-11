@@ -84,6 +84,12 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     wsa_assert (rc != SOCKET_ERROR);
 }
 
+zmq::tcp_listener_t::~tcp_listener_t ()
+{
+    int rc = closesocket (s);
+    wsa_assert (rc != SOCKET_ERROR);
+}
+
 int zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
@@ -135,6 +141,12 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
               
     //  Listen for incomming connections.
     rc = listen (s, 1);
+    errno_assert (rc == 0);
+}
+
+zmq::tcp_listener_t::~tcp_listener_t ()
+{
+    int rc = close (s);
     errno_assert (rc == 0);
 }
 
