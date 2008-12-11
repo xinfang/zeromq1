@@ -232,8 +232,8 @@ namespace perf
         for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++)
             workers [thread_nbr].stop ();
 
-        delete workers_args;
-        delete workers;
+        delete [] workers_args;
+        delete [] workers;
     }
 }
 #endif
