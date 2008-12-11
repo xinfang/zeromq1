@@ -42,7 +42,7 @@ void zmq::mux_t::receive_from (pipe_t *pipe_, bool shutting_down_)
 
 bool zmq::mux_t::read (message_t *msg_)
 {
-    //  Underlying layers work with raw_message_t, layers above use messge_t.
+    //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Mux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) msg_;
 

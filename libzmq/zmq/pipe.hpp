@@ -42,14 +42,17 @@ namespace zmq
         ZMQ_EXPORT pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
             struct i_thread *destination_thread_,
-            struct i_engine *destination_engine_);
+            struct i_engine *destination_engine_,
+            int hwm_ = 0, int lwm_ = 0);
         ZMQ_EXPORT ~pipe_t ();
 
+        //  Check whether message can be written to the pipe (i.e. whether
+        //  pipe limits are exceeded. If true, it's OK to write the message
+        //  to the pipe.
+        ZMQ_EXPORT bool check_write ();
+
         //  Write a message to the pipe.
-        inline void write (raw_message_t *msg_)
-        {
-            pipe.write (*msg_);
-        }
+        ZMQ_EXPORT void write (raw_message_t *msg_);
 
         //  Flush all the written messages to be accessible for reading.
         ZMQ_EXPORT void flush ();
@@ -59,6 +62,9 @@ namespace zmq
 
         //  Make the dead pipe alive once more.
         ZMQ_EXPORT void revive ();
+
+        //  Process the 'head' command from reader thread.
+        ZMQ_EXPORT void set_head (uint64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
         ZMQ_EXPORT void terminate_writer ();
@@ -88,7 +94,26 @@ namespace zmq
         i_engine *destination_engine;
 
         //  If true we can read messages from the underlying ypipe.
-        bool alive; 
+        bool alive;
+
+        //  If hwm is non-zero, the size of pipe is limited. In that case hwm
+        //  is the high water mark for the pipe and lwm is the low water mark.
+        int hwm;
+        int lwm;
+
+        //  Following message sequence numbers use RFC1982-like wraparound.
+
+        //  Reader thread uses this variable to track the sequence number of
+        //  the current message to read.
+        uint64_t head;
+
+        //  Writer thread uses 'tail' variable to track the sequence number of
+        //  the current message to write.
+        uint64_t tail;
+
+        //  Writer thread keeps last head position reported by reader thread
+        //  in this varaible.
+        uint64_t last_head;
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.

@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <zmq/export.hpp>
+#include <zmq/stdint.hpp>
 #include <zmq/i_engine.hpp>
 #include <zmq/pipe.hpp>
 #include <zmq/formatting.hpp>
@@ -38,6 +39,7 @@ namespace zmq
         enum type_t
         {
             revive,
+            head,
             send_to,
             receive_from,
             terminate_pipe,
@@ -48,6 +50,10 @@ namespace zmq
             struct {
                 class pipe_t *pipe;
             } revive;
+            struct {
+                class pipe_t *pipe;
+                uint64_t position;
+            } head;
             struct {
                 char exchange [16];
                 class pipe_t *pipe;
@@ -144,6 +150,16 @@ namespace zmq
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::revive;
             args.engine_command.command.args.revive.pipe = pipe_;
+        }
+
+        inline void init_engine_head (i_engine *engine_, pipe_t *pipe_,
+            uint64_t position_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::head;
+            args.engine_command.command.args.head.pipe = pipe_;
+            args.engine_command.command.args.head.position = position_;
         }
 
         inline void init_engine_terminate_pipe (i_engine *engine_,

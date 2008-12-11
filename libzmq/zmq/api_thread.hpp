@@ -62,7 +62,8 @@ namespace zmq
         ZMQ_EXPORT int create_queue (
             const char *queue_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
-            int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL);
+            int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL,
+            int hmw_ = 0, int lwm_ = 0);
 
         //  Binds an exchange to a queue.
         ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,
@@ -70,13 +71,19 @@ namespace zmq
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
-        //  messages, flush them immediately.
-        ZMQ_EXPORT void send (int exchange_id_, message_t &msg_);
+        //  messages, flush them immediately. If 'block' parameter is true
+        //  and there are no queues bound to the exchange, execution will be
+        //  blocked until a binding is created. Returns true is message was
+        //  successfully enqueued, false if it was not send because fo pipe
+        //  limits.
+        ZMQ_EXPORT bool send (int exchange_id_, message_t &msg_,
+            bool block_ = true);
 
         //  Presend the message. The message will be stored internally and
         //  sent only after 'flush' is called. In other respects it behaves
         //  the same as 'send' function.
-        ZMQ_EXPORT void presend (int exchange_id_, message_t &msg_);
+        ZMQ_EXPORT bool presend (int exchange_id_, message_t &msg_,
+            bool block_ = true);
 
         //  Flush all the pre-sent messages.
         ZMQ_EXPORT void flush ();

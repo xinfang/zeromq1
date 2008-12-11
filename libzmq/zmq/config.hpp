@@ -51,7 +51,7 @@ namespace zmq
         command_pipe_granularity = 16,
 
         //  Maximal size of "Very Small Message". VSMs are passed by value
-        //  to avoid excessive allocation/deallocation.
+        //  to avoid excessive memory allocation/deallocation.
         max_vsm_size = 30,
 
         //  Determines how often does api_thread poll for new messages when it
@@ -66,9 +66,13 @@ namespace zmq
         //  This setting is used only on x86 platform with GCC compiler.
         api_thread_max_command_delay = 3000000,
 
-        //  Maximum number of events a wait() method of I/O thread
+        //  Maximum number of events the wait() method of I/O thread
         //  (poll_thread_t, select_thread_t ...) can return.
-        max_io_events = 256
+        max_io_events = 256,
+
+        //  High and low watermark for internal exchange pipes.
+        exchange_hwm = 20000,
+        exchange_lwm = 10000
     };
 
 }

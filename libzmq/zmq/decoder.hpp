@@ -49,8 +49,9 @@ namespace zmq
         {
         }
 
-        //  Push the binary data to the decoder.
-        void write (unsigned char *data_, size_t size_)
+        //  Push the binary data to the decoder. Returns number of bytes
+        // actually parsed.
+        inline size_t write (unsigned char *data_, size_t size_)
         {
             size_t pos = 0;
             while (true) {
@@ -62,16 +63,17 @@ namespace zmq
                 pos += to_copy;
                 to_read -= to_copy;
                 while (!to_read)
-                    (static_cast <T*> (this)->*next) ();
+                    if (!(static_cast <T*> (this)->*next) ())
+                        return pos;
                 if (pos == size_)
-                    break;
+                    return pos;
             }
         }
 
     protected:
 
         //  Prototype of state machine action.
-        typedef void (T::*step_t) ();
+        typedef bool (T::*step_t) ();
 
         //  This function should be called from derived class to read data
         //  from the buffer and schedule next state machine action.

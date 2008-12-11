@@ -63,10 +63,11 @@ namespace zmq
 
     protected:
 
+        //  Prototype of state machine action.
         typedef bool (T::*step_t) ();
 
         //  This function should be called from derived class to write the data
-        //  to the buffer and schedule next state machine action
+        //  to the buffer and schedule next state machine action.
         inline void next_step (void *write_pos_, size_t to_write_,
             step_t next_)
         {

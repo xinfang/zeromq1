@@ -17,20 +17,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <limits>
+
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
-      i_thread *destination_thread_, i_engine *destination_engine_) :
+      i_thread *destination_thread_, i_engine *destination_engine_,
+      int hwm_, int lwm_) :
     pipe (false),
     source_thread (source_thread_),
     source_engine (source_engine_),
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
     alive (true),
+    hwm (hwm_),
+    lwm (lwm_),
+    head (0),
+    tail (0),
+    last_head (0),
     writer_terminating (false),
     reader_terminating (false)
 {
+    // If high water mark was lower than low water mark pipe would hang up.
+    assert (lwm <= hwm);
 }
 
 zmq::pipe_t::~pipe_t ()
@@ -42,10 +52,41 @@ zmq::pipe_t::~pipe_t ()
         raw_message_destroy (&message);
 }
 
+bool zmq::pipe_t::check_write ()
+{
+    if (!hwm)
+        return true;
+
+    //  If pipe size have reached high watermark, reject the write.
+    //  The else branch will come into effect after 500,000 years of
+    //  passing 1,000,000 messages a second but still, it's implemented just
+    //  in case ...
+    int size = last_head <= tail ? tail - last_head :
+        std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
+    assert (size <= hwm);
+     
+    return size < hwm;
+}
+
+void zmq::pipe_t::write (raw_message_t *msg_)
+{
+    //  Physically write the message to the pipe.
+    pipe.write (*msg_);
+
+    //  Move the tail.
+    tail ++;
+}
+
 void zmq::pipe_t::revive ()
 {
     assert (!alive);
     alive = true;
+}
+
+void zmq::pipe_t::set_head (uint64_t position_)
+{
+    //  This may cause the next write to succeed.
+    last_head = position_;
 }
 
 void zmq::pipe_t::flush ()
@@ -80,6 +121,20 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
     if (msg_->content == (void*) raw_message_t::delimiter_tag) {
         terminate_reader ();
         return false;
+    }
+
+    //  Once in N messages send current head position to the writer thread.
+    if (hwm) {
+        head ++;
+
+        //  If high water mark is same as low water mark we have to report each
+        //  message retrieval from the pipe. Otherwise the period N is computed
+        //  as a difference between high and low water marks.
+        if (head % (hwm - lwm + 1) == 0) {
+            command_t cmd;
+            cmd.init_engine_head (source_engine, this, head);
+            destination_thread->send_command (source_thread, cmd);
+        }
     }
 
     return true;

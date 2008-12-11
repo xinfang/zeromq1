@@ -47,9 +47,11 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
       const char *hostname_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    readbuf_size (readbuf_size_),
+    read_size (0),
+    read_pos (0),
     encoder (&mux),
     decoder (&demux),
     socket (hostname_),
@@ -73,9 +75,11 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
       tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     writebuf_size (writebuf_size_),
-    readbuf_size (readbuf_size_),
     write_size (0),
     write_pos (0),
+    readbuf_size (readbuf_size_),
+    read_size (0),
+    read_pos (0),
     encoder (&mux),
     decoder (&demux),
     socket (listener_),
@@ -118,36 +122,70 @@ void zmq::bp_engine_t::register_event (i_poller *poller_)
 
 void zmq::bp_engine_t::in_event ()
 {
-    //  Read as much data as possible to the read buffer.
-    int nbytes = socket.read (readbuf, readbuf_size);
+    //  This variable determines whether processing incoming messages is
+    //  stuck because of exceeded pipe limits.
+    bool stuck = read_pos < read_size;
 
-    //  The other party closed the connection.
-    if (nbytes == -1) {
+    //  If there's no data to process in the buffer, read new data.
+    if (read_pos == read_size) {
 
-        //  Report connection failure to the client.
-        //  If there is no error handler, application crashes immediately.
-        //  If the error handler returns false, it crashes as well.
-        //  If error handler returns true, the error is ignored.       
-        error_handler_t *eh = get_error_handler ();
-        assert (eh);
-        if (!eh (local_object.c_str ()))
-            assert (false);
+        //  Read as much data as possible to the read buffer.
+        read_size = socket.read (readbuf, readbuf_size);
+        read_pos = 0;
 
-        //  Remove the file descriptor from the pollset.
-        poller->rm_fd (handle);    
+        //  The other party closed the connection.
+        if (read_size == -1) {
 
-        //  Ask all inbound & outound pipes to shut down.
-        demux.initialise_shutdown ();
-        mux.initialise_shutdown ();
-        shutting_down = true;
-        return;
+            //  Report connection failure to the client.
+            //  If there is no error handler, application crashes immediately.
+            //  If the error handler returns false, it crashes as well.
+            //  If error handler returns true, the error is ignored.       
+            error_handler_t *eh = get_error_handler ();
+            assert (eh);
+            if (!eh (local_object.c_str ()))
+                assert (false);
+
+            //  Remove the file descriptor from the pollset.
+            poller->rm_fd (handle);    
+
+            //  Ask all inbound & outound pipes to shut down.
+            demux.initialise_shutdown ();
+            mux.initialise_shutdown ();
+            shutting_down = true;
+            return;
+        }
     }
 
-    //  Push the data to the decoder
-    decoder.write (readbuf, nbytes);
+    //  If there's at least one unprocessed byte in the buffer, process it.
+    if (read_pos < read_size) {
 
-    //  Flush any messages decoder may have produced.
-    demux.flush ();
+        //  Push the data to the decoder and adjust read position in the buffer.
+        int  nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
+        read_pos += nbytes;
+
+         //  If processing was stuck and become unstuck start reading
+         //  from the socket. If it was unstuck and became stuck, stop polling
+         //  for new data.
+         if (stuck) {
+             if (read_pos == read_size)
+
+                 //  TODO: Speculative read should be used at this place to
+                 //  avoid excessive poll. However, it looks like this can
+                 //  result in infinite cycle in some cases, virtually
+                 //  preventing other engines' access to CPU. Fix it.
+                 poller->set_pollin (handle);
+         }
+         else {
+             if (read_pos < read_size) {
+                 poller->reset_pollin (handle);
+             }    
+         }
+
+        //  If at least one byte was processed, flush any messages decoder
+        //  may have produced.
+        if (nbytes > 0)
+            demux.flush ();
+    }
 }
 
 void zmq::bp_engine_t::out_event ()
@@ -202,11 +240,24 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         }
         break;
 
+    case engine_command_t::head:
+
+        //  Forward pipe statistics to the appropriate pipe.
+        if (!shutting_down) {
+            command_.args.head.pipe->set_head (command_.args.head.position);
+            in_event ();
+        }
+        break;
+
     case engine_command_t::send_to:
 
-        //  TODO:  'send_to' command should hold reference to the pipe -
-        //         to be rewritten to avoid possible memory leak.
         if (!shutting_down) {
+
+            //  If pipe limits are set, POLLIN may be turned off
+            //  because there are no pipes to send messages to.
+            //  So, if this is the first pipe in demux, start polling.
+            if (demux.no_pipes ())
+                poller->set_pollin (handle);
 
             //  Start sending messages to a pipe.
             demux.send_to (command_.args.send_to.pipe);
