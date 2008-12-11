@@ -216,7 +216,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
 int zmq::tcp_socket_t::read (void *data, int size)
 {
-    ssize_t nbytes = recv (s, data, size, 0);
+    ssize_t nbytes = recv (s, data, size, block ? MSG_WAITALL : 0);
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
