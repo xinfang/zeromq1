@@ -23,14 +23,11 @@
 #include <zmq/platform.hpp>
 #include "i_transport.hpp"
 
-#include <stdlib.h>
-#include <string.h>
+#include <zmq/tcp_listener.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/wire.hpp>
+
 #include <assert.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 
 namespace perf
 {
@@ -38,96 +35,50 @@ namespace perf
     class tcp_t : public i_transport
     {
     public:
-        tcp_t (bool listen_, const char *ip_address_, unsigned short port_,
-            bool nagle_)
+        tcp_t (bool listen_, const char *iface_or_host_) : tcp_listener (NULL),
+              tcp_socket (NULL)
         {
-            //  Parse the IP address.
-            sockaddr_in addr;
-            memset (&addr, 0, sizeof (addr));
-            addr.sin_family = AF_INET;
-            int rc = inet_pton (AF_INET, ip_address_, &addr.sin_addr);
-            assert (rc > 0);
-            addr.sin_port = htons (port_);
-
+            //  We need to know port to listen and to bind to.
+            assert (strchr (iface_or_host_, ':'));
+           
             if (listen_) {
 
                 //  If 'listen' flag is set, object waits for connection
-                //  initiated by the other party. 'ip_address' is interpreted
-                //  as a network interface IP address (on local machine).
+                //  initiated by the other party.
 
-                //  Create a listening socket.
-                listening_socket = socket (AF_INET, SOCK_STREAM,
-                    IPPROTO_TCP);
-                assert (listening_socket != -1);
+                //  Create listening socket.
+                tcp_listener = new zmq::tcp_listener_t (iface_or_host_);
 
-                //  Allow socket reusing.
-                int flag = 1;
-                rc = setsockopt (listening_socket, SOL_SOCKET, SO_REUSEADDR,
-                    &flag, sizeof (int));
-                assert (rc == 0);
-
-                //  Bind the socket to the network interface and port.
-                rc = bind (listening_socket, (struct sockaddr*) &addr,
-                    sizeof (addr));
-                assert (rc == 0);
-
-                //  Listen for incomming connections.
-                rc = ::listen (listening_socket, 1);
-                assert (rc == 0);
-
-                //  Accept first incoming connection.
-                s = accept (listening_socket, NULL, NULL);
-                assert (s != -1);
-            }
-            else {
+                //  Wait for and accept first incoming connection.
+                tcp_socket = new zmq::tcp_socket_t (*tcp_listener, true);
+            } else {
 
                 //  If 'listen' flag is not set, object actively creates
-                //  a connection. ip_address is interpreted as peer's
-                //  IP addess.
-
-                //  Create a socket.
-                s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-                assert (s != -1);
-
-                //  Connect to the peer.
-                rc = ::connect (s, (sockaddr*) &addr, sizeof (addr));
-                assert (rc != -1);
-
-                //  Listning socket is not used.
-                listening_socket = -1;
-            }
-
-            //  Disable Nagle aglorithm if reuqired.
-            if (!nagle_) {
-                int flag = 1;
-                rc = ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag,
-                    sizeof (int));
-                assert (rc == 0);
+                //  a connection.
+               
+                //  Create a socket and connect to the peer.
+                tcp_socket = new zmq::tcp_socket_t (iface_or_host_, true);
             }
         }
 
         inline ~tcp_t ()
         {
-            //  Cleanup the socket.
-            int rc = close (s);
-            assert (rc == 0);
-
-            //  Close the listening socket.
-            if (listening_socket != -1) {
-                rc = close (listening_socket);
-                assert (rc == 0);
-            }
+            //  Close sockets.
+            delete tcp_socket;
+            if (tcp_listener)
+                delete tcp_listener;
         }
 
         inline virtual void send (size_t size_)
         {
+        
             //  Create the message.
             void *buffer = malloc (sizeof (uint32_t) + size_);
             assert (buffer);
-            *((uint32_t*) buffer) = htonl (size_);
-
+            zmq::put_uint32 ((unsigned char*)buffer, size_);
+            
             //  Send the data over the wire.
-            ssize_t bytes = ::send (s, buffer, sizeof (uint32_t) + size_, 0);
+            ssize_t bytes = tcp_socket->write (buffer, sizeof (uint32_t) + size_);
             assert (bytes == (ssize_t) (sizeof (uint32_t) + size_));
 
             //  Cleanup.
@@ -138,28 +89,29 @@ namespace perf
         {
             //  Read the message size.
             uint32_t sz;
-            ssize_t bytes = recv (s, &sz, sizeof (uint32_t), MSG_WAITALL);
+            ssize_t bytes = tcp_socket->read (&sz, sizeof (uint32_t));
             assert (bytes == sizeof (uint32_t));
-            sz = ntohl (sz);
+            
+            sz = zmq::get_uint32 ((unsigned char*)&sz);
     
             //  Allocate the buffer to read the message.
             void *buffer = malloc (sz);
             assert (buffer);
 
             //  Read the message body.
-            bytes = recv (s, buffer, sz, MSG_WAITALL);
+            bytes = tcp_socket->read (buffer, sz);
             assert (bytes == (ssize_t) sz);
 
             //  Cleanup.
             free (buffer);
 
             //  Return message size.
-            return sz;
+            return bytes;
         }
 
     protected:
-        int listening_socket;
-        int s;
+        zmq::tcp_listener_t *tcp_listener;
+        zmq::tcp_socket_t *tcp_socket;
     };
 
 }

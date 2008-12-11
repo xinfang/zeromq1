@@ -28,24 +28,23 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5) {
-        cerr << "Usage: remote <IP address of \'local\'> <\'local\' port> "
+    if (argc != 4) {
+        cerr << "Usage: remote_lat <IP address of \'local\':port> "
             << "<message size> <roundtrip count>" << endl;
         return 1;
     }
     
     //  Parse & print command line arguments.
     const char *peer_ip = argv [1];
-    unsigned short peer_port = atoi (argv [2]);
 
-    size_t msg_size = atoi (argv [3]);
-    int roundtrip_count = atoi (argv [4]);
+    size_t msg_size = atoi (argv [2]);
+    int roundtrip_count = atoi (argv [3]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
     //  Create tcp transport.
-    perf::tcp_t transport (false, peer_ip, peer_port, false);
+    perf::tcp_t transport (false, peer_ip);
 
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     perf::remote_lat (&transport, msg_size, roundtrip_count);

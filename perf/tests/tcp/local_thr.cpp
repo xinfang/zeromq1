@@ -21,28 +21,39 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <string>
 
 #include "../../transports/tcp_transport.hpp"
 #include "../scenarios/thr.hpp"
+#include "../../helpers/functions.hpp"
 
 using namespace std;
 
 int main (int argc, char *argv [])
 {
     
-    if (argc != 6) {
-        cerr << "Usage: local_thr <listen IP> <listen port> <message size> "
+    if (argc != 5) {
+        cerr << "Usage: local_thr <listen interface:port> <message size> "
             <<  "<message count> <number of threads>\n";
         return 1;
     }
 
     //  Parse & print command line arguments.
-    const char *listen_ip = argv [1];
-    unsigned short listen_port = atoi (argv [2]);
+    char *listen_ip = argv [1];
 
-    int thread_count = atoi (argv [5]);
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
+    //  Find port number delimiter.
+    char *colon = strchr (listen_ip, ':');
+    assert (colon);
+
+    //  Parse port number.
+    unsigned short listen_port = atoi (colon + 1);
+
+    //  Cut delimiter and port number.
+    *colon = 0;
+
+    int thread_count = atoi (argv [4]);
+    size_t msg_size = atoi (argv [2]);
+    int msg_count = atoi (argv [3]);
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -55,9 +66,13 @@ int main (int argc, char *argv [])
     //  transport listen port increases by 1.
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
     {
+        string listen_ip_port (listen_ip);
+        listen_ip_port.append (":");
+        listen_ip_port.append (perf::to_string (listen_port + thread_nbr));
+        
         //  Create tcp transport.
-        transports [thread_nbr] = new perf::tcp_t (true, listen_ip, 
-            listen_port + thread_nbr, false);
+        transports [thread_nbr] = 
+            new perf::tcp_t (true, listen_ip_port.c_str ());
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
@@ -67,7 +82,7 @@ int main (int argc, char *argv [])
     for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++) {
         delete transports [thread_nbr];
     }
-    
+
     delete [] transports;
 
     return 0;
