@@ -103,7 +103,11 @@ namespace perf
         __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
         start_ticks = (uint64_t) high << 32 | low;
 
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (4000);
+#else
         usleep (4000000);
+#endif
 
         end_nsecs = now_nsecs ();
         __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));

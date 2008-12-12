@@ -22,6 +22,8 @@
 #include <cstdio>
 #include <iostream>
 
+#include <zmq/platform.hpp>
+
 #include "../../transports/tcp_transport.hpp"
 #include "../scenarios/thr.hpp"
 #include "../../helpers/functions.hpp"
@@ -73,7 +75,11 @@ int main (int argc, char *argv [])
             new perf::tcp_t (false, peer_ip_port.c_str ());
 
         //  Give time to the peer to start to listen.
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (1000);
+#else
         sleep (1);
+#endif
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
