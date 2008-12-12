@@ -20,22 +20,22 @@
 #ifndef __PERF_TIME_HPP_INCLUDED__
 #define __PERF_TIME_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #include <assert.h>
 #include <stdlib.h>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <sys/types.h>
 #include <sys/timeb.h>
+#include <zmq/windows.hpp>
 #else
 #include <sys/time.h>
 #include <unistd.h>
 #endif
 
-
 #include <iostream>
-
 #include <zmq/stdint.hpp>
-
 
 namespace perf
 {
@@ -46,46 +46,27 @@ namespace perf
     //  is that all times are measured from the same starting point.
     typedef uint64_t time_instant_t;
 
-#ifdef ZMQ_HAVE_WINDOWS
-    
-    inline uint64_t now ()
-    {
-        //  Get the high resolution counter's accuracy.
-		LARGE_INTEGER ticks_per_second;
-        QueryPerformanceFrequency (&ticks_per_second);
-
-        //  What time is it?
-		LARGE_INTEGER tick;
-        QueryPerformanceCounter (&tick);
-
-        //  Convert the tick number into the number of seconds
-        //  since the system was started...
-        return (uint64_t) (tick.QuadPart /
-            (double (ticks_per_second.QuadPart) / 1000000000));
-    }
-
-#else
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
-    //  Retrieves current time in processor ticks. This function is intended
-    //  for internal usage - use 'now' function instead.
-    inline uint64_t now_ticks ()
-    {
-        uint32_t low;
-        uint32_t high;
-        __asm__ volatile ("rdtsc"
-            : "=a" (low), "=d" (high));
-        return (uint64_t) high << 32 | low;
-    }
-#endif
-
     //  Retrieves current time in nanoseconds. This function is intended
     //  for internal usage - use 'now' function instead.
     inline uint64_t now_nsecs ()
     {
+#if defined ZMQ_HAVE_WINDOWS
+        SYSTEMTIME st;
+        FILETIME ft;
+
+        GetSystemTime (&st);
+
+        SystemTimeToFileTime (&st, &ft);
+
+        //  FILETIME contains a 64-bit value representing the number of 100-nanosecond
+        //  intervals since January 1, 1601 (UTC).
+        return ((uint64_t) ft.dwHighDateTime << 32 | ft.dwLowDateTime) * 100;
+#else
         struct timeval tv;
         int rc = gettimeofday (&tv, NULL);
         assert (rc == 0);
         return tv.tv_sec * (uint64_t) 1000000000 + tv.tv_usec * 1000;
+#endif
     }
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
@@ -96,12 +77,19 @@ namespace perf
     {
         uint64_t cpu_frequency = 0;
 
+        uint32_t low;
+        uint32_t high;
+
         //  Measure frequency with busy loop.
         uint64_t start_nsecs = now_nsecs ();
-        uint64_t start_ticks = now_ticks ();
+        __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
+        uint64_t start_ticks = (uint64_t) high << 32 | low;
+
         for (volatile int i = 0; i != 1000000000; i ++);
+
         uint64_t end_nsecs = now_nsecs ();
-        uint64_t end_ticks = now_ticks ();
+        __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
+        uint64_t end_ticks = (uint64_t) high << 32 | low;
 
         uint64_t ticks = end_ticks - start_ticks;
         uint64_t nsecs = end_nsecs - start_nsecs;
@@ -112,10 +100,14 @@ namespace perf
         
         //  Measure frequency with sleep.
         start_nsecs = now_nsecs ();
-        start_ticks = now_ticks ();
+        __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
+        start_ticks = (uint64_t) high << 32 | low;
+
         usleep (4000000);
+
         end_nsecs = now_nsecs ();
-        end_ticks = now_ticks ();
+        __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
+        end_ticks = (uint64_t) high << 32 | low;
         ticks = end_ticks - start_ticks;
         nsecs = end_nsecs - start_nsecs;
         uint64_t sleep_frq = ticks * 1000000000 / nsecs;
@@ -155,14 +147,20 @@ namespace perf
         static uint64_t last_nsecs = 0;
         static uint64_t last_ticks = 0;
 
+        uint32_t low;
+        uint32_t high;
+
         //  Get current time (in CPU ticks).
-        uint64_t current_ticks = now_ticks ();
+        __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
+        uint64_t current_ticks = (uint64_t) high << 32 | low;
 
         //  Find out whether one second has already elapsed since the last
         //  system time measurement. If so, measure the system time anew.
         if (current_ticks - last_ticks >= PERF_CPU_FREQUENCY) {
             last_nsecs = now_nsecs ();
-            last_ticks = now_ticks ();
+            __asm__ volatile ("rdtsc"
+                : "=a" (low), "=d" (high));
+            last_ticks = (uint64_t) high << 32 | low;
             current_ticks = last_ticks;
         }
 
@@ -170,11 +168,41 @@ namespace perf
         //  elapsed since then.
         return last_nsecs + ((current_ticks - last_ticks) * 1000000000 /
             PERF_CPU_FREQUENCY);
+
+#elif defined ZMQ_HAVE_WINDOWS
+
+        //  When function is called for the first time, set timestamps to zero
+        //  so that they'll be recomputed below.
+        static uint64_t last_nsecs = 0;
+        static LARGE_INTEGER last_ticks = {0};
+        static LARGE_INTEGER ticks_per_second = {0};
+
+        if (ticks_per_second.QuadPart == 0) {
+            //  Get the high resolution counter's accuracy.
+            QueryPerformanceFrequency (&ticks_per_second);
+        }
+
+        //  Get current time (in CPU ticks).
+        LARGE_INTEGER current_ticks;
+        QueryPerformanceCounter (&current_ticks);
+
+        //  Find out whether one second has already elapsed since the last
+        //  system time measurement. If so, measure the system time anew.
+        if (current_ticks.QuadPart - last_ticks.QuadPart >= 
+              ticks_per_second.QuadPart) {
+            last_nsecs = now_nsecs ();
+            QueryPerformanceCounter (&last_ticks);
+            current_ticks = last_ticks;
+        }
+
+        //  Return the sum of last measured system time and the ticks
+        //  elapsed since then.
+        return last_nsecs + ((current_ticks.QuadPart - last_ticks.QuadPart) * 
+            1000000000 / ticks_per_second.QuadPart);
+
 #else
         return now_nsecs ();
 #endif
     }
-#endif
 }
-
 #endif
