@@ -30,8 +30,10 @@ namespace zmq
 {
 #ifdef ZMQ_HAVE_WINDOWS
     typedef SOCKET fd_t;
+#define RETIRED_FD INVALID_SOCKET
 #else
     typedef int fd_t;
+#define RETIRED_FD -1
 #endif
 }
 #endif
