@@ -137,7 +137,6 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  TODO: Add code that'll convert interface name to IP address
     //  on Windows platform here.
     in_addr addr;
-    int addr_length = sizeof (addr);
     ((sockaddr_in*) addr_)->sin_family = AF_INET;
     addr.S_un.S_addr = inet_addr ((const char *) interface_);
     assert (addr.S_un.S_addr != INADDR_NONE);
