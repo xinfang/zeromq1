@@ -62,6 +62,6 @@ int main (int argc, const char *argv [])
         //  Get a message and print it to the console.
         message_t message;
         api->receive (&message);
-        cout << (char*) message.data ();
+        cout << (char*) message.data () << flush;
     }
 }
