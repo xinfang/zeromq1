@@ -39,6 +39,7 @@ using namespace std;
 #endif
 
 #include <zmq.hpp>
+#include <zmq/fd.hpp>
 
 using namespace zmq;
 
@@ -107,10 +108,10 @@ int main (int argc, char *argv [])
     FD_ZERO (&source_set_fds);
     FD_ZERO (&result_set_fds);
     FD_ZERO (&error_set_fds); 
-    int fd_int = listening_socket.get_fd ();
+    fd_t fd_int = listening_socket.get_fd ();
     
     FD_SET (fd_int, &source_set_fds);
-    int maxfdp1 = fd_int + 1;
+    fd_t maxfdp1 = fd_int + 1;
         
     //  Object repository. Individual object maps are placed into slots
     //  identified by the type ID of particular object.
@@ -138,7 +139,7 @@ int main (int argc, char *argv [])
              pos ++) {
  	   
            //  Get the socket being currently being processed.
-           int s = socket_list [pos]->get_fd ();
+           fd_t s = socket_list [pos]->get_fd ();
            
            if (FD_ISSET (s, &error_set_fds)) {
                
@@ -310,7 +311,7 @@ int main (int argc, char *argv [])
         //  Accept incoming connection.
         if (FD_ISSET (fd_int, &result_set_fds)) {    
 	        socket_list.push_back (new tcp_socket_t (listening_socket, true));           
-            int s = socket_list.back ()->get_fd ();
+            fd_t s = socket_list.back ()->get_fd ();
             FD_SET (s, &source_set_fds);
             
             if (maxfdp1 <= s)

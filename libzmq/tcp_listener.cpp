@@ -22,6 +22,7 @@
 #include <zmq/err.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/formatting.hpp>
+#include <zmq/fd.hpp>
 
 #include <assert.h>
 #include <string.h>
@@ -49,7 +50,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    wsa_assert (s != SOCKET_ERROR);
+    wsa_assert (s != INVALID_SOCKET);
 
     //  Allow reusing of the address.
     int flag = 1;
@@ -94,10 +95,10 @@ zmq::tcp_listener_t::~tcp_listener_t ()
     wsa_assert (rc != SOCKET_ERROR);
 }
 
-int zmq::tcp_listener_t::accept ()
+zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
-    int sock = ::accept (s, NULL, NULL);
+    fd_t sock = ::accept (s, NULL, NULL);
     wsa_assert (sock != INVALID_SOCKET);
     return sock;
 }
@@ -154,10 +155,10 @@ zmq::tcp_listener_t::~tcp_listener_t ()
     errno_assert (rc == 0);
 }
 
-int zmq::tcp_listener_t::accept ()
+zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
-    int sock = ::accept (s, NULL, NULL);
+    fd_t sock = ::accept (s, NULL, NULL);
     errno_assert (sock != -1); 
     return sock;
 }

@@ -17,7 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
 #include <zmq/ysocketpair.hpp>
+#include <zmq/fd.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -30,14 +32,14 @@ zmq::ysocketpair_t::ysocketpair_t ()
     w = INVALID_SOCKET; 
     r = INVALID_SOCKET;
     
-    int rc = (listener = socket (AF_INET, SOCK_STREAM, 0));
-    wsa_assert (rc != INVALID_SOCKET);
+    fd_t rcs = (listener = socket (AF_INET, SOCK_STREAM, 0));
+    wsa_assert (rcs != INVALID_SOCKET);
 
     memset (&addr, 0, sizeof (addr));
     addr.sin_family = AF_INET;
     resolve_ip_hostname (&addr, "127.0.0.1:0");
             
-    rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
+    int rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
     wsa_assert (rc != SOCKET_ERROR);
 
     rc = getsockname (listener, (struct sockaddr*) &addr, &addrlen);

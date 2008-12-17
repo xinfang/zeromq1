@@ -22,6 +22,7 @@
 
 #include <zmq/export.hpp>
 #include <zmq/stdint.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -41,7 +42,7 @@ namespace zmq
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
-        ZMQ_EXPORT inline int get_fd ()
+        ZMQ_EXPORT inline fd_t get_fd ()
         {
             return s;
         }
@@ -54,7 +55,7 @@ namespace zmq
         }
 
         //  Accept the new connection.
-        ZMQ_EXPORT int accept ();
+        ZMQ_EXPORT fd_t accept ();
 
     private:
 
@@ -62,7 +63,7 @@ namespace zmq
         char iface [256];
 
         //  Underlying socket.
-        int s;
+        fd_t s;
 
         tcp_listener_t (const tcp_listener_t&);
         void operator = (const tcp_listener_t&);

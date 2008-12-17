@@ -30,6 +30,7 @@
 #include <zmq/tcp_listener.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
+#include <zmq/fd.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS 
 #include <zmq/windows.hpp>
@@ -82,11 +83,11 @@ namespace zmq
         {
             char buffer [256];
           
-            DWORD nbytes = recv (r, buffer, 256, 0);
+            int nbytes = recv (r, buffer, 256, 0);
             win_assert (nbytes != -1);
 
             uint32_t signals = 0;
-            for (DWORD pos = 0; pos != nbytes; pos ++) {
+            for (int pos = 0; pos != nbytes; pos ++) {
                 assert (buffer [pos] < 31);
                 signals |= (1 << (buffer [pos]));
             }
@@ -94,18 +95,18 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        ZMQ_EXPORT inline int get_fd ()
+        ZMQ_EXPORT inline fd_t get_fd ()
         {
-            return (int) r;
+            return r;
         }
 
     private:
 
         //  Write end of the socketpair.
-        int w;
+        fd_t w;
         
         //  Read end of the socketpair.
-        int r;
+        fd_t r;
 
         //  Disable copying of ysocketpair object.
         ysocketpair_t (const ysocketpair_t&);
@@ -175,7 +176,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        inline int get_fd ()
+        inline fd_t get_fd ()
         {
             return r;
         }
@@ -183,10 +184,10 @@ namespace zmq
     private:
 
         //  Write end of the socketpair.
-        int w;
+        fd_t w;
 
         //  Read end of the socketpair.
-        int r;
+        fd_t r;
 
         //  Disable copying of ysocketpair object.
         ysocketpair_t (const ysocketpair_t&);

@@ -25,6 +25,7 @@
 #include <zmq/export.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq/tcp_listener.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -48,7 +49,7 @@ namespace zmq
         ZMQ_EXPORT ~tcp_socket_t ();
 
         //  Returns the underlying socket.
-        inline int get_fd ()
+        inline fd_t get_fd ()
         {
             return s;
         }
@@ -67,7 +68,7 @@ namespace zmq
     private:
 
         //  Underlying socket
-        int s;
+        fd_t s;
         bool block;
 
         //  Disable copy construction of tcp_socket.
