@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <string.h>
 #include <string>
+#include <sstream>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <winsock2.h>
@@ -76,14 +77,14 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
 
     size_t isz = strlen (iface);
-    #if (_MSC_VER >= 1400)
-    zmq_snprintf (iface + isz, sizeof (iface) - isz, _TRUNCATE, ":%d",
-        (int) ntohs (ip_address.sin_port));
-    #else
-    zmq_snprintf (iface + isz, sizeof (iface) - isz, ":%d",
-        (int) ntohs (ip_address.sin_port));
-    #endif
-              
+    
+    std::string port;
+    std::stringstream out;
+    out << ntohs (ip_address.sin_port);
+    port = out.str ();
+    strcat (iface, ":");
+    strcat (iface, port.c_str ());
+                  
     //  Listen for incomming connections.
     rc = listen (s, 1);
     wsa_assert (rc != SOCKET_ERROR);
