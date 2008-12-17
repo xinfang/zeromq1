@@ -76,8 +76,6 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     //  Fill in the interface name.
     zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
 
-    size_t isz = strlen (iface);
-    
     std::string port;
     std::stringstream out;
     out << ntohs (ip_address.sin_port);
