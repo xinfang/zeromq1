@@ -20,12 +20,8 @@
 #include "mux.hpp"
 #include "raw_message.hpp"
 
-zmq::mux_t::mux_t (int notification_period_) :
-    current (0),
-    queue_size (0),
-    notification_period (notification_period_),
-    elapsed (0),
-    alert_queued (false)
+zmq::mux_t::mux_t () :
+    current (0)
 {
 }
 
@@ -51,16 +47,6 @@ bool zmq::mux_t::read (message_t *msg_)
     //  Deallocate old content of the message.
     raw_message_destroy (msg);
 
-    //  If alert is to be sent, return it instead of regular message.
-    if (alert_queued) {
-
-        //  Queue size can be negative if messages are processed before the
-        //  notification about enqueueing them arrives.
-        raw_message_init_alert (msg, queue_size < 0 ? 0 : queue_size);
-        alert_queued = false;
-        return true;
-    }
-
     //  Round-robin over the pipes to get next message.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
 
@@ -74,31 +60,14 @@ bool zmq::mux_t::read (message_t *msg_)
         if (current == pipes.size ())
             current = 0;
 
-        if (retrieved) {
-            if (notification_period) {
-                queue_size --;
-                elapsed ++;
-                if (elapsed >= notification_period) {
-                    elapsed = 0;
-                    alert_queued = true;
-                }
-            }
+        if (retrieved)
             return true;
-        }
     }
 
     //  No message is available. Initialise the output parameter
     //  to be a 0-byte message.
     raw_message_init (msg, 0);
     return false;
-}
-
-void zmq::mux_t::adjust_queue_size (int delta_)
-{
-    assert (notification_period);
-
-    queue_size += delta_;
-    alert_queued = true;
 }
 
 void zmq::mux_t::terminate_pipes()

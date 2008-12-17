@@ -89,11 +89,6 @@ namespace zmq
             raw_message_copy (this, (raw_message_t*) msg_);
         }
 
-        inline bool alert ()
-        {
-            return content == (void*) raw_message_t::alert_tag;
-        }
-
         //  Returns pointer to message's data buffer.
         inline void *data ()
         {

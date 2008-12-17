@@ -37,7 +37,7 @@ namespace zmq
             struct i_engine *source_engine_,
             struct i_context *destination_context_,
             struct i_engine *destination_engine_,
-            int hwm_ = 0, int lwm_ = 0, int notification_period_ = 0);
+            int hwm_ = 0, int lwm_ = 0);
         ~pipe_t ();
 
         //  Sets pointer to the mux object on receiving side of the pipe.
@@ -74,9 +74,6 @@ namespace zmq
         //  Process the 'head' command from reader thread.
         void set_head (uint64_t position_);
 
-        //  Process the 'tail' command from writer thread.
-        void set_tail (uint64_t position_);
-
         //  Notify the other end of the pipe that pipe is to be destroyed.
         void send_destroy_pipe ();
 
@@ -110,10 +107,6 @@ namespace zmq
         int hwm;
         int lwm;
 
-        //  How often should be tail position sent to the reader.
-        //  Zero means never.
-        int notification_period;
-
         //  Following message sequence numbers use RFC1982-like wraparound.
 
         //  Reader thread uses this variable to track the sequence number of
@@ -127,10 +120,6 @@ namespace zmq
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
         uint64_t last_head;
-
-        //  Reader thread keeps last tail position reported by writer thread
-        //  in this variable.
-        uint64_t last_tail;
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);

@@ -24,7 +24,7 @@
 
 zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
       i_context *destination_context_, i_engine *destination_engine_,
-      int hwm_, int lwm_, int notification_period_) :
+      int hwm_, int lwm_) :
     pipe (false),
     source_context (source_context_),
     source_engine (source_engine_),
@@ -35,11 +35,9 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     endofpipe (false),
     hwm (hwm_),
     lwm (lwm_),
-    notification_period (notification_period_),
     head (0),
     tail (0),
-    last_head (0),
-    last_tail (0)
+    last_head (0)
 {
     //  If high water mark was lower than low water mark pipe would hang up.
     assert (lwm <= hwm);
@@ -85,13 +83,6 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
     //  Move the tail.
     tail ++;
-
-    //  If required, send tail notification once a while.
-    if (notification_period && tail % notification_period == 0) {
-        command_t cmd;
-        cmd.init_engine_tail (destination_engine, this, tail);
-        source_context->send_command (destination_context, cmd);
-    }
 }
 
 void zmq::pipe_t::write_delimiter ()
@@ -121,15 +112,6 @@ void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
     last_head = position_;
-}
-
-void zmq::pipe_t::set_tail (uint64_t position_)
-{
-    //  Handle wraparound of tail position decently.
-    int delta = last_tail <= position_ ? position_ - last_tail :
-        std::numeric_limits <uint64_t>::max () - last_tail + position_ + 1;
-    mux->adjust_queue_size (delta);
-    last_tail = position_;
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)

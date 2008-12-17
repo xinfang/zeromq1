@@ -37,7 +37,6 @@ namespace zmq
         {
             revive,
             head,
-            tail,
             send_to,
             receive_from,
             destroy_pipe
@@ -51,10 +50,6 @@ namespace zmq
                 class pipe_t *pipe;
                 uint64_t position;
             } head;
-            struct {
-                class pipe_t *pipe;
-                uint64_t position;
-            } tail;
             struct {
                 char exchange [16];
                 class pipe_t *pipe;
@@ -157,16 +152,6 @@ namespace zmq
             args.engine_command.command.type = engine_command_t::head;
             args.engine_command.command.args.head.pipe = pipe_;
             args.engine_command.command.args.head.position = position_;
-        }
-
-        inline void init_engine_tail (i_engine *engine_, pipe_t *pipe_,
-            uint64_t position_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::tail;
-            args.engine_command.command.args.tail.pipe = pipe_;
-            args.engine_command.command.args.tail.position = position_;
         }
         
         inline void init_engine_destroy_pipe (i_engine *engine_, pipe_t *pipe_)

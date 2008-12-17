@@ -35,7 +35,7 @@ namespace zmq
     {
     public:
 
-        mux_t (int notification_period_);
+        mux_t ();
         ~mux_t ();
 
         //  Adds a pipe to receive messages from.
@@ -43,10 +43,6 @@ namespace zmq
 
         //  Returns a message, if available. If not, returns false.
         bool read (message_t *msg_);
-
-        //  Adjusts queue size by supplied delta (when tail command is received
-        //  from the queue writer). If queue limit is exceeded, alert is issued.
-        void adjust_queue_size (int delta_);
 
         //  Send a command to the engines on the other
         //  end of our pipes to destroy the pipe.
@@ -61,20 +57,6 @@ namespace zmq
         //  Pipe to retrieve next message from. The messages are retrieved
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
-
-        //  Count of all the messages in all the pipes.
-        int queue_size;
-
-        //  How often should we report number of outgoing messages.
-        int notification_period;
-
-        //  Portion of the notification period already elapsed.
-        int elapsed;
-
-        //  If true, next receive will get alert instead of message.
-        bool alert_queued;
-
-        //  If true, alert will be dispatched instead of the 
 
         //  TODO: disable copying
     };

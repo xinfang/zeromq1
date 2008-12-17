@@ -49,18 +49,14 @@ namespace zmq
         //  host parameter. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        //  'notification_period' specifies how often should number of incoming
-        //  messages be reported. Zero means no reporting.
         static bp_engine_t *create (poll_thread_t *thread_,
             const char *hostname_, size_t writebuf_size_,
-            size_t readbuf_size_, const char *local_object_,
-            int notification_period_);
+            size_t readbuf_size_, const char *local_object_);
 
         //  Creates bp_engine from supplied listener object.
         static bp_engine_t *create (poll_thread_t *thread_,
             tcp_listener_t &listener_, size_t writebuf_size_,
-            size_t readbuf_size_, const char *local_object_,
-            int notification_period_);
+            size_t readbuf_size_, const char *local_object_);
 
         //  i_pollable interface implementation.
         void set_poller (i_poller *poller_, int handle_);
@@ -74,10 +70,10 @@ namespace zmq
         bp_engine_t (poll_thread_t *thread_,
             const char *hostname_,
             size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_, int notification_period_);
+            const char *local_object_);
         bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
             size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_, int notification_period_);
+            const char *local_object_);
         ~bp_engine_t ();
 
         //  Thread context the engine belongs to.
@@ -126,9 +122,6 @@ namespace zmq
         //  after connection failure). Otherwise it have connected to the
         //  remote host itself (it has to reconnect actively after failure).
         bool reconnect;
-
-        //  How often should engine report number of incoming messages.
-        int notification_period;
 
         bp_engine_t (const bp_engine_t&);
         void operator = (const bp_engine_t&);
