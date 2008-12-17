@@ -21,6 +21,58 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
+zmq::ysocketpair_t::ysocketpair_t ()
+{
+    struct sockaddr_in addr;
+    SOCKET listener;
+    int addrlen = sizeof (addr);
+           
+    w = INVALID_SOCKET; 
+    r = INVALID_SOCKET;
+    
+    int rc = (listener = socket (AF_INET, SOCK_STREAM, 0));
+    wsa_assert (rc != INVALID_SOCKET);
+
+    memset (&addr, 0, sizeof (addr));
+    addr.sin_family = AF_INET;
+    resolve_ip_hostname (&addr, "127.0.0.1:0");
+            
+    rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
+    wsa_assert (rc != SOCKET_ERROR);
+
+    rc = getsockname (listener, (struct sockaddr*) &addr, &addrlen);
+    wsa_assert (rc != SOCKET_ERROR);
+            
+    //  Listen for incomming connections.
+    rc = listen (listener, 1);
+    wsa_assert (rc != SOCKET_ERROR);
+                     
+    //  Create the socket.
+    w = WSASocket (AF_INET, SOCK_STREAM, 0, NULL, 0,  0);
+    wsa_assert (w != INVALID_SOCKET);
+                      
+    //  Connect to the remote peer.
+    rc = connect (w, (sockaddr *) &addr, sizeof (addr));
+    wsa_assert (rc != SOCKET_ERROR);
+                                    
+    //  Accept connection from w
+    r = accept (listener, NULL, NULL);
+    wsa_assert (r != INVALID_SOCKET);
+            
+    rc = closesocket (listener);
+    wsa_assert (rc != SOCKET_ERROR);
+}
+
+//  Destroy the pipe.
+zmq::ysocketpair_t::~ysocketpair_t ()
+{
+    int rc = closesocket (w);
+    wsa_assert (rc != SOCKET_ERROR);
+
+    rc = closesocket (r);
+    wsa_assert (rc != SOCKET_ERROR);
+}
+
 void zmq::ysocketpair_t::signal (int signal_)
 {
     assert (signal_ >= 0 && signal_ < 31);
