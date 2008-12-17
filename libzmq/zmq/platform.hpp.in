@@ -22,7 +22,17 @@
 /* Have HPUX OS */
 #undef ZMQ_HAVE_HPUX
 
+/* Have Windows OS */
+#undef ZMQ_HAVE_WINDOWS
+
+/* Have MinGW32 */
+#undef ZMQ_HAVE_MINGW32
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif
 
+/* WindowsXP and above */
+#ifdef ZMQ_HAVE_MINGW32
+#define WINVER 0x0501
+#endif

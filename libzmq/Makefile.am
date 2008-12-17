@@ -52,7 +52,9 @@ pkginclude_HEADERS = \
     ./zmq/formatting.hpp \
     ./zmq/select_thread.hpp \
     ./zmq/export.hpp \
-    ./zmq/server_protocol.hpp
+    ./zmq/server_protocol.hpp \
+    ./zmq/windows.hpp \
+    ./zmq/fd.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

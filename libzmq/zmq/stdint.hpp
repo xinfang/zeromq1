@@ -26,10 +26,14 @@
 #include <inttypes.h>
 #elif defined ZMQ_HAVE_WINDOWS
 
+#ifdef ZMQ_HAVE_MINGW32
+#include <stdint.h>
+#else
 typedef __int8 uint8_t;
 typedef __int16 uint16_t;
 typedef __int32 uint32_t;
 typedef __int64 uint64_t;
+#endif
 
 #else
 #include <stdint.h>
