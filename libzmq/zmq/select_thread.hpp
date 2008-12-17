@@ -32,6 +32,7 @@
 #endif
 
 #include <zmq/poller.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -46,7 +47,7 @@ namespace zmq
 
         ZMQ_EXPORT select_t ();
 
-        ZMQ_EXPORT handle_t add_fd (int fd_, i_pollable *engine_);
+        ZMQ_EXPORT handle_t add_fd (fd_t fd_, i_pollable *engine_);
         ZMQ_EXPORT void rm_fd (handle_t handle_);
         ZMQ_EXPORT void set_pollin (handle_t handle_);
         ZMQ_EXPORT void reset_pollin (handle_t handle_);
@@ -58,7 +59,7 @@ namespace zmq
 
         struct fd_entry_t
         {
-            int fd;
+            fd_t fd;
             i_pollable *engine;
         };
 
@@ -76,7 +77,7 @@ namespace zmq
         fd_set exceptfds;
 
         //  Maximum file descriptor.
-        int maxfd;
+        fd_t maxfd;
 
         //  If true, at least one file descriptor is retired.
         bool retired;

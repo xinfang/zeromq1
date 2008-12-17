@@ -22,12 +22,13 @@
 
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
     union handle_t
     {
-        int fd;
+        fd_t fd;
         void *ptr;
     };
 
@@ -40,7 +41,7 @@ namespace zmq
 
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.
-        virtual handle_t add_fd (int fd_, struct i_pollable *engine_) = 0;
+        virtual handle_t add_fd (fd_t fd_, struct i_pollable *engine_) = 0;
 
         //  Remove file descriptor identified by handle from the polling set.
         virtual void rm_fd (handle_t handle_) = 0;

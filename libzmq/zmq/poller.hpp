@@ -29,6 +29,7 @@
 #include <zmq/dispatcher.hpp>
 #include <zmq/ysocketpair.hpp>
 #include <zmq/thread.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -64,7 +65,7 @@ namespace zmq
         void send_command (i_thread *destination_, const command_t &command_);
         void stop ();
         void destroy ();
-        handle_t add_fd (int fd_, i_pollable *engine_);
+        handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
@@ -180,7 +181,7 @@ void zmq::poller_t <T>::stop ()
 }
 
 template <class T>
-zmq::handle_t zmq::poller_t <T>::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::poller_t <T>::add_fd (fd_t fd_, i_pollable *engine_)
 {
     return event_monitor.add_fd (fd_, engine_);
 }

@@ -33,9 +33,10 @@
 
 #include <zmq/err.hpp>
 #include <zmq/select_thread.hpp>
+#include <zmq/fd.hpp>
 
 zmq::select_t::select_t () :
-    maxfd (-1),
+    maxfd (RETIRED_FD),
     retired (false)
 {
     //  Clear file descriptor sets.
@@ -44,7 +45,7 @@ zmq::select_t::select_t () :
     FD_ZERO (&source_set_err);
 }
 
-zmq::handle_t zmq::select_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::select_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     //  Store the file descriptor.
     fd_entry_t entry = {fd_, engine_};
@@ -65,7 +66,7 @@ zmq::handle_t zmq::select_t::add_fd (int fd_, i_pollable *engine_)
 void zmq::select_t::rm_fd (handle_t handle_)
 {
     //  Get file descriptor.
-    int fd = handle_.fd;
+    fd_t fd = handle_.fd;
 
     //  Stop polling on the descriptor.
     FD_CLR (fd, &source_set_in);
@@ -87,7 +88,7 @@ void zmq::select_t::rm_fd (handle_t handle_)
         if (it->fd == fd)
             break;
     assert (it != fds.end ());
-    it->fd = -1;
+    it->fd = RETIRED_FD;
     retired = true;
 }
 
@@ -129,17 +130,17 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     }
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-        if (fds [i].fd == -1)
+        if (fds [i].fd == RETIRED_FD)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
             if (poller_->process_event (fds [i].engine, event_out))
                 return true;
-        if (fds [i].fd == -1)
+        if (fds [i].fd == RETIRED_FD)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
             if (poller_->process_event (fds [i].engine, event_in))
                 return true;
-        if (fds [i].fd == -1)
+        if (fds [i].fd == RETIRED_FD)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
             if (poller_->process_event (fds [i].engine, event_err))
@@ -149,7 +150,7 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     //  Destroy retired event sources.
     if (retired) {
         for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-            if (fds [i].fd == -1) {
+            if (fds [i].fd == RETIRED_FD) {
                 fds.erase (fds.begin () + i);
                 i --;
             }
