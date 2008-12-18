@@ -34,6 +34,7 @@
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/devpoll_thread.hpp>
+#include <zmq/fd.hpp>
 
 zmq::devpoll_t::devpoll_t ()
 {
@@ -56,14 +57,14 @@ zmq::devpoll_t::~devpoll_t ()
     close (devpoll_fd);
 }
 
-void zmq::devpoll_t::devpoll_ctl (int fd_, short events_)
+void zmq::devpoll_t::devpoll_ctl (fd_t fd_, short events_)
 {
     struct pollfd pfd = {fd_, events_, 0};
     ssize_t rc = write (devpoll_fd, &pfd, sizeof pfd);
     errno_assert (rc == sizeof pfd);
 }
 
-zmq::handle_t zmq::devpoll_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     assert (!fd_table [fd_].in_use);
 
@@ -87,7 +88,7 @@ void zmq::devpoll_t::rm_fd (handle_t handle_)
 
 void zmq::devpoll_t::set_pollin (handle_t handle_)
 {
-    int fd = handle_.fd;
+    fd_t fd = handle_.fd;
     devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events |= POLLIN;
     devpoll_ctl (fd, fd_table [fd].events);
@@ -95,7 +96,7 @@ void zmq::devpoll_t::set_pollin (handle_t handle_)
 
 void zmq::devpoll_t::reset_pollin (handle_t handle_)
 {
-    int fd = handle_.fd;
+    fd_t fd = handle_.fd;
     devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events &= ~((short) POLLIN);
     devpoll_ctl (fd, fd_table [fd].events);
@@ -103,7 +104,7 @@ void zmq::devpoll_t::reset_pollin (handle_t handle_)
 
 void zmq::devpoll_t::set_pollout (handle_t handle_)
 {
-    int fd = handle_.fd;
+    fd_t fd = handle_.fd;
     devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events |= POLLOUT;
     devpoll_ctl (fd, fd_table [fd].events);
@@ -111,7 +112,7 @@ void zmq::devpoll_t::set_pollout (handle_t handle_)
 
 void zmq::devpoll_t::reset_pollout (handle_t handle_)
 {
-    int fd = handle_.fd;
+    fd_t fd = handle_.fd;
     devpoll_ctl (fd, POLLREMOVE);
     fd_table [fd].events &= ~((short) POLLOUT);
     devpoll_ctl (fd, fd_table [fd].events);
@@ -137,7 +138,7 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
     errno_assert (n != -1);
 
     for (int i = 0; i < n; i ++) {
-        int fd = ev_buf [i].fd;
+        fd_t fd = ev_buf [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
         if (!fd_table [fd].in_use)
