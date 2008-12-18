@@ -28,6 +28,7 @@
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/epoll_thread.hpp>
+#include <zmq/fd.hpp>
 
 zmq::epoll_t::epoll_t ()
 {
@@ -63,7 +64,7 @@ void zmq::epoll_t::rm_fd (handle_t handle_)
     poll_entry_t *pe = (poll_entry_t*) handle_.ptr;
     int rc = epoll_ctl (epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
-    pe->fd = -1;
+    pe->fd = retired_fd;
     retired.push_back (pe);
 }
 
@@ -110,17 +111,17 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
     for (int i = 0; i < n; i ++) {
         poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
 
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
             if (poller_->process_event (pe->engine, event_err))
                 return true;
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLOUT)
             if (poller_->process_event (pe->engine, event_out))
                 return true;
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLIN)
             if (poller_->process_event (pe->engine, event_in))
