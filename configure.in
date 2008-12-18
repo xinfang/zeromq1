@@ -79,6 +79,7 @@ case "${host_os}" in
         AC_DEFINE(ZMQ_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
         LIBS="-lwsock32 -lws2_32 -no-undefined"
+        CFLAGS="-std=c99"
         ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
