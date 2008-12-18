@@ -47,7 +47,7 @@ zmq::poll_t::poll_t () :
         fd_table [i].index = retired_fd;
 }
 
-zmq::handle_t zmq::poll_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::poll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
@@ -105,7 +105,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
         assert (!(pollset [i].revents & POLLNVAL));
 
-        int fd = pollset [i].fd;
+        fd_t fd = pollset [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
         if (pollset [i].fd == retired_fd)
