@@ -36,7 +36,7 @@
 #include <zmq/fd.hpp>
 
 zmq::select_t::select_t () :
-    maxfd (RETIRED_FD),
+    maxfd (retired_fd),
     retired (false)
 {
     //  Clear file descriptor sets.
@@ -88,7 +88,7 @@ void zmq::select_t::rm_fd (handle_t handle_)
         if (it->fd == fd)
             break;
     assert (it != fds.end ());
-    it->fd = RETIRED_FD;
+    it->fd = retired_fd;
     retired = true;
 }
 
@@ -130,17 +130,17 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     }
 
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-        if (fds [i].fd == RETIRED_FD)
+        if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
             if (poller_->process_event (fds [i].engine, event_out))
                 return true;
-        if (fds [i].fd == RETIRED_FD)
+        if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
             if (poller_->process_event (fds [i].engine, event_in))
                 return true;
-        if (fds [i].fd == RETIRED_FD)
+        if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
             if (poller_->process_event (fds [i].engine, event_err))
@@ -150,7 +150,7 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
     //  Destroy retired event sources.
     if (retired) {
         for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
-            if (fds [i].fd == RETIRED_FD) {
+            if (fds [i].fd == retired_fd) {
                 fds.erase (fds.begin () + i);
                 i --;
             }
