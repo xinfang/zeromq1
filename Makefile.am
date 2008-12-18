@@ -18,7 +18,11 @@ if BUILD_ZMQ_SERVER
 DIR_ZMQ_SERVER = zmq_server
 endif
 
-SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples man
+if INSTALL_MAN
+DIR_MAN = man
+endif
+
+SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples $(DIR_MAN)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man
 
 EXTRA_DIST = \

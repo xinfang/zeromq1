@@ -22,6 +22,10 @@ AC_CHECK_LIB(pthread, pthread_create)
 # Host speciffic checks
 AC_CANONICAL_HOST
 
+# Whether or not install manual pages.
+# Note that on MinGW manpages are not installed.
+install_man="yes"
+
 case "${host_os}" in
     *linux*)
         AC_DEFINE(ZMQ_HAVE_LINUX, 1, [Have Linux OS])
@@ -80,6 +84,7 @@ case "${host_os}" in
         AC_CHECK_HEADERS(windows.h)
         LIBS="-lwsock32 -lws2_32 -no-undefined"
         CFLAGS="-std=c99"
+        install_man="no"
         ;;
     *)
         AC_MSG_ERROR([Not supported os: $host.])
@@ -295,6 +300,7 @@ AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
+AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -348,6 +354,7 @@ AC_MSG_RESULT([   zmq_server: $zmq_server])
 AC_MSG_RESULT([   cpu frequency estimator: $cpu_estimator])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Addons:])
+AC_MSG_RESULT([   manual pages: $install_man]) 
 AC_MSG_RESULT([   performance tests: $perf ($time_measure)]) 
 AC_MSG_RESULT([   camera example: $camera])
 AC_MSG_RESULT([   stock exchange example: $exchange])
