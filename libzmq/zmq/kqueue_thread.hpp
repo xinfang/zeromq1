@@ -26,6 +26,7 @@
     defined (ZMQ_HAVE_OSX)
 
 #include <zmq/poller.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -41,7 +42,7 @@ namespace zmq
         kqueue_t ();
         ~kqueue_t ();
 
-        handle_t add_fd (int fd_, i_pollable *engine_);
+        handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
@@ -52,17 +53,17 @@ namespace zmq
     private:
 
         //  Adds the event to the kqueue.
-        void kevent_add (int fd_, short filter_, void *udata_);
+        void kevent_add (fd_t fd_, short filter_, void *udata_);
 
         //  Deletes the event from the kqueue.
-        void kevent_delete (int fd_, short filter_);
+        void kevent_delete (fd_t fd_, short filter_);
 
         //  File descriptor referring to the kernel event queue.
-        int kqueue_fd;
+        fd_t kqueue_fd;
 
         struct poll_entry_t
         {
-            int fd;
+            fd_t fd;
             bool flag_pollin;
             bool flag_pollout;
             i_pollable *engine;

@@ -31,6 +31,7 @@
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/kqueue_thread.hpp>
+#include <zmq/fd.hpp>
 
 zmq::kqueue_t::kqueue_t ()
 {
@@ -44,7 +45,7 @@ zmq::kqueue_t::~kqueue_t ()
     close (kqueue_fd);
 }
 
-void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
+void zmq::kqueue_t::kevent_add (fd_t fd_, short filter_, void *udata_)
 {
     struct kevent ev;
 
@@ -53,7 +54,7 @@ void zmq::kqueue_t::kevent_add (int fd_, short filter_, void *udata_)
     errno_assert (rc != -1);
 }
 
-void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
+void zmq::kqueue_t::kevent_delete (fd_t fd_, short filter_)
 {
     struct kevent ev;
 
@@ -62,7 +63,7 @@ void zmq::kqueue_t::kevent_delete (int fd_, short filter_)
     errno_assert (rc != -1);
 }
 
-zmq::handle_t zmq::kqueue_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::kqueue_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     poll_entry_t *pe;
     pe = (poll_entry_t*) malloc (sizeof (poll_entry_t));
@@ -84,7 +85,7 @@ void zmq::kqueue_t::rm_fd (handle_t handle_)
         kevent_delete (pe->fd, EVFILT_READ);
     if (pe->flag_pollout)
         kevent_delete (pe->fd, EVFILT_WRITE);
-    pe->fd = -1;
+    pe->fd = retired_fd;
     retired.push_back (pe);
 }
 
@@ -128,17 +129,17 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
     for (int i = 0; i < n; i ++) {
         poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
 
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].flags & EV_EOF)
             if (poller_->process_event (pe->engine, event_err))
                 return true;
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].filter == EVFILT_WRITE)
             if (poller_->process_event (pe->engine, event_out))
                 return true;
-        if (pe->fd == -1)
+        if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
             if (poller_->process_event (pe->engine, event_in))
