@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PERF_SCTP_HPP_INCLUDED__
-#define __PERF_SCTP_HPP_INCLUDED__
+#ifndef __PERF_SCTP_TRANSPORT_HPP_INCLUDED__
+#define __PERF_SCTP_TRANSPORT_HPP_INCLUDED__
 
 #include "i_transport.hpp"
 

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PERF_YSUITE_HPP_INCLUDED__
-#define __PERF_YSUITE_HPP_INCLUDED__
+#ifndef __PERF_YSUITE_TRANSPORT_HPP_INCLUDED__
+#define __PERF_YSUITE_TRANSPORT_HPP_INCLUDED__
 
 #include <assert.h>
 #include <sys/poll.h>

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PERF_TCP_HPP_INCLUDED__
-#define __PERF_TCP_HPP_INCLUDED__
+#ifndef __PERF_TCP_TRANSPORT_HPP_INCLUDED__
+#define __PERF_TCP_TRANSPORT_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 #include "i_transport.hpp"

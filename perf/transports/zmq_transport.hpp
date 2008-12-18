@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PERF_ZEROMQ_HPP_INCLUDED__
-#define __PERF_ZEROMQ_HPP_INCLUDED__
+#ifndef __PERF_ZMQ_TRANSPORT_HPP_INCLUDED__
+#define __PERF_ZMQ_TRANSPORT_HPP_INCLUDED__
 
 #include "i_transport.hpp"
 
