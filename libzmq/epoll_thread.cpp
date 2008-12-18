@@ -41,7 +41,7 @@ zmq::epoll_t::~epoll_t ()
     close (epoll_fd);
 }
 
-zmq::handle_t zmq::epoll_t::add_fd (int fd_, i_pollable *engine_)
+zmq::handle_t zmq::epoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     poll_entry_t *pe = (poll_entry_t*) malloc (sizeof (poll_entry_t));
     assert (pe != NULL);
