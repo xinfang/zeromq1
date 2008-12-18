@@ -32,6 +32,7 @@
 #include <vector>
 
 #include <zmq/poller.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
@@ -47,7 +48,7 @@ namespace zmq
         poll_t ();
         virtual ~poll_t () {}
 
-        handle_t add_fd (int fd_, i_pollable *engine_);
+        handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
@@ -59,7 +60,7 @@ namespace zmq
 
         struct fd_entry_t
         {
-            int index;
+            fd_t index;
             i_pollable *engine;
         };
 

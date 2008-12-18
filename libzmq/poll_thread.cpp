@@ -31,6 +31,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/poll_thread.hpp>
+#include <zmq/fd.hpp>
 
 zmq::poll_t::poll_t () :
     retired (false)
@@ -43,14 +44,14 @@ zmq::poll_t::poll_t () :
     fd_table.resize (rl.rlim_cur);
 
     for (rlim_t i = 0; i < rl.rlim_cur; i ++)
-        fd_table [i].index = -1;
+        fd_table [i].index = retired_fd;
 }
 
 zmq::handle_t zmq::poll_t::add_fd (int fd_, i_pollable *engine_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
-    assert (fd_table [fd_].index == -1);
+    assert (fd_table [fd_].index == retired_fd);
 
     fd_table [fd_].index = pollset.size() - 1;
     fd_table [fd_].engine = engine_;
@@ -62,12 +63,12 @@ zmq::handle_t zmq::poll_t::add_fd (int fd_, i_pollable *engine_)
 
 void zmq::poll_t::rm_fd (handle_t handle_)
 {
-    int index = fd_table [handle_.fd].index;
-    assert (index != -1);
+    fd_t index = fd_table [handle_.fd].index;
+    assert (index != retired_fd);
 
     //  Mark the fd as unused.
-    pollset [index].fd = -1;
-    fd_table [handle_.fd].index = -1;
+    pollset [index].fd = retired_fd;
+    fd_table [handle_.fd].index = retired_fd;
     retired = true;
 }
 
@@ -107,17 +108,17 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         int fd = pollset [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
-        if (pollset [i].fd == -1)
+        if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
             if (poller_->process_event (engine, event_err))
                 return true;
-        if (pollset [i].fd == -1)
+        if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLOUT)
             if (poller_->process_event (engine, event_out))
                 return true;
-        if (pollset [i].fd == -1)
+        if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLIN)
             if (poller_->process_event (engine, event_in))
@@ -128,7 +129,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
     if (retired) {
         pollset_t::size_type i = 0;
         while (i < pollset.size ()) {
-            if (pollset [i].fd == -1)
+            if (pollset [i].fd == retired_fd)
                 pollset.erase (pollset.begin () + i);
             else {
                 fd_table [pollset [i].fd].index = i;
