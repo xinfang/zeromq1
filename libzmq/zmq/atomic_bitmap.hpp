@@ -85,7 +85,7 @@ namespace zmq
                 integer_t newval = (oldval | (integer_t (1) << set_index_)) &
                     ~(integer_t (1) << reset_index_);
                 if (InterlockedCompareExchange ((volatile LONG*) &value, newval,
-                      oldval) == (LONG)oldval)
+                      oldval) == (LONG) oldval)
                     return (oldval & (integer_t (1) << reset_index_)) ?
                         true : false; 
             }
@@ -198,7 +198,7 @@ namespace zmq
                 integer_t oldval = value;
                 integer_t newval = oldval == 0 ? thenval_ : elseval_; 
                 if (InterlockedCompareExchange ((volatile LONG*) &value, newval,
-                      oldval) == (LONG)oldval)
+                      oldval) == (LONG) oldval)
                     return oldval;
             }
 #elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
