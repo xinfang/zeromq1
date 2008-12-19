@@ -20,12 +20,14 @@
 #ifndef __PERF_TCP_TRANSPORT_HPP_INCLUDED__
 #define __PERF_TCP_TRANSPORT_HPP_INCLUDED__
 
-#include <zmq/platform.hpp>
+
 #include "i_transport.hpp"
 
+#include <zmq/platform.hpp>
 #include <zmq/tcp_listener.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/wire.hpp>
+#include <zmq/err.hpp>
 
 #include <assert.h>
 #include <string.h>
@@ -39,6 +41,17 @@ namespace perf
         tcp_t (bool listen_, const char *iface_or_host_) : tcp_listener (NULL),
               tcp_socket (NULL)
         {
+#ifdef ZMQ_HAVE_WINDOWS
+
+    //  Intialise Windows sockets. Note that WSAStartup can be called multiple
+    //  times given that WSACleanup will be called for each WSAStartup.
+    WORD version_requested = MAKEWORD (2, 2);
+    WSADATA wsa_data;
+    int rc = WSAStartup (version_requested, &wsa_data);
+    errno_assert (rc == 0);
+    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
+#endif  
+
             //  We need to know port to listen and to bind to.
             assert (strchr (iface_or_host_, ':'));
            
@@ -60,6 +73,7 @@ namespace perf
                 //  Create a socket and connect to the peer.
                 tcp_socket = new zmq::tcp_socket_t (iface_or_host_, true);
             }
+
         }
 
         inline ~tcp_t ()
@@ -79,13 +93,9 @@ namespace perf
             zmq::put_uint32 ((unsigned char*)buffer, size_);
             
             //  Send the data over the wire.
-#ifdef ZMQ_HAVE_WINDOWS
+
             int bytes = tcp_socket->write (buffer, sizeof (uint32_t) + size_);
             assert (bytes == (int) (sizeof (uint32_t) + size_));
-#else
-            ssize_t bytes = tcp_socket->write (buffer, sizeof (uint32_t) + size_);
-            assert (bytes == (ssize_t) (sizeof (uint32_t) + size_));
-#endif
 
             //  Cleanup.
             free (buffer);
@@ -95,11 +105,8 @@ namespace perf
         {
             //  Read the message size.
             uint32_t sz;
-#ifdef ZMQ_HAVE_WINDOWS
+
             int bytes = tcp_socket->read (&sz, sizeof (uint32_t));
-#else
-            ssize_t bytes = tcp_socket->read (&sz, sizeof (uint32_t));
-#endif
             assert (bytes == sizeof (uint32_t));
             
             sz = zmq::get_uint32 ((unsigned char*)&sz);
@@ -110,11 +117,7 @@ namespace perf
 
             //  Read the message body.
             bytes = tcp_socket->read (buffer, sz);
-#ifdef ZMQ_HAVE_WINDOWS
             assert (bytes == (int) sz);
-#else
-            assert (bytes == (ssize_t) sz);
-#endif
 
             //  Cleanup.
             free (buffer);
