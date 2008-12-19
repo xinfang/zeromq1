@@ -30,6 +30,9 @@
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
+/* Define to 1 if you have the `qpidclient' library (-lqpidclient). */
+#undef HAVE_LIBQPIDCLIENT
+
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 

@@ -122,6 +122,16 @@ AC_ARG_WITH([perf], [AS_HELP_STRING([--with-perf], [build performance tests [def
 cpu_estimator="no"
 time_measure="gettime"
 
+# qpid performance tests
+qpid="no"
+AC_ARG_ENABLE([qpid], [AS_HELP_STRING([--enable-qpid],[bild qpid performance test [default=no]])], [with_qpid=yes], [with_qpid=no])
+
+if test "x$with_qpid" != "xno"; then
+    if test "x$with_perf" = "xno"; then
+        AC_MSG_ERROR([To run configure with --enable-qpid option, --with-perf oprion has be used.]);
+    fi
+fi
+
 # performance measuring framework (perf)
 if test "x$with_perf" != "xno"; then
     perf="yes"
@@ -170,6 +180,27 @@ if test "x$with_perf" != "xno"; then
         time_measure="rtdsc"
     fi
 
+    if test "x$with_qpid" != "xno"; then
+
+        AC_MSG_CHECKING([wheter can compile with Qpid headers])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+            [#include <qpid/client/Connection.h>]
+            [#include <qpid/client/Session.h>]
+            [#include <qpid/client/Message.h>]
+            [#include <qpid/client/LocalQueue.h>]
+            [#include <qpid/client/SubscriptionManager.h>]
+            ],
+            [[]])], 
+                [qpid_compile=yes], 
+                [AC_MSG_ERROR([Could not use Qpid header files. Set CXXFLAGS to Qpid include directory.])])
+        AC_MSG_RESULT([$qpid_compile])
+
+        AC_CHECK_LIB(qpidclient, main, 
+                [],
+                [AC_MSG_ERROR([Could not link with qpidclient library. Set LDFLAGS to Qpid lib directory.])])
+
+        qpid="yes"
+    fi
 fi
 
 # Camera example
@@ -301,6 +332,7 @@ AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
+AM_CONDITIONAL(BUILD_QPID, test "x$qpid" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -335,7 +367,7 @@ AC_OUTPUT(Makefile libzmq/Makefile libczmq/Makefile libpyzmq/Makefile \
 libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 perf/tests/tcp/Makefile perf/helpers/Makefile examples/chat/Makefile \
-man/Makefile zmq_server/Makefile)
+man/Makefile zmq_server/Makefile perf/tests/qpid/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -356,6 +388,7 @@ AC_MSG_RESULT([])
 AC_MSG_RESULT([ Addons:])
 AC_MSG_RESULT([   manual pages: $install_man]) 
 AC_MSG_RESULT([   performance tests: $perf ($time_measure)]) 
+AC_MSG_RESULT([     Qpid performance tests: $qpid]) 
 AC_MSG_RESULT([   camera example: $camera])
 AC_MSG_RESULT([   stock exchange example: $exchange])
 AC_MSG_RESULT([   chartoom example: $chat])
