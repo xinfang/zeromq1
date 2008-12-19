@@ -79,8 +79,13 @@ namespace perf
             zmq::put_uint32 ((unsigned char*)buffer, size_);
             
             //  Send the data over the wire.
+#ifdef ZMQ_HAVE_WINDOWS
+            int bytes = tcp_socket->write (buffer, sizeof (uint32_t) + size_);
+            assert (bytes == (int) (sizeof (uint32_t) + size_));
+#else
             ssize_t bytes = tcp_socket->write (buffer, sizeof (uint32_t) + size_);
             assert (bytes == (ssize_t) (sizeof (uint32_t) + size_));
+#endif
 
             //  Cleanup.
             free (buffer);
@@ -90,7 +95,11 @@ namespace perf
         {
             //  Read the message size.
             uint32_t sz;
+#ifdef ZMQ_HAVE_WINDOWS
+            int bytes = tcp_socket->read (&sz, sizeof (uint32_t));
+#else
             ssize_t bytes = tcp_socket->read (&sz, sizeof (uint32_t));
+#endif
             assert (bytes == sizeof (uint32_t));
             
             sz = zmq::get_uint32 ((unsigned char*)&sz);
@@ -101,7 +110,11 @@ namespace perf
 
             //  Read the message body.
             bytes = tcp_socket->read (buffer, sz);
+#ifdef ZMQ_HAVE_WINDOWS
+            assert (bytes == (int) sz);
+#else
             assert (bytes == (ssize_t) sz);
+#endif
 
             //  Cleanup.
             free (buffer);

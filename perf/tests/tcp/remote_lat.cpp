@@ -23,6 +23,7 @@
 
 #include "../../transports/tcp_transport.hpp"
 #include "../scenarios/lat.hpp"
+#include "zmq/err.hpp"
 
 using namespace std;
 
@@ -42,6 +43,17 @@ int main (int argc, char *argv [])
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl << endl;
+
+#ifdef ZMQ_HAVE_WINDOWS
+
+    //  Intialise Windows sockets. Note that WSAStartup can be called multiple
+    //  times given that WSACleanup will be called for each WSAStartup.
+    WORD version_requested = MAKEWORD (2, 2);
+    WSADATA wsa_data;
+    int rc = WSAStartup (version_requested, &wsa_data);
+    errno_assert (rc == 0);
+    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
+#endif  
 
     //  Create tcp transport.
     perf::tcp_t transport (false, peer_ip);

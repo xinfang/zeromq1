@@ -60,7 +60,9 @@ namespace perf
 
         //  FILETIME contains a 64-bit value representing the number of 100-nanosecond
         //  intervals since January 1, 1601 (UTC).
-        return ((uint64_t) ft.dwHighDateTime << 32 | ft.dwLowDateTime) * 100;
+        //  The value is not multiplied by 100, because if would cause overflow, anyway
+        //  we only need it to calculate relative time, so it doesn't lead to an error.
+        return ((uint64_t) ft.dwHighDateTime << 32 | ft.dwLowDateTime) ;
 #else
         struct timeval tv;
         int rc = gettimeofday (&tv, NULL);

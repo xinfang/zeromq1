@@ -92,7 +92,7 @@ namespace perf
 
         //  Capture test stop timestamp.
         args->stop_time = now();
-
+        
         //  Send sync message to the peer.
         args->transport->send (1);
 
@@ -162,16 +162,15 @@ namespace perf
                 max_stop_time = workers_args [thread_nbr].stop_time;
 
         }
-
+        
+        //  Calculate results.
         delete [] workers_args;
         delete [] workers;
-
-        //  Calculate results.
 
         //  Test time in [ms] with [ms] resolution, do not use for math!!!
         uint64_t test_time = uint64_t (max_stop_time - min_start_time) /
             (uint64_t) 1000000;
-
+                
         //  Throughput [msgs/s].
         uint64_t msg_thput = ((uint64_t) 1000000000 *
             (uint64_t) msg_count_ * (uint64_t) thread_count_) /
