@@ -198,14 +198,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath="..\..\examples\exchange\graph.pl"
-			>
-		</File>
-		<File
-			RelativePath="..\..\examples\exchange\Makefile.am"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="chat"
+	Name="chatroom"
 	ProjectGUID="{AFA8BDBB-6D20-4172-8736-4037301B9E6B}"
 	RootNamespace="chat"
 	TargetFrameworkVersion="196613"

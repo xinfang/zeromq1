@@ -46,7 +46,7 @@
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -341,6 +341,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\export.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\fd.hpp"
 				>
 			</File>
 			<File

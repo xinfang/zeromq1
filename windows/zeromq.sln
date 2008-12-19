@@ -74,7 +74,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjzmq", "libjzmq\libjzmq.
 		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chat", "chat\chat.vcproj", "{AFA8BDBB-6D20-4172-8736-4037301B9E6B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chatroom", "chat\chat.vcproj", "{AFA8BDBB-6D20-4172-8736-4037301B9E6B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
 	EndProjectSection
@@ -100,6 +100,26 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "me", "me\me.vcproj", "{3989
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtw", "gtw\gtw.vcproj", "{3230AA90-3EA1-433A-B5C1-1EECEF5D42C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_local_lat", "tcp_local_lat\tcp_local_lat.vcproj", "{F261181D-B579-4F37-820B-FEF3AC736CE8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_remote_lat", "tcp_remote_lat\tcp_remote_lat.vcproj", "{34785F45-C09F-422F-A99A-273196597F25}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_local_thr", "tcp_local_thr\tcp_local_thr.vcproj", "{0AB99926-3759-4164-AA87-903C0AA3F4CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_remote_thr", "tcp_remote_thr\tcp_remote_thr.vcproj", "{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
 	EndProjectSection
@@ -186,6 +206,22 @@ Global
 		{3230AA90-3EA1-433A-B5C1-1EECEF5D42C7}.Debug|Win32.Build.0 = Debug|Win32
 		{3230AA90-3EA1-433A-B5C1-1EECEF5D42C7}.Release|Win32.ActiveCfg = Release|Win32
 		{3230AA90-3EA1-433A-B5C1-1EECEF5D42C7}.Release|Win32.Build.0 = Release|Win32
+		{F261181D-B579-4F37-820B-FEF3AC736CE8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F261181D-B579-4F37-820B-FEF3AC736CE8}.Debug|Win32.Build.0 = Debug|Win32
+		{F261181D-B579-4F37-820B-FEF3AC736CE8}.Release|Win32.ActiveCfg = Release|Win32
+		{F261181D-B579-4F37-820B-FEF3AC736CE8}.Release|Win32.Build.0 = Release|Win32
+		{34785F45-C09F-422F-A99A-273196597F25}.Debug|Win32.ActiveCfg = Debug|Win32
+		{34785F45-C09F-422F-A99A-273196597F25}.Debug|Win32.Build.0 = Debug|Win32
+		{34785F45-C09F-422F-A99A-273196597F25}.Release|Win32.ActiveCfg = Release|Win32
+		{34785F45-C09F-422F-A99A-273196597F25}.Release|Win32.Build.0 = Release|Win32
+		{0AB99926-3759-4164-AA87-903C0AA3F4CB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0AB99926-3759-4164-AA87-903C0AA3F4CB}.Debug|Win32.Build.0 = Debug|Win32
+		{0AB99926-3759-4164-AA87-903C0AA3F4CB}.Release|Win32.ActiveCfg = Release|Win32
+		{0AB99926-3759-4164-AA87-903C0AA3F4CB}.Release|Win32.Build.0 = Release|Win32
+		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Debug|Win32.Build.0 = Debug|Win32
+		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Release|Win32.ActiveCfg = Release|Win32
+		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
