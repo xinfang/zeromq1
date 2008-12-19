@@ -196,7 +196,7 @@ if test "x$with_perf" != "xno"; then
         AC_MSG_RESULT([$qpid_compile])
 
         AC_CHECK_LIB(qpidclient, main, 
-                [],
+                [qpid_link=yes],
                 [AC_MSG_ERROR([Could not link with qpidclient library. Set LDFLAGS to Qpid lib directory.])])
 
         qpid="yes"
