@@ -84,7 +84,7 @@ void zmq::locator_t::create (unsigned char type_id_, const char *object_,
          bp_listener_t *listener = bp_listener_t::create (listener_thread_,
              interface_, handler_thread_count_, handler_threads_,
              type_id_ == exchange_type_id ? false : true, context_,
-             engine_, object_, hwm_, lwm_);
+             engine_, object_, hwm_, lwm_, object_);
                   
          //  Send to 'create' command.
          unsigned char cmd = create_id;

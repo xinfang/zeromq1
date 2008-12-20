@@ -102,6 +102,9 @@ namespace zmq
         //  from, 0 is no message was retrieved.
         int receive (message_t *msg_, bool block_ = true);
 
+        //  Returns queue size if available, zero otherwise.
+        uint64_t queue_size (const char *name_);
+
     private:
 
         api_thread_t (dispatcher_t *dispatcher_, i_locator *locator_);
@@ -109,6 +112,7 @@ namespace zmq
         //  i_context implementation.
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
+        void adjust_queue_size (const char *name_, int delta_);
 
         //  i_engine implementation.
         void process_command (const engine_command_t &command_);

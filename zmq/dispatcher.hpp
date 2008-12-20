@@ -21,10 +21,13 @@
 #define __ZMQ_DISPATCHER_HPP_INCLUDED__
 
 #include <vector>
+#include <map>
+#include <string>
 #include <pthread.h>
 
 #include "i_context.hpp"
 #include "i_signaler.hpp"
+#include "stdint.hpp"
 #include "ypipe.hpp"
 #include "config.hpp"
 
@@ -92,6 +95,12 @@ namespace zmq
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
 
+        //  Adjusts the size of a particular queue by given delta.
+        void adjust_queue_size (const char *name_, int delta_);
+
+        //  Get size of a particular queue.
+        uint64_t queue_size (const char *name_);
+
     private:
 
         //  Pipe to hold the commands.
@@ -117,6 +126,12 @@ namespace zmq
         //  to sync the commands from the administrative context.
         std::vector <bool> used;
         pthread_mutex_t mutex;
+
+        //  Following structures hold info required to compute queue sizes.
+        //  The access to the structures is synchronised by the same mutex
+        //  as 'used' vector is.
+        typedef std::map <std::string, int> stats_t;
+        stats_t stats;
 
         dispatcher_t (const dispatcher_t&);
         void operator = (const dispatcher_t&);

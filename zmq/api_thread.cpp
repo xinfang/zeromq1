@@ -315,6 +315,11 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
     return qid;
 }
 
+uint64_t zmq::api_thread_t::queue_size (const char *name_)
+{
+    return dispatcher->queue_size (name_);
+}
+
 int zmq::api_thread_t::get_thread_id ()
 {
     return thread_id;
@@ -324,6 +329,11 @@ void zmq::api_thread_t::send_command (i_context *destination_,
     const command_t &command_)
 {
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
+}
+
+void zmq::api_thread_t::adjust_queue_size (const char *name_, int delta_)
+{
+    dispatcher->adjust_queue_size (name_, delta_);
 }
 
 void zmq::api_thread_t::process_command (const engine_command_t &command_)

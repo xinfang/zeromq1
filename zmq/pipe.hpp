@@ -20,6 +20,8 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
+#include <string>
+
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "ypipe.hpp"
@@ -37,7 +39,7 @@ namespace zmq
             struct i_engine *source_engine_,
             struct i_context *destination_context_,
             struct i_engine *destination_engine_,
-            int hwm_ = 0, int lwm_ = 0);
+            int hwm_ = 0, int lwm_ = 0, const char *queue_name_ = NULL);
         ~pipe_t ();
 
         //  Sets pointer to the mux object on receiving side of the pipe.
@@ -106,6 +108,12 @@ namespace zmq
         //  is the high water mark for the pipe and lwm is the low water mark.
         int hwm;
         int lwm;
+
+        //  If true, queue size should be monitored.
+        bool size_monitoring;
+
+        //  Name to used in queue size monitoring (if switched on).
+        std::string queue_name;
 
         //  Following message sequence numbers use RFC1982-like wraparound.
 

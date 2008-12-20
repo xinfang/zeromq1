@@ -58,6 +58,7 @@ namespace zmq
         //  i_context implementation
         int get_thread_id ();
         void send_command (i_context *destination_, const command_t &command_);
+        void adjust_queue_size (const char *name_, int delta_);
 
         //  i_poller implementation.
         void set_fd (int handle_, int fd_);

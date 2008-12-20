@@ -21,10 +21,11 @@
 #include "pipe.hpp"
 #include "command.hpp"
 #include "mux.hpp"
+#include "config.hpp"
 
 zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
       i_context *destination_context_, i_engine *destination_engine_,
-      int hwm_, int lwm_) :
+      int hwm_, int lwm_, const char *queue_name_) :
     pipe (false),
     source_context (source_context_),
     source_engine (source_engine_),
@@ -35,12 +36,19 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     endofpipe (false),
     hwm (hwm_),
     lwm (lwm_),
+    size_monitoring (false),
     head (0),
     tail (0),
     last_head (0)
 {
     //  If high water mark was lower than low water mark pipe would hang up.
     assert (lwm <= hwm);
+
+    //  If size monitoring is required, store the queue name.
+    if (queue_name_) {
+        size_monitoring = true;
+        queue_name = queue_name_;
+    }
 }
 
 zmq::pipe_t::~pipe_t ()
@@ -83,6 +91,11 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
     //  Move the tail.
     tail ++;
+
+    //  Adjust the queue size statistics.
+    if (size_monitoring && tail % queue_size_granularity == 0)
+        source_context->adjust_queue_size (queue_name.c_str (),
+            queue_size_granularity);
 }
 
 void zmq::pipe_t::write_delimiter ()
@@ -133,9 +146,11 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         return false;
     }
 
+    //  Adjust head position.
+    head ++;
+
     //  Once in N messages send current head position to the writer thread.
     if (hwm) {
-        head ++;
 
         //  If high water mark is same as low water mark we have to report each
         //  message retrieval from the pipe. Otherwise the period N is computed
@@ -146,6 +161,11 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
             destination_context->send_command (source_context, cmd);
         }
     }
+
+    //  Adjust the queue size statistics.
+    if (size_monitoring && head % queue_size_granularity == 0)
+        source_context->adjust_queue_size (queue_name.c_str (),
+            -queue_size_granularity);
 
     return true;
 }

@@ -42,7 +42,8 @@ namespace zmq
             const char *interface_,
             int handler_thread_count_, poll_thread_t **handler_threads_,
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
-            const char *peer_name_, int hwm_, int lwm_);
+            const char *peer_name_, int hwm_, int lwm_,
+            const char *queue_name_);
 
         //  Returns port listener is listening on.
         inline const char *get_interface ()
@@ -62,7 +63,8 @@ namespace zmq
         bp_listener_t (poll_thread_t *thread_, const char *interface_,
             int handler_thread_count_, poll_thread_t **handler_threads_,
             bool source_, i_context *peer_context_, i_engine *peer_engine_,
-            const char *peer_name_, int hwm_, int lwm_);
+            const char *peer_name_, int hwm_, int lwm_,
+            const char *queue_name_);
         ~bp_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
@@ -94,6 +96,13 @@ namespace zmq
         //  Pipe limits for new connections.
         int hwm;
         int lwm;
+
+        //  If true, queue size should be monitored. (Size monitoring makes
+        //  sense only if the listener is representing a queue object.)
+        bool size_monitoring;
+
+        //  Name to used in queue size monitoring (if switched on).
+        std::string queue_name;
 
         bp_listener_t (const bp_listener_t&);
         void operator = (const bp_listener_t&);

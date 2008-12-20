@@ -75,6 +75,11 @@ void zmq::poll_thread_t::send_command (i_context *destination_,
     dispatcher->write (thread_id, destination_->get_thread_id (), command_);
 }
 
+void zmq::poll_thread_t::adjust_queue_size (const char *name_, int delta_)
+{
+    dispatcher->adjust_queue_size (name_, delta_);
+}
+
 void zmq::poll_thread_t::set_fd (int handle_, int fd_)
 {
     pollset [fds [handle_]].fd = fd_;

@@ -41,6 +41,9 @@ namespace zmq
         //  Sends command to a different thread
         virtual void send_command (i_context *destination_,
             const struct command_t &command_) = 0;
+
+        //  Adjusts the queue size.
+        virtual void adjust_queue_size (const char *name_, int delta_) = 0;
     };
 
 }

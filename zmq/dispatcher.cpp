@@ -116,3 +116,49 @@ void zmq::dispatcher_t::send_command (i_context *destination_,
     errno_assert (rc == 0);
 }
 
+void zmq::dispatcher_t::adjust_queue_size (const char *name_, int delta_)
+{
+    //  Lock the mutex.
+    int rc = pthread_mutex_lock (&mutex);
+    errno_assert (rc == 0);
+
+    //  If the entry for particular queue doesn't exist, create it.
+    stats_t::iterator it = stats.find (name_);
+    if (it == stats.end ())
+       it = stats.insert (stats_t::value_type (name_, 0)).first;
+
+    //  Adjust the queue size.
+    it->second += delta_;
+
+    //  Unlock the mutex.
+    rc = pthread_mutex_unlock (&mutex);
+    errno_assert (rc == 0);
+}
+
+uint64_t zmq::dispatcher_t::queue_size (const char *name_)
+{
+    //  Lock the mutex.
+    int rc = pthread_mutex_lock (&mutex);
+    errno_assert (rc == 0);
+
+    int size = 0;
+
+    stats_t::iterator it = stats.find (name_);
+    if (it != stats.end ()) {
+
+        //  This may happen occasionally when reading thread mangages to
+        //  deliver its negative delta before writing thread delivers positive
+        //  delta.
+        if (it->second < 0)
+            size = 0;
+        else
+            size = it->second;
+    }
+
+    //  Unlock the mutex.
+    rc = pthread_mutex_unlock (&mutex);
+    errno_assert (rc == 0);
+
+    return (uint64_t) size;
+}
+
