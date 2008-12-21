@@ -57,9 +57,9 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
           it != exchanges.end (); it ++)
         if (it->first == exchange_)
             return it - exchanges.begin ();
-    demux_t *demux = new demux_t ();
-    assert (demux);
-    exchanges.push_back (exchanges_t::value_type (exchange_, demux));
+
+    out_engine_t *engine = out_engine_t::create ();
+    exchanges.push_back (exchanges_t::value_type (exchange_, engine));
 
     //  If the scope of the exchange is local, we won't register it
     //  with the locator.
@@ -67,7 +67,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    locator->create (this, exchange_type_id, exchange_, this, this,
+    locator->create (this, exchange_type_id, exchange_, this, engine,
         scope_, interface_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -84,9 +84,9 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
           it != queues.end (); it ++)
         if (it->first == queue_)
             return it - queues.begin ();
-    mux_t *mux = new mux_t ();
-    assert (mux);
-    queues.push_back (queues_t::value_type (queue_, mux));
+
+    in_engine_t *engine = in_engine_t::create ();
+    queues.push_back (queues_t::value_type (queue_, engine));
 
     //  If the scope of the queue is local, we won't register it
     //  with the locator.
@@ -94,7 +94,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    locator->create (this, queue_type_id, queue_, this, this, scope_,
+    locator->create (this, queue_type_id, queue_, this, engine, scope_,
         interface_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -113,7 +113,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             break;
     if (eit != exchanges.end ()) {
         exchange_thread = this;
-        exchange_engine = this;
+        exchange_engine = eit->second;
     }
     else {
         if (!(locator->get (this, exchange_type_id, exchange_,
@@ -138,7 +138,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             break;
     if (qit != queues.end ()) {
         queue_thread = this;
-        queue_engine = this;
+        queue_engine = qit->second;
     }
     else {
         if (!(locator->get (this, queue_type_id, queue_,
@@ -338,97 +338,14 @@ void zmq::api_thread_t::destroy ()
     //  Afterwards 'delete this' can be executed.
 }
 
-zmq::engine_type_t zmq::api_thread_t::type ()
-{
-    return engine_type_api;
-}
-
-void zmq::api_thread_t::process_command (const engine_command_t &command_)
-{
-    switch (command_.type) {
-    case engine_command_t::revive:
-
-        //  Forward the revive command to the pipe.
-        command_.args.revive.pipe->revive ();
-        break;
-
-    case engine_command_t::head:
-
-       //  Forward pipe head position to the appropriate pipe.
-       command_.args.head.pipe->set_head (command_.args.head.position);
-       break;
-
-    case engine_command_t::send_to:
-        {
-            //  Find the right demux.
-            exchanges_t::iterator it;
-            for (it = exchanges.begin (); it != exchanges.end (); it ++)
-                if (it->first == command_.args.send_to.exchange)
-                    break;
-            assert (it != exchanges.end ());
-
-            //  Start sending messages to a pipe.
-            it->second->send_to (command_.args.send_to.pipe);
-        }
-        break;
-
-    case engine_command_t::receive_from:
-        {
-            //  Find the right mux.
-            queues_t::iterator it;
-            for (it = queues.begin (); it != queues.end (); it ++)
-                if (it->first == command_.args.receive_from.queue)
-                    break;
-            assert (it != queues.end ());
-
-            //  Start receiving messages from a pipe.
-            it->second->receive_from (command_.args.receive_from.pipe, false);
-        }
-        break;
-
-    case engine_command_t::terminate_pipe:
-        {
-            //  Forward the command to the pipe.
-            command_.args.terminate_pipe.pipe->writer_terminated ();
-
-            //  Remove all references to the pipe.
-            //  TODO:  Iterating through all the exchanges is inefficient.
-            //  This will be solved once exchanges & queues become engines.
-            exchanges_t::iterator it;
-            for (it = exchanges.begin (); it != exchanges.end (); it ++)
-                it->second->release_pipe (command_.args.terminate_pipe.pipe);
-        }
-        break;
-
-    case engine_command_t::terminate_pipe_ack:
-        {
-            //  Forward the command to the pipe.
-            command_.args.terminate_pipe.pipe->reader_terminated ();
-
-            //  Remove all references to the pipe.
-            //  TODO:  Iterating through all the exchanges is inefficient.
-            //  This will be solved once exchanges & queues become engines.
-            queues_t::iterator it;
-            for (it = queues.begin (); it != queues.end (); it ++)
-                it->second->release_pipe (command_.args.terminate_pipe.pipe);
-        }
-        break;
-
-    default:
-
-        //  Unsupported/unknown command.
-        assert (false);
-     }
-}
-
 void zmq::api_thread_t::process_command (const command_t &command_)
 {
     switch (command_.type) {
 
-    //  Process engine command.
+    //  Forward engine command to appropriate engine.
     case command_t::engine_command:
-        assert (command_.args.engine_command.engine == (i_engine*) this);
-        process_command (command_.args.engine_command.command);
+        command_.args.engine_command.engine->process_command (
+            command_.args.engine_command.command);
         break;
 
     //  Unsupported/unknown command.

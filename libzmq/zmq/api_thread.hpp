@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef __ZMQ_API_THREAD_HPP_INCLUDED__
 #define __ZMQ_API_THREAD_HPP_INCLUDED__
 
@@ -27,15 +26,14 @@
 
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_locator.hpp>
 #include <zmq/i_poller.hpp>
 #include <zmq/message.hpp>
 #include <zmq/dispatcher.hpp>
-#include <zmq/mux.hpp>
-#include <zmq/demux.hpp>
 #include <zmq/ypollset.hpp>
 #include <zmq/scope.hpp>
+#include <zmq/in_engine.hpp>
+#include <zmq/out_engine.hpp>
 
 namespace zmq
 {
@@ -43,7 +41,7 @@ namespace zmq
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create an api_thread for each of them.
 
-    class api_thread_t : private i_thread, private i_engine
+    class api_thread_t : private i_thread
     {
     public:
 
@@ -105,10 +103,6 @@ namespace zmq
         void stop ();
         void destroy ();
 
-        //  i_engine implementation.
-        engine_type_t type ();
-        void process_command (const engine_command_t &command_);
-
         //  Processes single command.
         void process_command (const command_t &command_);
 
@@ -136,11 +130,13 @@ namespace zmq
         ypollset_t pollset;
 
         //  List of exchanges belonging to the API thread.
-        typedef std::vector <std::pair <std::string, demux_t*> > exchanges_t;
+        typedef std::vector <std::pair <std::string, out_engine_t*> >
+            exchanges_t;
         exchanges_t exchanges;
 
         //  List of queues belonging to the API thread.
-        typedef std::vector <std::pair <std::string, mux_t*> > queues_t;
+        typedef std::vector <std::pair <std::string, in_engine_t*> >
+            queues_t;
         queues_t queues;
 
         //  Current queue points to the queue to be used to retrieving

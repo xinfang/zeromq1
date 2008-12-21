@@ -54,7 +54,9 @@ pkginclude_HEADERS = \
     ./zmq/export.hpp \
     ./zmq/server_protocol.hpp \
     ./zmq/windows.hpp \
-    ./zmq/fd.hpp
+    ./zmq/fd.hpp \
+    ./zmq/out_engine.hpp \
+    ./zmq/in_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -81,7 +83,9 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_listener.cpp \
     ip.cpp \
     thread.cpp \
-    select_thread.cpp
+    select_thread.cpp \
+    out_engine.cpp \
+    in_engine.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
