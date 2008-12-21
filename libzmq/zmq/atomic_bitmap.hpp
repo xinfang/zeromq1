@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_BITMAP_HPP_INCLUDED__
 
