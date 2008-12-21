@@ -26,9 +26,23 @@
 #include <zmq/platform.hpp>
 #include <zmq/mutex.hpp>
 
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_FORCE_MUTEXES
+#define ZMQ_ATOMIC_COUNTER_MUTEX
+#elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
+#define ZMQ_ATOMIC_COUNTER_X86
+#elif 0 && defined __sparc__ && defined __GNUC__
+#define ZMQ_ATOMIC_COUNTER_SPARC
+#elif defined ZMQ_HAVE_WINDOWS
+#define ZMQ_ATOMIC_COUNTER_WINDOWS
+#elif defined ZMQ_HAVE_SOLARIS
+#define ZMQ_ATOMIC_COUNTER_SOLARIS
+#else
+#define ZMQ_ATOMIC_COUNTER_MUTEX
+#endif
+
+#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
 #include <zmq/windows.hpp>
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
 #include <atomic.h>
 #endif
 
@@ -63,23 +77,21 @@ namespace zmq
         //  before the operation.
         inline bool add (integer_t increment)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 increment);
             return old != 0;
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
             integer_t nv = atomic_add_32_nv (&value, increment);
             return nv != increment;             
-#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_COUNTER_X86
             volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
                 : "=r" (increment), "=m" (*val)
                 : "0" (increment), "m" (*val)
                 : "cc");
             return increment;
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_COUNTER_SPARC
             volatile integer_t *val = &value;
             integer_t tmp;
             integer_t result;
@@ -95,27 +107,28 @@ namespace zmq
                 : "r" (val)
                 : "cc");
             return result; 
-#else
+#elif defined ZMQ_ATOMIC_COUNTER_MUTEX
             sync.lock ();
             bool result = value ? true : false;
             value += increment;
             sync.unlock ();
             return result;
+#else
+#error
 #endif
         }
 
         //  Atomic subtraction. Returns false if the counter drops to zero.
         inline bool sub (integer_t decrement)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
             integer_t old = InterlockedExchangeAdd ((LONG*) &value,
                 -decrement);
             return old - decrement != 0;
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
             integer_t nv = atomic_add_32_nv (&value, -decrement);
             return nv != 0;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_COUNTER_X86
             integer_t oldval = -decrement;
             volatile integer_t *val = &value;
             __asm__ volatile ("lock; xaddl %0,%1"
@@ -123,8 +136,7 @@ namespace zmq
                 : "0" (oldval), "m" (*val)
                 : "cc");
             return oldval != decrement;
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_COUNTER_SPARC
             volatile integer_t *val = &value;
             integer_t tmp;
             integer_t result;
@@ -140,20 +152,21 @@ namespace zmq
                 : "r" (val)
                 : "cc");
             return result <= decrement;
-#else
+#elif defined ZMQ_ATOMIC_COUNTER_MUTEX
             sync.lock ();
             value -= decrement;
             bool result = value ? true : false;
             sync.unlock ();
             return result;
+#else
+#error
 #endif
         }
 
     private:
 
         volatile integer_t value;
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) ||\
-    (!defined (__i386__) && !defined (__x86_64__) /*&& !defined (__sparc__)*/))
+#if defined ZMQ_ATOMIC_COUNTER_MUTEX
         mutex_t sync;
 #endif
 
@@ -162,5 +175,22 @@ namespace zmq
     };
 
 }
+
+//  Remove macros local to this file.
+#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
+#undef ZMQ_ATOMIC_COUNTER_WINDOWS
+#endif
+#if defined ZMQ_ATOMIC_COUNTER_SOLARIS
+#undef ZMQ_ATOMIC_COUNTER_SOLARIS
+#endif
+#if defined ZMQ_ATOMIC_COUNTER_X86
+#undef ZMQ_ATOMIC_COUNTER_X86
+#endif
+#if defined ZMQ_ATOMIC_COUNTER_SPARC
+#undef ZMQ_ATOMIC_COUNTER_SPARC
+#endif
+#if defined ZMQ_ATOMIC_COUNTER_MUTEX
+#undef ZMQ_ATOMIC_COUNTER_MUTEX
+#endif
 
 #endif
