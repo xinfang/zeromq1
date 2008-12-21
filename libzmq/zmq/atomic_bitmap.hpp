@@ -30,14 +30,14 @@
 
 #if defined ZMQ_FORCE_MUTEXES
 #define ZMQ_ATOMIC_BITMAP_MUTEX
-#elif defined ZMQ_HAVE_WINDOWS
-#define ZMQ_ATOMIC_BITMAP_WINDOWS
-#elif defined ZMQ_HAVE_SOLARIS
-#define ZMQ_ATOMIC_BITMAP_SOLARIS
 #elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
 #define ZMQ_ATOMIC_BITMAP_X86
 #elif 0 && defined __sparc__ && defined __GNUC__
 #define ZMQ_ATOMIC_BITMAP_SPARC
+#elif defined ZMQ_HAVE_WINDOWS
+#define ZMQ_ATOMIC_BITMAP_WINDOWS
+#elif defined ZMQ_HAVE_SOLARIS
+#define ZMQ_ATOMIC_BITMAP_SOLARIS
 #else
 #define ZMQ_ATOMIC_BITMAP_MUTEX
 #endif
