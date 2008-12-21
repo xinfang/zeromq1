@@ -114,6 +114,10 @@ void zmq::select_t::reset_pollout (handle_t handle_)
 
 bool zmq::select_t::process_events (poller_t <select_t> *poller_)
 {
+    //  Intialise the pollsets.
+    fd_set readfds;
+    fd_set writefds;
+    fd_set exceptfds;
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
     memcpy (&writefds, &source_set_out, sizeof source_set_out);
     memcpy (&exceptfds, &source_set_err, sizeof source_set_err);
