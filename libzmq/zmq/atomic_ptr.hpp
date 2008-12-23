@@ -25,9 +25,23 @@
 #include <zmq/err.hpp>
 #include <zmq/platform.hpp>
 
-#if !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_WINDOWS)
+#if defined ZMQ_FORCE_MUTEXES
+#define ZMQ_ATOMIC_PTR_MUTEX
+#elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
+#define ZMQ_ATOMIC_PTR_X86
+#elif 0 && defined __sparc__ && defined __GNUC__
+#define ZMQ_ATOMIC_PTR_SPARC
+#elif defined ZMQ_HAVE_WINDOWS
+#define ZMQ_ATOMIC_PTR_WINDOWS
+#elif defined ZMQ_HAVE_SOLARIS
+#define ZMQ_ATOMIC_PTR_SOLARIS
+#else
+#define ZMQ_ATOMIC_PTR_MUTEX
+#endif
+
+#if defined ZMQ_ATOMIC_PTR_WINDOWS
 #include <zmq/windows.hpp>
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined (ZMQ_HAVE_SOLARIS)
+#elif defined ZMQ_ATOMIC_PTR_SOLARIS
 #include <atomic.h>
 #endif
 
@@ -63,42 +77,42 @@ namespace zmq
         //  to the 'val' value. Old value is returned.
         inline T *xchg (T *val_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+#if defined ZMQ_ATOMIC_PTR_WINDOWS
             return (T*) InterlockedExchangePointer (&ptr, val_);
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
+#elif defined ZMQ_ATOMIC_PTR_SOLARIS
             return (T*) atomic_swap_ptr (&ptr, val_);
-#elif !defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__)
+#elif defined ZMQ_ATOMIC_PTR_X86
             T *old;
             __asm__ volatile (
                 "lock; xchg %0, %2"
                 : "=r" (old), "=m" (ptr)
                 : "m" (ptr), "0" (val_));
             return old;
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_PTR_SPARC
             T* newptr = val_;
             volatile T** ptrin = &ptr;
             T* tmp;
             T* prev;
             __asm__ __volatile__(
-                "ld [%4], %1\n\t" // tmp = [ptr]
-                "1:\n\t"          // 
-                "mov %0, %2\n\t"  // prev = newptr
-                "cas [%4], %1, %2\n\t" // [ptr], tmp, prev
-                "cmp %1, %2\n\t"       // if tmp != prev  
+                "ld [%4], %1\n\t"        // tmp = [ptr]
+                "1:\n\t"                 // 
+                "mov %0, %2\n\t"         // prev = newptr
+                "cas [%4], %1, %2\n\t"   // [ptr], tmp, prev
+                "cmp %1, %2\n\t"         // if tmp != prev  
                 "bne,a,pn %%icc, 1b\n\t" // 
-                "mov %2, %1\n\t" // tmp = prev
+                "mov %2, %1\n\t"         // tmp = prev
                 : "+r" (newptr), "=&r" (tmp), "=&r" (prev), "+m" (*ptrin)
                 : "r" (ptrin) 
                 : "cc");
             return prev; 
-#else
+#elif defined ZMQ_ATOMIC_PTR_MUTEX
             sync.lock ();
             T *old = (T*) ptr;
             ptr = val_;
             sync.unlock ();
             return old;
+#elif
+#error
 #endif
         }
 
@@ -108,13 +122,12 @@ namespace zmq
         //  is returned.
         inline T *cas (T *cmp_, T *val_)
         {
-#if !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_WINDOWS
+#if defined ZMQ_ATOMIC_PTR_WINDOWS
             return (T*) InterlockedCompareExchangePointer (
                 (volatile PVOID*) &ptr, val_, cmp_);
-#elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
+#elif defined ZMQ_ATOMIC_PTR_SOLARIS
             return (T*) atomic_cas_ptr (&ptr, cmp_, val_);
-#elif !defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
-    defined (__x86_64__)) && defined (__GNUC__)
+#elif defined ZMQ_ATOMIC_PTR_X86
             T *old;
             __asm__ volatile (
                 "lock; cmpxchg %2, %3"
@@ -122,8 +135,7 @@ namespace zmq
                 : "r" (val_), "m" (ptr), "0" (cmp_)
                 : "cc");
             return old;
-#elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
-    defined (__GNUC__))
+#elif defined ZMQ_ATOMIC_PTR_SPARC
             volatile T** ptrin = &ptr;
             volatile T* prev = ptr;
             __asm__ __volatile__(
@@ -132,21 +144,22 @@ namespace zmq
                 : "r" (cmp_), "r" (val_), "r" (ptrin)
                 : "cc");
             return (T*)prev; 
-#else
+#elif defined ZMQ_ATOMIC_PTR_MUTEX
             sync.lock ();
             T *old = (T*) ptr;
             if (ptr == cmp_)
                 ptr = val_;
             sync.unlock ();
             return old;
+#elif
+#error
 #endif
         }
 
     private:
         
         volatile T *ptr;
-#if (defined (ZMQ_FORCE_MUTEXES) || !defined (__GNUC__) || (!defined (__i386__)\
-    && !defined (__x86_64__)))
+#if defined ZMQ_ATOMIC_PTR_MUTEX
         mutex_t sync;
 #endif
 
@@ -155,5 +168,22 @@ namespace zmq
     };
 
 }
+
+//  Remove macros local to this file.
+#if defined ZMQ_ATOMIC_PTR_WINDOWS
+#undef ZMQ_ATOMIC_PTR_WINDOWS
+#endif
+#if defined ZMQ_ATOMIC_PTR_SOLARIS
+#undef ZMQ_ATOMIC_PTR_SOLARIS
+#endif
+#if defined ZMQ_ATOMIC_PTR_X86
+#undef ZMQ_ATOMIC_PTR_X86
+#endif
+#if defined ZMQ_ATOMIC_PTR_SPARC
+#undef ZMQ_ATOMIC_PTR_SPARC
+#endif
+#if defined ZMQ_ATOMIC_PTR_MUTEX
+#undef ZMQ_ATOMIC_PTR_MUTEX
+#endif
 
 #endif

@@ -40,9 +40,9 @@
 #define ZMQ_ATOMIC_COUNTER_MUTEX
 #endif
 
-#if defined ZMQ_ATOMIC_BITMAP_WINDOWS
+#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
 #include <zmq/windows.hpp>
-#elif defined ZMQ_ATOMIC_BITMAP_SOLARIS
+#elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
 #include <atomic.h>
 #endif
 
