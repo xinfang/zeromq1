@@ -67,21 +67,13 @@ namespace zmq
             return (T*) InterlockedExchangePointer (&ptr, val_);
 #elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
             return (T*) atomic_swap_ptr (&ptr, val_);
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
-    defined (__GNUC__))
-            T *old = val_;
-            __asm__ volatile ("lock; xchgl %0, %1"
-                : "=r" (old)
-                : "m" (ptr), "0" (old)
-                : "memory");
-            return old;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
-    defined (__GNUC__))
-            T *old = val_;
-            __asm__ volatile ("lock; xchgq %0, %2"
-                : "=r" (old), "+m" (*ptr)
-                : "m" (ptr), "0" (old)
-                : "memory");
+#elif !defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__)
+            T *old;
+            __asm__ volatile (
+                "lock; xchg %0, %2"
+                : "=r" (old), "=m" (ptr)
+                : "m" (ptr), "0" (val_));
             return old;
 #elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
     defined (__GNUC__))
@@ -121,20 +113,13 @@ namespace zmq
                 (volatile PVOID*) &ptr, val_, cmp_);
 #elif !defined (ZMQ_FORCE_MUTEXES) && defined ZMQ_HAVE_SOLARIS
             return (T*) atomic_cas_ptr (&ptr, cmp_, val_);
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__i386__) &&\
-    defined (__GNUC__))
+#elif !defined (ZMQ_FORCE_MUTEXES) && (defined (__i386__) ||\
+    defined (__x86_64__)) && defined (__GNUC__)
             T *old;
-            __asm__ volatile ("lock; cmpxchgl %2, %3"             
-                : "=a" (old), "+m" (*ptr)               
-                : "r" (val_), "m" (ptr), "0" (cmp_) 
-                : "cc");
-            return old;
-#elif (!defined (ZMQ_FORCE_MUTEXES) && defined (__x86_64__) &&\
-    defined (__GNUC__))
-            T *old;
-            __asm__ __volatile__ ("lock; cmpxchgq %2, %3"             
-                : "=a" (old), "+m" (*ptr)               
-                : "r" (val_), "m" (ptr), "0" (cmp_) 
+            __asm__ volatile (
+                "lock; cmpxchg %2, %3"
+                : "=a" (old), "=m" (ptr)
+                : "r" (val_), "m" (ptr), "0" (cmp_)
                 : "cc");
             return old;
 #elif (0 && !defined (ZMQ_FORCE_MUTEXES) && defined (__sparc__) &&\
