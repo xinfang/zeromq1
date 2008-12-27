@@ -36,6 +36,12 @@
 //  On Solaris platform, network interface name can be queried by ioctl.
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
+    //  * resolves to INADDR_ANY
+    if (!interface_ || (strlen (interface_) == 1 && *interface_ == '*')) {
+        addr_->s_addr = htonl (INADDR_ANY);
+        return;
+    }
+
     //  Create a socket.
     int fd = socket (AF_INET, SOCK_DGRAM, 0);
     assert (fd != -1);
