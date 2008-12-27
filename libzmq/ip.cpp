@@ -153,6 +153,12 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 //  can be queried using getifaddrs function.
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
+    //  * resolves to INADDR_ANY
+    if (!interface_ || (strlen (interface_) == 1 && *interface_ == '*')) {
+        addr_->s_addr = htonl (INADDR_ANY);
+        return;
+    }
+
     //  Initialuse the output parameter.
     memset (addr_, 0, sizeof (in_addr));
 

@@ -74,9 +74,10 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface name.
+    //  Fill in the interface name and port.
+    //  TODO: Resolve IP addess of 0.0.0.0 to local hostname.
+    //  TODO: This string should be stored in the locator rather than here.
     zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
-
     std::string port;
     std::stringstream out;
     out << ntohs (ip_address.sin_port);
@@ -136,11 +137,20 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
         ip_address.sin_port = addr.sin_port;
     }
 
-    //  Fill in the interface name.
-    const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface,
-        sizeof (iface));
-    assert (rcp);
-    size_t isz = strlen (iface);
+    //  Fill in the interface name and port.
+    //  TODO: This string should be stored in the locator rather than here.
+    const char *rcp;
+    size_t isz;
+    if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
+        rc = gethostname (iface, sizeof (iface));
+        assert (rc == 0);
+        isz = strlen (iface);
+    }
+    else {
+        rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface, sizeof (iface));
+        assert (rcp);
+        isz = strlen (iface);
+    }
     zmq_snprintf (iface + isz, sizeof (iface) - isz, ":%d",
         (int) ntohs (ip_address.sin_port));
               
