@@ -107,6 +107,12 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
+    //  * resolves to INADDR_ANY
+    if (!interface_ || (strlen (interface_) == 1 && *interface_ == '*')) {
+        addr_->s_addr = htonl (INADDR_ANY);
+        return;
+    }
+
     //  Create a socket.
     int sd = socket (AF_INET, SOCK_DGRAM, 0);
     assert (sd != -1);
@@ -207,6 +213,12 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 //  On other platforms interface name is interpreted as raw IP address.
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
+    //  * resolves to INADDR_ANY
+    if (!interface_ || (strlen (interface_) == 1 && *interface_ == '*')) {
+        addr_->s_addr = htonl (INADDR_ANY);
+        return;
+    }
+
     //  Convert IP address into sockaddr_in structure.
     int rc = inet_pton (AF_INET, interface_, addr_);
     assert (rc != 0);

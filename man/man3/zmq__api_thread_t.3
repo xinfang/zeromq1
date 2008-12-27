@@ -81,8 +81,10 @@ global scope they are mandatory.  The
 .IR interface
 parameter specifies the network interface card used to pass outgoing traffic
 from this exchange.  It is either the IP address of the NIC or its symbolic
-name. Optionally, the port can be specified this way: 'eth0:5555'. If the port
-is not specified, an unused port will automatically be used.  The
+name. '*' stands for 'all interfaces'. In this case, interface to use
+will be chosen by the operating system. Optionally, the port can be specified
+this way: 'eth0:5555'. If the port is not specified, an unused port will
+automatically be used.  The
 .IR listener_thread
 parameter specifies which I/O thread should process connection requests
 (when other parties are binding to this exchange). Once the connection
@@ -105,16 +107,18 @@ scope, subsequent parameters do not need to be specified. If it is created
 with global scope they are mandatory.  The
 .IR interface
 parameter specifies the network interface card used to pass incoming traffic
-to this queue. It is either the IP address of the NIC or its symbolic name.
-Optionally, the port can be specified this way: 'eth0:5555'. If the port
-is not specified, an unused port will automatically is used.  The
+to this queue. It is either the IP address of the NIC or its symbolic name. '*'
+stands for 'all interfaces'. In this case, interface to use will be chosen
+by the operating system. Optionally, the port can be specified this
+way: 'eth0:5555'. If the port is not specified, an unused port will
+automatically be used.  The
 .IR listener_thread
 parameter specifies which I/O thread should process connection requests
 (when other parties are binding to this queue). Once the connection
 is established the traffic will be handled by one of the I/O threads
 supplied in the
 .IR handler_threads
-array. The zize of the array is specified by the
+array. The size of the array is specified by the
 .IR handler_thread_count
 parameter. Newly created connections are distributed between handler threads
 in a round-robin manner.
