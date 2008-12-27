@@ -81,6 +81,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     }
     else
         zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
+
     std::string port;
     std::stringstream out;
     out << ntohs (ip_address.sin_port);
