@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\in_engine.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\ip.cpp"
 				>
 			</File>
@@ -223,6 +227,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\mux.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\out_engine.cpp"
 				>
 			</File>
 			<File
@@ -376,6 +384,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\in_engine.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\io_thread.hpp"
 				>
 			</File>
@@ -401,6 +413,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\mux.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\out_engine.hpp"
 				>
 			</File>
 			<File

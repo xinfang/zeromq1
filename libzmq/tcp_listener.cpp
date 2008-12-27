@@ -65,7 +65,6 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     //  If port number was not specified, retrieve the one assigned
     //  to the socket by the operating system.
     if (ntohs (ip_address.sin_port) == 0) {
-
         sockaddr_in addr;
         memset (&addr, 0, sizeof (sockaddr_in));
         socklen_t sz = sizeof (sockaddr_in);
@@ -75,9 +74,13 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     }
 
     //  Fill in the interface name and port.
-    //  TODO: Resolve IP addess of 0.0.0.0 to local hostname.
     //  TODO: This string should be stored in the locator rather than here.
-    zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
+    if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
+        rc = gethostname (iface, sizeof (iface));
+        wsa_assert (rc != SOCKET_ERROR);
+    }
+    else
+        zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
     std::string port;
     std::stringstream out;
     out << ntohs (ip_address.sin_port);
@@ -128,7 +131,6 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     //  If port number was not specified, retrieve the one assigned
     //  to the socket by the operating system.
     if (ntohs (ip_address.sin_port) == 0) {
-
         sockaddr_in addr;
         memset (&addr, 0, sizeof (sockaddr_in));
         socklen_t sz = sizeof (sockaddr_in);

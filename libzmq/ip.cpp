@@ -134,6 +134,12 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
+    //  * resolves to INADDR_ANY
+    if (!interface_ || (strlen (interface_) == 1 && *interface_ == '*')) {
+        addr_->s_addr = htonl (INADDR_ANY);
+        return;
+    }
+
     //  TODO: Add code that'll convert interface name to IP address
     //  on Windows platform here.
     in_addr addr;
@@ -149,8 +155,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
 #include <ifaddrs.h>
 
-//  On some platforms (Linux, FreeBSD & Mac OS X), network interface name
-//  can be queried using getifaddrs function.
+//  On these platforms, network interface name can be queried
+//  using getifaddrs function.
 void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 {
     //  * resolves to INADDR_ANY
