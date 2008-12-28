@@ -27,8 +27,8 @@ void zmq::thread_t::start (thread_fn *tfn_, void *arg_)
 {
     tfn = tfn_;
     arg =arg_;
-    descriptor = (HANDLE) _beginthreadex (NULL, 0, &zmq::thread_t::thread_routine, 
-        this, 0 , NULL);
+    descriptor = (HANDLE) _beginthreadex (NULL, 0,
+        &zmq::thread_t::thread_routine, this, 0 , NULL);
     win_assert (descriptor != NULL);    
 }
 

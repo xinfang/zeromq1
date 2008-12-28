@@ -19,14 +19,16 @@
 
 #include <zmq/in_engine.hpp>
 
-zmq::in_engine_t *zmq::in_engine_t::create ()
+zmq::in_engine_t *zmq::in_engine_t::create (int hwm_, int lwm_)
 {
-    in_engine_t *instance = new in_engine_t ();
+    in_engine_t *instance = new in_engine_t (hwm_, lwm_);
     assert (instance);
     return instance;
 }
 
-zmq::in_engine_t::in_engine_t ()
+zmq::in_engine_t::in_engine_t (int hwm_, int lwm_) :
+    hwm (hwm_),
+    lwm (lwm_)
 {
 }
 
@@ -42,6 +44,12 @@ bool zmq::in_engine_t::read (message_t *msg_)
 zmq::engine_type_t zmq::in_engine_t::type ()
 {
     return engine_type_api;
+}
+
+void zmq::in_engine_t::get_watermarks (int *hwm_, int *lwm_)
+{
+    *hwm_ = hwm;
+    *lwm_ = lwm;
 }
 
 void zmq::in_engine_t::process_command (const engine_command_t &command_)

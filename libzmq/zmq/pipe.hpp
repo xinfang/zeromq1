@@ -42,8 +42,7 @@ namespace zmq
         ZMQ_EXPORT pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
             struct i_thread *destination_thread_,
-            struct i_engine *destination_engine_,
-            int hwm_ = 0, int lwm_ = 0);
+            struct i_engine *destination_engine_);
         ZMQ_EXPORT ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether

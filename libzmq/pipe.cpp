@@ -23,24 +23,36 @@
 #include <zmq/command.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
-      i_thread *destination_thread_, i_engine *destination_engine_,
-      int hwm_, int lwm_) :
+      i_thread *destination_thread_, i_engine *destination_engine_) :
     pipe (false),
     source_thread (source_thread_),
     source_engine (source_engine_),
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
     alive (true),
-    hwm (hwm_),
-    lwm (lwm_),
     head (0),
     tail (0),
     last_head (0),
     writer_terminating (false),
     reader_terminating (false)
 {
-    // If high water mark was lower than low water mark pipe would hang up.
-    assert (lwm <= hwm);
+    //  Compute watermarks for the pipe. If either of engines has infinite
+    //  watermarks (hwm = 0) the pipe watermarks will be infinite as well.
+    //  Otherwise pipe watermarks are sum of exchange and queue watermarks.
+    int shwm;
+    int slwm;
+    source_engine->get_watermarks (&shwm, &slwm);
+    int dhwm;
+    int dlwm;
+    destination_engine->get_watermarks (&dhwm, &dlwm);
+    if (!shwm || !dhwm) {
+        hwm = 0;
+        lwm = 0;
+    }
+    else {
+        hwm = shwm + dhwm;
+        lwm = slwm + dlwm;
+    }
 }
 
 zmq::pipe_t::~pipe_t ()

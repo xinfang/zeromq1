@@ -30,20 +30,24 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT static in_engine_t *create ();
+        ZMQ_EXPORT static in_engine_t *create (int hwm_, int lwm_);
 
         ZMQ_EXPORT bool read (message_t *msg_);
 
         //  i_engine implementation.
         engine_type_t type ();
+        void get_watermarks (int *hwm_, int *lwm_);
         void process_command (const engine_command_t &command_);
 
     private:
 
-        in_engine_t ();
+        in_engine_t (int hwm_, int lwm_);
         ~in_engine_t ();
 
         mux_t mux;
+
+        int hwm;
+        int lwm;
     };
 
 }

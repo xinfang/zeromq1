@@ -63,6 +63,7 @@ namespace zmq
 
         //  i_pollable interface implementation.
         engine_type_t type ();
+        void get_watermarks (int *hwm_, int *lwm_);
         void process_command (const engine_command_t &command_);
         void register_event (i_poller *poller_);
         void in_event ();

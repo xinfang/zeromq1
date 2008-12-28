@@ -20,6 +20,7 @@
 #include <zmq/bp_engine.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
+#include <zmq/config.hpp>
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *hostname_, size_t writebuf_size_,
@@ -108,6 +109,12 @@ zmq::bp_engine_t::~bp_engine_t ()
 zmq::engine_type_t zmq::bp_engine_t::type ()
 {
     return engine_type_fd;
+}
+
+void zmq::bp_engine_t::get_watermarks (int *hwm_, int *lwm_)
+{
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
 }
 
 void zmq::bp_engine_t::register_event (i_poller *poller_)

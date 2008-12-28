@@ -49,6 +49,12 @@ zmq::engine_type_t zmq::out_engine_t::type ()
     return engine_type_api;
 }
 
+void zmq::out_engine_t::get_watermarks (int *hwm_, int *lwm_)
+{
+    *hwm_ = 0;
+    *lwm_ = 0;
+}
+
 void zmq::out_engine_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {

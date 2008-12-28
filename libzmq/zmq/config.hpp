@@ -70,9 +70,9 @@ namespace zmq
         //  (poll_thread_t, select_thread_t ...) can return.
         max_io_events = 256,
 
-        //  High and low watermark for internal exchange pipes.
-        exchange_hwm = 20000,
-        exchange_lwm = 10000
+        //  High and low watermark for backend protocol engines.
+        bp_hwm = 10000,
+        bp_lwm = 5000
     };
 
 }

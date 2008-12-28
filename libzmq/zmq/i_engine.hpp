@@ -47,6 +47,11 @@ namespace zmq
         //  performance on overall performance of the product.
         virtual engine_type_t type () = 0;
 
+        //  Returns high and low watermarks for the specified engine. High and
+        //  low watermarks for a pipe are computed by adding high and low
+        //  watermarks of the engines the pipe is connecting.
+        virtual void get_watermarks (int *hwm_, int *lwm_) = 0;
+
         //  Called when command from a different thread is received.
         virtual void process_command (
             const struct engine_command_t &command_) = 0;

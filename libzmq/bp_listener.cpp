@@ -71,6 +71,13 @@ zmq::engine_type_t zmq::bp_listener_t::type ()
     return engine_type_fd;
 }
 
+void zmq::bp_listener_t::get_watermarks (int *hwm_, int *lwm_)
+{
+    //  There are never pipes created to/from listener engine.
+    //  Thus, watermarks have no meaning.
+    assert (false);
+}
+
 void zmq::bp_listener_t::register_event (i_poller *poller_)
 {
     handle_t handle = poller_->add_fd (listener.get_fd (), this);
