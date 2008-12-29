@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_LISTENER_HPP_INCLUDED__
-#define __ZMQ_BP_LISTENER_HPP_INCLUDED__
+#ifndef __ZMQ_BP_TCP_LISTENER_HPP_INCLUDED__
+#define __ZMQ_BP_TCP_LISTENER_HPP_INCLUDED__
 
 #include <vector>
 
@@ -34,13 +34,13 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_listener_t : public i_listener
+    class bp_tcp_listener_t : public i_listener
     {
     public:
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        ZMQ_EXPORT static bp_listener_t *create (
+        ZMQ_EXPORT static bp_tcp_listener_t *create (
             i_thread *calling_thread_,
             i_thread *thread_, const char *interface_,
             int handler_thread_count_, i_thread **handler_threads_,
@@ -59,12 +59,12 @@ namespace zmq
 
     private:
 
-        bp_listener_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_tcp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
-        ~bp_listener_t ();
+        ~bp_tcp_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
         //  (i.e. reads them from the sockets and makes them available) or
@@ -95,8 +95,8 @@ namespace zmq
         //  (Handler threads are used in round-robin fashion.)
         handler_threads_t::size_type current_handler_thread;
 
-        bp_listener_t (const bp_listener_t&);
-        void operator = (const bp_listener_t&);
+        bp_tcp_listener_t (const bp_tcp_listener_t&);
+        void operator = (const bp_tcp_listener_t&);
     };
 
 }

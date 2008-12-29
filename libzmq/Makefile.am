@@ -34,7 +34,7 @@ pkginclude_HEADERS = \
     ./zmq/demux.hpp \
     ./zmq/i_thread.hpp \
     ./zmq/pipe.hpp \
-    ./zmq/bp_listener.hpp \
+    ./zmq/bp_tcp_listener.hpp \
     ./zmq/locator.hpp \
     ./zmq/i_engine.hpp \
     ./zmq/scope.hpp \
@@ -80,7 +80,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     mux.cpp \
     demux.cpp \
     pipe.cpp \
-    bp_listener.cpp \
+    bp_tcp_listener.cpp \
     locator.cpp \
     tcp_listener.cpp \
     ip.cpp \

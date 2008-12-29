@@ -17,26 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <zmq/bp_listener.hpp>
+#include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 
-zmq::bp_listener_t *zmq::bp_listener_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *interface_, int handler_thread_count_,
-    i_thread **handler_threads_, bool source_,
+zmq::bp_tcp_listener_t *zmq::bp_tcp_listener_t::create (
+    i_thread *calling_thread_, i_thread *thread_, const char *interface_,
+    int handler_thread_count_, i_thread **handler_threads_, bool source_,
     i_thread *peer_thread_, i_engine *peer_engine_,
     const char *peer_name_)
 {
-    bp_listener_t *instance = new bp_listener_t (calling_thread_, thread_,
-        interface_, handler_thread_count_, handler_threads_, source_,
+    bp_tcp_listener_t *instance = new bp_tcp_listener_t (calling_thread_,
+        thread_, interface_, handler_thread_count_, handler_threads_, source_,
         peer_thread_, peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_listener_t::bp_listener_t (i_thread *calling_thread_,
+zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
       i_thread **handler_threads_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,
@@ -62,29 +62,29 @@ zmq::bp_listener_t::bp_listener_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_listener_t::~bp_listener_t ()
+zmq::bp_tcp_listener_t::~bp_tcp_listener_t ()
 {
 }
 
-zmq::engine_type_t zmq::bp_listener_t::type ()
+zmq::engine_type_t zmq::bp_tcp_listener_t::type ()
 {
     return engine_type_fd;
 }
 
-void zmq::bp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::bp_tcp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.
     assert (false);
 }
 
-void zmq::bp_listener_t::register_event (i_poller *poller_)
+void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 {
     handle_t handle = poller_->add_fd (listener.get_fd (), this);
     poller_->set_pollin (handle);
 }
 
-void zmq::bp_listener_t::in_event ()
+void zmq::bp_tcp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
@@ -147,26 +147,26 @@ void zmq::bp_listener_t::in_event ()
         current_handler_thread = 0;
 }
 
-void zmq::bp_listener_t::out_event ()
+void zmq::bp_tcp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
     assert (false);
 }
 
-void zmq::bp_listener_t::unregister_event ()
+void zmq::bp_tcp_listener_t::unregister_event ()
 {
     //  TODO: implement this
     assert (false);
 }
 
-void zmq::bp_listener_t::process_command (const engine_command_t &command_)
+void zmq::bp_tcp_listener_t::process_command (const engine_command_t &command_)
 {
     //  TODO: The only event handled here should be terminate, which would
     //  release the object (delete this)
     assert (false);
 }
 
-const char *zmq::bp_listener_t::get_arguments ()
+const char *zmq::bp_tcp_listener_t::get_arguments ()
 {
     zmq_snprintf (arguments, sizeof (arguments), "bp/tcp://%s",
         listener.get_interface ());

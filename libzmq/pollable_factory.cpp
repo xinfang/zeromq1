@@ -20,7 +20,7 @@
 #include <string>
 
 #include <zmq/pollable_factory.hpp>
-#include <zmq/bp_listener.hpp>
+#include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
 
 ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
@@ -45,7 +45,7 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
     }
 
     if (transport_type == "bp/tcp")
-        return bp_listener_t::create (calling_thread_, thread_,
+        return bp_tcp_listener_t::create (calling_thread_, thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
 
