@@ -89,8 +89,7 @@ void zmq::bp_listener_t::in_event ()
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (thread,
-        handler_threads [current_handler_thread], listener,
-        bp_out_batch_size, bp_in_batch_size, peer_name);
+        handler_threads [current_handler_thread], listener, peer_name);
     assert (engine);
 
     if (source) {

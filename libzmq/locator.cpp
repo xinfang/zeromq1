@@ -150,8 +150,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
 
         //  Create the proxy engine for the object.
         bp_engine_t *engine = bp_engine_t::create (calling_thread_,
-            handler_thread_, iface, bp_out_batch_size, bp_in_batch_size,
-            local_object_);
+            handler_thread_, iface, local_object_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

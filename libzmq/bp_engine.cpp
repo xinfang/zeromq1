@@ -23,34 +23,31 @@
 #include <zmq/config.hpp>
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *hostname_, size_t writebuf_size_,
-    size_t readbuf_size_, const char *local_object_)
+    i_thread *thread_, const char *hostname_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (calling_thread_,
-        thread_, hostname_, writebuf_size_, readbuf_size_, local_object_);
+        thread_, hostname_, local_object_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, tcp_listener_t &listener_, size_t writebuf_size_,
-    size_t readbuf_size_, const char *local_object_)
+    i_thread *thread_, tcp_listener_t &listener_, const char *local_object_)
 {
     bp_engine_t *instance = new bp_engine_t (calling_thread_,
-        thread_, listener_, writebuf_size_, readbuf_size_, local_object_);
+        thread_, listener_, local_object_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-      const char *hostname_, size_t writebuf_size_, size_t readbuf_size_,
-      const char *local_object_) :
-    writebuf_size (writebuf_size_),
+      const char *hostname_, const char *local_object_) :
+    writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    readbuf_size (readbuf_size_),
+    readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
     encoder (&mux),
@@ -73,12 +70,11 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
 }
 
 zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-      tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-      const char *local_object_) :
-    writebuf_size (writebuf_size_),
+      tcp_listener_t &listener_, const char *local_object_) :
+    writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    readbuf_size (readbuf_size_),
+    readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
     encoder (&mux),
