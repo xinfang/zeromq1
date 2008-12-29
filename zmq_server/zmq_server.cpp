@@ -98,11 +98,11 @@ int main (int argc, char *argv [])
     zmq_snprintf (iface, sizeof (iface), "0.0.0.0:%d", port);
     tcp_listener_t listening_socket (iface);
      
-    //	Create list of descriptors
+    //	Create list of descriptors.
     typedef vector <tcp_socket_t *> socket_list_t;
     socket_list_t socket_list;
 
-    //  Intitialise descriptors for select
+    //  Intitialise descriptors for select.
     fd_set result_set_fds, source_set_fds, error_set_fds;
     
     FD_ZERO (&source_set_fds);
@@ -310,7 +310,8 @@ int main (int argc, char *argv [])
 	
         //  Accept incoming connection.
         if (FD_ISSET (fd_int, &result_set_fds)) {    
-	        socket_list.push_back (new tcp_socket_t (listening_socket, true));           
+	        socket_list.push_back (
+                    new tcp_socket_t (listening_socket, true));           
             fd_t s = socket_list.back ()->get_fd ();
             FD_SET (s, &source_set_fds);
             
