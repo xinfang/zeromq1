@@ -41,14 +41,87 @@
 #include <fcntl.h>
 #endif
 
+#if 0 && defined ZMQ_HAVE_LINUX
+#include <sys/eventfd.h>
+#endif
+
 namespace zmq
 {
 
-    //  This object can be used to send individual bytes from one thread to
+    //  This object can be used to send individual signals from one thread to
     //  another. The specific of this pipe is that it has associated file
-    //  descriptor and so it can be polled on.
+    //  descriptor and so it can be polled on. Same signal cannot be sent twice
+    //  unless signals are retrieved by the reader side in the meantime.
 
-#ifdef ZMQ_HAVE_WINDOWS
+#if 0 && defined ZMQ_HAVE_LINUX
+
+    class ysocketpair_t : public i_signaler
+    {
+    public:
+
+        //  Initialise the object.
+        inline ysocketpair_t ()
+        {
+            //  Create eventfd object.
+            fd = eventfd (0, 0);
+            errno_assert (fd != -1);
+
+            //  Set to non-blocking mode.
+            int flags = fcntl (fd, F_GETFL, 0);
+            if (flags == -1)
+                flags = 0;
+            int rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
+            errno_assert (rc != -1);
+        }
+
+        //  Destroy the object.
+        inline ~ysocketpair_t ()
+        {
+            int rc = close (fd);
+            errno_assert (rc != -1);
+        }
+
+        //  Send specific signal.
+        void signal (int signal_)
+        {
+            assert (signal >= 0 && signal < 32);
+            uint64_t inc = 1;
+            inc <<= signal_;
+            ssize_t sz = write (fd, &inc, sizeof (uin64_t));
+            errno_assert (sz == sizeof (uint64_t));
+        }
+
+        //  Retrieves signals. Returns a set of signals in form of a bitmap.
+        //  Signal with index 0 corresponds to value 1, index 1 to value 2,
+        //  index 2 to value 4 etc. If there is no signal available,
+        //  it returns zero immediately.
+        inline uint32_t check ()
+        {
+            uint64_t val;
+            ssize_t sz = read (fd, &val, sizeof (uint64_t));
+            if (sz == -1 && errno == EAGAIN)
+                return 0;
+            errno_assert (sz != -1);
+            return (uint32_t) val;
+        }
+
+        //  Get the file descriptor associated with the object.
+        inline fd_t get_fd ()
+        {
+            return fd;
+        }
+
+    private:
+
+        //  eventfd descriptor.
+        int fd;
+
+        //  Disable copying of ysocketpair object.
+        ysocketpair_t (const ysocketpair_t&);
+        void operator = (const ysocketpair_t&);
+    };
+
+#elif defined ZMQ_HAVE_WINDOWS
 
     class ysocketpair_t : public i_signaler
     {
