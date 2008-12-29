@@ -18,14 +18,13 @@
 */
 
 
-#ifndef __ZMQ_BP_ENGINE_HPP_INCLUDED__
-#define __ZMQ_BP_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_BP_TCP_ENGINE_HPP_INCLUDED__
+#define __ZMQ_BP_TCP_ENGINE_HPP_INCLUDED__
 
 #include <string>
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/mux.hpp>
@@ -38,26 +37,25 @@
 namespace zmq
 {
 
-    //  BP engine is defined by follwowing properties:
+    //  BP/TCP engine is defined by follwowing properties:
     //
     //  1. Underlying transport is TCP.
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_engine_t : public i_pollable
+    class bp_tcp_engine_t : public i_pollable
     {
     public:
 
-        //  Creates bp_engine. Underlying TCP connection is initialised using
-        //  host parameter. writebuf_size and readbuf_size determine
-        //  the amount of batching to use. Local object name is simply stored
+        //  Creates bp_tcp_engine. Underlying TCP connection is initialised
+        //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        ZMQ_EXPORT static bp_engine_t *create (i_thread *calling_thread_,
+        ZMQ_EXPORT static bp_tcp_engine_t *create (i_thread *calling_thread_,
             i_thread *thread_, const char *hostname_,
             const char *local_object_);
 
-        //  Creates bp_engine from supplied listener object.
-        ZMQ_EXPORT static bp_engine_t *create (i_thread *calling_thread_,
+        //  Creates bp_tcp_engine from supplied listener object.
+        ZMQ_EXPORT static bp_tcp_engine_t *create (i_thread *calling_thread_,
             i_thread *thread_, tcp_listener_t &listener_,
             const char *local_object_);
 
@@ -73,11 +71,11 @@ namespace zmq
 
     private:
 
-        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_);
-        bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, const char *local_object_);
-        ~bp_engine_t ();
+        ~bp_tcp_engine_t ();
 
         //  Object to aggregate messages from inbound pipes.
         mux_t mux;
@@ -119,8 +117,8 @@ namespace zmq
         //  from other threads.
         bool shutting_down;
 
-        bp_engine_t (const bp_engine_t&);
-        void operator = (const bp_engine_t&);
+        bp_tcp_engine_t (const bp_tcp_engine_t&);
+        void operator = (const bp_tcp_engine_t&);
     };
 
 }

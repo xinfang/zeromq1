@@ -18,7 +18,7 @@
 */
 
 #include <zmq/bp_listener.hpp>
-#include <zmq/bp_engine.hpp>
+#include <zmq/bp_tcp_engine.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 
@@ -88,7 +88,7 @@ void zmq::bp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_engine_t *engine = bp_engine_t::create (thread,
+    bp_tcp_engine_t *engine = bp_tcp_engine_t::create (thread,
         handler_threads [current_handler_thread], listener, peer_name);
     assert (engine);
 

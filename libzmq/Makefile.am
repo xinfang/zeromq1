@@ -27,7 +27,7 @@ pkginclude_HEADERS = \
     ./zmq/bp_encoder.hpp \
     ./zmq/encoder.hpp \
     ./zmq/stdint.hpp \
-    ./zmq/bp_engine.hpp \
+    ./zmq/bp_tcp_engine.hpp \
     ./zmq/i_pollable.hpp \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
@@ -76,7 +76,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     epoll_thread.cpp \
     devpoll_thread.cpp \
     kqueue_thread.cpp \
-    bp_engine.cpp \
+    bp_tcp_engine.cpp \
     mux.cpp \
     demux.cpp \
     pipe.cpp \

@@ -17,33 +17,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <zmq/bp_engine.hpp>
+#include <zmq/bp_tcp_engine.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, const char *hostname_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (calling_thread_,
+    bp_tcp_engine_t *instance = new bp_tcp_engine_t (calling_thread_,
         thread_, hostname_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t *zmq::bp_engine_t::create (i_thread *calling_thread_,
+zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
     i_thread *thread_, tcp_listener_t &listener_, const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (calling_thread_,
+    bp_tcp_engine_t *instance = new bp_tcp_engine_t (calling_thread_,
         thread_, listener_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-      const char *hostname_, const char *local_object_) :
+zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *hostname_, const char *local_object_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -69,8 +69,8 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-      tcp_listener_t &listener_, const char *local_object_) :
+zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
+      i_thread *thread_, tcp_listener_t &listener_, const char *local_object_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -96,24 +96,24 @@ zmq::bp_engine_t::bp_engine_t (i_thread *calling_thread_, i_thread *thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_engine_t::~bp_engine_t ()
+zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
 {
     free (readbuf);
     free (writebuf);
 }
 
-zmq::engine_type_t zmq::bp_engine_t::type ()
+zmq::engine_type_t zmq::bp_tcp_engine_t::type ()
 {
     return engine_type_fd;
 }
 
-void zmq::bp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::bp_tcp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
 }
 
-void zmq::bp_engine_t::register_event (i_poller *poller_)
+void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -123,7 +123,7 @@ void zmq::bp_engine_t::register_event (i_poller *poller_)
     poller->set_pollin (handle);
 }
 
-void zmq::bp_engine_t::in_event ()
+void zmq::bp_tcp_engine_t::in_event ()
 {
     //  This variable determines whether processing incoming messages is
     //  stuck because of exceeded pipe limits.
@@ -191,7 +191,7 @@ void zmq::bp_engine_t::in_event ()
     }
 }
 
-void zmq::bp_engine_t::out_event ()
+void zmq::bp_tcp_engine_t::out_event ()
 {
     //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
@@ -219,13 +219,13 @@ void zmq::bp_engine_t::out_event ()
     }
 }
 
-void zmq::bp_engine_t::unregister_event ()
+void zmq::bp_tcp_engine_t::unregister_event ()
 {
     //  TODO: Implement this.
     assert (false);
 }
 
-void zmq::bp_engine_t::process_command (const engine_command_t &command_)
+void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {
     case engine_command_t::revive:
