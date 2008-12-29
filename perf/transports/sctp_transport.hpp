@@ -43,7 +43,7 @@ namespace perf
         {
             s = -1;
 
-            //  Parse the IP address
+            //  Parse the IP address.
             sockaddr_in addr;
             ::memset (&addr, 0, sizeof (addr));
             addr.sin_family = AF_INET;
@@ -57,12 +57,12 @@ namespace perf
                 //  initiated by the other party. 'ip_address' is interpreted
                 //  as a network interface IP address (on local machine).
 
-                //  Create a listening socket
+                //  Create a listening socket.
                 listening_socket = socket (AF_INET, SOCK_STREAM,
                     IPPROTO_SCTP);
                 assert (listening_socket != -1);
 
-                //  Subscribe for SCTP events
+                //  Subscribe for SCTP events.
                 sctp_event_subscribe events;
                 memset (&events, 0, sizeof (events));
                 events.sctp_data_io_event = 1;
@@ -70,16 +70,16 @@ namespace perf
                     &events, sizeof (events));
                 assert (rc == 0);
 
-                //  Bind the socket to the network interface and port
+                //  Bind the socket to the network interface and port.
                 rc = bind (listening_socket, (struct sockaddr*) &addr,
                     sizeof (addr));
                 assert (rc == 0);
 
-                //  Listen for incomming connections
+                //  Listen for incomming connections.
                 rc = ::listen (listening_socket, 1);
                 assert (rc == 0);
 
-                //  Accept first incoming connection
+                //  Accept first incoming connection.
                 s = accept (listening_socket, NULL, NULL);
                 assert (s != -1);
             }
@@ -89,11 +89,11 @@ namespace perf
                 //  a connection. ip_address is interpreted as peer's
                 //  IP addess.
 
-                //  Create a socket
+                //  Create a socket.
                 s = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
                 assert (s != -1);
 
-                //  Subscribe for SCTP events
+                //  Subscribe for SCTP events.
                 sctp_event_subscribe events;
                 memset (&events, 0, sizeof (events));
                 events.sctp_data_io_event = 1;
@@ -101,18 +101,18 @@ namespace perf
                     sizeof (events));
                 assert (rc == 0);
 
-                //  Connect to the peer
+                //  Connect to the peer.
                 rc = connect (s, (sockaddr*) &addr, sizeof (addr));
                 assert (rc != -1);
 
-                //  Mark listening socket as unused
+                //  Mark listening socket as unused.
                 listening_socket = -1;
             }
 
-            //  Disable Nagle aglorithm if reuqired
+            //  Disable Nagle aglorithm if reuqired.
             if (!nagle_) {
                 int flag = 1;
-                rc = ::setsockopt(s, IPPROTO_SCTP, SCTP_NODELAY, &flag,
+                rc = ::setsockopt (s, IPPROTO_SCTP, SCTP_NODELAY, &flag,
                     sizeof (int));
                 assert (rc == 0);
             }
@@ -120,11 +120,11 @@ namespace perf
 
         inline ~sctp_t ()
         {
-            //  Cleanup the socket
+            //  Cleanup the socket.
             int rc = ::close (s);
             assert (rc == 0);
 
-            //  Close the listening socket
+            //  Close the listening socket.
             if (listening_socket != -1) {
                 rc = ::close (listening_socket);
                 assert (rc == 0);
@@ -133,16 +133,16 @@ namespace perf
 
         inline virtual void send (size_t size_)
         {
-            //  Create the message
+            //  Create the message.
             void *buffer = malloc (size_);
             assert (buffer);
 
-            //  Send the data over the wire
+            //  Send the data over the wire.
             ssize_t nbytes = sctp_sendmsg (s, buffer, size_, NULL, 0, 0, 0,
                 0, 0, 0);
             assert (nbytes == (ssize_t) size_);
 
-            //  Cleanup
+            //  Cleanup.
             free (buffer);
         }
 
@@ -153,7 +153,7 @@ namespace perf
                 NULL, 0, NULL, NULL);
             assert (nbytes > 0 && nbytes < 4096);
 
-            //  Return message size
+            //  Return message size.
             return nbytes;
         }
 
