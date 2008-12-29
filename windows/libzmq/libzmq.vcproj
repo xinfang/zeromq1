@@ -242,6 +242,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\pollable_factory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\select_thread.cpp"
 				>
 			</File>
@@ -364,6 +368,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\i_listener.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\i_locator.hpp"
 				>
 			</File>
@@ -425,6 +433,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\poll_thread.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\pollable_factory.hpp"
 				>
 			</File>
 			<File
