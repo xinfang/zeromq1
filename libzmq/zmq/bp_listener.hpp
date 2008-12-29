@@ -24,7 +24,7 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/i_listener.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/tcp_listener.hpp>
 
@@ -34,7 +34,7 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_listener_t : public i_pollable
+    class bp_listener_t : public i_listener
     {
     public:
 
@@ -47,13 +47,7 @@ namespace zmq
             bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
 
-        //  Returns port listener is listening on.
-        inline const char *get_interface ()
-        {
-            return listener.get_interface ();
-        }
-
-        //  i_pollable implementation.
+        //  i_listener implementation.
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void process_command (const engine_command_t &command_);
@@ -61,6 +55,7 @@ namespace zmq
         void in_event ();
         void out_event ();
         void unregister_event ();
+        const char *get_arguments ();
 
     private:
 
@@ -85,6 +80,9 @@ namespace zmq
         i_thread *peer_thread;
         i_engine *peer_engine;
         char peer_name [16];
+
+        //  Arguments string for this listener.
+        char arguments [256];
 
         //  Listening socket.
         tcp_listener_t listener;

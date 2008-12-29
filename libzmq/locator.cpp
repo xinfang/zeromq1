@@ -22,8 +22,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/locator.hpp>
-#include <zmq/bp_listener.hpp>
-#include <zmq/bp_engine.hpp>
+#include <zmq/pollable_factory.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 
@@ -75,7 +74,7 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         assert (strlen (interface_) < 256);
          
         //  Create a listener for the object.
-        bp_listener_t *listener = bp_listener_t::create (calling_thread_,
+        i_listener *listener = create_listener (calling_thread_,
             listener_thread_, interface_, handler_thread_count_,
             handler_threads_, type_id_ == exchange_type_id ? false : true,
             thread_, engine_, object_);
@@ -88,9 +87,9 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         unsigned char size = (unsigned char) strlen (object_);
         global_locator->write (&size, 1);
         global_locator->write (object_, size);
-        size = (unsigned char) strlen (listener->get_interface ());
+        size = (unsigned char) strlen (listener->get_arguments ());
         global_locator->write (&size, 1);
-        global_locator->write (listener->get_interface (), size);
+        global_locator->write (listener->get_arguments (), size);
 
         //  Read the response.
         global_locator->read (&cmd, 1);
@@ -149,7 +148,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
         iface [size] = 0;
 
         //  Create the proxy engine for the object.
-        bp_engine_t *engine = bp_engine_t::create (calling_thread_,
+        i_pollable *engine = create_connection (calling_thread_,
             handler_thread_, iface, local_object_);
 
         //  Write it into object repository.

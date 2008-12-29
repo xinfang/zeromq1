@@ -56,7 +56,9 @@ pkginclude_HEADERS = \
     ./zmq/windows.hpp \
     ./zmq/fd.hpp \
     ./zmq/out_engine.hpp \
-    ./zmq/in_engine.hpp
+    ./zmq/in_engine.hpp \
+    ./zmq/pollable_factory.hpp \
+    ./zmq/i_listener.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -85,7 +87,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     thread.cpp \
     select_thread.cpp \
     out_engine.cpp \
-    in_engine.cpp
+    in_engine.cpp \
+    pollable_factory.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic

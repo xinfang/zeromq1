@@ -165,3 +165,10 @@ void zmq::bp_listener_t::process_command (const engine_command_t &command_)
     //  release the object (delete this)
     assert (false);
 }
+
+const char *zmq::bp_listener_t::get_arguments ()
+{
+    zmq_snprintf (arguments, sizeof (arguments), "bp/tcp://%s",
+        listener.get_interface ());
+    return arguments;
+}
