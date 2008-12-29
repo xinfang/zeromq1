@@ -71,7 +71,7 @@ zmq::engine_type_t zmq::bp_listener_t::type ()
     return engine_type_fd;
 }
 
-void zmq::bp_listener_t::get_watermarks (int *hwm_, int *lwm_)
+void zmq::bp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.

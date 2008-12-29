@@ -20,6 +20,7 @@
 #ifndef __ZMQ_I_ENGINE_HPP_INCLUDED__
 #define __ZMQ_I_ENGINE_HPP_INCLUDED__
 
+#include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
 #include <zmq/command.hpp>
 
@@ -50,7 +51,7 @@ namespace zmq
         //  Returns high and low watermarks for the specified engine. High and
         //  low watermarks for a pipe are computed by adding high and low
         //  watermarks of the engines the pipe is connecting.
-        virtual void get_watermarks (int *hwm_, int *lwm_) = 0;
+        virtual void get_watermarks (uint64_t *hwm_, uint64_t *lwm_) = 0;
 
         //  Called when command from a different thread is received.
         virtual void process_command (

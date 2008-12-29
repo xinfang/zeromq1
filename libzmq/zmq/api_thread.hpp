@@ -24,6 +24,7 @@
 #include <string>
 #include <utility>
 
+#include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/i_locator.hpp>
@@ -61,7 +62,7 @@ namespace zmq
             const char *queue_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL,
-            int hwm_ = 0, int lwm_ = 0);
+            uint64_t hwm_ = 0, uint64_t lwm_ = 0);
 
         //  Binds an exchange to a queue.
         ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,

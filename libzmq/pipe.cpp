@@ -39,11 +39,11 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     //  Compute watermarks for the pipe. If either of engines has infinite
     //  watermarks (hwm = 0) the pipe watermarks will be infinite as well.
     //  Otherwise pipe watermarks are sum of exchange and queue watermarks.
-    int shwm;
-    int slwm;
+    uint64_t shwm;
+    uint64_t slwm;
     source_engine->get_watermarks (&shwm, &slwm);
-    int dhwm;
-    int dlwm;
+    uint64_t dhwm;
+    uint64_t dlwm;
     destination_engine->get_watermarks (&dhwm, &dlwm);
     if (!shwm || !dhwm) {
         hwm = 0;

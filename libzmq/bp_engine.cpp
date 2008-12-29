@@ -111,7 +111,7 @@ zmq::engine_type_t zmq::bp_engine_t::type ()
     return engine_type_fd;
 }
 
-void zmq::bp_engine_t::get_watermarks (int *hwm_, int *lwm_)
+void zmq::bp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;

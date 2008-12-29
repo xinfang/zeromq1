@@ -20,6 +20,7 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
+#include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/i_engine.hpp>
@@ -97,8 +98,8 @@ namespace zmq
 
         //  If hwm is non-zero, the size of pipe is limited. In that case hwm
         //  is the high water mark for the pipe and lwm is the low water mark.
-        int hwm;
-        int lwm;
+        uint64_t hwm;
+        uint64_t lwm;
 
         //  Following message sequence numbers use RFC1982-like wraparound.
 

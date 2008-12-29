@@ -22,6 +22,7 @@
 
 #include <vector>
 
+#include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
@@ -54,7 +55,7 @@ namespace zmq
 
         //  i_pollable implementation.
         engine_type_t type ();
-        void get_watermarks (int *hwm_, int *lwm_);
+        void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void process_command (const engine_command_t &command_);
         void register_event (i_poller *poller_);
         void in_event ();
