@@ -22,7 +22,7 @@
 
 #include <zmq/platform.hpp>
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if 0 && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
 #define ZMQ_HAVE_SCTP
 
 #include <vector>

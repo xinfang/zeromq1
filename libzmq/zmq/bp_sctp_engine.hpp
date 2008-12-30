@@ -23,7 +23,7 @@
 
 #include <zmq/platform.hpp>
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if 0 && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
 
 #include <string>
 #include <sys/types.h>
@@ -38,10 +38,7 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/demux.hpp>
-#include <zmq/bp_encoder.hpp>
-#include <zmq/bp_decoder.hpp>
-#include <zmq/tcp_socket.hpp>
-#include <zmq/tcp_listener.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {
@@ -86,6 +83,9 @@ namespace zmq
 
         //  Underlying SCTP socket.
         int s;
+
+        //  Partially read message.
+        message_t in_msg;
 
         //  Object to aggregate messages from inbound pipes.
         mux_t mux;

@@ -19,7 +19,9 @@
 
 #include <zmq/platform.hpp>
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if 0 && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
+
+#include <fcntl.h>
 
 #include <zmq/bp_sctp_engine.hpp>
 #include <zmq/dispatcher.hpp>
@@ -78,6 +80,13 @@ zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
     rc = setsockopt (s, IPPROTO_SCTP, SCTP_NODELAY, &flag, sizeof (int));
     errno_assert (rc == 0);
 
+    //  Set to non-blocking mode.
+    int flags = fcntl (s, F_GETFL, 0);
+    if (flags == -1)
+        flags = 0;
+    rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+    errno_assert (rc != -1);
+
     //  Register the engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
@@ -98,6 +107,13 @@ zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
     int flag = 1;
     int rc = setsockopt (s, IPPROTO_SCTP, SCTP_NODELAY, &flag, sizeof (int));
     errno_assert (rc == 0);
+
+    //  Set to non-blocking mode.
+    int flags = fcntl (s, F_GETFL, 0);
+    if (flags == -1)
+        flags = 0;
+    rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+    errno_assert (rc != -1);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -145,8 +161,9 @@ void zmq::bp_sctp_engine_t::in_event ()
             //  How can we read messages larger than N bytes?
             //  TODO: Make this non-blocking...
             unsigned char buffer [4096]; 
+            int msg_flags;
             ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
-                NULL, 0, NULL, NULL);
+                NULL, 0, NULL, &msg_flags);
             errno_assert (nbytes != -1);
 
             //  Create 0MQ message from the data.

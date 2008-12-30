@@ -44,10 +44,6 @@ int main (int argc, char *argv [])
     int msg_count = atoi (argv [4]);
     int thread_count = atoi (argv [5]);
 
-    //  Port number shouldn't be specified in the "interface" parameter,
-    //  because there are possibly multiple ports used.
-    assert (strchr (iface, ':') == NULL);
-
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;

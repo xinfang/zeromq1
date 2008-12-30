@@ -19,7 +19,7 @@
 
 #include <zmq/platform.hpp>
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if 0 && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
 
 #include <zmq/bp_sctp_listener.hpp>
 #include <zmq/bp_sctp_engine.hpp>
@@ -68,17 +68,8 @@ zmq::bp_sctp_listener_t::bp_sctp_listener_t (i_thread *calling_thread_,
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
     errno_assert (s != -1);
 
-    //  Subscribe for SCTP events.
-    //  TODO: Is this really needed on a listening socket?
-    sctp_event_subscribe events;
-    memset (&events, 0, sizeof (events));
-    events.sctp_data_io_event = 1;
-    int rc = setsockopt (s, IPPROTO_SCTP, SCTP_EVENTS, &events,
-        sizeof (events));
-    errno_assert (rc == 0);
-
     //  Bind the socket to the network interface and port.
-    rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
+    int rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     errno_assert (rc == 0);
 
     //  If port number was not specified, retrieve the one assigned
