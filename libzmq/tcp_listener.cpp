@@ -158,7 +158,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
         (int) ntohs (ip_address.sin_port));
               
     //  Listen for incomming connections.
-    rc = listen (s, 1);
+    rc = listen (s, 10);
     errno_assert (rc == 0);
 }
 

@@ -22,6 +22,8 @@
 #include <zmq/pollable_factory.hpp>
 #include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
+#include <zmq/bp_sctp_listener.hpp>
+#include <zmq/bp_sctp_engine.hpp>
 
 ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
     i_thread *thread_, const char *arguments_,
@@ -49,6 +51,13 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
 
+#if defined ZMQ_HAVE_SCTP
+    if (transport_type == "bp/sctp")
+        return bp_sctp_listener_t::create (calling_thread_, thread_,
+            transport_args.c_str (), handler_thread_count_, handler_threads_,
+            source_, peer_thread_, peer_engine_, peer_name_);
+#endif
+
     //  Unknown transport type.
     assert (false);
 }
@@ -74,6 +83,12 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
     if (transport_type == "bp/tcp")
         return bp_tcp_engine_t::create (calling_thread_, thread_,
             transport_args.c_str (), local_object_);
+
+#if defined ZMQ_HAVE_SCTP
+    if (transport_type == "bp/sctp")
+        return bp_sctp_engine_t::create (calling_thread_, thread_,
+            transport_args.c_str (), local_object_);
+#endif
 
     //  Unknown transport type.
     assert (false);
