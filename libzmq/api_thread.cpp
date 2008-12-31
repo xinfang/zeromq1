@@ -370,7 +370,6 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
 
 void zmq::api_thread_t::process_commands ()
 {
-    ypollset_t::integer_t signals = 0;
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
 
     //  Optimised version of send doesn't have to check for incoming commands
@@ -383,15 +382,11 @@ void zmq::api_thread_t::process_commands ()
         : "=a" (low), "=d" (high));
     uint64_t current_time = (uint64_t) high << 32 | low;
 
-    if (current_time - last_command_time > api_thread_max_command_delay) {
-        last_command_time = current_time;
+    if (current_time - last_command_time <= api_thread_max_command_delay)
+        return;
+    last_command_time = current_time;
 #endif
-        signals = pollset.check ();
-        if (!signals)
-            return;        
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
-    }
-#endif
-
-    process_commands (signals);
+    ypollset_t::integer_t signals = pollset.check ();
+    if (signals)
+        process_commands (signals);
 }
