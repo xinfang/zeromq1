@@ -33,6 +33,9 @@
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 
+/* Define to 1 if you have the `sctp' library (-lsctp). */
+#undef HAVE_LIBSCTP
+
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
@@ -51,6 +54,9 @@
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the <netinet/sctp.h> header file. */
+#undef HAVE_NETINET_SCTP_H
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
 #undef HAVE_NETINET_TCP_H
@@ -156,6 +162,9 @@
 
 /* Have QNX Neutrino OS */
 #undef ZMQ_HAVE_QNXNTO
+
+/* Have SCTP extension. */
+#undef ZMQ_HAVE_SCTP
 
 /* Have Solaris OS */
 #undef ZMQ_HAVE_SOLARIS

@@ -28,6 +28,9 @@
 /* Have MinGW32 */
 #undef ZMQ_HAVE_MINGW32
 
+/* Have SCTP extension */
+#undef ZMQ_HAVE_SCTP
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif

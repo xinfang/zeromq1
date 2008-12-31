@@ -322,6 +322,33 @@ if test "x$with_zmq_server" = "xno"; then
     zmq_server="no"
 fi
 
+#  SCTP extension
+sctp_ext="no"
+AC_ARG_WITH([sctp], [AS_HELP_STRING([--with-sctp], [build libzmq with SCTP extension [default=no]])], [with_sctp_ext=yes], [with_sctp_ext=no])
+if test "x$with_sctp_ext" != "xno"; then
+     case "${host_os}" in
+        *linux*)
+        ;;
+        *solaris*)
+        ;;
+        *)
+            AC_MSG_ERROR([SCTP extesion is not supported on this platform $host.])
+        ;;
+    esac
+ 
+    AC_CHECK_HEADERS([netinet/sctp.h], [], 
+        [AC_MSG_ERROR([To run configure with --with-sctp, sctp header and library has to be installed.])],
+        [[#ifdef HAVE_SYS_SOCKET_H
+        #include <sys/socket.h>
+        #endif
+        ]])
+    AC_CHECK_LIB(sctp, main)
+   
+    AC_DEFINE(ZMQ_HAVE_SCTP, 1, [Have SCTP extension.])
+
+    sctp_ext="yes"
+fi
+
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
@@ -380,6 +407,8 @@ AC_MSG_RESULT([  license text. ])
 AC_MSG_RESULT([ ******************************************************** ])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ libzmq install dir: $prefix])
+AC_MSG_RESULT([ libzmq extesions:])
+AC_MSG_RESULT([   SCTP: $sctp_ext])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Utilities:])
 AC_MSG_RESULT([   zmq_server: $zmq_server])

@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include <zmq/platform.hpp>
 #include <zmq/pollable_factory.hpp>
 #include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
