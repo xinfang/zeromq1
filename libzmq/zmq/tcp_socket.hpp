@@ -65,6 +65,9 @@ namespace zmq
         //  returned.
         ZMQ_EXPORT int read (void *data, int size);
 
+        //  Returns the pending socket error.
+        ZMQ_EXPORT int socket_error ();
+
     private:
 
         //  Underlying socket

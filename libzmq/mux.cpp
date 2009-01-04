@@ -68,6 +68,11 @@ bool zmq::mux_t::read (message_t *msg_)
     return false;
 }
 
+bool zmq::mux_t::empty ()
+{
+    return pipes.empty ();
+}
+
 void zmq::mux_t::release_pipe (pipe_t *pipe_)
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)

@@ -51,17 +51,22 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     wsa_assert (s != INVALID_SOCKET);
 
-    //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr *)&ip_address, sizeof (ip_address));
-    wsa_assert (rc != SOCKET_ERROR);
- 
     //  Set socket properties to non-blocking mode. 
     if (! block) {
         unsigned long argp = 1;
-        rc = ioctlsocket (s, FIONBIO, &argp);
+        int rc = ioctlsocket (s, FIONBIO, &argp);
         wsa_assert (rc != SOCKET_ERROR);
     }
- 	
+
+    //  Connect to the remote peer.
+    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    if (block)
+        wsa_assert (rc != SOCKET_ERROR);
+    else {
+        errcode = WSAGetLastError ();
+        wsa_assert (rc != SOCKET_ERROR || errcode == WSAEWOULDBLOCK);
+    }
+
     //  Disable Nagle's algorithm.
     int flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
@@ -135,6 +140,17 @@ int zmq::tcp_socket_t::read (void *data, int size)
     return (size_t) nbytes;
 }
 
+int zmq::tcp_socket_t::socket_error ()
+{
+    int err;
+
+    int len = sizeof err;
+    int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
+    wsa_assert (rc != SOCKET_ERROR);
+
+    return err;
+}
+
 #else
 
 zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
@@ -148,19 +164,22 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     errno_assert (s != -1);
       
-    //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr*) &ip_address, sizeof (ip_address));
-    errno_assert (rc != -1);
-
     if (! block) {
 
         //  Set to non-blocking mode.
         int flags = fcntl (s, F_GETFL, 0);
         if (flags == -1)
             flags = 0;
-        rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+        int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
         errno_assert (rc != -1);        
     }
+
+    //  Connect to the remote peer.
+    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    if (block)
+        errno_assert (rc == 0);
+    else
+        errno_assert (rc == 0 || errno == EINPROGRESS);
 
     //  Disable Nagle's algorithm.
     int flag = 1;
@@ -234,6 +253,17 @@ int zmq::tcp_socket_t::read (void *data, int size)
         return -1;
 
     return (size_t) nbytes;
+}
+
+int zmq::tcp_socket_t::socket_error ()
+{
+    int err;
+
+    socklen_t len = sizeof err;
+    int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
+    errno_assert (rc != -1);
+
+    return err;
 }
 
 #endif

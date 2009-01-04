@@ -71,6 +71,20 @@ namespace zmq
 
     private:
 
+        enum engine_state_t {
+
+            //  TCP connection has not been established yet. The engine
+            //  does not perform any I/O operations.
+            engine_connecting,
+
+            //  Engine is fully operational.
+            engine_connected,
+
+            //  Engine is already shutting down, waiting for confirmation
+            //  from other threads.
+            engine_shutting_down
+        };
+
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
@@ -113,9 +127,8 @@ namespace zmq
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
 
-        //  If true, engine is already shutting down, waiting for confirmations
-        //  from other threads.
-        bool shutting_down;
+        //  Engine state.
+        engine_state_t state;
 
         bp_tcp_engine_t (const bp_tcp_engine_t&);
         void operator = (const bp_tcp_engine_t&);

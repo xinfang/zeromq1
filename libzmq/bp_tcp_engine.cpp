@@ -55,7 +55,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     socket (hostname_),
     poller (NULL),
     local_object (local_object_),
-    shutting_down (false)
+    state (engine_connecting)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -82,7 +82,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     socket (listener_),
     poller (NULL),
     local_object (local_object_),
-    shutting_down (false)
+    state (engine_connected)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -120,7 +120,13 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
 
     //  Initialise the poll handle.
     handle = poller->add_fd (socket.get_fd (), this);
-    poller->set_pollin (handle);
+
+    if (state == engine_connecting)
+        //  Wait for completion of connect() call.
+        poller->set_pollout (handle);
+    else
+        //  Start receiving 'backend protocol' messages.
+        poller->set_pollin (handle);
 }
 
 void zmq::bp_tcp_engine_t::in_event ()
@@ -154,7 +160,7 @@ void zmq::bp_tcp_engine_t::in_event ()
             //  Ask all inbound & outound pipes to shut down.
             demux.initialise_shutdown ();
             mux.initialise_shutdown ();
-            shutting_down = true;
+            state = engine_shutting_down;
             return;
         }
     }
@@ -193,6 +199,17 @@ void zmq::bp_tcp_engine_t::in_event ()
 
 void zmq::bp_tcp_engine_t::out_event ()
 {
+    if (state == engine_connecting) {
+        int rc = socket.socket_error ();
+        assert (rc == 0);
+        if (mux.empty ())
+            poller->reset_pollout (handle);
+        poller->set_pollin (handle);
+        state = engine_connected;
+
+        return;
+    }
+
     //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
 
@@ -227,10 +244,12 @@ void zmq::bp_tcp_engine_t::unregister_event ()
 
 void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
 {
+    bool shutting_down;
+
     switch (command_.type) {
     case engine_command_t::revive:
 
-        if (!shutting_down) {
+        if (state == engine_connected) {
 
             //  Forward the revive command to the pipe.
             command_.args.revive.pipe->revive ();
@@ -246,7 +265,7 @@ void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::head:
 
         //  Forward pipe statistics to the appropriate pipe.
-        if (!shutting_down) {
+        if (state == engine_connected) {
             command_.args.head.pipe->set_head (command_.args.head.position);
             in_event ();
         }
@@ -254,7 +273,12 @@ void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
 
     case engine_command_t::send_to:
 
-        if (!shutting_down) {
+        if (state == engine_connecting) {
+
+            //  Register the pipe with the demux.
+            demux.send_to (command_.args.send_to.pipe);
+        }
+        else if (state == engine_connected) {
 
             //  If pipe limits are set, POLLIN may be turned off
             //  because there are no pipes to send messages to.
@@ -270,8 +294,9 @@ void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::receive_from:
 
         //  Start receiving messages from a pipe.
+        shutting_down = (state == engine_shutting_down);
         mux.receive_from (command_.args.receive_from.pipe, shutting_down);
-        if (!shutting_down)
+        if (state == engine_connected)
             poller->set_pollout (handle);
         break;
 
