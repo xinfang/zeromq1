@@ -55,14 +55,18 @@ namespace perf
         FILETIME ft;
 
         GetSystemTime (&st);
-
         SystemTimeToFileTime (&st, &ft);
 
-        //  FILETIME contains a 64-bit value representing the number of 100-nanosecond
-        //  intervals since January 1, 1601 (UTC).
-        //  The value is not multiplied by 100, because if would cause overflow, anyway
-        //  we only need it to calculate relative time, so it doesn't lead to an error.
-        return ((uint64_t) ft.dwHighDateTime << 32 | ft.dwLowDateTime) ;
+        //  FILETIME contains a 64-bit value representing the number of
+        //  100-nanosecond intervals since January 1, 1601 (UTC).
+        uint64_t tmp = ((uint64_t) ft.dwHighDateTime << 32 | ft.dwLowDateTime);
+
+        //  ~369 years of shift to get from 1601 to POSIX epoch (1970)
+        const uint64_t shift = uint64_t (369 * 365 * 24) * uint64_t (60 * 60) *
+            uint64_t (1000 * 1000 * 10);
+
+        //  Adjust the epoch and convert to nanoseconds.
+        return (tmp - shift) * 100;
 #else
         struct timeval tv;
         int rc = gettimeofday (&tv, NULL);
@@ -179,7 +183,7 @@ namespace perf
 
         //  When function is called for the first time, set timestamps to zero
         //  so that they'll be recomputed below.
-        static uint64_t last_nsecs = now_nsecs ();
+        static uint64_t last_nsecs = 0;
         static LARGE_INTEGER last_ticks = {0};
         static LARGE_INTEGER ticks_per_second = {0};
 
@@ -195,7 +199,7 @@ namespace perf
 
         //  Find out whether one second has already elapsed since the last
         //  system time measurement. If so, measure the system time anew.
-        if (current_ticks.QuadPart - last_ticks.QuadPart >= 
+        if (last_nsecs == 0 || current_ticks.QuadPart - last_ticks.QuadPart >= 
               ticks_per_second.QuadPart) {
             last_nsecs = now_nsecs ();
             QueryPerformanceCounter (&last_ticks);
@@ -204,8 +208,11 @@ namespace perf
 
         //  Return the sum of last measured system time and the ticks
         //  elapsed since then.
-        return last_nsecs + ((current_ticks.QuadPart - last_ticks.QuadPart) * 
-            1000000000 / ticks_per_second.QuadPart);
+        double ns_per_tick = double (1000000000) /
+            double (ticks_per_second.QuadPart);
+
+        return last_nsecs + (uint64_t) ((current_ticks.QuadPart -
+            last_ticks.QuadPart) * ns_per_tick);
 
 #else
         return now_nsecs ();
