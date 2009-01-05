@@ -179,11 +179,12 @@ namespace perf
 
         //  When function is called for the first time, set timestamps to zero
         //  so that they'll be recomputed below.
-        static uint64_t last_nsecs = 0;
+        static uint64_t last_nsecs = now_nsecs ();
         static LARGE_INTEGER last_ticks = {0};
         static LARGE_INTEGER ticks_per_second = {0};
 
         if (ticks_per_second.QuadPart == 0) {
+
             //  Get the high resolution counter's accuracy.
             QueryPerformanceFrequency (&ticks_per_second);
         }
