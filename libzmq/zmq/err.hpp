@@ -51,7 +51,7 @@ namespace zmq
         printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
         abort ();\
     }\
-}
+} else
 
 //  Provides convenient way to check GetLastError-style errors on Windows.
 #define win_assert(x) if (!(x)) {\
@@ -59,7 +59,7 @@ namespace zmq
     zmq::win_error (errstr, 256);\
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
-}
+} else
 
 #endif
 
@@ -68,13 +68,13 @@ namespace zmq
     perror (NULL);\
     printf ("%s (%s:%d)\n", #x, __FILE__, __LINE__);\
     abort ();\
-}
+} else
 
 // Provides convenient way to check for errors from getaddrinfo.
 #define gai_assert(x) if (x) {\
     const char *errstr = gai_strerror (x);\
     printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
-}
+} else
 
 #endif
