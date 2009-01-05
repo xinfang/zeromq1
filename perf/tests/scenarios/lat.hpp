@@ -112,10 +112,6 @@ namespace perf
         double latency = (double) (test_time / 2000) / 
             (double) roundtrip_count_;
 
-std::cout << "start: " << start_time << std::endl;
-std::cout << "stop:  " << start_time << std::endl;
-std::cout << "test:  " << test_time << std::endl;
-
         std::cout <<  "Your average latency is " << latency 
             << " [us]" << std::endl << std::endl;
 
