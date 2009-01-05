@@ -63,7 +63,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     if (block)
         wsa_assert (rc != SOCKET_ERROR);
     else {
-        errcode = WSAGetLastError ();
+        int errcode = WSAGetLastError ();
         wsa_assert (rc != SOCKET_ERROR || errcode == WSAEWOULDBLOCK);
     }
 

@@ -86,8 +86,8 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     std::stringstream out;
     out << ntohs (ip_address.sin_port);
     port = out.str ();
-    strcat (iface, ":");
-    strcat (iface, port.c_str ());
+    zmq_strcat (iface, ":");
+    zmq_strcat (iface, port.c_str ());
                   
     //  Listen for incomming connections.
     rc = listen (s, 1);

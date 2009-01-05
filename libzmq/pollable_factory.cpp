@@ -61,6 +61,7 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
 
     //  Unknown transport type.
     assert (false);
+    return NULL;
 }
 
 ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
@@ -93,4 +94,5 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
 
     //  Unknown transport type.
     assert (false);
+    return NULL;
 }
