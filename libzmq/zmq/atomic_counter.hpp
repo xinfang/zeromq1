@@ -122,11 +122,12 @@ namespace zmq
         inline bool sub (integer_t decrement)
         {
 #if defined ZMQ_ATOMIC_COUNTER_WINDOWS
-            integer_t old = InterlockedExchangeAdd ((LONG*) &value,
-                -decrement);
+            LONG delta = - ((LONG) decrement);
+            integer_t old = InterlockedExchangeAdd ((LONG*) &value, delta);
             return old - decrement != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
-            integer_t nv = atomic_add_32_nv (&value, -decrement);
+            int32_t delta = - ((int32_t) decrement);
+            integer_t nv = atomic_add_32_nv (&value, delta);
             return nv != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_X86
             integer_t oldval = -decrement;
