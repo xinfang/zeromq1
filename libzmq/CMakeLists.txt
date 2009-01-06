@@ -15,8 +15,6 @@ set(libzmq_sources
   api_thread.cpp
   bp_decoder.cpp 
   bp_encoder.cpp 
-  bp_sctp_engine.cpp
-  bp_sctp_listener.cpp
   bp_tcp_engine.cpp
   bp_tcp_listener.cpp
   demux.cpp 
@@ -42,8 +40,22 @@ set(libzmq_sources
   ysocketpair.cpp
 )
 
-zmq_add_library(zmq ${libzmq_sources})
-
-target_link_libraries(zmq 
-  ${ZMQ_SOCKET_LIBRARIES} ${ZMQ_PTHREAD_LIBRARIES}
+set(libzmq_libraries
+  ${ZMQ_SOCKET_LIBRARIES} 
+  ${ZMQ_PTHREAD_LIBRARIES} 
 )
+
+IF(ZMQ_HAVE_SCTP)
+  set(libzmq_sources
+    ${libzmq_sources}
+    bp_sctp_engine.cpp
+    bp_sctp_listener.cpp
+  )
+  set(libzmq_libraries
+    ${libzmq_libraries}
+    ${LIBSCTP_LIBRARIES}
+  )
+ENDIF(ZMQ_HAVE_SCTP)
+
+zmq_add_library(zmq ${libzmq_sources})
+target_link_libraries( zmq ${libzmq_libraries})

@@ -9,6 +9,7 @@ project(zmq)
 # build options
 option(BUILD_SHARED_LIBS "Build Shared Libs?"        ON)
 option(WITH_C            "Build C language binding?" OFF)
+option(WITH_SCTP         "Build with SCTP protocol?" OFF)
 
 # Including zmq custom cmake modules 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -65,4 +66,5 @@ MESSAGE(STATUS  "")
 MESSAGE(STATUS  " C language binding ......... ${WITH_C}" )
 MESSAGE(STATUS  " Python language binding .... ${WITH_PYTHON}" )
 MESSAGE(STATUS  " Java language binding ...... ${WITH_JAVA}" )
+MESSAGE(STATUS  " SCTP capable ............... ${WITH_SCTP}" )
 MESSAGE(STATUS  "")

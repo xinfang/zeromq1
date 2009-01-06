@@ -53,6 +53,18 @@ include(zmq_find_pthreads) # make this a find_package()
 include(zmq_find_socket) # make this a find_package()
 
 # -----------------------------------------------------------------------------
+# Stream Control Transmission Protocol (SCTP) functionality
+# -----------------------------------------------------------------------------
+
+if(WITH_SCTP)
+  find_package(LIBSCTP REQUIRED)
+
+  # find_package should fail if not found so there
+  # shouldn't be a need to catch-gaurd this
+  set(ZMQ_HAVE_SCTP 1)
+endif(WITH_SCTP)
+
+# -----------------------------------------------------------------------------
 # Other platform specific checks here
 # -----------------------------------------------------------------------------
 

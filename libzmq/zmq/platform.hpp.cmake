@@ -24,6 +24,7 @@
 #ifdef ZMQ_HAVE_WINDOWS
 #define _WINSOCKAPI_
 #define NOMINMAX
+#define _CRT_SECURE_NO_WARNINGS
 #define ZMQ_EXPORT __declspec(dllexport)
 #endif
 
@@ -32,3 +33,5 @@
 #define ZMQ_EXPORT
 #endif
 
+/* Have Stream Control Transmission Protocol */
+#cmakedefine ZMQ_HAVE_SCTP 1
