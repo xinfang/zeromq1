@@ -15,18 +15,23 @@ set(libzmq_sources
   api_thread.cpp
   bp_decoder.cpp 
   bp_encoder.cpp 
-  bp_engine.cpp 
-  bp_listener.cpp
+  bp_sctp_engine.cpp
+  bp_sctp_listener.cpp
+  bp_tcp_engine.cpp
+  bp_tcp_listener.cpp
   demux.cpp 
   devpoll_thread.cpp 
   dispatcher.cpp
   epoll_thread.cpp 
   err.cpp
+  in_engine.cpp
   ip.cpp
   kqueue_thread.cpp
   locator.cpp
   mux.cpp
+  out_engine.cpp
   pipe.cpp 
+  pollable_factory.cpp
   poll_thread.cpp
   select_thread.cpp
   tcp_listener.cpp 

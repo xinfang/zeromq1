@@ -23,7 +23,7 @@
 
 #include <zmq/platform.hpp>
 
-#if ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
+#if defined ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
 
 #include <string>
 #include <sys/types.h>
