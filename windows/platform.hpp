@@ -25,3 +25,4 @@
 #define ZMQ_HAVE_WINDOWS
 #define _WINSOCKAPI_
 #define NOMINMAX
+#define _CRT_SECURE_NO_WARNINGS

@@ -66,8 +66,8 @@ typedef __int64 uint64_t;
 
         /*  Convert the tick number into the number of seconds  */
         /*  since the system was started...  */
-        ticksDivM = ticksPerSecond.QuadPart / 1000000000;
-        time.QuadPart = tick.QuadPart / ticksDivM;
+        ticksDivM = (double) ticksPerSecond.QuadPart / 1000000000;
+        time.QuadPart = (ULONGLONG) (tick.QuadPart / ticksDivM);
        
       
         return time.QuadPart;
