@@ -64,6 +64,22 @@
 /* Define to 1 if you have the `perror' function. */
 #undef HAVE_PERROR
 
+/* Define to 1 if you have the <qpid/client/Connection.h> header file. */
+#undef HAVE_QPID_CLIENT_CONNECTION_H
+
+/* Define to 1 if you have the <qpid/client/LocalQueue.h> header file. */
+#undef HAVE_QPID_CLIENT_LOCALQUEUE_H
+
+/* Define to 1 if you have the <qpid/client/Message.h> header file. */
+#undef HAVE_QPID_CLIENT_MESSAGE_H
+
+/* Define to 1 if you have the <qpid/client/Session.h> header file. */
+#undef HAVE_QPID_CLIENT_SESSION_H
+
+/* Define to 1 if you have the <qpid/client/SubscriptionManager.h> header
+   file. */
+#undef HAVE_QPID_CLIENT_SUBSCRIPTIONMANAGER_H
+
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
