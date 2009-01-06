@@ -177,22 +177,18 @@ bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
     //  Process pending commands, if any.
     process_commands ();
 
-    bool sent = true;
+    //  Try to send the message.
+    bool sent = exchanges [exchange_id_].second->write (msg_);
 
     if (block_) {
 
-        //  Try to write the message to at least one pipe. If there is no pipe
-        //  to write the message to, process commands and retry.
-        while (!exchanges [exchange_id_].second->write (msg_))
+        //  Oops, we couldn't send the message. Wait for the next
+        //  command, process it and try to send the message again.
+        while (!sent) {
             process_commands (pollset.poll ());
+            sent = exchanges [exchange_id_].second->write (msg_);
+        }
     }
-    else {
-
-        //  Pass the message to the demux.
-        if (!exchanges [exchange_id_].second->write (msg_))
-            sent = false;
-    }
-
 
     //  Flush the message to the pipe.
     //  TODO: This is inefficient in the case of load-balancing mode. Message
