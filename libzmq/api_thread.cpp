@@ -201,20 +201,18 @@ bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 
 bool zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
 {
-    bool sent = true;
+    //  Try to send the message.
+    bool sent = exchanges [exchange_id_].second->write (msg_);
 
     if (block_) {
 
-        //  Try to write the message to at least one pipe. If there is no pipe
-        //  to write the message to, process commands and retry.
-        while (!exchanges [exchange_id_].second->write (msg_))
+        //  We couldn't send the message. Process all available commands
+        //  and try to send the message again. If there is no command
+        //  available, wait for one.
+        while (!sent) {
             process_commands (pollset.poll ());
-    }
-    else {
-
-        //  Pass the message to the demux.
-        if (!exchanges [exchange_id_].second->write (msg_))
-            sent = false;
+            sent = exchanges [exchange_id_].second->write (msg_);
+        }
     }
 
     return sent;
