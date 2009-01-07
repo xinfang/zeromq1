@@ -69,6 +69,19 @@ namespace perf
         size_t size = transport_->receive ();
         assert (size == 1);
 
+        //  We got the sync message. This means the remote_lat process
+        //  has already bound its exchange to our queue. Before we start
+        //  message exchange, however, we must make sure the remote_lat
+        //  process also binds its queue to our exchange. This
+        //  is necessary to guarantee that all echoed messages will get
+        //  delivered. As there is no such synchronisation mechanism
+        //  available now, simply wait 1 second.
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (1000);
+#else
+        sleep (1);
+#endif
+
         //  Prepare arrays for raw test
         time_instant_t *raw_start_times = NULL;
         time_instant_t *raw_stop_times = NULL;
