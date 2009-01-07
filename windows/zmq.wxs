@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
+ 
+ 
+ <Product Name='ØMQ 0.4' Id='248FC781-AA9D-4608-807B-9B069564540F'
+    Language='1033' Codepage='1252' Version='0.4.0' Manufacturer='ØMQ.'>
+
+    <Package Id='????????-????-????-????-????????????' Keywords='Installer'
+      Description="ZEROMQ messaging"
+      Comments='This is ZEROMQ installer.' Manufacturer='ØMQ'
+      InstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+	
+    <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
+ 	<Property Id='DiskPrompt' Value="0MQ installation [1]" />
+ 
+ <Directory Id='TARGETDIR' Name='SourceDir'>
+	<Directory Id='ProgramFilesFolder' Name='PFiles'>
+      	<Directory Id='INSTALLDIR' Name='ZEROMQ' >
+			
+			<Directory Id='bin' Name='bin' >
+	  			<Component Id='Core_bin' Guid='1729073B-9EA4-446A-9640-B37CFB9FCBAB'>
+					<File Id='zmq_server' Name='zmq_s.exe' LongName='zmq_server.exe' DiskId='1'
+			                Source='zmq_server.exe' Vital='yes'/>
+					<File Id='libzmq.dll' Name='libzmq.dll' LongName='libzmq.dll' DiskId='1'
+			                Source='libzmq.dll' Vital='yes'/>
+				</Component>
+				<Component Id='c_bin' Guid='656EC625-7140-49DB-A201-44E48BBF4279'>
+					<File Id='libczmq.dll' Name='libczmq.dll' DiskId='1' Source='libczmq.dll' Vital='yes'/>
+				</Component>	
+			</Directory>
+			
+			<Directory Id='lib' Name='lib' >
+					<Component Id='Core_lib' Guid='C50047BA-A3F9-4CFC-A6FE-D3475D9E98DC'>
+						<File Id='libzmq.exp' Name='libzmq.exp' DiskId='1' Source='libzmq.lib' Vital='yes'/>
+						<File Id='libzmq.lib' Name='libzmq.lib' DiskId='1' Source='libzmq.lib' Vital='yes'/>
+					</Component>
+
+					<Component Id='c_lib' Guid='AF56CBEA-50CA-4DA4-906A-C4016F61408D'>
+						<File Id='libczmq.lib' Name='libczmq.lib' DiskId='1' Source='libczmq.lib' Vital='yes'/>
+						<File Id='libczmq.exp' Name='libczmq.exp' DiskId='1' Source='libczmq.exp' Vital='yes'/>
+					</Component>	
+			</Directory>
+
+			<Directory Id='include' Name='include' >
+				<Component Id='Core_include' Guid='89530882-02DB-4E5C-A8B2-82B74AC9A394'>
+					<File Id='zmq.hpp' Name='zmq.hpp' DiskId='1' Source='zmq.hpp' Vital='yes'/>
+				</Component>
+
+				<Component Id='c_include' Guid='A2917F7F-A5D9-407F-8E27-96B10A325846'>
+					<File Id='czmq.h' Name='czmq.h' DiskId='1' Source='czmq.h' Vital='yes'/>
+				</Component>	
+				
+				<Directory Id='zmq' Name='zmq' >
+					<Component Id='Core_zmq' Guid='C66C260A-A993-4CF2-8805-0C8F3F1A8D4B'>
+						<File Id='api_thread.hpp' Name='api_thr.hpp' LongName="api_thread.hpp"  DiskId='1' Source='api_thread.hpp' Vital='yes'/>
+						<File Id='atomic_bitmap.hpp' LongName='atomic_bitmap.hpp' Name='a_btmap.hpp' DiskId='1' Source='atomic_bitmap.hpp' Vital='yes'/>
+						<File Id='atomic_counter.hpp' LongName='atomic_counter.hpp' Name='a_cntr.hpp' DiskId='1' Source='atomic_counter.hpp' Vital='yes'/>
+						<File Id='atomic_ptr.hpp' LongName='atomic_ptr.hpp' Name='a_ptr.hpp' DiskId='1' Source='atomic_ptr.hpp' Vital='yes'/>
+						<File Id='bp_decoder.hpp' LongName='bp_decoder.hpp' Name='bp_dec.hpp' DiskId='1' Source='bp_decoder.hpp' Vital='yes'/>
+						<File Id='bp_encoder.hpp' LongName='bp_encoder.hpp' Name='bp_enc.hpp' DiskId='1' Source='bp_encoder.hpp' Vital='yes'/>
+						<File Id='bp_engine.hpp' LongName='bp_engine.hpp' Name='bp_eng.hpp' DiskId='1' Source='bp_engine.hpp' Vital='yes'/>
+						<File Id='bp_listener.hpp' LongName='bp_listener.hpp' Name='bp_list.hpp' DiskId='1' Source='bp_listener.hpp' Vital='yes'/>
+						<File Id='command.hpp' Name='command.hpp' DiskId='1' Source='command.hpp' Vital='yes'/>
+						<File Id='config.hpp' Name='config.hpp' DiskId='1' Source='config.hpp' Vital='yes'/>
+						<File Id='decoder.hpp' Name='decoder.hpp' DiskId='1' Source='decoder.hpp' Vital='yes'/>
+						<File Id='demux.hpp' Name='demux.hpp' DiskId='1' Source='demux.hpp' Vital='yes'/>
+						<File Id='devpoll_thread.hpp' LongName='devpoll_thread.hpp' Name='dp_thr.hpp' DiskId='1' Source='devpoll_thread.hpp' Vital='yes'/>
+						<File Id='dispatcher.hpp' LongName='dispatcher.hpp' Name='disp.hpp' DiskId='1' Source='dispatcher.hpp' Vital='yes'/>
+						<File Id='encoder.hpp' Name='encoder.hpp' DiskId='1' Source='encoder.hpp' Vital='yes'/>
+						<File Id='epoll_thread.hpp' LongName='epoll_thread.hpp' Name='ep_thr.hpp' DiskId='1' Source='epoll_thread.hpp' Vital='yes'/>
+						<File Id='err.hpp' Name='err.hpp' DiskId='1' Source='err.hpp' Vital='yes'/>
+						<File Id='export.hpp' Name='export.hpp' DiskId='1' Source='export.hpp' Vital='yes'/>
+						<File Id='formatting.hpp' LongName='formatting.hpp' Name='form.hpp' DiskId='1' Source='formatting.hpp' Vital='yes'/>
+						<File Id='i_engine.hpp' Name='i_engine.hpp' DiskId='1' Source='i_engine.hpp' Vital='yes'/>
+						<File Id='i_locator.hpp' LongName='i_locator.hpp' Name='i_loc.hpp' DiskId='1' Source='i_locator.hpp' Vital='yes'/>
+						<File Id='i_pollable.hpp' LongName='i_pollable.hpp' Name='i_pble.hpp' DiskId='1' Source='i_pollable.hpp' Vital='yes'/>
+						<File Id='i_poller.hpp' LongName='i_poller.hpp' Name='i_per.hpp' DiskId='1' Source='i_poller.hpp' Vital='yes'/>
+						<File Id='i_signaler.hpp' LongName='i_signaler.hpp' Name='i_sig.hpp' DiskId='1' Source='i_signaler.hpp' Vital='yes'/>
+						<File Id='i_thread.hpp' Name='i_thread.hpp' DiskId='1' Source='i_thread.hpp' Vital='yes'/>
+						<File Id='io_thread.hpp' LongName='io_thread.hpp' Name='io_thr.hpp' DiskId='1' Source='io_thread.hpp' Vital='yes'/>
+						<File Id='ip.hpp' Name='ip.hpp' DiskId='1' Source='ip.hpp' Vital='yes'/>
+						<File Id='kqueue_thread.hpp' LongName='kqueue_thread.hpp' Name='kq_thr.hpp' DiskId='1' Source='kqueue_thread.hpp' Vital='yes'/>
+						<File Id='locator.hpp' Name='locator.hpp' DiskId='1' Source='locator.hpp' Vital='yes'/>
+						<File Id='message.hpp' Name='message.hpp' DiskId='1' Source='message.hpp' Vital='yes'/>
+						<File Id='mutex.hpp' Name='mutex.hpp' DiskId='1' Source='mutex.hpp' Vital='yes'/>
+						<File Id='mux.hpp' Name='mux.hpp' DiskId='1' Source='mux.hpp' Vital='yes'/>
+						<File Id='pipe.hpp' Name='pipe.hpp' DiskId='1' Source='pipe.hpp' Vital='yes'/>
+						<File Id='platform.hpp' Name='platform.hpp' DiskId='1' Source='platform.hpp' Vital='yes'/>
+						<File Id='poll_thread.hpp' LongName='poll_thread.hpp' Name='p_thr.hpp' DiskId='1' Source='poll_thread.hpp' Vital='yes'/>
+						<File Id='poller.hpp' Name='poller.hpp' DiskId='1' Source='poller.hpp' Vital='yes'/>
+						<File Id='raw_message.hpp' LongName='raw_message.hpp' Name='r_msg.hpp' DiskId='1' Source='raw_message.hpp' Vital='yes'/>
+						<File Id='scope.hpp' Name='scope.hpp' DiskId='1' Source='scope.hpp' Vital='yes'/>
+						<File Id='select_thread.hpp' LongName='select_thread.hpp' Name='sel_thr.hpp' DiskId='1' Source='select_thread.hpp' Vital='yes'/>
+						<File Id='server_protocol.hpp' LongName='server_protocol.hpp' Name='serv_pr.hpp' DiskId='1' Source='server_protocol.hpp' Vital='yes'/>
+						<File Id='stdint.hpp' Name='stdint.hpp' DiskId='1' Source='stdint.hpp' Vital='yes'/>
+						<File Id='tcp_listener.hpp' LongName='tcp_listener.hpp' Name='tcp_l.hpp' DiskId='1' Source='tcp_listener.hpp' Vital='yes'/>
+						<File Id='tcp_socket.hpp' LongName='tcp_socket.hpp' Name='tcp_s.hpp' DiskId='1' Source='tcp_socket.hpp' Vital='yes'/>
+						<File Id='thread.hpp' Name='thread.hpp' DiskId='1' Source='thread.hpp' Vital='yes'/>
+						<File Id='windows.hpp' Name='windows.hpp' DiskId='1' Source='windows.hpp' Vital='yes'/>
+						<File Id='wire.hpp' Name='wire.hpp' DiskId='1' Source='wire.hpp' Vital='yes'/>
+						<File Id='ypipe.hpp' Name='ypipe.hpp' DiskId='1' Source='ypipe.hpp' Vital='yes'/>
+						<File Id='ypollset.hpp' Name='ypollset.hpp' DiskId='1' Source='ypollset.hpp' Vital='yes'/>
+						<File Id='yqueue.hpp' Name='yqueue.hpp' DiskId='1' Source='yqueue.hpp' Vital='yes'/>
+						<File Id='ysemaphore.hpp' LongName='ysemaphore.hpp' Name='ysem.hpp' DiskId='1' Source='ysemaphore.hpp' Vital='yes'/>
+						<File Id='ysocketpair.hpp' LongName='ysocketpair.hpp' Name='yspair.hpp' DiskId='1' Source='ysocketpair.hpp' Vital='yes'/>
+					</Component>
+				</Directory>
+				</Directory>
+						
+			<Directory Id='java' Name='java' >
+				<Component Id='java' Guid='FCDD717C-1BEC-423E-B570-4DC0F27CC40F'>
+					<File Id='jzmq.java' LongName='jzmq.java' Name='jzmq.j' DiskId='1' Source='jzmq.java' Vital='yes'/>
+					<File Id='jzmq.class' LongName='jzmq.class' Name='jzmq.cl' DiskId='1' Source='jzmq.class' Vital='yes'/>
+					<File Id='libjzmq.dll' Name='libjzmq.dll' DiskId='1' Source='libjzmq.dll' Vital='yes'/>
+				</Component>
+			</Directory>
+  			
+
+  			<Directory Id='python' Name='python' >
+				<Component Id='python' Guid='C1D798BB-C66A-4031-8A96-065DEA794616'>
+					<File Id='libpyzmq.pyd' Name='libpyzmq.pyd' DiskId='1' Source='libpyzmq.pyd' Vital='yes'/>
+				</Component>
+			</Directory>
+
+  			<Directory Id='examples' Name='examples' >
+				<Directory Id='chat' Name='chat' >
+  					<Component Id='examples_chat' Guid='F02A2579-737E-44E3-9EB9-06E17434BB28'>
+						<File Id='chat.exe' Name='chat.exe' DiskId='1' Source='chat.exe' Vital='yes'/>
+						<File Id='display.exe' Name='display.exe' DiskId='1' Source='display.exe' Vital='yes'/>
+						<File Id='prompt.exe' Name='prompt.exe' DiskId='1' Source='prompt.exe' Vital='yes'/>
+					</Component>
+				</Directory>
+				<Directory Id='exchange' Name='exchange' >
+					<Component Id='examples_exchange' Guid='82CCF670-430F-4E66-8495-5752DF551B6D'>
+						<File Id='stat.exe' Name='stat.exe' DiskId='1' Source='stat.exe' Vital='yes'/>
+						<File Id='me.exe' Name='me.exe' DiskId='1' Source='me.exe' Vital='yes'/>
+						<File Id='gtw.exe' Name='gtw.exe' DiskId='1' Source='gtw.exe' Vital='yes'/>
+					</Component>
+				</Directory>
+			</Directory>
+  			
+
+  			<Directory Id='perf' Name='perf' >
+				<Component Id='perf' Guid='61372393-4200-43FD-8AD7-63448298B4F0'>
+					<File Id='local_lat.exe' LongName='local_lat.exe' Name='l_lat.exe' DiskId='1' Source='local_lat.exe' Vital='yes'/>
+					<File Id='local_thr.exe' LongName='local_thr.exe' Name='l_thr.exe' DiskId='1' Source='local_thr.exe' Vital='yes'/>
+					<File Id='remote_lat.exe' LongName='remote_lat.exe' Name='r_lat.exe' DiskId='1' Source='remote_lat.exe' Vital='yes'/>
+					<File Id='remote_thr.exe' LongName='remote_thr.exe' Name='r_thr.exe' DiskId='1' Source='remote_thr.exe' Vital='yes'/>
+				</Component>
+			</Directory>
+
+			<Directory Id='doc' Name='doc' >
+				<Component Id='documentation' Guid='5FF31AB8-B846-48F6-84BE-B3CB57E0EC55'>
+					<File Id='api_thread_t.pdf' LongName='api_thread_t.pdf' Name='a_thr.pdf' DiskId='1' Source='api_thread_t.pdf' Vital='yes'/>
+					<File Id='devpoll_thread_t.pdf' LongName='devpoll_thread_t.pdf' Name='dp_thr.pdf' DiskId='1' Source='devpoll_thread_t.pdf' Vital='yes'/>
+					<File Id='dispatcher_t.pdf' LongName='dispatcher_t.pdf' Name='disp.pdf' DiskId='1' Source='dispatcher_t.pdf' Vital='yes'/>
+					<File Id='epoll_thread_t.pdf' LongName='epoll_thread_t.pdf' Name='ep_thr.pdf' DiskId='1' Source='epoll_thread_t.pdf' Vital='yes'/>
+					<File Id='io_thread_t.pdf' LongName='io_thread_t.pdf' Name='io_thr.pdf' DiskId='1' Source='api_thread_t.pdf' Vital='yes'/>
+					<File Id='kqueue_thread_t.pdf' LongName='kqueue_thread_t.pdf' Name='kq_thr.pdf' DiskId='1' Source='kqueue_thread_t.pdf' Vital='yes'/>
+					<File Id='locator_t.pdf' LongName='locator_t.pdf' Name='loc.pdf' DiskId='1' Source='locator_t.pdf' Vital='yes'/>
+					<File Id='message_t.pdf' LongName='message_t.pdf' Name='msg.pdf' DiskId='1' Source='message_t.pdf' Vital='yes'/>
+					<File Id='poll_thread_t.pdf' LongName='poll_thread_t.pdf' Name='p_thr.pdf' DiskId='1' Source='poll_thread_t.pdf' Vital='yes'/>
+					<File Id='select_thread_t.pdf' LongName='select_thread_t.pdf' Name='s_thr.pdf' DiskId='1' Source='select_thread_t.pdf' Vital='yes'/>
+					<File Id='set_error_handler.pdf' LongName='set_error_handler.pdf' Name='seh.pdf' DiskId='1' Source='set_error_handler.pdf' Vital='yes'/>
+				</Component>
+  			</Directory>	
+  			
+
+ 		</Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
+      	<Directory Id="ProgramMenuDir" Name='ØMQ' LongName="ØMQ 0.4" />
+      	</Directory>
+      	
+		<Directory Id="DesktopFolder" Name="Desktop" />
+		</Directory>
+
+		<Feature Id='Complete' Title='ØMQ 0.4' Description='The complete package.'
+		      Display='expand' Level='1' ConfigurableDirectory='INSTALLDIR'>
+	
+			<Feature Id='core' Title='Core' Description='ØMQ 0.4 core functionality and C++ API' Level='1'>
+				<ComponentRef Id='Core_include' />
+				<ComponentRef Id='Core_bin' />
+				<ComponentRef Id='Core_lib' />
+				<ComponentRef Id='Core_zmq' />
+			</Feature>
+			<Feature Id='c' Title='C' Description='C API' Level='1'>
+					<ComponentRef Id='c_include' />
+					<ComponentRef Id='c_bin' />
+					<ComponentRef Id='c_lib' />
+				</Feature>
+
+				<Feature Id='java' Title='Java' Description='Java API' Level='1'>
+					<ComponentRef Id='java' />
+				</Feature>
+
+				<Feature Id='python' Title='Python' Description='Python API' Level='1'>
+					<ComponentRef Id='python' />
+				</Feature>
+			
+				<Feature Id='examples' Title='Examples' Description='ØMQ examples (chat, exchange)' Level='1'>
+					<ComponentRef Id='examples_chat' />
+					<ComponentRef Id='examples_exchange' />
+				</Feature>
+
+				<Feature Id='perf' Title='Perf' Description='Performance measurement framework' Level='1'>
+					<ComponentRef Id='perf' />
+				</Feature>
+
+		      	<Feature Id='documentation' Title='Documentation' Description='Documentation' Level='1'>
+					<ComponentRef Id='documentation' />
+				</Feature>
+				
+		</Feature>
+	
+	<UIRef Id="WixUI_FeatureTree" />
+    	<UIRef Id="WixUI_ErrorProgressText" />
+
+  	<Icon Id="zmq_server.exe" SourceFile="zmq_server.exe" />
+
+	</Product>
+</Wix>
