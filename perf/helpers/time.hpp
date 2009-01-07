@@ -184,8 +184,17 @@ namespace perf
         //  When function is called for the first time, set timestamps to zero
         //  so that they'll be recomputed below.
         static uint64_t last_nsecs = 0;
-        static LARGE_INTEGER last_ticks = {0};
-        static LARGE_INTEGER ticks_per_second = {0};
+        static LARGE_INTEGER last_ticks;
+        static LARGE_INTEGER ticks_per_second;
+
+        //  First run.
+        if (last_nsecs == 0) {
+            last_ticks.LowPart = 0;
+            last_ticks.HighPart = 0;
+
+            ticks_per_second.LowPart = 0;
+            ticks_per_second.HighPart = 0;
+        }
 
         if (ticks_per_second.QuadPart == 0) {
 
