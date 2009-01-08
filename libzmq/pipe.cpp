@@ -53,7 +53,6 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         hwm = shwm + dhwm;
         lwm = slwm + dlwm;
     }
-printf ("hwm %lu lwm %lu\n", hwm, lwm);
 }
 
 zmq::pipe_t::~pipe_t ()
