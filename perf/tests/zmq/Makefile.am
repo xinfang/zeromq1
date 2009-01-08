@@ -5,9 +5,13 @@ if BUILD_C
 C_TEST_BINS = c_local_lat c_remote_lat c_local_thr c_remote_thr
 endif
 
+if BUILD_OPENPGM
+PGM_TEST_BINS = pgm_sender
+endif
+
 noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
 local_fo remote_fo local_fi remote_fi local_thr_lat remote_thr_lat \
-$(C_TEST_BINS)
+$(C_TEST_BINS) $(PGM_TEST_BINS)
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq_transport.hpp \
 ../../transports/i_transport.hpp ../../helpers/functions.hpp\
@@ -92,4 +96,10 @@ AM_JAVACFLAGS=-classpath $(top_builddir)/libjzmq
 
 dist_noinst_JAVA = j_local_lat.java j_remote_lat.java j_local_thr.java \
 j_remote_thr.java
+endif
+
+if BUILD_OPENPGM
+pgm_sender_SOURCES = pgm_sender.cpp
+pgm_sender_LDADD = $(top_builddir)/libzmq/libzmq.la
+pgm_sender_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 endif

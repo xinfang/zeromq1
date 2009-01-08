@@ -64,6 +64,9 @@
 /* Define to 1 if you have the `perror' function. */
 #undef HAVE_PERROR
 
+/* Define to 1 if you have the <pgm/pgm.h> header file. */
+#undef HAVE_PGM_PGM_H
+
 /* Define to 1 if you have the <qpid/client/Connection.h> header file. */
 #undef HAVE_QPID_CLIENT_CONNECTION_H
 
@@ -172,6 +175,9 @@
 
 /* Have OpenBSD OS */
 #undef ZMQ_HAVE_OPENBSD
+
+/* Have OpenPGM extension. */
+#undef ZMQ_HAVE_OPENPGM
 
 /* Have DarwinOSX OS */
 #undef ZMQ_HAVE_OSX

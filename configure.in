@@ -117,6 +117,13 @@ AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.
 AC_LANG(C++)
 
 # Optional stuff
+AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
+
+if test "x$have_pkg_config" != "xno"; then
+    #  First instance of PKG_CHECK_ has to be executed
+    PKG_CHECK_EXISTS([dummy_pkg], [], [])
+fi
+
 perf="no"
 AC_ARG_WITH([perf], [AS_HELP_STRING([--with-perf], [build performance tests [default=no]])], [with_perf=yes], [with_perf=no])
 cpu_estimator="no"
@@ -200,8 +207,7 @@ camera="no"
 AC_ARG_WITH([camera], [AS_HELP_STRING([--with-camera], [build camera example [default=no]])], [with_camera=yes], [with_camera=no])
 if test "x$with_camera" != "xno"; then
 
-    #  check for pkg-config
-    AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
+    #  Test if we have pkg-config
     if test "x$have_pkg_config" != "xyes"; then
         AC_MSG_ERROR([To run configure with --with-camera option, pkg-config has to be installed.]);
     fi
@@ -316,7 +322,9 @@ fi
 
 #  SCTP extension
 sctp_ext="no"
-AC_ARG_WITH([sctp], [AS_HELP_STRING([--with-sctp], [build libzmq with SCTP extension [default=no]])], [with_sctp_ext=yes], [with_sctp_ext=no])
+AC_ARG_WITH([sctp], [AS_HELP_STRING([--with-sctp], 
+    [build libzmq with SCTP extension [default=no]])], 
+    [with_sctp_ext=yes], [with_sctp_ext=no])
 if test "x$with_sctp_ext" != "xno"; then
      case "${host_os}" in
         *linux*)
@@ -341,6 +349,45 @@ if test "x$with_sctp_ext" != "xno"; then
     sctp_ext="yes"
 fi
 
+#  PGM extension
+openpgm_ext="no"
+AC_ARG_WITH([openpgm], [AS_HELP_STRING([--with-openpgm], 
+    [build libzmq with OpenPGM extension [default=no]])], 
+    [with_openpgm_ext=yes], [with_openpgm_ext=no])
+if test "x$with_openpgm_ext" != "xno"; then
+
+    #  Test if we have pkg-config
+    if test "x$have_pkg_config" != "xyes"; then
+        AC_MSG_ERROR([To run configure with --with-openpgm option, pkg-config has to be installed.]);
+    fi
+
+     case "${host_os}" in
+        *linux*)
+        ;;
+        *)
+            AC_MSG_ERROR([OpenPGM extesion is not supported on this platform $host.])
+        ;;
+    esac
+
+    PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
+    CPPFLAGS+=" "
+    CPPFLAGS+=$GLIB_CFLAGS
+    LIBS+=$GLIB_LIBS
+
+    AC_CHECK_HEADERS([pgm/pgm.h], [], 
+        [AC_MSG_ERROR([Could not find OpenPGM header files, Set CPPFLAGS to OpenPGM include directory.])])
+
+    AC_CHECK_LIB(pgm-pic, main, 
+        [openpgm_link=yes],
+        [AC_MSG_ERROR([Could not link with pgm-pic library. Set LDFLAGS to OpenPGM lib directory.])])
+
+    LIBS+=-lpgm-pic
+
+    AC_DEFINE(ZMQ_HAVE_OPENPGM, 1, [Have OpenPGM extension.])
+
+    openpgm_ext="yes"
+fi
+
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
@@ -352,6 +399,7 @@ AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_QPID, test "x$qpid" = "xyes")
+AM_CONDITIONAL(BUILD_OPENPGM, test "x$openpgm_ext" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -401,6 +449,7 @@ AC_MSG_RESULT([])
 AC_MSG_RESULT([ libzmq install dir: $prefix])
 AC_MSG_RESULT([ libzmq extesions:])
 AC_MSG_RESULT([   SCTP: $sctp_ext])
+AC_MSG_RESULT([   OpenPGM: $openpgm_ext])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Utilities:])
 AC_MSG_RESULT([   zmq_server: $zmq_server])

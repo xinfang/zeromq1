@@ -31,6 +31,9 @@
 /* Have SCTP extension */
 #undef ZMQ_HAVE_SCTP
 
+/* Have OpenPGM extension */
+#undef ZMQ_HAVE_OPENPGM
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif

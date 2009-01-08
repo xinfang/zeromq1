@@ -25,6 +25,7 @@
 #include <zmq/bp_tcp_engine.hpp>
 #include <zmq/bp_sctp_listener.hpp>
 #include <zmq/bp_sctp_engine.hpp>
+#include <zmq/bp_pgm_listener.hpp>
 
 ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
     i_thread *thread_, const char *arguments_,
@@ -55,6 +56,13 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
 #if defined ZMQ_HAVE_SCTP
     if (transport_type == "bp/sctp")
         return bp_sctp_listener_t::create (calling_thread_, thread_,
+            transport_args.c_str (), handler_thread_count_, handler_threads_,
+            source_, peer_thread_, peer_engine_, peer_name_);
+#endif
+
+#if defined ZMQ_HAVE_OPENPGM
+    if (transport_type == "bp/pgm")
+        return bp_pgm_listener_t::create (calling_thread_, thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
 #endif

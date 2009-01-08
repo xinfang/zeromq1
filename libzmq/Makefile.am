@@ -60,7 +60,10 @@ pkginclude_HEADERS = \
     ./zmq/pollable_factory.hpp \
     ./zmq/i_listener.hpp \
     ./zmq/bp_sctp_listener.hpp \
-    ./zmq/bp_sctp_engine.hpp
+    ./zmq/bp_sctp_engine.hpp \
+    ./zmq/pgm_socket.hpp \
+    ./zmq/epgm_socket.hpp \
+    ./zmq/bp_pgm_listener.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -92,7 +95,10 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     in_engine.cpp \
     pollable_factory.cpp \
     bp_sctp_listener.cpp \
-    bp_sctp_engine.cpp
+    bp_sctp_engine.cpp \
+    pgm_socket.cpp \
+    epgm_socket.cpp \
+    bp_pgm_listener.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
