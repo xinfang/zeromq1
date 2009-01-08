@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #include <iostream>
 #include <zmq.hpp>
 
@@ -24,50 +25,51 @@ using namespace std;
 
 int main (int argc, char *argv []) 
 {
-    if (argc != 5) {
-        cerr << "Usage: pgm_sender <hostname> <exchange interface> "
-            "<message size> <message count>" << endl;
+    if (argc != 4) {
+        cerr << "Usage: pgm_receiver <hostname> <message size> "
+        "<message count>" << endl;
         return 1;
     }
 
     //  Input arguments parsing.
     const char *host = argv [1];
 
-    char network [256];
-    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [2]);
-    network [sizeof (network) - 1] = '\0';
-
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
+    size_t msg_size = atoi (argv [2]);
+    int msg_count = atoi (argv [3]);
 
     //  Global exchange name.
     char ex_name [] = "G_XCHG";
 
-    cout << "network: " << network << endl;
+    //  Local queue name.
+    char q_name [] = "L_QUEUE";
+
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 
     //  Create dispatcher.
     zmq::dispatcher_t dispatcher (2); 
 
-    //  Create io_thread.
+    //  Create IO thread.
     zmq::i_thread *worker = zmq::io_thread_t::create (&dispatcher); 
 
     //  Create locator.
     zmq::locator_t locator (host);
 
     //  Create api thread.
-    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, 
-        &locator);
+    zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
 
-    //  Create global exchange.
-    int ex_id = api->create_exchange (ex_name, zmq::scope_global, 
-        network, worker, 1, &worker);
+    //  Create local queue.
+    api->create_queue (q_name);
+
+    //  Bind local queue to global exchange.
+    api->bind (ex_name, q_name, worker, worker); 
+
+    zmq::message_t message;
 
     for (int i = 0; i < msg_count; i++) {
-        sleep (10);
-        zmq::message_t message (msg_size);
-        api->send (ex_id, message);
+        api->receive (&message);
+        
+        assert (message.size () == msg_size);
     }
 
     return 0;

@@ -77,8 +77,13 @@ zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
     zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
     peer_name [sizeof (peer_name) - 1] = '\0';
 
-    //  Store interface.
-    sprintf (arguments, "bp/pgm://%s", interface_);
+    //  Store interface. Note that interface name is not stored in locator.
+    char *delim = strchr (interface_, ';');
+    assert (delim);
+
+    delim++;
+
+    sprintf (arguments, "bp/pgm://%s", delim);
 
     //  Initialise the array of threads to handle new connections.
     assert (handler_thread_count_ > 0);

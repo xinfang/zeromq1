@@ -23,6 +23,7 @@
 
 #include <zmq/pgm_socket.hpp>
 #include <zmq/err.hpp>
+#include <string>
 
 #define PGM_SOCKET_DEBUG
 #define PGM_SOCKET_DEBUG_LEVEL 4
@@ -54,20 +55,34 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
     struct group_source_req recv_gsr, send_gsr;
     int gsr_len = 1;
 
+    zmq_log (4, "socket_info %s\n", interface_);
+
     //  Parse port number from interface_ string
     char *port_delim = strchr (interface_, ':');
     assert (port_delim);
 
-    *port_delim = '\0';
     port_delim++;
 
     uint16_t port = atoi (port_delim);
 
-    zmq_log (4, "socket_info %s\n", interface_);
+    std::string interface (interface_);
+    std::string::size_type pos = interface.find (":");
+
+    assert (pos != std::string::npos);
+
+    interface = interface.substr (0, pos);
+   
+    //  !!!!!!!!!!!!!!!!!!!!!!!!!
+    //  This is only temporary hack
+    if (receiver_) {
+        std::string iface ("eth1;");
+        interface = iface + interface;
+    }
+
+    zmq_log (4, "interface %s\n", interface.c_str ());
     zmq_log (4, "port %i\n", port);
 
-
-    rc = pgm_if_parse_transport (interface_, AF_INET, &recv_gsr, &send_gsr, &gsr_len);
+    rc = pgm_if_parse_transport (interface.c_str (), AF_INET, &recv_gsr, &send_gsr, &gsr_len);
     assert (rc == 0);
     assert (gsr_len == 1);
 

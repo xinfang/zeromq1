@@ -36,6 +36,9 @@ namespace zmq
         //  unnecessary network stack traversals.
         bp_in_batch_size = 8192,
 
+        //  pgm engine buffer (receiver)
+        pgm_in_batch_size = 1000,
+
         //  Maximal batching size for outgoing backend protocol messages.
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be sent by a single 'write' system call, thus avoiding

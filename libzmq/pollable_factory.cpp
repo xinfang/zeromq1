@@ -20,12 +20,14 @@
 #include <string>
 
 #include <zmq/platform.hpp>
+#include <zmq/config.hpp>
 #include <zmq/pollable_factory.hpp>
 #include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
 #include <zmq/bp_sctp_listener.hpp>
 #include <zmq/bp_sctp_engine.hpp>
 #include <zmq/bp_pgm_listener.hpp>
+#include <zmq/bp_pgm_engine.hpp>
 
 ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
     i_thread *thread_, const char *arguments_,
@@ -98,6 +100,12 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
     if (transport_type == "bp/sctp")
         return bp_sctp_engine_t::create (calling_thread_, thread_,
             transport_args.c_str (), local_object_);
+#endif
+
+#if defined ZMQ_HAVE_OPENPGM
+    if (transport_type == "bp/pgm")
+        return bp_pgm_engine_t::create (calling_thread_, thread_,
+            transport_args.c_str (), local_object_, pgm_in_batch_size);
 #endif
 
     //  Unknown transport type.
