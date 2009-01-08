@@ -36,19 +36,19 @@ namespace zmq
     {
     public:
 
-        inline encoder_t () :
-            first_message (NULL)
+        inline encoder_t ()
         {
         }
 
         //  The function tries to fill the supplied chunk by binary data.
         //  Returns the size of data actually filled in. If offset is not
         //  NULL, it is filled by offset of the first message in the batch.
-        //  If there's no beginning of a message in the batach, offset is
+        //  If there's no beginning of a message in the batch, offset is
         //  set to -1.
         inline size_t read (unsigned char *data_, size_t size_,
             ssize_t *offset_ = NULL)
         {
+            ssize_t offset = -1;
             size_t pos = 0;
 
             while (true) {
@@ -59,16 +59,24 @@ namespace zmq
                     pos += to_copy;
                     write_pos += to_copy;
                     to_write -= to_copy;
-                } else if (!((static_cast <T*> (this)->*next) ()))
-                    break;
+
+                } else {
+
+                    bool more = (static_cast <T*> (this)->*next) ();
+                    if (beginning && offset == -1) {
+                        offset = pos;
+                        beginning = false;
+                    }
+                    if (!more)
+                        break;
+                }
 
                 if (pos == size_)
                     break;
             }
 
             if (offset_)
-                *offset_ = first_message ? first_message - data_ : -1;
-            first_message = NULL;
+                *offset_ = offset;
 
             return pos;
         }
@@ -84,11 +92,10 @@ namespace zmq
         inline void next_step (void *write_pos_, size_t to_write_,
             step_t next_, bool beginning_)
         {
-            if (!first_message && beginning_)
-               first_message = (unsigned char*) write_pos_;
             write_pos = (unsigned char*) write_pos_;
             to_write = to_write_;
             next = next_;
+            beginning = beginning_;
         }
 
     private:
@@ -96,10 +103,7 @@ namespace zmq
         unsigned char *write_pos;
         size_t to_write;
         step_t next;
-
-        //  Pointer to the first message or NULL if there's no
-        //  beginning of a message in the buffer.
-        unsigned char *first_message;
+        bool beginning;
 
         encoder_t (const encoder_t&);
         void operator = (const encoder_t&);
