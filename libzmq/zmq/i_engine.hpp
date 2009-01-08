@@ -50,7 +50,8 @@ namespace zmq
 
         //  Returns high and low watermarks for the specified engine. High and
         //  low watermarks for a pipe are computed by adding high and low
-        //  watermarks of the engines the pipe is connecting.
+        //  watermarks of the engines the pipe is connecting. hwm equal to -1
+        //  means that there should be unlimited storage space for the engine.
         virtual void get_watermarks (uint64_t *hwm_, uint64_t *lwm_) = 0;
 
         //  Called when command from a different thread is received.

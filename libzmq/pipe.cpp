@@ -45,7 +45,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     uint64_t dhwm;
     uint64_t dlwm;
     destination_engine->get_watermarks (&dhwm, &dlwm);
-    if (!shwm || !dhwm) {
+    if (shwm == (uint64_t) -1 || dhwm == (uint64_t) -1) {
         hwm = 0;
         lwm = 0;
     }
@@ -53,6 +53,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         hwm = shwm + dhwm;
         lwm = slwm + dlwm;
     }
+printf ("hwm %lu lwm %lu\n", hwm, lwm);
 }
 
 zmq::pipe_t::~pipe_t ()
