@@ -51,7 +51,7 @@ namespace zmq
             ssize_t offset = -1;
             size_t pos = 0;
 
-            while (true) {
+            while (pos < size_) {
                 if (to_write) {
 
                     size_t to_copy = std::min (to_write, size_ - pos);
@@ -60,7 +60,8 @@ namespace zmq
                     write_pos += to_copy;
                     to_write -= to_copy;
 
-                } else {
+                }
+                else {
 
                     bool more = (static_cast <T*> (this)->*next) ();
                     if (beginning && offset == -1) {
@@ -70,9 +71,6 @@ namespace zmq
                     if (!more)
                         break;
                 }
-
-                if (pos == size_)
-                    break;
             }
 
             if (offset_)
