@@ -36,13 +36,16 @@ namespace zmq
     {
     public:
 
-        inline encoder_t ()
+        inline encoder_t () :
+            first_message (NULL)
         {
-            offset = -1;
         }
 
         //  The function tries to fill the supplied chunk by binary data.
-        //  Returns the size of data actually filled in.
+        //  Returns the size of data actually filled in. If offset is not
+        //  NULL, it is filled by offset of the first message in the batch.
+        //  If there's no beginning of a message in the batach, offset is
+        //  set to -1.
         inline size_t read (unsigned char *data_, size_t size_,
             ssize_t *offset_ = NULL)
         {
@@ -50,33 +53,24 @@ namespace zmq
 
             while (true) {
                 if (to_write) {
-                    //  Store the offset.
-                    if (beginning && offset == -1) {
-                        beginning = false;
-                        offset = pos;
-                    }
 
                     size_t to_copy = std::min (to_write, size_ - pos);
                     memcpy (data_ + pos, write_pos, to_copy);
                     pos += to_copy;
                     write_pos += to_copy;
                     to_write -= to_copy;
-                } else if (!((static_cast <T*> (this)->*next) ())) {
-                    if (offset_)
-                        *offset_ = offset;
-                    offset = -1;
+                } else if (!((static_cast <T*> (this)->*next) ()))
+                    break;
 
-                    return pos;
-                }
-
-                if (pos == size_) {
-                    if (offset_)
-                        *offset_ = offset;
-                    offset = -1;
-
-                    return pos;
-                }
+                if (pos == size_)
+                    break;
             }
+
+            if (offset_)
+                *offset_ = first_message ? first_message - data_ : -1;
+            first_message = NULL;
+
+            return pos;
         }
 
     protected:
@@ -85,11 +79,13 @@ namespace zmq
         typedef bool (T::*step_t) ();
 
         //  This function should be called from derived class to write the data
-        //  to the buffer and schedule next state machine action.
+        //  to the buffer and schedule next state machine action. Set beginning
+        //  to true when you are writing first byte of a message.
         inline void next_step (void *write_pos_, size_t to_write_,
             step_t next_, bool beginning_)
         {
-            beginning = beginning_;
+            if (!first_message && beginning_)
+               first_message = (unsigned char*) write_pos_;
             write_pos = (unsigned char*) write_pos_;
             to_write = to_write_;
             next = next_;
@@ -101,11 +97,9 @@ namespace zmq
         size_t to_write;
         step_t next;
 
-        //  Begining of the state machine cycle.
-        bool beginning;
-
-        //  First message offset.
-        ssize_t offset;
+        //  Pointer to the first message or NULL if there's no
+        //  beginning of a message in the buffer.
+        unsigned char *first_message;
 
         encoder_t (const encoder_t&);
         void operator = (const encoder_t&);
