@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_PGM_ENGINE_HPP_INCLUDED__
-#define __ZMQ_BP_PGM_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_BP_PGM_RECEIVER_HPP_INCLUDED__
+#define __ZMQ_BP_PGM_RECEIVER_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -35,14 +35,14 @@
 namespace zmq
 {
 
-    class bp_pgm_engine_t : public i_pollable
+    class bp_pgm_receiver_t : public i_pollable
     {
     public:
 
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
         //  using network parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        ZMQ_EXPORT static bp_pgm_engine_t *create (i_thread *calling_thread_,
+        ZMQ_EXPORT static bp_pgm_receiver_t *create (i_thread *calling_thread_,
             i_thread *thread_, const char *network_, 
             const char *local_object_, size_t readbuf_size_);
 
@@ -58,11 +58,11 @@ namespace zmq
         void unregister_event ();
     private:
 
-        bp_pgm_engine_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
             const char *network_, const char *local_object_, 
             size_t readbuf_size_);
 
-        ~bp_pgm_engine_t ();
+        ~bp_pgm_receiver_t ();
 
         //  Callback to poller.
         i_poller *poller;
@@ -82,6 +82,9 @@ namespace zmq
 
         //  Poll handle associated with engine PGM waiting pipe
         handle_t pipe_handle;
+
+        bp_pgm_receiver_t (const bp_pgm_receiver_t&);
+        void operator = (const bp_pgm_receiver_t&);
     };
 
 }

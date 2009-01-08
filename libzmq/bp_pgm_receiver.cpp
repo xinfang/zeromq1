@@ -17,9 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <poll.h>
-
-#include <zmq/bp_pgm_engine.hpp>
+#include <zmq/bp_pgm_receiver.hpp>
 
 //#define PGM_RECEIVER_DEBUG
 //#define PGM_RECEIVER_DEBUG_LEVEL 0
@@ -34,18 +32,18 @@
 #   define zmq_log(n, ...)    do { if ((n) <= PGM_RECEIVER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_engine_t *zmq::bp_pgm_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *network_, const char *local_object_,
-    size_t readbuf_size_)
+zmq::bp_pgm_receiver_t *zmq::bp_pgm_receiver_t::create (
+    i_thread *calling_thread_, i_thread *thread_, const char *network_, 
+    const char *local_object_, size_t readbuf_size_)
 {
-    bp_pgm_engine_t *instance = new bp_pgm_engine_t (calling_thread_,
+    bp_pgm_receiver_t *instance = new bp_pgm_receiver_t (calling_thread_,
         thread_, network_, local_object_, readbuf_size_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_pgm_engine_t::bp_pgm_engine_t (i_thread *calling_thread_, 
+zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
     i_thread *thread_, const char *network_, const char *local_object_, 
     size_t readbuf_size_) :
     decoder (&demux),
@@ -63,25 +61,25 @@ zmq::bp_pgm_engine_t::bp_pgm_engine_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_pgm_engine_t::~bp_pgm_engine_t ()
+zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
     if (iov) {
         delete [] iov;
     }
 }
 
-zmq::engine_type_t zmq::bp_pgm_engine_t::type ()
+zmq::engine_type_t zmq::bp_pgm_receiver_t::type ()
 {
     return engine_type_fd;
 }
 
-void zmq::bp_pgm_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::bp_pgm_receiver_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
 }
 
-void zmq::bp_pgm_engine_t::register_event (i_poller *poller_)
+void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -106,7 +104,7 @@ void zmq::bp_pgm_engine_t::register_event (i_poller *poller_)
     poller->set_pollin (socket_handle);
 }
 
-void zmq::bp_pgm_engine_t::in_event ()
+void zmq::bp_pgm_receiver_t::in_event ()
 {
     // POLLIN event from socket or waiting_pipe
     size_t nbytes = epgm_socket.read_pkt_with_offset (iov, iov_len);
@@ -140,7 +138,7 @@ void zmq::bp_pgm_engine_t::in_event ()
     demux.flush ();
 }
 
-void zmq::bp_pgm_engine_t::out_event ()//pollfd *pfd_, int count_, int index_)
+void zmq::bp_pgm_receiver_t::out_event ()//pollfd *pfd_, int count_, int index_)
 {
     assert (false);
 }
@@ -150,12 +148,12 @@ void zmq::bp_pgm_engine_t::out_event ()//pollfd *pfd_, int count_, int index_)
 //    assert (false);
 //}
 
-void zmq::bp_pgm_engine_t::unregister_event ()
+void zmq::bp_pgm_receiver_t::unregister_event ()
 {
     assert (false);
 }
 
-void zmq::bp_pgm_engine_t::process_command 
+void zmq::bp_pgm_receiver_t::process_command 
     (const engine_command_t &command_)
 {
     switch (command_.type) {
