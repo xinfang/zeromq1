@@ -21,7 +21,7 @@
 
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
-#include <zmq/bp_pgm_listener.hpp>
+#include <zmq/bp_pgm_sender.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
@@ -41,19 +41,19 @@
 #endif
 
 
-zmq::bp_pgm_listener_t *zmq::bp_pgm_listener_t::create (
+zmq::bp_pgm_sender_t *zmq::bp_pgm_sender_t::create (
     i_thread *calling_thread_, i_thread *thread_, const char *interface_,
     bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
     const char *peer_name_)
 {
-    bp_pgm_listener_t *instance = new bp_pgm_listener_t (calling_thread_,
+    bp_pgm_sender_t *instance = new bp_pgm_sender_t (calling_thread_,
         thread_, interface_, source_, peer_thread_, peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
+zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
@@ -112,7 +112,7 @@ zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
     thread->send_command (peer_thread, cmd_send_to);
 }
 
-zmq::bp_pgm_listener_t::~bp_pgm_listener_t ()
+zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
 {
     if (txw_slice) {
         zmq_log (2, "Freeing unused slice\n");
@@ -120,18 +120,18 @@ zmq::bp_pgm_listener_t::~bp_pgm_listener_t ()
     }
 }
 
-zmq::engine_type_t zmq::bp_pgm_listener_t::type ()
+zmq::engine_type_t zmq::bp_pgm_sender_t::type ()
 {
     return engine_type_fd;
 }
 
-void zmq::bp_pgm_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::bp_pgm_sender_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
 }
 
-void zmq::bp_pgm_listener_t::register_event (i_poller *poller_)
+void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -151,12 +151,12 @@ void zmq::bp_pgm_listener_t::register_event (i_poller *poller_)
     poller->set_pollout (handle);
 }
 
-void zmq::bp_pgm_listener_t::in_event ()
+void zmq::bp_pgm_sender_t::in_event ()
 {
     assert (false);
 }
 
-void zmq::bp_pgm_listener_t::out_event ()
+void zmq::bp_pgm_sender_t::out_event ()
 {
     // POLLOUT event from send socket
     zmq_log (4, "Got POLLOUT from poller, %s(%i)\n", __FILE__, __LINE__);
@@ -214,13 +214,13 @@ void zmq::bp_pgm_listener_t::out_event ()
     }
 }
 
-void zmq::bp_pgm_listener_t::unregister_event ()
+void zmq::bp_pgm_sender_t::unregister_event ()
 {
     //  TODO: implement this
     assert (false);
 }
 
-void zmq::bp_pgm_listener_t::process_command (const engine_command_t &command_)
+void zmq::bp_pgm_sender_t::process_command (const engine_command_t &command_)
 {
     switch (command_.type) {
         case engine_command_t::receive_from:
@@ -249,7 +249,7 @@ void zmq::bp_pgm_listener_t::process_command (const engine_command_t &command_)
     }
 }
 
-const char *zmq::bp_pgm_listener_t::get_arguments ()
+const char *zmq::bp_pgm_sender_t::get_arguments ()
 {
     return arguments;
 }

@@ -63,7 +63,7 @@ pkginclude_HEADERS = \
     ./zmq/bp_sctp_engine.hpp \
     ./zmq/pgm_socket.hpp \
     ./zmq/epgm_socket.hpp \
-    ./zmq/bp_pgm_listener.hpp \
+    ./zmq/bp_pgm_sender.hpp \
     ./zmq/bp_pgm_engine.hpp
 
 lib_LTLIBRARIES = libzmq.la
@@ -99,7 +99,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     bp_sctp_engine.cpp \
     pgm_socket.cpp \
     epgm_socket.cpp \
-    bp_pgm_listener.cpp \
+    bp_pgm_sender.cpp \
     bp_pgm_engine.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0

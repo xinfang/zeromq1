@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_PGM_LISTENER_HPP_INCLUDED__
-#define __ZMQ_BP_PGM_LISTENER_HPP_INCLUDED__
+#ifndef __ZMQ_BP_PGM_SENDER_HPP_INCLUDED__
+#define __ZMQ_BP_PGM_SENDER_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -38,13 +38,13 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_pgm_listener_t : public i_listener
+    class bp_pgm_sender_t : public i_listener
     {
     public:
 
         //  Creates a OpenPGM listener. Handler thread array determines
         //  the threads that will serve newly-created OpenPGM engines.
-        ZMQ_EXPORT static bp_pgm_listener_t *create (
+        ZMQ_EXPORT static bp_pgm_sender_t *create (
             i_thread *calling_thread_, i_thread *thread_, 
             const char *interface_, bool source_, i_thread *peer_thread_, 
             i_engine *peer_engine_, const char *peer_name_);
@@ -69,10 +69,10 @@ namespace zmq
 
     private:
         //  PGM listener is actually sender
-        bp_pgm_listener_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, bool source_, i_thread *peer_thread_, 
             i_engine *peer_engine_, const char *peer_name_);
-        ~bp_pgm_listener_t ();
+        ~bp_pgm_sender_t ();
 
         //  Determines whether the engine serves as a local source of messages
         //  (i.e. reads them from the sockets and makes them available) or
@@ -120,8 +120,8 @@ namespace zmq
 
         ssize_t first_message_offest;
 
-        bp_pgm_listener_t (const bp_pgm_listener_t&);
-        void operator = (const bp_pgm_listener_t&);
+        bp_pgm_sender_t (const bp_pgm_sender_t&);
+        void operator = (const bp_pgm_sender_t&);
     };
 
 }
