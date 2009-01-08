@@ -45,11 +45,9 @@ namespace zmq
         //  Creates a OpenPGM listener. Handler thread array determines
         //  the threads that will serve newly-created OpenPGM engines.
         ZMQ_EXPORT static bp_pgm_listener_t *create (
-            i_thread *calling_thread_,
-            i_thread *thread_, const char *interface_,
-            int handler_thread_count_, i_thread **handler_threads_,
-            bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
-            const char *peer_name_);
+            i_thread *calling_thread_, i_thread *thread_, 
+            const char *interface_, bool source_, i_thread *peer_thread_, 
+            i_engine *peer_engine_, const char *peer_name_);
 
         //  Class hierarchy 
         //  i_engine <- i_pollable <- i_listener
@@ -72,10 +70,8 @@ namespace zmq
     private:
         //  PGM listener is actually sender
         bp_pgm_listener_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *interface_, int handler_thread_count_,
-            i_thread **handler_threads_, bool source_,
-            i_thread *peer_thread_, i_engine *peer_engine_,
-            const char *peer_name_);
+            const char *interface_, bool source_, i_thread *peer_thread_, 
+            i_engine *peer_engine_, const char *peer_name_);
         ~bp_pgm_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
@@ -95,14 +91,6 @@ namespace zmq
 
         //  Arguments string for this listener.
         char arguments [256];
-
-        //  The thread array to manage newly-created OpenPGM engines.
-        typedef std::vector <i_thread*> handler_threads_t;
-        handler_threads_t handler_threads;
-
-        //  Points to the I/O thread to use to handle next OpenPGM connection.
-        //  (Handler threads are used in round-robin fashion.)
-        handler_threads_t::size_type current_handler_thread;
 
         //  If true, engine is already shutting down, waiting for confirmations
         //  from other threads.

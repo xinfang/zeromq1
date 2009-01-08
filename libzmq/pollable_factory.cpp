@@ -65,8 +65,8 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm")
         return bp_pgm_listener_t::create (calling_thread_, thread_,
-            transport_args.c_str (), handler_thread_count_, handler_threads_,
-            source_, peer_thread_, peer_engine_, peer_name_);
+            transport_args.c_str (), source_, peer_thread_, peer_engine_, 
+            peer_name_);
 #endif
 
     //  Unknown transport type.

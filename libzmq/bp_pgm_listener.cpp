@@ -43,21 +43,18 @@
 
 zmq::bp_pgm_listener_t *zmq::bp_pgm_listener_t::create (
     i_thread *calling_thread_, i_thread *thread_, const char *interface_,
-    int handler_thread_count_, i_thread **handler_threads_, bool source_,
-    i_thread *peer_thread_, i_engine *peer_engine_,
+    bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
     const char *peer_name_)
 {
     bp_pgm_listener_t *instance = new bp_pgm_listener_t (calling_thread_,
-        thread_, interface_, handler_thread_count_, handler_threads_, source_,
-        peer_thread_, peer_engine_, peer_name_);
+        thread_, interface_, source_, peer_thread_, peer_engine_, peer_name_);
     assert (instance);
 
     return instance;
 }
 
 zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *interface_, int handler_thread_count_,
-      i_thread **handler_threads_, bool source_,
+      i_thread *thread_, const char *interface_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
     source (source_),
@@ -85,12 +82,6 @@ zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
 
     sprintf (arguments, "bp/pgm://%s", delim);
 
-    //  Initialise the array of threads to handle new connections.
-    assert (handler_thread_count_ > 0);
-    for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
-        handler_threads.push_back (handler_threads_ [thread_nbr]);
-    current_handler_thread = 0;
-
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
     max_tsdu = epgm_socket.get_max_tsdu (false);
@@ -102,20 +93,18 @@ zmq::bp_pgm_listener_t::bp_pgm_listener_t (i_thread *calling_thread_,
 
     //  The newly created engine serves as a local destination of messages
     //  I.e. it sends messages received from the peer engine to the socket.
-    i_thread *destination_thread =
-        handler_threads [current_handler_thread];
     i_engine *destination_engine = this;
 
     //  Create the pipe to the newly created engine.
     pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
-        destination_thread, destination_engine);
+        thread_, destination_engine);
     assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
     command_t cmd_receive_from;
     cmd_receive_from.init_engine_receive_from (
         destination_engine, "", pipe);
-    thread->send_command (destination_thread, cmd_receive_from);
+    thread->send_command (thread_, cmd_receive_from);
 
     //  Bind the peer to the source end of the pipe.
     command_t cmd_send_to;
