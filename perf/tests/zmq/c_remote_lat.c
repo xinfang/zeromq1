@@ -46,7 +46,7 @@ int main (int argc, char *argv [])
     
     /*  Parse command line arguments.  */
     if (argc != 6) {
-        printf ("usage: local_lat <hostname> <in-interface> <out-interface> "
+        printf ("usage: remote_lat <hostname> <in-interface> <out-interface> "
             "<message-size> <roundtrip-count>\n");
         return 1;
     }

@@ -124,6 +124,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp_remote_thr", "tcp_remot
 		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdnzmq", "libdnzmq\libdnzmq.vcproj", "{7F65D050-1058-4671-9B6C-6EF8F92B3D72}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB9-8B4A-11D0-8D11-00A0C91BC942}") = "dn_local_lat.exe", "libdnzmq\dnzmq\dn_local_lat\bin\Release\dn_local_lat.exe", "{58B43BD2-6EC8-4620-BBD0-C9B9DD95031E}"
+EndProject
+Project("{8BC9CEB9-8B4A-11D0-8D11-00A0C91BC942}") = "dn_local_thr.exe", "libdnzmq\dnzmq\dn_local_thr\bin\Release\dn_local_thr.exe", "{2DD34AA7-6DC0-447B-86A0-F0AB29ADB427}"
+EndProject
+Project("{8BC9CEB9-8B4A-11D0-8D11-00A0C91BC942}") = "dn_remote_lat.exe", "libdnzmq\dnzmq\dn_remote_lat\bin\Release\dn_remote_lat.exe", "{4C5E020B-EA3C-47B6-971D-0E01D05D4EF1}"
+EndProject
+Project("{8BC9CEB9-8B4A-11D0-8D11-00A0C91BC942}") = "dn_remote_thr.exe", "libdnzmq\dnzmq\dn_remote_thr\bin\Release\dn_remote_thr.exe", "{E66C3887-C5BC-4091-8E4D-E709C0CDA11D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -222,6 +235,18 @@ Global
 		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Debug|Win32.Build.0 = Debug|Win32
 		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Release|Win32.ActiveCfg = Release|Win32
 		{B6288B18-F2B5-4B5A-8EE5-D5F0438638AF}.Release|Win32.Build.0 = Release|Win32
+		{7F65D050-1058-4671-9B6C-6EF8F92B3D72}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7F65D050-1058-4671-9B6C-6EF8F92B3D72}.Debug|Win32.Build.0 = Debug|Win32
+		{7F65D050-1058-4671-9B6C-6EF8F92B3D72}.Release|Win32.ActiveCfg = Release|Win32
+		{7F65D050-1058-4671-9B6C-6EF8F92B3D72}.Release|Win32.Build.0 = Release|Win32
+		{58B43BD2-6EC8-4620-BBD0-C9B9DD95031E}.Debug|Win32.ActiveCfg = Debug
+		{58B43BD2-6EC8-4620-BBD0-C9B9DD95031E}.Release|Win32.ActiveCfg = Debug
+		{2DD34AA7-6DC0-447B-86A0-F0AB29ADB427}.Debug|Win32.ActiveCfg = Debug
+		{2DD34AA7-6DC0-447B-86A0-F0AB29ADB427}.Release|Win32.ActiveCfg = Debug
+		{4C5E020B-EA3C-47B6-971D-0E01D05D4EF1}.Debug|Win32.ActiveCfg = Debug
+		{4C5E020B-EA3C-47B6-971D-0E01D05D4EF1}.Release|Win32.ActiveCfg = Debug
+		{E66C3887-C5BC-4091-8E4D-E709C0CDA11D}.Debug|Win32.ActiveCfg = Debug
+		{E66C3887-C5BC-4091-8E4D-E709C0CDA11D}.Release|Win32.ActiveCfg = Debug
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
