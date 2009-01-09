@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
+#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+
 #include <zmq/bp_pgm_receiver.hpp>
 
 //#define PGM_RECEIVER_DEBUG
@@ -166,4 +169,6 @@ void zmq::bp_pgm_receiver_t::process_command
             assert (false);
     }
 }
+
+#endif
 
