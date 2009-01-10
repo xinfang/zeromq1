@@ -64,7 +64,9 @@ pkginclude_HEADERS = \
     ./zmq/pgm_socket.hpp \
     ./zmq/epgm_socket.hpp \
     ./zmq/bp_pgm_sender.hpp \
-    ./zmq/bp_pgm_receiver.hpp
+    ./zmq/bp_pgm_receiver.hpp \
+    ./zmq/amqp_tcp_client.hpp \
+    ./zmq/amqp_encoder.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -100,7 +102,9 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     pgm_socket.cpp \
     epgm_socket.cpp \
     bp_pgm_sender.cpp \
-    bp_pgm_receiver.cpp
+    bp_pgm_receiver.cpp \
+    amqp_tcp_client.cpp \
+    amqp_encoder.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic

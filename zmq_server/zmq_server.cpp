@@ -40,6 +40,8 @@ using namespace std;
 
 #include <zmq.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/tcp_listener.hpp>
 
 using namespace zmq;
 
