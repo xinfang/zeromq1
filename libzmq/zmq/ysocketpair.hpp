@@ -41,7 +41,7 @@
 #include <fcntl.h>
 #endif
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if defined ZMQ_HAVE_EVENTFD
 #include <sys/eventfd.h>
 #endif
 
@@ -53,7 +53,7 @@ namespace zmq
     //  descriptor and so it can be polled on. Same signal cannot be sent twice
     //  unless signals are retrieved by the reader side in the meantime.
 
-#if 0 && defined ZMQ_HAVE_LINUX
+#if defined ZMQ_HAVE_EVENTFD
 
     class ysocketpair_t : public i_signaler
     {
@@ -70,7 +70,7 @@ namespace zmq
             int flags = fcntl (fd, F_GETFL, 0);
             if (flags == -1)
                 flags = 0;
-            int rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
+            int rc = fcntl (fd, F_SETFL, flags | O_NONBLOCK);
             errno_assert (rc != -1);
         }
 
@@ -84,10 +84,10 @@ namespace zmq
         //  Send specific signal.
         void signal (int signal_)
         {
-            assert (signal >= 0 && signal < 32);
+            assert (signal_ >= 0 && signal_ < 32);
             uint64_t inc = 1;
             inc <<= signal_;
-            ssize_t sz = write (fd, &inc, sizeof (uin64_t));
+            ssize_t sz = write (fd, &inc, sizeof (uint64_t));
             errno_assert (sz == sizeof (uint64_t));
         }
 

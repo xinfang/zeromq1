@@ -83,7 +83,7 @@ void zmq::ysocketpair_t::signal (int signal_)
     win_assert (rc != SOCKET_ERROR);
 }
 
-#else
+#elif !defined ZMQ_HAVE_EVENTFD
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
