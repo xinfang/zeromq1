@@ -25,6 +25,8 @@
 #include <string>
 
 #include <zmq/encoder.hpp>
+#include <zmq/i_amqp.hpp>
+#include <zmq/amqp_marshaller.hpp>
 
 namespace zmq
 {
@@ -34,13 +36,7 @@ namespace zmq
     {
     public:
 
-        //  Create the encoder. Specifies dispatcher proxy and marshaller
-        //  to use and id of engine to receive messages from. 'server' parameter
-        //  specifies whether messages are sent using 'basic.deliver' command
-        //  (server) or 'basic.publish' command (client).
-        amqp_encoder_t (dispatcher_proxy_t *proxy_, int source_engine_id_,
-            amqp_marshaller_t *marshaller_, bool server_,
-            const char *out_exchange_, const char *out_routing_key_);
+        amqp_encoder_t (bool server_);
         ~amqp_encoder_t ();
 
     private:
@@ -53,23 +49,15 @@ namespace zmq
         bool content_body ();
         bool frame_end ();
 
+        //  If true, this is 'server' side of the AMQP connection.
+        //  Messages are passed using basic.deliver command. If false,
+        //  it's client side of connection, messages are passed using
+        //  basic.publish.
         bool server;
 
-        unsigned char *tmpbuf;
-        size_t tmpbuf_size;
-
-        amqp_marshaller_t::command_t command;
-        cmsg_t message;
-        size_t body_offset;
-
-        dispatcher_proxy_t *proxy;
-        int source_engine_id;
-        amqp_marshaller_t *marshaller;
-
-        bool flow_on;
-
-        std::string out_exchange;
-        std::string out_routing_key;
+        //  Object encoding & storing commands to send. If there are any
+        //  commands stored in the
+        amqp_marshaller_t marshaller;
     };
 
 }

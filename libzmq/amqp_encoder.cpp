@@ -25,86 +25,81 @@
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::amqp_encoder_t::amqp_encoder_t (dispatcher_proxy_t *proxy_,
-    int source_engine_id_, amqp_marshaller_t *marshaller_, bool server_,
-    const char *out_exchange_, const char *out_routing_key_) :
-    server (server_),
-    proxy (proxy_),
-    source_engine_id (source_engine_id_),
-    marshaller (marshaller_),
-    flow_on (false),
-    out_exchange (out_exchange_),
-    out_routing_key (out_routing_key_)
+zmq::amqp_encoder_t::amqp_encoder_t (bool server_) :
+    server (server_)
 {
-    assert (out_exchange.size () <= 0xff);
-    assert (out_routing_key.size () <= 0xff);
-
-    tmpbuf_size = i_amqp::frame_min_size;
-    tmpbuf = (unsigned char*) malloc (tmpbuf_size);
-    assert (tmpbuf);
-
-    next_step (NULL, 0, &amqp_encoder_t::message_ready);
+    next_step (NULL, 0, &amqp_encoder_t::message_ready, true);
 }
 
 zmq::amqp_encoder_t::~amqp_encoder_t ()
 {
-    free (tmpbuf);
-}
-
-void zmq::amqp_encoder_t::flow (bool on_)
-{
-    flow_on = on_;
 }
 
 bool zmq::amqp_encoder_t::message_ready ()
 {
     //  Start encoding a command. Firstly, try to retrieve one command
     //  from the marshaller. If available, write its header.
-    if (marshaller->read (&command))
+    amqp_marshaller_t::command_t command;
+    if (marshaller.read (&command))
     {
         size_t offset = 0;
+
+        //  Frame type is 'method'.
         assert (offset + sizeof (uint8_t) <= tmpbuf_size);
         put_uint8 (tmpbuf + offset, i_amqp::frame_method);
         offset += sizeof (uint8_t);
+
+        //  Channel zero.
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, 0);
         offset += sizeof (uint16_t);
+
+        //  Length of the frame (class + method + arguments).
         assert (offset + sizeof (uint32_t) <= tmpbuf_size);
-        put_uint32 (tmpbuf + offset, command.args_size + 4);
+        put_uint32 (tmpbuf + offset, command.args_size + sizeof (uint16_t) +
+            sizeof (uint16_t));
         offset += sizeof (uint32_t);
+
+        //  Class ID.
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, command.class_id);
         offset += sizeof (uint16_t);
+
+        //  Method ID.
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, command.method_id);
         offset += sizeof (uint16_t);
+
         next_step (tmpbuf, offset, &amqp_encoder_t::command_header);
         return true;
     }
 
-    //  If flow is off, don't even continue to the message encoding section.
-    //  Return false to denote that there is nothing to encode.
-    if (!flow_on)
-        return false;
-
-    //  Get one message from the dispatcher (via proxy).
+    //  There is no AMQP command available... Get a message to send.
     if (!proxy->read (source_engine_id, &message))
         return false;
 
-    //  Encode method frame frame header
+    //  Encode method frame frame header.
     size_t offset = 0;
+
+    //  Frame type: method.
     assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp::frame_method);
     offset += sizeof (uint8_t);
+
+    //  Channel zero.
     assert (offset + sizeof (uint16_t) <= tmpbuf_size);
     put_uint16 (tmpbuf + offset, 0);
     offset += sizeof (uint16_t);
+
+    //  Leave frame length empty for now. To be filled in later when we know
+    //  what the actual size is.
     assert (offset + sizeof (uint32_t) <= tmpbuf_size);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
     //  Encode method frame payload (basic.deliver on AMQP broker, basic.publish
     //  on AMQP client).
+//  TODO: Why are we doing this by hand? Maeshaller should do it automatically.
     if (server) {
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp::basic_id);
@@ -163,12 +158,12 @@ bool zmq::amqp_encoder_t::message_ready ()
         offset += sizeof (uint8_t);
     }
 
-    //  Encode frame-end octet
+    //  Encode frame-end octet.
     assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp::frame_end);
     offset += sizeof (uint8_t);
 
-    //  Fill in the size
+    //  Now we know what the size of the frame is. Fill it in.
     put_uint32 (tmpbuf + size_offset, offset - 8); 
 
     next_step (tmpbuf, offset, &amqp_encoder_t::content_header);
@@ -197,7 +192,8 @@ bool zmq::amqp_encoder_t::command_arguments ()
 
 bool zmq::amqp_encoder_t::content_header ()
 {
-    //  Encode complete message header frame.
+    //  Encode minimal message header frame.
+    //  No special message properties are used.
     size_t offset = 0;
     assert (offset + sizeof (uint8_t) <= tmpbuf_size);
     put_uint8 (tmpbuf + offset, i_amqp::frame_header);
