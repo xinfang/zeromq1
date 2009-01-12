@@ -10,6 +10,10 @@ project(zmq)
 option(BUILD_SHARED_LIBS "Build Shared Libs?"        ON)
 option(WITH_C            "Build C language binding?" OFF)
 option(WITH_SCTP         "Build with SCTP protocol?" OFF)
+option(WITH_PERF         "Build performance tests?" OFF)
+
+#  By default gettime is used for time measure
+set (time_measure "gettime")
 
 # Including zmq custom cmake modules 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -31,6 +35,11 @@ set(zmq_subdirs libzmq zmq_server libczmq)
 foreach(subdir ${zmq_subdirs})
   add_subdirectory("${subdir}")
 endforeach(subdir ${zmq_subdirs})
+
+#  If WITH_PERF=YES descend into perf directory
+if (WITH_PERF)
+    add_subdirectory ("perf") 
+endif (WITH_PERF)
 
 
 MESSAGE(STATUS  "")
@@ -55,9 +64,7 @@ endif(WITH_ESTIMATOR)
 
 MESSAGE(STATUS  " Addons:" )
 
-if(WITH_PERF)
 MESSAGE(STATUS  "   performance tests ........ ${WITH_PERF} (${time_measure})" )
-endif(WITH_PERF)
 
 MESSAGE(STATUS  "   camera example ........... ${WITH_CAMERA}" )
 MESSAGE(STATUS  "   stock exchange example ... ${WITH_EXCHANGE}" )
