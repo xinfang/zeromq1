@@ -118,7 +118,7 @@ namespace zmq
         size_t write_size;
         size_t write_pos;
 
-        ssize_t first_message_offest;
+        int first_message_offest;
 
         bp_pgm_sender_t (const bp_pgm_sender_t&);
         void operator = (const bp_pgm_sender_t&);

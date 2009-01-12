@@ -190,7 +190,7 @@ void zmq::bp_pgm_sender_t::out_event ()
     //  note that all data has to written in one write
     if (write_pos < write_size) {
         size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + write_pos,
-            write_size - write_pos, first_message_offest);
+            write_size - write_pos, (uint16_t) first_message_offest);
 
         zmq_log (2, "wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
                

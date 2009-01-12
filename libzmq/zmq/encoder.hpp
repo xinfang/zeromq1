@@ -45,8 +45,7 @@ namespace zmq
         //  NULL, it is filled by offset of the first message in the batch.
         //  If there's no beginning of a message in the batch, offset is
         //  set to -1.
-#ifdef ZMQ_HAVE_WINDOWS
-            inline size_t read (unsigned char *data_, size_t size_,
+        inline size_t read (unsigned char *data_, size_t size_,
             int *offset_ = NULL)
         {
             int offset = -1;
@@ -79,42 +78,6 @@ namespace zmq
 
             return pos;
         }
-
-#else
-        inline size_t read (unsigned char *data_, size_t size_,
-            ssize_t *offset_ = NULL)
-        {
-            ssize_t offset = -1;
-            size_t pos = 0;
-
-            while (pos < size_) {
-                if (to_write) {
-
-                    size_t to_copy = std::min (to_write, size_ - pos);
-                    memcpy (data_ + pos, write_pos, to_copy);
-                    pos += to_copy;
-                    write_pos += to_copy;
-                    to_write -= to_copy;
-
-                }
-                else {
-
-                    bool more = (static_cast <T*> (this)->*next) ();
-                    if (beginning && offset == -1) {
-                        offset = pos;
-                        beginning = false;
-                    }
-                    if (!more)
-                        break;
-                }
-            }
-
-            if (offset_)
-                *offset_ = offset;
-
-            return pos;
-        }
-#endif
     protected:
 
         //  Prototype of state machine action.
