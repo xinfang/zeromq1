@@ -60,7 +60,7 @@ size_t zmq::epgm_socket_t::read_one_pkt_with_offset (iovec *iov_)
 size_t zmq::epgm_socket_t::read_pkt_with_offset (iovec *iov_, size_t iov_len_)
 {
 
-    int translated = 0;
+    unsigned int translated = 0;
 
     // Read data
     size_t nbytes = read_pkt (iov_, iov_len_);
