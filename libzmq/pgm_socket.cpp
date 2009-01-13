@@ -42,8 +42,10 @@
 #endif
 
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_, 
-    size_t readbuf_size_) : 
-    g_transport (NULL), pgm_msgv (NULL), pgm_msgv_len (-1)
+      size_t readbuf_size_) : 
+    g_transport (NULL), 
+    pgm_msgv (NULL), 
+    pgm_msgv_len (-1)
 {
     
     //  Init PGM transport.
