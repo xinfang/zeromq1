@@ -8,9 +8,6 @@ namespace remote_thr
 {
     class dn_remote_thr
     {
-        public const int ZMQ_SCOPE_GLOBAL = 1;
-        public const int ZMQ_SCOPE_LOCAL = 0;
-
         static unsafe int Main (string[] args)
         {
             if (args.Length != 3)
@@ -29,43 +26,15 @@ namespace remote_thr
 
             //  Create 0MQ Dnzmq class
             Dnzmq w = new Dnzmq ();
-
-            //  Variables needed for conversion of input parameters to pointers to sbytes.
-            String eg = "E";
-            String qg = "Q";
-            sbyte[] sb_eg = new sbyte[20];
-            sbyte[] sb_qg = new sbyte[20];
-            char[] c_eg = new char[20];
-            char[] c_qg = new char[20];
-            sbyte[] b_host = new sbyte[20];
-            char[] c_host = new char[20];
-
-            //  Conversion to char array.
-            c_eg = eg.ToCharArray (0, eg.Length);
-            c_qg = qg.ToCharArray (0, qg.Length);
-            c_host = host.ToCharArray (0, host.Length);
-
-            //  Conversion to sbytes.
-            for (int i = 0; i < c_host.Length; i++)
-                b_host[i] = (sbyte) c_host[i];
-            for (int i = 0; i < eg.Length; i++)
-                sb_eg[i] = (sbyte) c_eg[i];
-            for (int i = 0; i < qg.Length; i++)
-                sb_qg[i] = (sbyte) c_qg[i];
-
+            
             //  Create 0MQ transport.
-            fixed (sbyte* pb_host = b_host)
-                w.create (pb_host);
+            w.create (host);
 
             //  Create 0MQ exchnge.           
-            fixed (sbyte* pb_eg = sb_eg)
-            fixed (sbyte* pb_host = b_host)
-                ex = w.create_exchange (pb_eg, ZMQ_SCOPE_LOCAL, pb_host);
+            ex = w.create_exchange ("E", Dnzmq.ZMQ_SCOPE_LOCAL, host);
 
             //  Bind.
-            fixed (sbyte* pb_eg = sb_eg)
-            fixed (sbyte* pb_qg = sb_qg)
-                w.bind (pb_eg, pb_qg);
+            w.bind ("E", "Q");
 
             //  Allocate memory for messages.
             void* v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);

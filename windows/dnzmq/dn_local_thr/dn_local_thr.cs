@@ -10,9 +10,6 @@ namespace local_thr
 {
     class dn_local_thr
     {
-        public const int ZMQ_SCOPE_GLOBAL = 1;
-        public const int ZMQ_SCOPE_LOCAL = 0;
-
         static unsafe int Main (string[] args)
         {
             if (args.Length != 4)
@@ -34,36 +31,11 @@ namespace local_thr
             //  Create the Dnzmq class.
             Dnzmq w = new Dnzmq ();
 
-
-            //  Variables needed to convert input parameters to pointers to sbyte.
-            String ql = "Q";
-            sbyte[] sb_host = new sbyte[20];
-            sbyte[] sb_iface = new sbyte[20];
-            sbyte[] sb_ql = new sbyte[20];
-            char[] c_host = new char[20];
-            char[] c_iface = new char[20];
-            char[] c_ql = new char[20];
-
-            //  Convert parameters to char arrays
-            c_host = host.ToCharArray (0, host.Length);
-            c_iface = iface.ToCharArray (0, iface.Length);
-            c_ql = ql.ToCharArray (0, ql.Length);
-            c_host = host.ToCharArray (0, host.Length);
-
-            // Conversion to sbyte.
-            for (int i = 0; i < c_host.Length; i++)
-                sb_host[i] = (sbyte) c_host[i];
-            for (int i = 0; i < ql.Length; i++)
-                sb_ql[i] = (sbyte) c_ql[i];
-
             //  Create 0MQ transport.
-            fixed (sbyte* pb_host = sb_host)
-                w.create (pb_host);
+            w.create (host);
 
             //  Create 0MQ queue.
-            fixed (sbyte* pb_ql = sb_ql)
-            fixed (sbyte* pb_iface = sb_iface)
-                w.create_queue (pb_ql, ZMQ_SCOPE_GLOBAL, pb_iface);
+            w.create_queue ("Q", Dnzmq.ZMQ_SCOPE_GLOBAL, iface);
 
             //  Allocate memory for messages.
             void* out_v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);
