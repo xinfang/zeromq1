@@ -25,39 +25,38 @@
 #if ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
 #include <cstdio>
-#include <zmq/wire.hpp>
 #include <zmq/pgm_socket.hpp>
 
 namespace zmq
 {
+    //  epgm_socket_t class works with offset of the fist message in received
+    //  data chunk from the pgm_socket. offset_ is used to detect possibility 
+    //  to join multicast message stream. If offset is equal to 0xFFFF means 
+    //  that there is no message beginning the the received data chunk.
     class epgm_socket_t : public pgm_socket_t
     {
     public:
-        // .
+        //  If receiver_ is true PGM transport is not generating SPM packets.
+        //  interface_ format: iface;mcast_group:port (eth0;226.0.0.1:7500)
         epgm_socket_t (bool receiver_, const char *interface_, 
               size_t readbuf_size_ = 0);
 
-        // .
+        //  Closes the transport.
         ~epgm_socket_t ();
 
-        // 
+        //  Send one APDU with first message offset information.
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_, 
             uint16_t offset_);
 
-        //
-        size_t read_one_pkt_with_offset (iovec *iov_);
-
-        //
+        //  Read exactly iov_len_ count APDUs, function returns number
+        //  of bytes received. Note that if we did not join message stream 
+        //  before and there is not message beginning in the APDUs being 
+        //  received iov_len for such a APDUs will be 0.
         size_t read_pkt_with_offset (iovec *iov_, size_t iov_len_);
 
     private:
         
-        // Used in receiver
-
-        // Offset in received apdu
-        uint16_t apdu_offset;
-
-        // Joined in to the messages stream
+        // If receiver joined the messages stream.
         bool joined;
     };
 }
