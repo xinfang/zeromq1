@@ -218,8 +218,8 @@ void zmq::bp_tcp_engine_t::out_event ()
         write_size = encoder.read (writebuf, writebuf_size);
         write_pos = 0;
 
-        //  If there are no data to write stop polling for output.
-        if (write_size != writebuf_size)
+        //  If there is no data to send, stop polling for output.
+        if (write_size == 0)
             poller->reset_pollout (handle);
     }
 
@@ -259,8 +259,10 @@ void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
             //  There is at least one engine that has messages ready. Try to
             //  write data to the socket, thus eliminating one polling
             //  for POLLOUT event.
-            poller->set_pollout (handle);
-            out_event ();
+            if (write_size == 0) {
+                poller->set_pollout (handle);
+                out_event ();
+            }
         }
         break;
 
