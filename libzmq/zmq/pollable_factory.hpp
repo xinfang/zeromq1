@@ -36,7 +36,8 @@ namespace zmq
         const char *peer_name_);
 
     ZMQ_EXPORT i_pollable *create_connection (i_thread *calling_thread_,
-        i_thread *thread_, const char *arguments_, const char *local_object_);
+        i_thread *thread_, const char *arguments_, const char *local_object_,
+        const char *engine_arguments_);
 
 }
 

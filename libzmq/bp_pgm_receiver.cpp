@@ -37,10 +37,10 @@
 
 zmq::bp_pgm_receiver_t *zmq::bp_pgm_receiver_t::create (
     i_thread *calling_thread_, i_thread *thread_, const char *network_, 
-    const char *local_object_, size_t readbuf_size_)
+    const char *local_object_, size_t readbuf_size_, const char *arguments_)
 {
     bp_pgm_receiver_t *instance = new bp_pgm_receiver_t (calling_thread_,
-        thread_, network_, local_object_, readbuf_size_);
+        thread_, network_, local_object_, readbuf_size_, arguments_);
     assert (instance);
 
     return instance;
@@ -48,7 +48,7 @@ zmq::bp_pgm_receiver_t *zmq::bp_pgm_receiver_t::create (
 
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
     i_thread *thread_, const char *network_, const char *local_object_, 
-    size_t readbuf_size_) :
+    size_t readbuf_size_, const char *arguments_) :
     decoder (&demux),
     epgm_socket (true, false, network_, readbuf_size_),
     iov (NULL), iov_len (0)

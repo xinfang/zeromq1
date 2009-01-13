@@ -76,8 +76,11 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
 }
 
 ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
-    i_thread *thread_, const char *arguments_, const char *local_object_)
+    i_thread *thread_, const char *arguments_, const char *local_object_,
+    const char *engine_arguments_)
 {
+    //  Decompose the string to the transport name (e.g. "bp/tcp") and
+    //  transport arguments (e.g. "eth0:5555").
     std::string transport_type;
     std::string transport_args;
 
@@ -93,26 +96,29 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
         transport_args = arguments.substr (pos + 3);
     }
 
+    //  Create appropriate engine.
+
     if (transport_type == "bp/tcp")
         return bp_tcp_engine_t::create (calling_thread_, thread_,
-            transport_args.c_str (), local_object_);
+            transport_args.c_str (), local_object_, engine_arguments_);
 
 #if defined ZMQ_HAVE_SCTP
     if (transport_type == "bp/sctp")
         return bp_sctp_engine_t::create (calling_thread_, thread_,
-            transport_args.c_str (), local_object_);
+            transport_args.c_str (), local_object_, engine_arguments_);
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm")
         return bp_pgm_receiver_t::create (calling_thread_, thread_,
-            transport_args.c_str (), local_object_, pgm_in_batch_size);
+            transport_args.c_str (), local_object_, pgm_in_batch_size,
+            engine_arguments_);
 #endif
 
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp/tcp")
         return amqp_tcp_client_t::create (calling_thread_, thread_,
-            transport_args.c_str ());
+            transport_args.c_str (), engine_arguments_);
 #endif
 
     //  Unknown transport type.

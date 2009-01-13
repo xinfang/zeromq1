@@ -23,7 +23,8 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
+#if defined ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || \
+    defined ZMQ_HAVE_SOLARIS)
 
 #include <string>
 #include <sys/types.h>
@@ -58,7 +59,7 @@ namespace zmq
         //  and passed to error handler function when connection breaks.
         ZMQ_EXPORT static bp_sctp_engine_t *create (i_thread *calling_thread_,
             i_thread *thread_, const char *hostname_,
-            const char *local_object_);
+            const char *local_object_, const char *arguments_);
 
         //  Creates bp_tcp_engine from supplied listener object.
         ZMQ_EXPORT static bp_sctp_engine_t *create (i_thread *calling_thread_,
@@ -76,7 +77,8 @@ namespace zmq
     private:
 
         bp_sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_);
+            const char *hostname_, const char *local_object_,
+            const char *arguments_);
         bp_sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             int listener_, const char *local_object_);
         ~bp_sctp_engine_t ();

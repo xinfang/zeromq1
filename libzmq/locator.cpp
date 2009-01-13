@@ -102,7 +102,8 @@ void zmq::locator_t::create (i_thread *calling_thread_,
 
 bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
     const char *object_, i_thread **thread_, i_engine **engine_,
-    i_thread *handler_thread_, const char *local_object_)
+    i_thread *handler_thread_, const char *local_object_,
+    const char *engine_arguments_)
 {
     assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
@@ -149,7 +150,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
 
         //  Create the proxy engine for the object.
         i_pollable *engine = create_connection (calling_thread_,
-            handler_thread_, iface, local_object_);
+            handler_thread_, iface, local_object_, engine_arguments_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

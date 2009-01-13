@@ -19,7 +19,8 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_SOLARIS)
+#if defined ZMQ_HAVE_SCTP && (defined ZMQ_HAVE_LINUX || \
+    defined ZMQ_HAVE_SOLARIS)
 
 #include <fcntl.h>
 
@@ -30,10 +31,11 @@
 #include <zmq/ip.hpp>
 
 zmq::bp_sctp_engine_t *zmq::bp_sctp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *hostname_, const char *local_object_)
+    i_thread *thread_, const char *hostname_, const char *local_object_,
+    const char *arguments_)
 {
     bp_sctp_engine_t *instance = new bp_sctp_engine_t (calling_thread_,
-        thread_, hostname_, local_object_);
+        thread_, hostname_, local_object_, arguments_);
     assert (instance);
 
     return instance;
@@ -50,7 +52,8 @@ zmq::bp_sctp_engine_t *zmq::bp_sctp_engine_t::create (i_thread *calling_thread_,
 }
 
 zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_, const char *local_object_) :
+      i_thread *thread_, const char *hostname_, const char *local_object_,
+      const char *arguments_) :
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)

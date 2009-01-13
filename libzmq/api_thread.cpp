@@ -103,7 +103,8 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
 }
 
 void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
-    i_thread *exchange_thread_, i_thread *queue_thread_)
+    i_thread *exchange_thread_, i_thread *queue_thread_,
+    const char *exchange_arguments_, const char *queue_arguments_)
 {
     //  Find the exchange.
     i_thread *exchange_thread;
@@ -118,7 +119,8 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
     else {
         if (!(locator->get (this, exchange_type_id, exchange_,
-              &exchange_thread, &exchange_engine, exchange_thread_, queue_))) {
+              &exchange_thread, &exchange_engine, exchange_thread_, queue_,
+                exchange_arguments_))) {
 
             //  If the exchange cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();
@@ -143,7 +145,8 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     }
     else {
         if (!(locator->get (this, queue_type_id, queue_,
-              &queue_thread, &queue_engine, queue_thread_, exchange_))) {
+              &queue_thread, &queue_engine, queue_thread_, exchange_,
+                queue_arguments_))) {
 
             //  If the queue cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();

@@ -63,7 +63,7 @@ namespace zmq
         bool get (i_thread *calling_thread_, 
             unsigned char type_id_, const char *object_, i_thread **thread_, 
             i_engine **engine_, i_thread *handler_thread_, 
-            const char *local_object_);
+            const char *local_object_, const char *engine_arguments_);
 
     private:
 

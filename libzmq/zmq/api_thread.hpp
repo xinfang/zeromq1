@@ -66,7 +66,9 @@ namespace zmq
 
         //  Binds an exchange to a queue.
         ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,
-            i_thread *exchange_thread_, i_thread *queue_thread_);
+            i_thread *exchange_thread_, i_thread *queue_thread_,
+            const char *exchange_arguments_ = NULL,
+            const char *queue_arguments_ = NULL);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent

@@ -43,8 +43,8 @@ namespace zmq
         //  using network parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
         ZMQ_EXPORT static bp_pgm_receiver_t *create (i_thread *calling_thread_,
-            i_thread *thread_, const char *network_, 
-            const char *local_object_, size_t readbuf_size_);
+            i_thread *thread_, const char *network_, const char *local_object_,
+            size_t readbuf_size_, const char *arguments_);
 
         //  i_engine interface implemtation
         engine_type_t type ();
@@ -60,7 +60,7 @@ namespace zmq
 
         bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
             const char *network_, const char *local_object_, 
-            size_t readbuf_size_);
+            size_t readbuf_size_, const char *arguments_);
 
         ~bp_pgm_receiver_t ();
 

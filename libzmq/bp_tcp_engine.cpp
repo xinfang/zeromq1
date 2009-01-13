@@ -23,10 +23,11 @@
 #include <zmq/config.hpp>
 
 zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *hostname_, const char *local_object_)
+    i_thread *thread_, const char *hostname_, const char *local_object_,
+    const char *arguments_)
 {
     bp_tcp_engine_t *instance = new bp_tcp_engine_t (calling_thread_,
-        thread_, hostname_, local_object_);
+        thread_, hostname_, local_object_, arguments_);
     assert (instance);
 
     return instance;
@@ -43,7 +44,8 @@ zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
 }
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_, const char *local_object_) :
+      i_thread *thread_, const char *hostname_, const char *local_object_,
+      const char *arguments_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
