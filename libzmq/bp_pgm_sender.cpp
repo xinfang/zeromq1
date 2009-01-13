@@ -62,7 +62,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     peer_thread (peer_thread_),
     peer_engine (peer_engine_),
     encoder (&mux),
-    epgm_socket (false, false, interface_),
+    epgm_socket (false, interface_),
     txw_slice (NULL),
     max_tsdu (0),
     write_size (0),
@@ -84,7 +84,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
-    max_tsdu = epgm_socket.get_max_tsdu (false);
+    max_tsdu = epgm_socket.get_max_tsdu_size (false);
 
     //  Register BP engine with the I/O thread.
     command_t command;

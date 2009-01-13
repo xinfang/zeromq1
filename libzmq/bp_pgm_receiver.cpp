@@ -63,8 +63,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     std::string network = mcast_interface + ";" + network_;
 
     //  Create epgm_socket object
-    epgm_socket = new epgm_socket_t (true, false, network.c_str (), readbuf_size_);
-
+    epgm_socket = new epgm_socket_t (true, network.c_str (), readbuf_size_);
 
     //  Calculate number of iovecs to fill the entire buffer.
     //  One iovec represents one apdu.

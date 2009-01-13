@@ -34,7 +34,7 @@ namespace zmq
     {
     public:
         // .
-        epgm_socket_t (bool receiver_, bool pasive_, const char *interface_, 
+        epgm_socket_t (bool receiver_, const char *interface_, 
               size_t readbuf_size_ = 0);
 
         // .

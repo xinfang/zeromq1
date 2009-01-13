@@ -35,9 +35,8 @@ namespace zmq
     class pgm_socket_t
     {
     public:
-        //  If receiver_ is true PGM transport is not generating SPM packets
-        //  in a case of passive_ receiver no NAKs are generated.
-        pgm_socket_t (bool receiver_, bool passive_, const char *interface_, 
+        //  If receiver_ is true PGM transport is not generating SPM packets.
+        pgm_socket_t (bool receiver_, const char *interface_, 
             size_t readbuf_size_ = 0);
 
         //  Closes the transport.
@@ -76,19 +75,21 @@ namespace zmq
         //  OpenPGM transport
         pgm_transport_t* g_transport;
 
+    private:
+
+        //  Array of pgm_msgv_t structures to store received data 
+        //  from the socket (pgm_transport_recvmsgv).
+        pgm_msgv_t *pgm_msgv;
+
+        //  Size of pgm_msgv array.
+        size_t pgm_msgv_len;
+
         //  Sender transport uses 1 fd.
         enum {pgm_sender_fd_count = 1};
     
         //  Receiver transport uses 2 fd.
         enum {pgm_receiver_fd_count = 2};
 
-    private:
-
-        //  Array of pgm_msgv_t structures to store received data.
-        pgm_msgv_t *pgm_msgv;
-
-        //  Size of pgm_msgv array.
-        size_t pgm_msgv_len;
     };
 }
 #endif

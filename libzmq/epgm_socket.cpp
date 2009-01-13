@@ -21,6 +21,8 @@
 
 #if ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
+#include <assert.h>
+
 #include <zmq/epgm_socket.hpp>
 
 #define EPGM_SOCKET_DEBUG
@@ -39,10 +41,9 @@
 
 
 
-zmq::epgm_socket_t::epgm_socket_t (bool receiver_, bool pasive_, 
-      const char *interface_, size_t readbuf_size_) : 
-      pgm_socket_t (receiver_, pasive_, interface_, readbuf_size_), 
-      apdu_offset (0), joined (false)
+zmq::epgm_socket_t::epgm_socket_t (bool receiver_, const char *interface_, 
+    size_t readbuf_size_) : pgm_socket_t (receiver_, interface_, readbuf_size_),
+    apdu_offset (0), joined (false)
 {
 
 }
