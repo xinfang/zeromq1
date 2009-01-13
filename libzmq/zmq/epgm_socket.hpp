@@ -44,7 +44,9 @@ namespace zmq
         //  Closes the transport.
         ~epgm_socket_t ();
 
-        //  Send one APDU with first message offset information.
+        //  Send one APDU with first message offset information. 
+        //  Note that first 2 bytes in data_ are used to store the offset_
+        //  and thus user data has to start at data_ + 2.
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_, 
             uint16_t offset_);
 
