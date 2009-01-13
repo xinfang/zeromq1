@@ -70,10 +70,13 @@ ZMQ_EXPORT zmq::i_listener *zmq::pollable_factory_t::create_listener (
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
-    if (transport_type == "bp/pgm")
-        return bp_pgm_sender_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/pgm") {
+        i_listener *pgm_sender = new bp_pgm_sender_t (calling_thread_, thread_,
             transport_args.c_str (), source_, peer_thread_, peer_engine_, 
             peer_name_);
+        assert (pgm_sender);
+        return pgm_sender;
+    }
 #endif
 
     //  Unknown transport type.
@@ -121,10 +124,13 @@ ZMQ_EXPORT zmq::i_pollable *zmq::pollable_factory_t::create_engine (
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
-    if (transport_type == "bp/pgm")
-        return bp_pgm_receiver_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/pgm") {
+        i_pollable *pgm_receiver = new bp_pgm_receiver_t (calling_thread_, thread_,
             transport_args.c_str (), local_object_, pgm_in_batch_size,
             engine_arguments_);
+        assert (pgm_receiver);
+        return pgm_receiver;
+    }
 #endif
 
 #if defined ZMQ_HAVE_AMQP

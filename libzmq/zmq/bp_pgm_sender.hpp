@@ -40,18 +40,12 @@ namespace zmq
 
     class bp_pgm_sender_t : public i_listener
     {
+
+        //  Allow class factory to create this engine.
+        friend class pollable_factory_t;
+
     public:
 
-        //  Creates a OpenPGM listener. Handler thread array determines
-        //  the threads that will serve newly-created OpenPGM engines.
-        ZMQ_EXPORT static bp_pgm_sender_t *create (
-            i_thread *calling_thread_, i_thread *thread_, 
-            const char *interface_, bool source_, i_thread *peer_thread_, 
-            i_engine *peer_engine_, const char *peer_name_);
-
-        //  Class hierarchy 
-        //  i_engine <- i_pollable <- i_listener
-        //
         //  i_engine interface implemtation
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
@@ -68,7 +62,7 @@ namespace zmq
         const char *get_arguments ();
 
     private:
-        //  PGM listener is actually sender
+
         bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, bool source_, i_thread *peer_thread_, 
             i_engine *peer_engine_, const char *peer_name_);

@@ -40,19 +40,6 @@
 #   define zmq_log(n, ...)    do { if ((n) <= PGM_SENDER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
 #endif
 
-
-zmq::bp_pgm_sender_t *zmq::bp_pgm_sender_t::create (
-    i_thread *calling_thread_, i_thread *thread_, const char *interface_,
-    bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
-    const char *peer_name_)
-{
-    bp_pgm_sender_t *instance = new bp_pgm_sender_t (calling_thread_,
-        thread_, interface_, source_, peer_thread_, peer_engine_, peer_name_);
-    assert (instance);
-
-    return instance;
-}
-
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,

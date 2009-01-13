@@ -37,14 +37,11 @@ namespace zmq
 
     class bp_pgm_receiver_t : public i_pollable
     {
-    public:
+    
+        //  Allow class factory to create this engine.
+        friend class pollable_factory_t;
 
-        //  Creates bp_pgm_engine. Underlying PGM connection is initialised
-        //  using network parameter. Local object name is simply stored
-        //  and passed to error handler function when connection breaks.
-        ZMQ_EXPORT static bp_pgm_receiver_t *create (i_thread *calling_thread_,
-            i_thread *thread_, const char *network_, const char *local_object_,
-            size_t readbuf_size_, const char *arguments_);
+    public:
 
         //  i_engine interface implemtation
         engine_type_t type ();
@@ -57,7 +54,9 @@ namespace zmq
         void out_event ();
         void unregister_event ();
     private:
-
+        //  Creates bp_pgm_engine. Underlying PGM connection is initialised
+        //  using network parameter. Local object name is simply stored
+        //  and passed to error handler function when connection breaks.
         bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
             const char *network_, const char *local_object_, 
             size_t readbuf_size_, const char *arguments_);

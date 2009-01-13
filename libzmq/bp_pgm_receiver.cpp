@@ -36,17 +36,6 @@
 #   define zmq_log(n, ...)    do { if ((n) <= PGM_RECEIVER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_receiver_t *zmq::bp_pgm_receiver_t::create (
-    i_thread *calling_thread_, i_thread *thread_, const char *network_, 
-    const char *local_object_, size_t readbuf_size_, const char *arguments_)
-{
-    bp_pgm_receiver_t *instance = new bp_pgm_receiver_t (calling_thread_,
-        thread_, network_, local_object_, readbuf_size_, arguments_);
-    assert (instance);
-
-    return instance;
-}
-
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
     i_thread *thread_, const char *network_, const char *local_object_, 
     size_t readbuf_size_, const char *arguments_) :
