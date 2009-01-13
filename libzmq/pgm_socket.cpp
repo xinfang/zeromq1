@@ -53,7 +53,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
 	assert (rc == 0);
 
     struct group_source_req recv_gsr, send_gsr;
-    int gsr_len = 1;
+    int recv_len = 1;
 
     zmq_log (4, "socket_info %s\n", interface_);
 
@@ -75,9 +75,9 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
     zmq_log (4, "interface %s\n", interface.c_str ());
     zmq_log (4, "port %i\n", port);
 
-    rc = pgm_if_parse_transport (interface.c_str (), AF_INET, &recv_gsr, &send_gsr, &gsr_len);
+    rc = pgm_if_parse_transport (interface.c_str (), AF_INET, &recv_gsr, &recv_len, &send_gsr);
     assert (rc == 0);
-    assert (gsr_len == 1);
+    assert (recv_len == 1);
 
     rc = pgm_transport_create (&g_transport, &gsi, 0, port, &recv_gsr, 1, &send_gsr);
     errno_assert (rc == 0);
