@@ -185,25 +185,20 @@ void zmq::bp_sctp_engine_t::in_event ()
 
 void zmq::bp_sctp_engine_t::out_event ()
 {
-    //  Send N messages in one go if possible - this way we'll avoid
-    //  excessive polling.
-    //  TODO: Move the constant to config.hpp
-    for (int msg_nbr = 0; msg_nbr != 100; msg_nbr ++) {
-        message_t msg;
-        if (!mux.read (&msg)) {
+    message_t msg;
+    if (!mux.read (&msg)) {
 
-            //  If there are no messages to send, stop polling for output.
-            poller->reset_pollout (handle);
-            return;
-        }
-
-        //  Send the data over the wire.
-        //  TODO: This call should not block. Investigate the behaviour...
-        ssize_t nbytes = sctp_sendmsg (s, msg.data (), msg.size (),
-            NULL, 0, 0, 0, 0, 0, 0);
-        errno_assert (nbytes != -1);
-        assert (nbytes == (ssize_t) msg.size ());
+        //  If there are no messages to send, stop polling for output.
+        poller->reset_pollout (handle);
+        return;
     }
+
+    //  Send the data over the wire.
+    //  TODO: This call should not block. Investigate the behaviour...
+    ssize_t nbytes = sctp_sendmsg (s, msg.data (), msg.size (),
+        NULL, 0, 0, 0, 0, 0, 0);
+    errno_assert (nbytes != -1);
+    assert (nbytes == (ssize_t) msg.size ());
 }
 
 void zmq::bp_sctp_engine_t::unregister_event ()

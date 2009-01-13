@@ -536,6 +536,9 @@ $(field.name:c)_$(last ()??''?',')\
 
 .   endfor
 .endfor
+
+    protected:
+
         //  Retrieves one command from the command queue. Returns false
         //  if there are no commands to retrieve.
         bool read (command_t *command);

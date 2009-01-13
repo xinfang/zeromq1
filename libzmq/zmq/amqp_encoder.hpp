@@ -25,17 +25,19 @@
 #include <string>
 
 #include <zmq/encoder.hpp>
-#include <zmq/i_amqp.hpp>
 #include <zmq/amqp_marshaller.hpp>
 
 namespace zmq
 {
 
     //  Encoder for AMQP.
-    class amqp_encoder_t : public encoder_t <amqp_encoder_t>
+    class amqp_encoder_t :
+        public encoder_t <amqp_encoder_t>,
+        public amqp_marshaller_t
     {
     public:
 
+        //  Create the encoder.
         amqp_encoder_t (bool server_);
         ~amqp_encoder_t ();
 
@@ -55,9 +57,10 @@ namespace zmq
         //  basic.publish.
         bool server;
 
-        //  Object encoding & storing commands to send. If there are any
-        //  commands stored in the
-        amqp_marshaller_t marshaller;
+        //  Buffer used to compose the frames (excluding actual
+        //  message payload).
+        unsigned char tmpbuf [4096];
+        enum {tmpbuf_size = 4096};
     };
 
 }

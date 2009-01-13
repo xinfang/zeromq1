@@ -26,6 +26,7 @@
 #include <zmq/i_pollable.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/demux.hpp>
+#include <zmq/tcp_socket.hpp>
 
 namespace zmq
 {
@@ -35,7 +36,7 @@ namespace zmq
     public:
 
         ZMQ_EXPORT static amqp_tcp_client_t *create (i_thread *calling_thread_,
-            i_thread *thread_, const char *hostname_);
+            i_thread *thread_, const char *hostname_, const char *arguments_);
 
         //  i_pollable interface implementation.
         engine_type_t type ();
@@ -49,15 +50,17 @@ namespace zmq
     private:
 
         amqp_tcp_client_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_);
+            const char *hostname_, const char *arguments_);
         ~amqp_tcp_client_t ();
 
         //  Object to aggregate messages from inbound pipes.
         mux_t mux;
 
         //  Object to distribute messages to outbound pipes.
-        demux_t demux; 
+        demux_t demux;
 
+        //  AMQP/TCP socket connected to the broker.
+        tcp_socket_t socket;
     };
 
 }

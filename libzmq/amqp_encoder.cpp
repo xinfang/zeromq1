@@ -39,8 +39,8 @@ bool zmq::amqp_encoder_t::message_ready ()
 {
     //  Start encoding a command. Firstly, try to retrieve one command
     //  from the marshaller. If available, write its header.
-    amqp_marshaller_t::command_t command;
-    if (marshaller.read (&command))
+    command_t command;
+    if (amqp_marshaller_t::read (&command))
     {
         size_t offset = 0;
 
@@ -70,7 +70,7 @@ bool zmq::amqp_encoder_t::message_ready ()
         put_uint16 (tmpbuf + offset, command.method_id);
         offset += sizeof (uint16_t);
 
-        next_step (tmpbuf, offset, &amqp_encoder_t::command_header);
+        next_step (tmpbuf, offset, &amqp_encoder_t::command_header, true);
         return true;
     }
 
@@ -97,10 +97,12 @@ bool zmq::amqp_encoder_t::message_ready ()
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
-    //  Encode method frame payload (basic.deliver on AMQP broker, basic.publish
-    //  on AMQP client).
-//  TODO: Why are we doing this by hand? Maeshaller should do it automatically.
+    //  Encode method frame payload. In theory, this could be done via
+    //  marshaller, however, doing it this way we can avoid a memory allocation
+    //  and copying the payload.
     if (server) {
+
+        //  Basic.Deliver
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp::basic_id);
         offset += sizeof (uint16_t);
@@ -131,6 +133,8 @@ bool zmq::amqp_encoder_t::message_ready ()
         offset += out_routing_key.size ();
     }
     else {
+
+        //  Basic.Publish
         assert (offset + sizeof (uint16_t) <= tmpbuf_size);
         put_uint16 (tmpbuf + offset, i_amqp::basic_id);
         offset += sizeof (uint16_t);
