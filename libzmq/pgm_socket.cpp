@@ -195,6 +195,8 @@ zmq::pgm_socket_t::~pgm_socket_t ()
     pgm_transport_destroy (g_transport, TRUE);
 }
 
+//   Get receiver fds. recv_fd is from transport->recv_sock
+//   waiting_pipe_fd is from transport->waiting_pipe [0]
 int zmq::pgm_socket_t::get_receiver_fds (int *recv_fd_, 
     int *waiting_pipe_fd_)
 {
@@ -221,6 +223,8 @@ int zmq::pgm_socket_t::get_receiver_fds (int *recv_fd_,
     return pgm_receiver_fd_count;
 }
 
+//   Get sender fd and store it to user allocated memory. 
+//   sender_fd is from pgm_transport->send_sock.
 int zmq::pgm_socket_t::get_sender_fd (int *send_fd_)
 {
 
@@ -314,11 +318,6 @@ unsigned char *zmq::pgm_socket_t::alloc_one_pkt (bool can_fragment_)
 void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
 {
     pgm_packetv_free1 (g_transport, data_, can_fragment_);
-}
-
-void zmq::pgm_socket_t::drop_superuser ()
-{
-    pgm_drop_superuser ();
 }
 
 //  Receive a vector of Application Protocol Domain Unit's (APDUs) from the 

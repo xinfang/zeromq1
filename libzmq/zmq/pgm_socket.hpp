@@ -42,15 +42,11 @@ namespace zmq
         //  Closes the transport.
         ~pgm_socket_t ();
 
-        //   Get receiver fds. recv_fd is from transport->recv_sock
-        //   waiting_pipe_fd is from transport->waiting_pipe [0]
+        //   Get receiver fds and store them into user allocated memory.
         int get_receiver_fds (int *recv_fd_, int *waiting_pipe_fd_);
 
-        //   Get sender fd. sender_fd is from transport->send_sock.
+        //   Get sender fd and store it to user allocated memory.
         int get_sender_fd (int *sender_fd_);
-
-        //  Drop superuser privileges.
-        void drop_superuser ();
 
         //  Send one APDU, transmit window owned memory.
         size_t write_one_pkt (unsigned char *data_, size_t data_len_);
