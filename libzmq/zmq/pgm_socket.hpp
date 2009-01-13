@@ -50,7 +50,7 @@ namespace zmq
         //   Get sender fd. sender_fd is from transport->send_sock.
         int get_sender_fd (int *sender_fd_);
 
-        //  Drop superuser privil
+        //  Drop superuser privileges.
         void drop_superuser ();
 
         //  Send one APDU, transmit window owned memory.
