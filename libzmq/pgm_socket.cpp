@@ -272,10 +272,10 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
     return nbytes;
 }
 
-//  Return max TSDU size from current PGM transport.
-size_t zmq::pgm_socket_t::get_max_tsdu_size (bool can_fragment_)
+//  Return max TSDU size without fragmentation from current PGM transport.
+size_t zmq::pgm_socket_t::get_max_tsdu_size (void)
 {
-    return (size_t)pgm_transport_max_tsdu (g_transport, can_fragment_);
+    return (size_t)pgm_transport_max_tsdu (g_transport, false);
 }
 
 //  Returns how many APDUs are needed to fill reading buffer.
@@ -284,7 +284,7 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
     assert (readbuf_size_ > 0);
 
     //  Read max TSDU size without fragmentation.
-    size_t max_tsdu_size = get_max_tsdu_size (false);
+    size_t max_tsdu_size = get_max_tsdu_size ();
 
     //  Calculate number of APDUs needed to fill the reading buffer.
     size_t apdu_count = (int)readbuf_size_ / max_tsdu_size;
@@ -293,7 +293,7 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
         apdu_count ++;
 
     zmq_log (2, "readbuff size %i, maxapdu_at_once %i, max tsdu %i\n", 
-        (int)readbuf_size_, (int)apdu_count, (int)get_max_tsdu_size (false));
+        (int)readbuf_size_, (int)apdu_count, (int)get_max_tsdu_size ());
 
     //  Have to have at least one APDU.
     assert (apdu_count);

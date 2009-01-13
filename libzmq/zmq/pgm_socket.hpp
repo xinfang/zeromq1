@@ -61,8 +61,8 @@ namespace zmq
         //  Fees one slice allocated with alloc_one_pkt.
         void free_one_pkt (unsigned char *data_, bool can_fragment_);
 
-        //  Returns max tsdu size.
-        size_t get_max_tsdu_size (bool can_fragment_);
+        //  Returns max tsdu size without fragmentation.
+        size_t get_max_tsdu_size (void);
 
         //  Returns maximum count of apdus which fills readbuf_size_
         size_t get_max_apdu_at_once (size_t readbuf_size_);

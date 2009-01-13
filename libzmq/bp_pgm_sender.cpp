@@ -84,7 +84,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
-    max_tsdu = epgm_socket.get_max_tsdu_size (false);
+    max_tsdu = epgm_socket.get_max_tsdu_size ();
 
     //  Register BP engine with the I/O thread.
     command_t command;
