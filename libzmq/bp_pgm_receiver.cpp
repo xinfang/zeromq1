@@ -21,6 +21,7 @@
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
 #include <zmq/bp_pgm_receiver.hpp>
+#include <string>
 
 //#define PGM_RECEIVER_DEBUG
 //#define PGM_RECEIVER_DEBUG_LEVEL 0
@@ -50,12 +51,24 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     i_thread *thread_, const char *network_, const char *local_object_, 
     size_t readbuf_size_, const char *arguments_) :
     decoder (&demux),
-    epgm_socket (true, false, network_, readbuf_size_),
+    epgm_socket (NULL),
     iov (NULL), iov_len (0)
 {
+    
+    //  Note that in arguments_ is stored mcast interface to listen at,
+    //  comming from bind argument from api.
+    //  It has to be added into the transport info taken from zmq_server.
+    std::string transport_info (network_);
+    std::string mcast_interface (arguments_);
+    std::string network = mcast_interface + ";" + network_;
+
+    //  Create epgm_socket object
+    epgm_socket = new epgm_socket_t (true, false, network.c_str (), readbuf_size_);
+
+
     //  Calculate number of iovecs to fill the entire buffer.
     //  One iovec represents one apdu.
-    iov_len = epgm_socket.get_max_apdu_at_once (readbuf_size_);
+    iov_len = epgm_socket->get_max_apdu_at_once (readbuf_size_);
     iov = new iovec [iov_len];
 
     //  Register PGM engine with the I/O thread.
@@ -66,6 +79,10 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
 
 zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
+
+    //  Cleanup
+    delete epgm_socket;
+
     if (iov) {
         delete [] iov;
     }
@@ -92,7 +109,7 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
     int waiting_pipe_fd;
 
     //  Fill socket_fd and waiting_pipe_fd from PGM transport
-    int nfds = epgm_socket.get_receiver_fds (&socket_fd, &waiting_pipe_fd);
+    int nfds = epgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
 
     assert (nfds == 2);
 
@@ -110,7 +127,7 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
 void zmq::bp_pgm_receiver_t::in_event ()
 {
     // POLLIN event from socket or waiting_pipe
-    size_t nbytes = epgm_socket.read_pkt_with_offset (iov, iov_len);
+    size_t nbytes = epgm_socket->read_pkt_with_offset (iov, iov_len);
 
     zmq_log (2, "received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
 

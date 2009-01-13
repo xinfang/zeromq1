@@ -72,13 +72,6 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, bool passive_,
 
     interface = interface.substr (0, pos);
    
-    //  !!!!!!!!!!!!!!!!!!!!!!!!!
-    //  This is only temporary hack
-    if (receiver_) {
-        std::string iface ("eth1;");
-        interface = iface + interface;
-    }
-
     zmq_log (4, "interface %s\n", interface.c_str ());
     zmq_log (4, "port %i\n", port);
 

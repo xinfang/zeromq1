@@ -72,7 +72,7 @@ namespace zmq
         bp_decoder_t decoder;
        
         //  PGM socket
-        epgm_socket_t epgm_socket;
+        epgm_socket_t *epgm_socket;
 
         iovec *iov;
         size_t iov_len;

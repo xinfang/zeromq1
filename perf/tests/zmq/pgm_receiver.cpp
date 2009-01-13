@@ -25,17 +25,19 @@ using namespace std;
 
 int main (int argc, char *argv []) 
 {
-    if (argc != 4) {
-        cerr << "Usage: pgm_receiver <hostname> <message size> "
-        "<message count>" << endl;
+    if (argc != 5) {
+        cerr << "Usage: pgm_receiver <hostname> <mcast interface> "
+            "<message size> <message count>" << endl;
         return 1;
     }
 
     //  Input arguments parsing.
     const char *host = argv [1];
 
-    size_t msg_size = atoi (argv [2]);
-    int msg_count = atoi (argv [3]);
+    const char *mcast_interface = argv [2];
+
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
 
     //  Global exchange name.
     char ex_name [] = "G_XCHG";
@@ -62,7 +64,7 @@ int main (int argc, char *argv [])
     api->create_queue (q_name);
 
     //  Bind local queue to global exchange.
-    api->bind (ex_name, q_name, worker, worker); 
+    api->bind (ex_name, q_name, worker, worker, mcast_interface); 
 
     zmq::message_t message;
 
