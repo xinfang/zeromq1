@@ -52,10 +52,10 @@ namespace zmq
         size_t write_one_pkt (unsigned char *data_, size_t data_len_);
 
         //  Allocates one slice for packet in tx window.
-        unsigned char *alloc_one_pkt (bool can_fragment_);
+        unsigned char *alloc_one_pkt (void);
 
         //  Fees one slice allocated with alloc_one_pkt.
-        void free_one_pkt (unsigned char *data_, bool can_fragment_);
+        void free_one_pkt (unsigned char *data_);
 
         //  Returns max tsdu size without fragmentation.
         size_t get_max_tsdu_size (void);

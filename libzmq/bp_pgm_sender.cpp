@@ -116,7 +116,7 @@ zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
 {
     if (txw_slice) {
         zmq_log (2, "Freeing unused slice\n");
-        epgm_socket.free_one_pkt (txw_slice, false);
+        epgm_socket.free_one_pkt (txw_slice);
     }
 }
 
@@ -165,7 +165,7 @@ void zmq::bp_pgm_sender_t::out_event ()
     if (write_pos == write_size) {
         // get memory slice from tx window if we do not have already one
         if (!txw_slice) {
-            txw_slice = epgm_socket.alloc_one_pkt (false);
+            txw_slice = epgm_socket.alloc_one_pkt ();
             zmq_log (2, "Alocated packet in tx window\n");
         }
 

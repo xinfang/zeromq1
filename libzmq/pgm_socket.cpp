@@ -308,16 +308,16 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
 //  Allocate a packet from the transmit window, The memory buffer is owned 
 //  by the transmit window and so must be returned to the window with content
 //  via pgm_transport_send() calls or unused with pgm_packetv_free1(). 
-unsigned char *zmq::pgm_socket_t::alloc_one_pkt (bool can_fragment_)
+unsigned char *zmq::pgm_socket_t::alloc_one_pkt (void)
 {
-    return (unsigned char*) pgm_packetv_alloc (g_transport, can_fragment_);
+    return (unsigned char*) pgm_packetv_alloc (g_transport, false);
 }
 
 //  Return an unused packet allocated from the transmit window 
 //  via pgm_packetv_alloc(). 
-void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_, bool can_fragment_)
+void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_)
 {
-    pgm_packetv_free1 (g_transport, data_, can_fragment_);
+    pgm_packetv_free1 (g_transport, data_, false);
 }
 
 //  Receive a vector of Application Protocol Domain Unit's (APDUs) from the 
