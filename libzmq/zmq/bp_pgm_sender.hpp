@@ -35,9 +35,6 @@
 namespace zmq
 {
 
-    //  BP (backend protocol) listener. Listens on a specified network
-    //  interface and port and creates a BP engine for every new connection.
-
     class bp_pgm_sender_t : public i_listener
     {
 
@@ -97,17 +94,17 @@ namespace zmq
         //  Callback to the poller.
         i_poller *poller;
 
-        //  PGM socket
+        //  PGM socket.
         epgm_socket_t epgm_socket;
 
-        //  Poll handle associated with PGM socket
+        //  Poll handle associated with PGM socket.
         handle_t handle;
 
-        //  Buffer from transmit window
+        //  Buffer from transmit window.
         unsigned char *txw_slice;
 
-        // Taken from transmit window
-        size_t max_tsdu;
+        // Max. TSDU size, taken from transmit window.
+        size_t max_tsdu_size;
 
         size_t write_size;
         size_t write_pos;

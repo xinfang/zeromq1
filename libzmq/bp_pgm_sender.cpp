@@ -51,7 +51,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     encoder (&mux),
     epgm_socket (false, interface_),
     txw_slice (NULL),
-    max_tsdu (0),
+    max_tsdu_size (0),
     write_size (0),
     write_pos (0), 
     first_message_offest (-1)
@@ -71,7 +71,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder
-    max_tsdu = epgm_socket.get_max_tsdu_size ();
+    max_tsdu_size = epgm_socket.get_max_tsdu_size ();
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -102,7 +102,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
 {
     if (txw_slice) {
-        zmq_log (2, "Freeing unused slice\n");
         epgm_socket.free_one_pkt (txw_slice);
     }
 }
@@ -123,7 +122,7 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     //  Store the callback.
     poller = poller_;
 
-    //  Alocate 1 fd for PGM socket
+    //  Alocate 1 fd for PGM socket.
     int socket_fd;
 
     //  Fill socket_fd from PGM transport
@@ -134,7 +133,7 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
 
     zmq_log (4, "Got handle from poller.\n");
 
-    //  Set POLLOUT for socket_handle
+    //  Set POLLOUT for socket_handle.
     poller->set_pollout (handle);
 }
 
@@ -145,54 +144,50 @@ void zmq::bp_pgm_sender_t::in_event ()
 
 void zmq::bp_pgm_sender_t::out_event ()
 {
-    // POLLOUT event from send socket
-    zmq_log (4, "Got POLLOUT from poller, %s(%i)\n", __FILE__, __LINE__);
 
-    //  If write buffer is empty, try to read new data from the encoder
+    //  POLLOUT event from send socket. If write buffer is empty, 
+    //  try to read new data from the encoder.
     if (write_pos == write_size) {
-        // get memory slice from tx window if we do not have already one
+
+        //  Get memory slice from tx window if we do not have already one.
         if (!txw_slice) {
             txw_slice = epgm_socket.alloc_one_pkt ();
-            zmq_log (2, "Alocated packet in tx window\n");
         }
 
+        //  First two bytes /sizeof (uint16_t)/ are used to store message 
+        //  offset in following steps.
         write_size = encoder.read (txw_slice + sizeof (uint16_t), 
-            max_tsdu - sizeof (uint16_t), &first_message_offest);
+            max_tsdu_size - sizeof (uint16_t), &first_message_offest);
         write_pos = 0;
-
-        zmq_log (2, "read %iB from encoder offset %i, %s(%i)\n", 
-            (int)write_size, (int)first_message_offest, __FILE__, __LINE__);
 
         //  If there are no data to write stop polling for output
         if (!write_size) {
             poller->reset_pollout (handle);
-            zmq_log (2, "POLLOUT stopped, %s(%i)\n", __FILE__, __LINE__);
         } else {
-            // Addning uint16_t for offset in a case when encoder returned > 0B
+            // Addning uint16_t for offset in a case when encoder returned > 0B.
             write_size += sizeof (uint16_t);
         }
     }
 
-    //  If there are any data to write in write buffer, write them into the socket
-    //  note that all data has to written in one write
+    //  If there are any data to write, write them into the socket.
+    //  Note that all data has to written in one write_one_pkt_with_offset call.
     if (write_pos < write_size) {
-        size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + write_pos,
-            write_size - write_pos, (uint16_t) first_message_offest);
+        size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + 
+            write_pos, write_size - write_pos, (uint16_t) first_message_offest);
 
-        zmq_log (2, "wrote %iB/%iB, %s(%i)\n", (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
-               
-        // we can write all packer or 0 which means rate limit reached
+        //  We can write all data or 0 which means rate limit reached.
         if (write_size - write_pos != nbytes && nbytes != 0) {
-            zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
-                (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+//            zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
+//                (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
             assert (false);
         }
 
+        //  PGM rate limit reached nbytes is 0.
         if (!nbytes) {
             zmq_log (1, "pgm rate limit reached, %s(%i)\n", __FILE__, __LINE__);
         }
 
-        // after sending data slice is owned by tx window
+        //  After sending data slice is owned by tx window.
         if (nbytes) {
             txw_slice = NULL;
         }
@@ -203,7 +198,6 @@ void zmq::bp_pgm_sender_t::out_event ()
 
 void zmq::bp_pgm_sender_t::unregister_event ()
 {
-    //  TODO: implement this
     assert (false);
 }
 
@@ -219,7 +213,7 @@ void zmq::bp_pgm_sender_t::process_command (const engine_command_t &command_)
 
         case engine_command_t::revive:
 
-            //  We have some messages in encoder
+            //  We have some messages in encoder.
             if (!shutting_down) {
                 
                 //  Forward the revive command to the pipe. 
@@ -231,7 +225,6 @@ void zmq::bp_pgm_sender_t::process_command (const engine_command_t &command_)
             break;
 
         default:
-            std::cout << "command_type: " << command_.type << std::endl << std::flush;
             assert (false);
     }
 }
