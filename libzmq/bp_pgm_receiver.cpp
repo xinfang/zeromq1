@@ -46,7 +46,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     
     //  Note that in arguments_ is stored mcast interface to listen at,
     //  comming from bind argument from api.
-    //  It has to be added into the transport info taken from zmq_server.
+    //  It has to be added before the transport info taken from zmq_server.
     std::string transport_info (network_);
     std::string mcast_interface (arguments_);
     std::string network = mcast_interface + ";" + network_;
@@ -92,34 +92,30 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
     //  Store the callback.
     poller = poller_;
 
-    //  Allocate 2 fds one for socket second for waiting pipe
+    //  Allocate 2 fds one for socket second for waiting pipe.
     int socket_fd;
     int waiting_pipe_fd;
 
     //  Fill socket_fd and waiting_pipe_fd from PGM transport
-    int nfds = epgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
-
-    assert (nfds == 2);
+    epgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
 
     //  Add socket_fd into poller.
     socket_handle = poller->add_fd (socket_fd, this);
 
-    //  Add waiting_pipe_fd into poller
+    //  Add waiting_pipe_fd into poller.
     pipe_handle = poller->add_fd (waiting_pipe_fd, this);
 
-    //  Set POLLIN for both handlers
+    //  Set POLLIN for both handlers.
     poller->set_pollin (pipe_handle);
     poller->set_pollin (socket_handle);
 }
 
 void zmq::bp_pgm_receiver_t::in_event ()
 {
-    // POLLIN event from socket or waiting_pipe
+    //  POLLIN event from socket or waiting_pipe.
     size_t nbytes = epgm_socket->read_pkt_with_offset (iov, iov_len);
 
-    zmq_log (2, "received %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
-
-    // No data received
+    //  No ODATA/RDATA received.
     if (!nbytes) {
         return;
     }
@@ -127,34 +123,28 @@ void zmq::bp_pgm_receiver_t::in_event ()
     iovec *iov_to_write = iov;
     iovec *iov_to_write_end = iov_to_write + iov_len;
 
-    //  Push the data to the decoder
+    //  Push all the data to the decoder.
     while (nbytes) {
 
         assert (nbytes > 0);
         assert (iov_to_write <= iov_to_write_end);
 
-        zmq_log (2, "writting %iB into decoder, %s(%i)\n", (int)iov_to_write->iov_len, 
-            __FILE__, __LINE__);
-        decoder.write ((unsigned char*)iov_to_write->iov_base, iov_to_write->iov_len);
+        decoder.write ((unsigned char*)iov_to_write->iov_base, 
+            iov_to_write->iov_len);
 
         nbytes -= iov_to_write->iov_len;
         iov_to_write++;
 
     }
 
-    //  Flush any messages decoder may have produced to the dispatcher
+    //  Flush any messages decoder may have produced to the dispatcher.
     demux.flush ();
 }
 
-void zmq::bp_pgm_receiver_t::out_event ()//pollfd *pfd_, int count_, int index_)
+void zmq::bp_pgm_receiver_t::out_event ()
 {
     assert (false);
 }
-
-//void zmq::bp_pgm_engine_t::error_event ()
-//{
-//    assert (false);
-//}
 
 void zmq::bp_pgm_receiver_t::unregister_event ()
 {

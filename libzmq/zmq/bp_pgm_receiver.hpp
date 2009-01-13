@@ -55,8 +55,7 @@ namespace zmq
         void unregister_event ();
     private:
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
-        //  using network parameter. Local object name is simply stored
-        //  and passed to error handler function when connection breaks.
+        //  using network parameter.
         bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
             const char *network_, const char *local_object_, 
             size_t readbuf_size_, const char *arguments_);
@@ -73,13 +72,14 @@ namespace zmq
         //  PGM socket
         epgm_socket_t *epgm_socket;
 
+        //  Stuctures to receive data from underlying pgm_socket.
         iovec *iov;
         size_t iov_len;
 
-        //  Poll handle associated with PGM socket
+        //  Poll handle associated with PGM socket.
         handle_t socket_handle;
 
-        //  Poll handle associated with engine PGM waiting pipe
+        //  Poll handle associated with engine PGM waiting pipe.
         handle_t pipe_handle;
 
         bp_pgm_receiver_t (const bp_pgm_receiver_t&);
