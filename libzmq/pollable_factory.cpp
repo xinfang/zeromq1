@@ -30,8 +30,8 @@
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/amqp_tcp_client.hpp>
 
-ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
-    i_thread *thread_, const char *arguments_,
+ZMQ_EXPORT zmq::i_listener *zmq::pollable_factory_t::create_listener (
+    i_thread *calling_thread_, i_thread *thread_, const char *arguments_,
     int handler_thread_count_, i_thread **handler_threads_,
     bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
     const char *peer_name_)
@@ -51,16 +51,22 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
         transport_args = arguments.substr (pos + 3);
     }
 
-    if (transport_type == "bp/tcp")
-        return bp_tcp_listener_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/tcp") {
+        i_listener *listener = new bp_tcp_listener_t (calling_thread_, thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
+        assert (listener);
+        return listener;
+    }
 
 #if defined ZMQ_HAVE_SCTP
-    if (transport_type == "bp/sctp")
-        return bp_sctp_listener_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/sctp") {
+        i_listener *listener = new bp_sctp_listener_t (calling_thread_, thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
+        assert (listener);
+        return listener;
+    }
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
@@ -75,9 +81,9 @@ ZMQ_EXPORT zmq::i_listener *zmq::create_listener (i_thread *calling_thread_,
     return NULL;
 }
 
-ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
-    i_thread *thread_, const char *arguments_, const char *local_object_,
-    const char *engine_arguments_)
+ZMQ_EXPORT zmq::i_pollable *zmq::pollable_factory_t::create_engine (
+    i_thread *calling_thread_, i_thread *thread_, const char *arguments_,
+    const char *local_object_, const char *engine_arguments_)
 {
     //  Decompose the string to the transport name (e.g. "bp/tcp") and
     //  transport arguments (e.g. "eth0:5555").
@@ -98,14 +104,20 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
 
     //  Create appropriate engine.
 
-    if (transport_type == "bp/tcp")
-        return bp_tcp_engine_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/tcp") {
+        i_pollable *engine = new bp_tcp_engine_t (calling_thread_, thread_,
             transport_args.c_str (), local_object_, engine_arguments_);
+        assert (engine);
+        return engine;
+    }
 
 #if defined ZMQ_HAVE_SCTP
-    if (transport_type == "bp/sctp")
-        return bp_sctp_engine_t::create (calling_thread_, thread_,
+    if (transport_type == "bp/sctp") {
+        i_pollable *engine = new bp_sctp_engine_t (calling_thread_, thread_,
             transport_args.c_str (), local_object_, engine_arguments_);
+        assert (engine);
+        return engine;
+    }
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
@@ -116,9 +128,12 @@ ZMQ_EXPORT zmq::i_pollable *zmq::create_connection (i_thread *calling_thread_,
 #endif
 
 #if defined ZMQ_HAVE_AMQP
-    if (transport_type == "amqp/tcp")
-        return amqp_tcp_client_t::create (calling_thread_, thread_,
-            transport_args.c_str (), engine_arguments_);
+    if (transport_type == "amqp/tcp") {
+        i_pollable *engine = new amqp_tcp_client_t (calling_thread_,
+            thread_, transport_args.c_str (), engine_arguments_);
+        assert (engine);
+        return engine;
+    }
 #endif
 
     //  Unknown transport type.

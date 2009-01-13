@@ -33,10 +33,10 @@ namespace zmq
 
     class amqp_tcp_client_t : public i_pollable
     {
-    public:
+        //  Allow class factory to create this engine.
+        friend class pollable_factory_t;
 
-        ZMQ_EXPORT static amqp_tcp_client_t *create (i_thread *calling_thread_,
-            i_thread *thread_, const char *hostname_, const char *arguments_);
+    public:
 
         //  i_pollable interface implementation.
         engine_type_t type ();

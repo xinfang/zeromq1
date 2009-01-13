@@ -44,16 +44,10 @@ namespace zmq
 
     class bp_sctp_listener_t : public i_listener
     {
-    public:
+        //  Allow class factory to create this engine.
+        friend class pollable_factory_t;
 
-        //  Creates a BP listener. Handler thread array determines
-        //  the threads that will serve newly-created BP engines.
-        ZMQ_EXPORT static bp_sctp_listener_t *create (
-            i_thread *calling_thread_,
-            i_thread *thread_, const char *interface_,
-            int handler_thread_count_, i_thread **handler_threads_,
-            bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
-            const char *peer_name_);
+    public:
 
         //  i_listener implementation.
         engine_type_t type ();
@@ -67,6 +61,8 @@ namespace zmq
 
     private:
 
+        //  Creates a BP listener. Handler thread array determines
+        //  the threads that will serve newly-created BP engines.
         bp_sctp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,

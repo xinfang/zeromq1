@@ -29,15 +29,24 @@
 namespace zmq
 {
 
-    ZMQ_EXPORT i_listener *create_listener (i_thread *calling_thread_,
-        i_thread *thread_, const char *arguments_,
-        int handler_thread_count_, i_thread **handler_threads_,
-        bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
-        const char *peer_name_);
+    //  This class acts as an object factory for pollable engines
 
-    ZMQ_EXPORT i_pollable *create_connection (i_thread *calling_thread_,
-        i_thread *thread_, const char *arguments_, const char *local_object_,
-        const char *engine_arguments_);
+    class pollable_factory_t
+    {
+    public:
+
+        ZMQ_EXPORT static i_listener *create_listener (
+            i_thread *calling_thread_, i_thread *thread_,
+            const char *arguments_, int handler_thread_count_,
+            i_thread **handler_threads_, bool source_,
+            i_thread *peer_thread_, i_engine *peer_engine_,
+            const char *peer_name_);
+
+        ZMQ_EXPORT static i_pollable *create_engine (
+            i_thread *calling_thread_, i_thread *thread_,
+            const char *arguments_, const char *local_object_,
+            const char *engine_arguments_);
+    };
 
 }
 

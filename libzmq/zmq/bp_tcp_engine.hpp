@@ -45,19 +45,13 @@ namespace zmq
 
     class bp_tcp_engine_t : public i_pollable
     {
+        //  Allow class factory to create this engine.
+        friend class pollable_factory_t;
+
+        //  Allow BP/TCP listener to create the engine.
+        friend class bp_tcp_listener_t;
+
     public:
-
-        //  Creates bp_tcp_engine. Underlying TCP connection is initialised
-        //  using hostname parameter. Local object name is simply stored
-        //  and passed to error handler function when connection breaks.
-        ZMQ_EXPORT static bp_tcp_engine_t *create (i_thread *calling_thread_,
-            i_thread *thread_, const char *hostname_,
-            const char *local_object_, const char *arguments_);
-
-        //  Creates bp_tcp_engine from supplied listener object.
-        ZMQ_EXPORT static bp_tcp_engine_t *create (i_thread *calling_thread_,
-            i_thread *thread_, tcp_listener_t &listener_,
-            const char *local_object_);
 
         //  i_pollable interface implementation.
         engine_type_t type ();
@@ -67,7 +61,6 @@ namespace zmq
         void in_event ();
         void out_event ();
         void unregister_event ();
-
 
     private:
 
@@ -85,11 +78,15 @@ namespace zmq
             engine_shutting_down
         };
 
+        //  Creates bp_tcp_engine. Underlying TCP connection is initialised
+        //  using hostname parameter. Local object name is simply stored
+        //  and passed to error handler function when connection breaks.
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
             const char *arguments_);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, const char *local_object_);
+
         ~bp_tcp_engine_t ();
 
         //  Object to aggregate messages from inbound pipes.

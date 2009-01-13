@@ -22,17 +22,6 @@
 #include <zmq/amqp_tcp_client.hpp>
 #include <zmq/config.hpp>
 
-zmq::amqp_tcp_client_t *zmq::amqp_tcp_client_t::create (
-    i_thread *calling_thread_, i_thread *thread_, const char *hostname_,
-    const char *arguments_)
-{
-    amqp_tcp_client_t *instance = new amqp_tcp_client_t (calling_thread_,
-        thread_, hostname_, arguments_);
-    assert (instance);
-
-    return instance;
-}
-
 zmq::amqp_tcp_client_t::amqp_tcp_client_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *arguments_) :
     socket (hostname_)

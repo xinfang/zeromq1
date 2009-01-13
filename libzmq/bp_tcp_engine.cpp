@@ -22,27 +22,6 @@
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 
-zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, const char *hostname_, const char *local_object_,
-    const char *arguments_)
-{
-    bp_tcp_engine_t *instance = new bp_tcp_engine_t (calling_thread_,
-        thread_, hostname_, local_object_, arguments_);
-    assert (instance);
-
-    return instance;
-}
-
-zmq::bp_tcp_engine_t *zmq::bp_tcp_engine_t::create (i_thread *calling_thread_,
-    i_thread *thread_, tcp_listener_t &listener_, const char *local_object_)
-{
-    bp_tcp_engine_t *instance = new bp_tcp_engine_t (calling_thread_,
-        thread_, listener_, local_object_);
-    assert (instance);
-
-    return instance;
-}
-
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
       const char *arguments_) :

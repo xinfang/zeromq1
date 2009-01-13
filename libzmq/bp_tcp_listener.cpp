@@ -22,20 +22,6 @@
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 
-zmq::bp_tcp_listener_t *zmq::bp_tcp_listener_t::create (
-    i_thread *calling_thread_, i_thread *thread_, const char *interface_,
-    int handler_thread_count_, i_thread **handler_threads_, bool source_,
-    i_thread *peer_thread_, i_engine *peer_engine_,
-    const char *peer_name_)
-{
-    bp_tcp_listener_t *instance = new bp_tcp_listener_t (calling_thread_,
-        thread_, interface_, handler_thread_count_, handler_threads_, source_,
-        peer_thread_, peer_engine_, peer_name_);
-    assert (instance);
-
-    return instance;
-}
-
 zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
       i_thread **handler_threads_, bool source_,
@@ -88,7 +74,7 @@ void zmq::bp_tcp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_tcp_engine_t *engine = bp_tcp_engine_t::create (thread,
+    bp_tcp_engine_t *engine = new bp_tcp_engine_t (thread,
         handler_threads [current_handler_thread], listener, peer_name);
     assert (engine);
 
