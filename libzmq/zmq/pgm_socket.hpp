@@ -26,79 +26,69 @@
 
 #include <glib.h>
 #include <pgm/pgm.h>
-#include <unistd.h>
-#include <assert.h>
-#include <string>
-#include <sstream>
 
-#include "stdint.hpp"
+#include <zmq/stdint.hpp>
 
 namespace zmq
 {
-    // Sender engine has to use 3 fds
-    enum {pgm_sender_fds = 3};
-    
-    // Receiver engine has to use 2 fds
-    enum {pgm_receiver_fds = 2};
-
-    // Indexes as fds are returned from pgm_transport_poll_info
-    enum {pgm_recv_fd_idx = 0, pgm_wait_fd_idx = 1, pgm_send_fd_idx = 2};
-
-    //  Encapsulates PGM socket
+    //  Encapsulates PGM socket.
     class pgm_socket_t
     {
     public:
-        // If receiver_ is true PGM transport is not generating SPM packets
-        // in a case of passive_ receiver no NAKs are generated
+        //  If receiver_ is true PGM transport is not generating SPM packets
+        //  in a case of passive_ receiver no NAKs are generated.
         pgm_socket_t (bool receiver_, bool passive_, const char *interface_, 
             size_t readbuf_size_ = 0);
 
-        //  Closes the transport
+        //  Closes the transport.
         ~pgm_socket_t ();
 
-        //  Get receiver fds. recv_fd is from transport->recv_sock
-        //  waiting_pipe_fd is from transport->waiting_pipe [0]
+        //   Get receiver fds. recv_fd is from transport->recv_sock
+        //   waiting_pipe_fd is from transport->waiting_pipe [0]
         int get_receiver_fds (int *recv_fd_, int *waiting_pipe_fd_);
 
-        //  Get sender fd. sender_fd is from transport->send_sock.
+        //   Get sender fd. sender_fd is from transport->send_sock.
         int get_sender_fd (int *sender_fd_);
 
-        //  Get multicast group, which should be registered into zmq_server
-        const char *get_interface ();
-
-        // Drop superuser privil
+        //  Drop superuser privil
         void drop_superuser ();
 
-        // Send one PGM data packet, transmit window owned memory.
+        //  Send one APDU, transmit window owned memory.
         size_t write_one_pkt (unsigned char *data_, size_t data_len_);
 
-        // Allocates one slice for packet in tx window (or returns from GTrashStack)
+        //  Allocates one slice for packet in tx window.
         unsigned char *alloc_one_pkt (bool can_fragment_);
 
-        // Fees one slice allocated with alloc_one_pkt
+        //  Fees one slice allocated with alloc_one_pkt.
         void free_one_pkt (unsigned char *data_, bool can_fragment_);
 
-        // Returns max tsdu size
-        size_t get_max_tsdu (bool can_fragment_);
+        //  Returns max tsdu size.
+        size_t get_max_tsdu_size (bool can_fragment_);
 
-        // Returns maximum count of apdus which fills readbuf_size_
+        //  Returns maximum count of apdus which fills readbuf_size_
         size_t get_max_apdu_at_once (size_t readbuf_size_);
 
-        // reads iov_len apdus
+        //  Receive exactly iov_len count APDUs.
         size_t read_pkt (iovec *iov_, size_t iov_len_);
 
     protected:
+    
+        //  OpenPGM transport
         pgm_transport_t* g_transport;
 
+        //  Sender transport uses 1 fd.
+        enum {pgm_sender_fd_count = 1};
+    
+        //  Receiver transport uses 2 fd.
+        enum {pgm_receiver_fd_count = 2};
+
     private:
-        // array of structure to store received data
+
+        //  Array of pgm_msgv_t structures to store received data.
         pgm_msgv_t *pgm_msgv;
 
-        // number of pgm_msgv_t in pgm_msgv array
+        //  Size of pgm_msgv array.
         size_t pgm_msgv_len;
-        
-        //  String consist of mcast_group:port
-        std::string socket_info;
     };
 }
 #endif
