@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -261,7 +261,7 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
     assert (nbytes != -EINVAL);
 
     if (nbytes == -1 && errno != EAGAIN) {
-        errno_assert (0);
+        errno_assert (false);
     }
 
     //  If nbytes is -1 and errno is EAGAIN means that we can not send data 
@@ -272,7 +272,7 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
     
     // We have to write all data as one packet.
     if (nbytes > 0) {
-        assert (nbytes = data_len_);
+        assert (nbytes == data_len_);
     }
 
     return nbytes;
@@ -297,9 +297,6 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
 
     if ((int) readbuf_size_ % max_tsdu_size)
         apdu_count ++;
-
-    zmq_log (2, "readbuff size %i, maxapdu_at_once %i, max tsdu %i\n", 
-        (int)readbuf_size_, (int)apdu_count, (int)get_max_tsdu_size ());
 
     //  Have to have at least one APDU.
     assert (apdu_count);

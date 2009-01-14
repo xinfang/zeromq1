@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -30,8 +30,6 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
 
-#include <iostream>
-
 namespace zmq
 {
 
@@ -43,19 +41,20 @@ namespace zmq
 
     public:
 
-        //  i_engine interface implemtation
+        //  i_engine interface implemtation.
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void process_command (const engine_command_t &command_);
 
-        //  i_pollable interface implementation
+        //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
         void unregister_event ();
     private:
+
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
-        //  using network parameter.
+        //  using network_ parameter.
         bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
             const char *network_, const char *local_object_, 
             size_t readbuf_size_, const char *arguments_);
@@ -65,11 +64,11 @@ namespace zmq
         //  Callback to poller.
         i_poller *poller;
 
-        //  demux & bp_decoder
+        //  demux & bp_decoder.
         demux_t demux;
         bp_decoder_t decoder;
        
-        //  PGM socket
+        //  PGM socket.
         epgm_socket_t *epgm_socket;
 
         //  Stuctures to receive data from underlying pgm_socket.

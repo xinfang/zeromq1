@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -24,7 +24,6 @@
 
 #if ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
-#include <cstdio>
 #include <zmq/pgm_socket.hpp>
 
 namespace zmq
@@ -37,7 +36,7 @@ namespace zmq
     {
     public:
         //  If receiver_ is true PGM transport is not generating SPM packets.
-        //  interface_ format: iface;mcast_group:port (eth0;226.0.0.1:7500)
+        //  interface_ format: iface;mcast_group:port (eth0;226.0.0.1:7500).
         epgm_socket_t (bool receiver_, const char *interface_, 
               size_t readbuf_size_ = 0);
 
@@ -46,7 +45,7 @@ namespace zmq
 
         //  Send one APDU with first message offset information. 
         //  Note that first 2 bytes in data_ are used to store the offset_
-        //  and thus user data has to start at data_ + 2.
+        //  and thus user data has to start at data_ + sizeof (uint16_t).
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_, 
             uint16_t offset_);
 
