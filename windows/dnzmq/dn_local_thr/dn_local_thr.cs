@@ -38,10 +38,10 @@ namespace local_thr
             w.create_queue ("Q", Dnzmq.ZMQ_SCOPE_GLOBAL, iface);
 
             //  Allocate memory for messages.
-            void* out_v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);
+            byte[] msg = new byte[msg_size];
 
             //  Receive the first message.
-            w.receive (&out_v, &msg_size);
+            w.receive (ref msg, &msg_size);
 
             /*  Get initial timestamp.  */
             System.Diagnostics.Stopwatch watch;
@@ -50,33 +50,31 @@ namespace local_thr
 
             //  Start receiving messages
             for (int i = 0; i < roundtrip_count; i++)
-                w.receive (&out_v, &msg_size);
+                w.receive (ref msg, &msg_size);
 
             /*  Get final timestamp.  */
             watch.Stop ();
             Int64 elapsed_time = watch.ElapsedTicks;
-
-            //  Elapsed_time should be divided by 10000, but then in calculation of message
-            //  throughput it should be multiplied by 100000, therefore  message_throuhput 
-            //  is calculated as 10 * roundtrip_count / time.
-            Int64 time = (elapsed_time / Stopwatch.Frequency); 
-
+            double time = (double) elapsed_time / Stopwatch.Frequency;
+            
             /*  Compute and print out the throughput.  */
             Int64 message_throughput;
-            if (time != 0)
-                message_throughput = 10 * roundtrip_count / time;
-            else
-                message_throughput = 0;
-                
-            Int64 megabit_throughput = message_throughput * msg_size * 8 /
+            Int64 megabit_throughput;
+
+            //  Elapsed_time should be divided by 10000, but then in 
+            //  calculation of message throughput it should be multiplied
+            //  by 100000, therefore  message_throuhput is calculated as 
+            //  roundtrip_count /(time)) * 10.
+            message_throughput = (Int64) (roundtrip_count /
+                (time)) * 10;
+            megabit_throughput = message_throughput * msg_size * 8 /
                 1000000;
+           
             Console.Out.WriteLine ("Your average throughput is {0} [msg/s]",
                 message_throughput.ToString ());
             Console.Out.WriteLine ("Your average throughput is {0} [Mb/s]",
                 megabit_throughput.ToString ());
 
-            //  Free data used for messages.
-            Marshal.FreeCoTaskMem ((IntPtr) out_v);
             System.Threading.Thread.Sleep (5000);
             return 0;
         }

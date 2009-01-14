@@ -37,14 +37,12 @@ namespace remote_thr
             w.bind ("E", "Q");
 
             //  Allocate memory for messages.
-            void* v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);
+            byte[] msg = new byte[msg_size];
 
             //  Start sending messages.
             for (int i = 0; i < num_msg + 1; i++)
-                w.send (ex, v, msg_size);
+                w.send (ex, msg, msg_size);
 
-            //  Free allocated memory.
-            Marshal.FreeCoTaskMem ((IntPtr) v);
             System.Threading.Thread.Sleep (5000);
             return 0;
         }

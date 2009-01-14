@@ -50,7 +50,7 @@ namespace gcTest
             w.bind ("EG", "QL");
 
             //  Allocate memory needed for messages.
-            void* v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);
+            byte[] msg = new byte[msg_size];
                         
             /*  Get initial timestamp.  */
             System.Diagnostics.Stopwatch watch;
@@ -60,8 +60,8 @@ namespace gcTest
             //  Start sending messages.
             for (int i = 0; i < roundtrip_count; i++)
             {
-                w.send (eid, v, msg_size);
-                w.receive (&v, &msg_size);
+                w.send (eid, msg, msg_size);
+                w.receive ( ref msg, &msg_size);
             }
 
             /*  Get final timestamp.  */
@@ -71,9 +71,7 @@ namespace gcTest
             /*  Compute and print out the latency.  */
             double latency = (double) (elapsed_time) / roundtrip_count / 2 * 100000 / Stopwatch.Frequency;
             Console.Out.WriteLine ("Your average latency is {0} [us]", latency.ToString ("f2"));
-
-            //  Free allocated memory.
-            Marshal.FreeCoTaskMem ((IntPtr) v);
+            
             System.Threading.Thread.Sleep (5000);
             return 0;
         }

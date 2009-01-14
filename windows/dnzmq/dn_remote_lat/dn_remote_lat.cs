@@ -41,17 +41,15 @@ namespace remote_lat
             que = w.create_queue ("QG", Dnzmq.ZMQ_SCOPE_GLOBAL, in_interface);
             
             //  Allocate memory for messages.           
-            void* v = (void*) Marshal.AllocCoTaskMem ((int) msg_size);
+            byte[] msg = new byte[msg_size];
 
             //  Start sending and receiving.
             for (int i = 0; i < num_msg; i++)
             {
-                w.receive (&v, &msg_size);
-                w.send (ex, v, msg_size);
+                w.receive (ref msg, &msg_size);
+                w.send (ex, msg, msg_size);
             }
 
-            //  Free allocated memory.
-            Marshal.FreeCoTaskMem ((IntPtr) v);
             System.Threading.Thread.Sleep (5000);
             return 0;
         }
