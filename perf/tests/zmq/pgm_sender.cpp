@@ -65,9 +65,10 @@ int main (int argc, char *argv [])
         network, worker, 1, &worker);
 
     for (int i = 0; i < msg_count; i++) {
-        sleep (1);
         zmq::message_t message (msg_size);
         api->send (ex_id, message);
+
+        sleep (1);
     }
 
     return 0;
