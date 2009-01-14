@@ -41,10 +41,8 @@
 #endif
 
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *interface_, bool source_,
-      i_thread *peer_thread_, i_engine *peer_engine_,
-      const char *peer_name_) :
-    source (source_),
+      i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
+      i_engine *peer_engine_, const char *peer_name_) :
     thread (thread_),
     peer_thread (peer_thread_),
     peer_engine (peer_engine_),
@@ -54,7 +52,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     max_tsdu_size (0),
     write_size (0),
     write_pos (0), 
-    first_message_offest (-1)
+    first_message_offset (-1)
 
 {
     //  Copy the peer name.
@@ -70,7 +68,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     sprintf (arguments, "bp/pgm://%s", delim);
 
     // Get max tsdu size from transmit window, 
-    // will be used as max size for filling buffer by encoder
+    // will be used as max size for filling buffer by encoder.
     max_tsdu_size = epgm_socket.get_max_tsdu_size ();
 
     //  Register BP engine with the I/O thread.
@@ -125,13 +123,11 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     //  Alocate 1 fd for PGM socket.
     int socket_fd;
 
-    //  Fill socket_fd from PGM transport
+    //  Fill socket_fd from PGM transport.
     epgm_socket.get_sender_fd (&socket_fd);
 
     //  Add socket_fd into poller.
     handle = poller->add_fd (socket_fd, this);
-
-    zmq_log (4, "Got handle from poller.\n");
 
     //  Set POLLOUT for socket_handle.
     poller->set_pollout (handle);
@@ -157,10 +153,10 @@ void zmq::bp_pgm_sender_t::out_event ()
         //  First two bytes /sizeof (uint16_t)/ are used to store message 
         //  offset in following steps.
         write_size = encoder.read (txw_slice + sizeof (uint16_t), 
-            max_tsdu_size - sizeof (uint16_t), &first_message_offest);
+            max_tsdu_size - sizeof (uint16_t), &first_message_offset);
         write_pos = 0;
 
-        //  If there are no data to write stop polling for output
+        //  If there are no data to write stop polling for output.
         if (!write_size) {
             poller->reset_pollout (handle);
         } else {
@@ -173,12 +169,12 @@ void zmq::bp_pgm_sender_t::out_event ()
     //  Note that all data has to written in one write_one_pkt_with_offset call.
     if (write_pos < write_size) {
         size_t nbytes = epgm_socket.write_one_pkt_with_offset (txw_slice + 
-            write_pos, write_size - write_pos, (uint16_t) first_message_offest);
+            write_pos, write_size - write_pos, (uint16_t) first_message_offset);
 
         //  We can write all data or 0 which means rate limit reached.
         if (write_size - write_pos != nbytes && nbytes != 0) {
-//            zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
-//                (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+            zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
+                (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
             assert (false);
         }
 

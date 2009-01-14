@@ -72,8 +72,7 @@ ZMQ_EXPORT zmq::i_listener *zmq::pollable_factory_t::create_listener (
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm") {
         i_listener *pgm_sender = new bp_pgm_sender_t (calling_thread_, thread_,
-            transport_args.c_str (), source_, peer_thread_, peer_engine_, 
-            peer_name_);
+            transport_args.c_str (), peer_thread_, peer_engine_, peer_name_);
         assert (pgm_sender);
         return pgm_sender;
     }

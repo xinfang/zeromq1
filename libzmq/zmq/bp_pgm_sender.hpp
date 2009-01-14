@@ -43,33 +43,27 @@ namespace zmq
 
     public:
 
-        //  i_engine interface implemtation
+        //  i_engine interface implemtation.
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void process_command (const engine_command_t &command_);
 
-        //  i_pollable interface implementation
+        //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
         void error_event ();
         void unregister_event ();
 
-        //  i_listener interface implementation
+        //  i_listener interface implementation.
         const char *get_arguments ();
 
     private:
 
         bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *interface_, bool source_, i_thread *peer_thread_, 
+            const char *interface_, i_thread *peer_thread_, 
             i_engine *peer_engine_, const char *peer_name_);
         ~bp_pgm_sender_t ();
-
-        //  Determines whether the engine serves as a local source of messages
-        //  (i.e. reads them from the sockets and makes them available) or
-        //  a local destination of messages (i.e. gathers the messages and
-        //  sends them to the socket).
-        bool source;
 
         //  The thread listener is running in.
         i_thread *thread;
@@ -87,7 +81,7 @@ namespace zmq
         //  from other threads.
         bool shutting_down;
 
-        //  mux & bp_encoder
+        //  mux & bp_encoder.
         mux_t mux; 
         bp_encoder_t encoder;
 
@@ -103,13 +97,14 @@ namespace zmq
         //  Buffer from transmit window.
         unsigned char *txw_slice;
 
-        // Max. TSDU size, taken from transmit window.
+        //  Max. TSDU size, taken from transmit window.
         size_t max_tsdu_size;
 
         size_t write_size;
         size_t write_pos;
 
-        int first_message_offest;
+        //  Offset of the first mesage in data chunk taken from encoder.
+        int first_message_offset;
 
         bp_pgm_sender_t (const bp_pgm_sender_t&);
         void operator = (const bp_pgm_sender_t&);
