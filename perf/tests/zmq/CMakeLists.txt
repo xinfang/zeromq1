@@ -8,24 +8,24 @@ include_directories(
 set(local_lat_sources 
   local_lat.cpp
 )
-zmq_add_executable(local_lat ${local_lat_sources})
+add_executable(local_lat ${local_lat_sources})
 target_link_libraries(local_lat zmq)
 
 set(remote_lat_sources 
   remote_lat.cpp
 )
-zmq_add_executable(remote_lat ${remote_lat_sources})
+add_executable(remote_lat ${remote_lat_sources})
 target_link_libraries(remote_lat zmq)
 
 set(local_thr_sources 
   local_thr.cpp
 )
-zmq_add_executable(local_thr ${local_thr_sources})
+add_executable(local_thr ${local_thr_sources})
 target_link_libraries(local_thr zmq)
 
 set(remote_thr_sources 
   remote_thr.cpp
 )
-zmq_add_executable(remote_thr ${remote_thr_sources})
+add_executable(remote_thr ${remote_thr_sources})
 target_link_libraries(remote_thr zmq)
 

@@ -30,16 +30,11 @@ set(ZMQ_INSTALL_LIBRARIES "lib")
 set(ZMQ_INSTALL_INCLUDES  "include")
 
 # Descend zmq build tree and compile everything
-set(zmq_subdirs libzmq zmq_server libczmq)
+set(zmq_subdirs libzmq zmq_server libczmq perf)
 
 foreach(subdir ${zmq_subdirs})
   add_subdirectory("${subdir}")
 endforeach(subdir ${zmq_subdirs})
-
-#  If WITH_PERF=YES descend into perf directory
-if (WITH_PERF)
-    add_subdirectory ("perf") 
-endif (WITH_PERF)
 
 
 MESSAGE(STATUS  "")
