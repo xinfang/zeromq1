@@ -3,17 +3,17 @@
 
     This file is part of 0MQ.
 
-    0MQ is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    0MQ is free software; you can redistribute it and/or modify it under
+    the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Lesser GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -24,8 +24,11 @@
 
 #include <string>
 
+#include <zmq/i_amqp.hpp>
 #include <zmq/encoder.hpp>
 #include <zmq/amqp_marshaller.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {
@@ -38,7 +41,7 @@ namespace zmq
     public:
 
         //  Create the encoder.
-        amqp_encoder_t (bool server_);
+        amqp_encoder_t (mux_t *mux_, const char *exchange_);
         ~amqp_encoder_t ();
 
     private:
@@ -51,16 +54,24 @@ namespace zmq
         bool content_body ();
         bool frame_end ();
 
-        //  If true, this is 'server' side of the AMQP connection.
-        //  Messages are passed using basic.deliver command. If false,
-        //  it's client side of connection, messages are passed using
-        //  basic.publish.
-        bool server;
+        //  Mux object to get data from.
+        mux_t *mux;
+
+        //  AMQP command currently being encoded.
+        command_t command;
+
+        //  Message currently being encoded. message_offset points to
+        //  the beginning of yet un-encoded part of the message.
+        message_t message;
+        size_t message_offset;
+
+        //  Exchange where outgoing messages are sent.
+        std::string exchange;
 
         //  Buffer used to compose the frames (excluding actual
         //  message payload).
-        unsigned char tmpbuf [4096];
-        enum {tmpbuf_size = 4096};
+        unsigned char framebuf [i_amqp::frame_min_size];
+        enum {framebuf_size = i_amqp::frame_min_size};
     };
 
 }

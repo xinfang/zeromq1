@@ -198,6 +198,8 @@
 #ifndef __ZMQ_I_AMQP_HPP_INCLUDED__
 #define __ZMQ_I_AMQP_HPP_INCLUDED__
 
+#if defined ZMQ_HAVE_AMQP
+
 #include <assert.h>
 #include <map>
 #include <string>
@@ -289,18 +291,16 @@ $(field.name:c)_$(last ()??''?',')\
 .       endfor
 )
         {
-            unexpected ();
+            assert (false);
         }
 
 .   endfor
 .endfor
-        //  Method to handle unexpected commands. Any command that is not
-        //  overloaded in the interface implementation (derived class)
-        //  is mapped to 'unexpected'.
-        virtual void unexpected () = 0;
     };
 
 }
+
+#endif
 
 #endif
 .close
@@ -329,7 +329,9 @@ $(field.name:c)_$(last ()??''?',')\
 #ifndef __ZMQ_AMQP_UNMARSHALLER_HPP_INCLUDED__
 #define __ZMQ_AMQP_UNMARSHALLER_HPP_INCLUDED__
 
-#include "i_amqp.hpp"
+#if defined ZMQ_HAVE_AMQP
+
+#include <zmq/i_amqp.hpp>
 
 namespace zmq
 {
@@ -341,8 +343,10 @@ namespace zmq
     {
     public:
 
-        inline amqp_unmarshaller_t (i_amqp *amqp_) :
-            amqp (amqp_)
+        //  'callback' is an object who's method is to be called when
+        //  AMQP command is decoded.
+        inline amqp_unmarshaller_t (i_amqp *callback_) :
+            callback (callback_)
         {
         }
 
@@ -363,10 +367,14 @@ namespace zmq
         void get_field_table (unsigned char *args, size_t args_size,
             size_t offset, i_amqp::field_table_t &table_);
 
-        i_amqp *amqp;
+        //  Object who's method is to be called when AMQP command is decoded.
+        i_amqp *callback;
     };
 
 }
+
+#endif
+
 #endif
 .close
 .output "../libzmq/amqp_unmarshaller.cpp"
@@ -391,8 +399,11 @@ namespace zmq
     This file is generated from $(arg?filename) by $(script) using GSL/4.
 */
 
-#include "amqp_unmarshaller.hpp"
-#include "wire.hpp"
+#if defined ZMQ_HAVE_AMQP
+
+#include <zmq/amqp_unmarshaller.hpp>
+#include <zmq/formatting.hpp>
+#include <zmq/wire.hpp>
 
 void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
             uint16_t method_id, unsigned char *args, size_t args_size)
@@ -410,7 +421,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
 .           get_field ()
 .       endfor
 
-                amqp->$(class.name:c)_$(method.name:c) (\
+                callback->$(class.name:c)_$(method.name:c) (\
 .       for field
 
                     $(field.name:c)$(last ()??''?',')\
@@ -449,23 +460,45 @@ void zmq::amqp_unmarshaller_t::get_field_table (unsigned char *args,
         assert (offset + sizeof (uint8_t) <= args_size);
         uint8_t field_type = get_uint8 (args + offset);
         offset += sizeof (uint8_t);
-        assert (field_type == 'S');
 
         //  Get field value
         std::string field_value;
-        assert (offset + sizeof (uint32_t) <= args_size);
-        uint32_t field_value_size = get_uint32 (args + offset);
-        offset += sizeof (uint32_t);
-        assert (offset + field_value_size <= args_size);
-        field_value.assign ((const char*) (args + offset), field_value_size);
-        offset += field_value_size;
-        pos += (sizeof (uint8_t) + field_name.size () +
-            sizeof (uint8_t) + sizeof (uint32_t) + field_value.size());
+        switch (field_type) {
+        case 'S':
+            {
+                assert (offset + sizeof (uint32_t) <= args_size);
+                uint32_t field_value_size = get_uint32 (args + offset);
+                offset += sizeof (uint32_t);
+                assert (offset + field_value_size <= args_size);
+                field_value.assign ((const char*) (args + offset),
+                    field_value_size);
+                offset += field_value_size;
+                pos += (sizeof (uint8_t) + field_name.size () + sizeof (uint8_t)
+                    + sizeof (uint32_t) + field_value.size());
+                break;
+            }
+        case 'I':
+            {
+                assert (offset + sizeof (uint32_t) <= args_size);
+                uint16_t value = get_uint32 (args + offset);
+                offset += sizeof (uint32_t);
+                char buff [32];
+                zmq_snprintf (buff, 32, "%ld", (long) value);
+                field_value = buff;
+                pos += (sizeof (uint8_t) + field_name.size () + sizeof (uint8_t)
+                    + sizeof (uint32_t));
+                break;
+            }
+        default:
+            assert (false);
+        }
 
         //  Push the field into field table       
         table_ [field_name] = field_value;
     }
 }
+
+#endif
 .close
 .output "../libzmq/zmq/amqp_marshaller.hpp"
 /*
@@ -492,9 +525,11 @@ void zmq::amqp_unmarshaller_t::get_field_table (unsigned char *args,
 #ifndef __ZMQ_AMQP_MARSHALLER_HPP_INCLUDED__
 #define __ZMQ_AMQP_MARSHALLER_HPP_INCLUDED__
 
+#if defined ZMQ_HAVE_AMQP
+
 #include <queue>
 
-#include "i_amqp.hpp"
+#include <zmq/i_amqp.hpp>
 
 namespace zmq
 {
@@ -545,8 +580,6 @@ $(field.name:c)_$(last ()??''?',')\
 
     private:
 
-        void unexpected ();
-
         //  Helper function used to serialise AMQP field table type into
         //  its binary representation.
         void put_field_table (unsigned char *args, size_t args_size,
@@ -556,6 +589,8 @@ $(field.name:c)_$(last ()??''?',')\
     };
 
 }
+
+#endif
 
 #endif
 .close
@@ -581,8 +616,10 @@ $(field.name:c)_$(last ()??''?',')\
     This file is generated from $(arg?filename) by $(script) using GSL/4.
 */
 
-#include "amqp_marshaller.hpp"
-#include "wire.hpp"
+#if defined ZMQ_HAVE_AMQP
+
+#include <zmq/amqp_marshaller.hpp>
+#include <zmq/wire.hpp>
 
 zmq::amqp_marshaller_t::amqp_marshaller_t ()
 {
@@ -626,7 +663,6 @@ $(field.name:c)_$(last ()??''?',')\
         offset
     };
     command_queue.push (cmd);
-    signaler->signal (0);
 }
 
 .   bit_offset = 0
@@ -642,11 +678,6 @@ bool zmq::amqp_marshaller_t::read (command_t *command)
     *command = command_queue.front ();
     command_queue.pop ();
     return true;
-}
-
-void zmq::amqp_marshaller_t::unexpected ()
-{
-    assert (0);
 }
 
 void zmq::amqp_marshaller_t::put_field_table (
@@ -693,4 +724,6 @@ void zmq::amqp_marshaller_t::put_field_table (
     //  Fill in the table size
     put_uint32 (args + offset - table_size - sizeof (uint32_t), table_size);
 }
+
+#endif
 .close

@@ -72,7 +72,8 @@ namespace zmq
 
     protected:
 
-        //  Prototype of state machine action.
+        //  Prototype of state machine action. Action should return false if
+        //  it is unable to push the data to the system.
         typedef bool (T::*step_t) ();
 
         //  This function should be called from derived class to read data

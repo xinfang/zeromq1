@@ -124,8 +124,8 @@ ZMQ_EXPORT zmq::i_pollable *zmq::pollable_factory_t::create_engine (
 
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm") {
-        i_pollable *pgm_receiver = new bp_pgm_receiver_t (calling_thread_, thread_,
-            transport_args.c_str (), local_object_, pgm_in_batch_size,
+        i_pollable *pgm_receiver = new bp_pgm_receiver_t (calling_thread_,
+            thread_, transport_args.c_str (), local_object_, pgm_in_batch_size,
             engine_arguments_);
         assert (pgm_receiver);
         return pgm_receiver;
@@ -135,7 +135,7 @@ ZMQ_EXPORT zmq::i_pollable *zmq::pollable_factory_t::create_engine (
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp/tcp") {
         i_pollable *engine = new amqp_tcp_client_t (calling_thread_,
-            thread_, transport_args.c_str (), engine_arguments_);
+            thread_, transport_args.c_str (), local_object_, engine_arguments_);
         assert (engine);
         return engine;
     }

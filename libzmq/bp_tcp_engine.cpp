@@ -71,7 +71,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
 
-    //  Register BP engine with the I/O thread.
+    //  Register BP/TCP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
     calling_thread_->send_command (thread_, command);
@@ -209,9 +209,8 @@ void zmq::bp_tcp_engine_t::out_event ()
             write_size - write_pos);
 
         //  The other party closed the connection.
-        if (nbytes == -1) {
+        if (nbytes == -1)
             return;
-        }
 
         write_pos += nbytes;
     }
@@ -225,8 +224,6 @@ void zmq::bp_tcp_engine_t::unregister_event ()
 
 void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
 {
-    bool shutting_down;
-
     switch (command_.type) {
     case engine_command_t::revive:
 
@@ -277,8 +274,8 @@ void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::receive_from:
 
         //  Start receiving messages from a pipe.
-        shutting_down = (state == engine_shutting_down);
-        mux.receive_from (command_.args.receive_from.pipe, shutting_down);
+        mux.receive_from (command_.args.receive_from.pipe,
+            state == engine_shutting_down);
         if (state == engine_connected)
             poller->set_pollout (handle);
         break;
