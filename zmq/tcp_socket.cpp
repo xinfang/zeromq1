@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "err.hpp"
 #include "ip.hpp"
@@ -142,6 +143,11 @@ void zmq::tcp_socket_t::connect ()
               errno == ENETUNREACH || errno == ETIMEDOUT)) {
             rc = close (s);
             errno_assert (rc == 0);
+
+            //  Wait 10ms before trying to reconnect. This way we avoid
+            //  exhausting CPU with attempts to reconnect when
+            //  the peer is offline.
+            usleep (10000);
             continue;
         }
 
