@@ -19,6 +19,8 @@
 
 #if defined ZMQ_HAVE_AMQP
 
+#include <stdio.h>
+
 #include <zmq/amqp_tcp_client.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/config.hpp>
@@ -341,7 +343,32 @@ void zmq::amqp_tcp_client_t::channel_open_ok (
     const i_amqp::longstr_t reserved_1_)
 {
     assert (state == state_waiting_for_channel_open_ok);
+    encoder.flow (true);
     state = state_active;
+
+    //  Start polling for out - in case there are messages already prepared
+    //  to be sent via this connection.
+    poller->set_pollout (handle);
+}
+
+void zmq::amqp_tcp_client_t::channel_close (
+    uint16_t reply_code_,
+    const i_amqp::shortstr_t reply_text_,
+    uint16_t class_id_,
+    uint16_t method_id_)
+{
+    printf ("AMQP error received: %s\n", reply_text_.data);
+    assert (false);
+}
+
+void zmq::amqp_tcp_client_t::connection_close (
+    uint16_t reply_code_,
+    const i_amqp::shortstr_t reply_text_,
+    uint16_t class_id_,
+    uint16_t method_id_)
+{
+    printf ("AMQP error received: %s\n", reply_text_.data);
+    assert (false);
 }
 
 #endif

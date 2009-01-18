@@ -77,6 +77,18 @@ namespace zmq
 
         void channel_open_ok (
             const i_amqp::longstr_t reserved_1_);
+
+        void channel_close (
+            uint16_t reply_code_,
+            const i_amqp::shortstr_t reply_text_,
+            uint16_t class_id_,
+            uint16_t method_id_);
+
+        void connection_close (
+            uint16_t reply_code_,
+            const i_amqp::shortstr_t reply_text_,
+            uint16_t class_id_,
+            uint16_t method_id_);
         
         enum state_t
         {

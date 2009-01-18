@@ -27,7 +27,8 @@
 
 zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *exchange_) :
     mux (mux_),
-    exchange (exchange_)
+    exchange (exchange_),
+    flow_on (false)
 {
     command.args = NULL;
 
@@ -41,6 +42,11 @@ zmq::amqp_encoder_t::~amqp_encoder_t ()
 {
     if (command.args)
         free (command.args);
+}
+
+void zmq::amqp_encoder_t::flow (bool flow_on_)
+{
+    flow_on = flow_on_;
 }
 
 bool zmq::amqp_encoder_t::message_ready ()
@@ -82,7 +88,7 @@ bool zmq::amqp_encoder_t::message_ready ()
     }
 
     //  There is no AMQP command available... Get a message to send.
-    if (!mux->read (&message))
+    if (!flow_on || !mux->read (&message))
         return false;
 
     //  Encode method frame frame header.

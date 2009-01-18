@@ -44,6 +44,9 @@ namespace zmq
         amqp_encoder_t (mux_t *mux_, const char *exchange_);
         ~amqp_encoder_t ();
 
+        //  Switch message flow on/off.
+        void flow (bool flow_on_);
+
     private:
 
         bool message_ready ();
@@ -67,6 +70,10 @@ namespace zmq
 
         //  Exchange where outgoing messages are sent.
         std::string exchange;
+
+        //  If true, messages may pass through the encoder. If false, only
+        //  AMQP commands are passed (e.g. during initial AMQP handshaking).
+        bool flow_on;
 
         //  Buffer used to compose the frames (excluding actual
         //  message payload).
