@@ -65,15 +65,6 @@ namespace zmq
             i_engine *peer_engine_, const char *peer_name_);
         ~bp_pgm_sender_t ();
 
-        //  The thread listener is running in.
-        i_thread *thread;
-
-        //  Determine the engine and the object (either exchange or queue)
-        //  within the engine to serve as a peer to this engine.
-        i_thread *peer_thread;
-        i_engine *peer_engine;
-        char peer_name [16];
-
         //  Arguments string for this listener.
         char arguments [256];
 

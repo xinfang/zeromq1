@@ -44,9 +44,6 @@
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
       i_engine *peer_engine_, const char *peer_name_) :
-    thread (thread_),
-    peer_thread (peer_thread_),
-    peer_engine (peer_engine_),
     shutting_down (false),
     encoder (&mux),
     epgm_socket (false, interface_),
@@ -57,9 +54,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     first_message_offset (-1)
 
 {
-    //  Copy the peer name.
-    zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
-    peer_name [sizeof (peer_name) - 1] = '\0';
 
     //  Store interface. Note that interface name is not stored in locator.
     char *delim = strchr (interface_, ';');
@@ -85,6 +79,26 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     command_t command;
     command.init_register_engine (this);
     calling_thread_->send_command (thread_, command);
+
+    //  The newly created engine serves as a local destination of messages
+    //  I.e. it sends messages received from the peer engine to the socket.
+    i_engine *destination_engine = this;
+
+    //  Create the pipe to the newly created engine.
+    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
+        thread_, destination_engine);
+    assert (pipe);
+
+    //  Bind new engine to the destination end of the pipe.
+    command_t cmd_receive_from;
+    cmd_receive_from.init_engine_receive_from (
+        destination_engine, "", pipe);
+    calling_thread_->send_command (thread_, cmd_receive_from);
+
+    //  Bind the peer to the source end of the pipe.
+    command_t cmd_send_to;
+    cmd_send_to.init_engine_send_to (peer_engine_, peer_name_, pipe);
+    calling_thread_->send_command (peer_thread_, cmd_send_to);
 }
 
 zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
@@ -119,26 +133,6 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     //  Add socket_fd into poller.
     handle = poller->add_fd (socket_fd, this);
 
-    //  The newly created engine serves as a local destination of messages
-    //  I.e. it sends messages received from the peer engine to the socket.
-    i_engine *destination_engine = this;
-
-    //  Create the pipe to the newly created engine.
-    pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
-        thread, destination_engine);
-    assert (pipe);
-
-    //  Bind new engine to the destination end of the pipe.
-    command_t cmd_receive_from;
-    cmd_receive_from.init_engine_receive_from (
-        destination_engine, "", pipe);
-    thread->send_command (thread, cmd_receive_from);
-
-    //  Bind the peer to the source end of the pipe.
-    command_t cmd_send_to;
-    cmd_send_to.init_engine_send_to (peer_engine, peer_name, pipe);
-    thread->send_command (peer_thread, cmd_send_to);
-   
     //  Set POLLOUT for socket_handle.
     poller->set_pollout (handle);
 }
