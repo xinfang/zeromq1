@@ -23,7 +23,6 @@
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/ypipe.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/config.hpp>

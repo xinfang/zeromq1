@@ -55,32 +55,21 @@ void zmq::out_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
     *lwm_ = 0;
 }
 
-void zmq::out_engine_t::process_command (const engine_command_t &command_)
+void zmq::out_engine_t::head (pipe_t *pipe_, uint64_t position_)
 {
-    switch (command_.type) {
+    //  Forward pipe head position to the appropriate pipe.
+    pipe_->set_head (position_);
+}
 
-    case engine_command_t::head:
+void zmq::out_engine_t::send_to (const char *exchange_, pipe_t *pipe_)
+{
+    //  Start sending messages to a pipe.
+    demux.send_to (pipe_);
+}
 
-       //  Forward pipe head position to the appropriate pipe.
-       command_.args.head.pipe->set_head (command_.args.head.position);
-       break;
-
-    case engine_command_t::send_to:
-
-        //  Start sending messages to a pipe.
-        demux.send_to (command_.args.send_to.pipe);
-        break;
-
-    case engine_command_t::terminate_pipe:
-
-        //  Forward the command to the pipe. Drop reference to the pipe.
-        command_.args.terminate_pipe.pipe->writer_terminated ();
-        demux.release_pipe (command_.args.terminate_pipe.pipe);
-        break;
-
-    default:
-
-        //  Unsupported/unknown command.
-        assert (false);
-     }
+void zmq::out_engine_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    pipe_->writer_terminated ();
+    demux.release_pipe (pipe_);
 }

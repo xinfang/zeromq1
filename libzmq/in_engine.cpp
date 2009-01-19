@@ -52,31 +52,18 @@ void zmq::in_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
     *lwm_ = lwm;
 }
 
-void zmq::in_engine_t::process_command (const engine_command_t &command_)
+void zmq::in_engine_t::revive (pipe_t *pipe_)
 {
-    switch (command_.type) {
-    case engine_command_t::revive:
+    pipe_->revive ();
+}
 
-        //  Forward the revive command to the pipe.
-        command_.args.revive.pipe->revive ();
-        break;
+void zmq::in_engine_t::receive_from (const char *queue_, pipe_t *pipe_)
+{
+    mux.receive_from (pipe_, false);
+}
 
-    case engine_command_t::receive_from:
-
-        //  Start receiving messages from a pipe.
-        mux.receive_from (command_.args.receive_from.pipe, false);
-        break;
-
-    case engine_command_t::terminate_pipe_ack:
-
-        //  Forward the command to the pipe. Drop reference to the pipe.
-        command_.args.terminate_pipe.pipe->reader_terminated ();
-        mux.release_pipe (command_.args.terminate_pipe.pipe);
-        break;
-
-    default:
-
-        //  Unsupported/unknown command.
-        assert (false);
-     }
+void zmq::in_engine_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    pipe_->reader_terminated ();
+    mux.release_pipe (pipe_);
 }

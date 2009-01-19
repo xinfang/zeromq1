@@ -46,14 +46,6 @@ namespace zmq
         event_err
     };
 
-/*
-    struct event_source_t
-    {
-        i_pollable *engine;
-        cookie_t cookie;
-    };
-*/
-
     template <class T> class poller_t : public i_poller
     {
     public:
@@ -296,12 +288,40 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 
     //  Forward the command to the specified engine.
     case command_t::engine_command:
+        {
+            //  Forward the command to the engine.
+            engine = command_.args.engine_command.engine;
+            const engine_command_t &engcmd =
+                command_.args.engine_command.command;
+            switch (engcmd.type) {
+            case engine_command_t::revive:
+                engine->revive (engcmd.args.revive.pipe);
+                break;
+            case engine_command_t::head:
+                engine->head (engcmd.args.head.pipe, engcmd.args.head.position);
+                break;
+            case engine_command_t::send_to:
+                engine->send_to (engcmd.args.send_to.exchange,
+                    engcmd.args.send_to.pipe);
+                break;
+            case engine_command_t::receive_from:
+                engine->receive_from (engcmd.args.receive_from.queue,
+                    engcmd.args.receive_from.pipe);
+                break;
+            case engine_command_t::terminate_pipe:
+                engine->terminate_pipe (engcmd.args.terminate_pipe.pipe);
+                break;
+            case engine_command_t::terminate_pipe_ack:
+                engine->terminate_pipe_ack (
+                    engcmd.args.terminate_pipe_ack.pipe);
+                break;
+            default:
 
-        //  Forward the command to the engine.
-        engine = command_.args.engine_command.engine;
-        engine->process_command (
-            command_.args.engine_command.command);
-        break;
+                //  Unknown engine command.
+                assert (false);
+            }
+            break;
+        }
 
     //  Unknown command.
     default:

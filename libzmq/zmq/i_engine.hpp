@@ -54,9 +54,35 @@ namespace zmq
         //  means that there should be unlimited storage space for the engine.
         virtual void get_watermarks (uint64_t *hwm_, uint64_t *lwm_) = 0;
 
-        //  Called when command from a different thread is received.
-        virtual void process_command (
-            const struct engine_command_t &command_) = 0;
+        virtual void revive (class pipe_t *pipe_)
+        {
+            assert (false);
+        }
+
+        virtual void head (class pipe_t *pipe_, uint64_t position_)
+        {
+            assert (false);
+        }
+
+        virtual void send_to (const char *exchange_, class pipe_t *pipe_)
+        {
+            assert (false);
+        }
+
+        virtual void receive_from (const char *queue_, class pipe_t *pipe_)
+        {
+            assert (false);
+        }
+
+        virtual void terminate_pipe (class pipe_t *pipe_)
+        {
+            assert (false);
+        }
+
+        virtual void terminate_pipe_ack (class pipe_t *pipe_)
+        {
+            assert (false);
+        }
     };
 
 }

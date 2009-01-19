@@ -52,7 +52,6 @@ namespace zmq
         //  i_listener implementation.
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
-        void process_command (const engine_command_t &command_);
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();

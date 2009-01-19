@@ -342,9 +342,40 @@ void zmq::api_thread_t::process_command (const command_t &command_)
 
     //  Forward engine command to appropriate engine.
     case command_t::engine_command:
-        command_.args.engine_command.engine->process_command (
-            command_.args.engine_command.command);
-        break;
+        {
+            //  Forward the command to the engine.
+            i_engine *engine = command_.args.engine_command.engine;
+            const engine_command_t &engcmd =
+                command_.args.engine_command.command;
+            switch (engcmd.type) {
+            case engine_command_t::revive:
+                engine->revive (engcmd.args.revive.pipe);
+                break;
+            case engine_command_t::head:
+                engine->head (engcmd.args.head.pipe, engcmd.args.head.position);
+                break;
+            case engine_command_t::send_to:
+                engine->send_to (engcmd.args.send_to.exchange,
+                    engcmd.args.send_to.pipe);
+                break;
+            case engine_command_t::receive_from:
+                engine->receive_from (engcmd.args.receive_from.queue,
+                    engcmd.args.receive_from.pipe);
+                break;
+            case engine_command_t::terminate_pipe:
+                engine->terminate_pipe (engcmd.args.terminate_pipe.pipe);
+                break;
+            case engine_command_t::terminate_pipe_ack:
+                engine->terminate_pipe_ack (
+                    engcmd.args.terminate_pipe_ack.pipe);
+                break;
+            default:
+
+                //  Unknown engine command.
+                assert (false);
+            }
+            break;
+        }
 
     //  Unsupported/unknown command.
     default:

@@ -38,7 +38,9 @@ namespace zmq
         //  i_engine implementation.
         engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
-        void process_command (const engine_command_t &command_);
+        void head (pipe_t *pipe_, uint64_t position_);
+        void send_to (const char *exchange_, pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
 
     private:
 

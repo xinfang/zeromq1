@@ -145,13 +145,6 @@ void zmq::bp_tcp_listener_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_tcp_listener_t::process_command (const engine_command_t &command_)
-{
-    //  TODO: The only event handled here should be terminate, which would
-    //  release the object (delete this)
-    assert (false);
-}
-
 const char *zmq::bp_tcp_listener_t::get_arguments ()
 {
     zmq_snprintf (arguments, sizeof (arguments), "bp/tcp://%s",

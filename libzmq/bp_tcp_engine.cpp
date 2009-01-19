@@ -222,83 +222,66 @@ void zmq::bp_tcp_engine_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_tcp_engine_t::process_command (const engine_command_t &command_)
+void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)
 {
-    switch (command_.type) {
-    case engine_command_t::revive:
+    if (state == engine_connected) {
 
-        if (state == engine_connected) {
+        //  Forward the revive command to the pipe.
+        pipe_->revive ();
 
-            //  Forward the revive command to the pipe.
-            command_.args.revive.pipe->revive ();
-
-            //  There is at least one engine that has messages ready. Try to
-            //  write data to the socket, thus eliminating one polling
-            //  for POLLOUT event.
-            if (write_size == 0) {
-                poller->set_pollout (handle);
-                out_event ();
-            }
-        }
-        break;
-
-    case engine_command_t::head:
-
-        //  Forward pipe statistics to the appropriate pipe.
-        if (state == engine_connected) {
-            command_.args.head.pipe->set_head (command_.args.head.position);
-            in_event ();
-        }
-        break;
-
-    case engine_command_t::send_to:
-
-        if (state == engine_connecting) {
-
-            //  Register the pipe with the demux.
-            demux.send_to (command_.args.send_to.pipe);
-        }
-        else if (state == engine_connected) {
-
-            //  If pipe limits are set, POLLIN may be turned off
-            //  because there are no pipes to send messages to.
-            //  So, if this is the first pipe in demux, start polling.
-            if (demux.no_pipes ())
-                poller->set_pollin (handle);
-
-            //  Start sending messages to a pipe.
-            demux.send_to (command_.args.send_to.pipe);
-        }
-        break;
-
-    case engine_command_t::receive_from:
-
-        //  Start receiving messages from a pipe.
-        mux.receive_from (command_.args.receive_from.pipe,
-            state == engine_shutting_down);
-        if (state == engine_connected)
+        //  There is at least one engine that has messages ready. Try to
+        //  write data to the socket, thus eliminating one polling
+        //  for POLLOUT event.
+        if (write_size == 0) {
             poller->set_pollout (handle);
-        break;
-
-    case engine_command_t::terminate_pipe:
-
-        //  Forward the command to the pipe.
-        command_.args.terminate_pipe.pipe->writer_terminated ();
-
-        //  Remove all references to the pipe.
-        demux.release_pipe (command_.args.terminate_pipe.pipe);
-        break;
-
-    case engine_command_t::terminate_pipe_ack:
-
-        //  Forward the command to the pipe.
-        command_.args.terminate_pipe_ack.pipe->reader_terminated ();
-
-        //  Remove all references to the pipe.
-        mux.release_pipe (command_.args.terminate_pipe_ack.pipe);
-        break;
-
-    default:
-        assert (false);
+            out_event ();
+        }
     }
+}
+
+void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, uint64_t position_)
+{
+    //  Forward pipe statistics to the appropriate pipe.
+    if (state == engine_connected) {
+        pipe_->set_head (position_);
+        in_event ();
+    }
+}
+
+void zmq::bp_tcp_engine_t::send_to (const char *exchange_, pipe_t *pipe_)
+{
+    //  If pipe limits are set, POLLIN may be turned off
+    //  because there are no pipes to send messages to.
+    //  So, if this is the first pipe in demux, start polling.
+    if (state == engine_connected && demux.no_pipes ())
+        poller->set_pollin (handle);    
+
+    //  Start sending messages to a pipe.
+    demux.send_to (pipe_);
+}
+
+void zmq::bp_tcp_engine_t::receive_from (const char *queue_, pipe_t *pipe_)
+{
+    //  Start receiving messages from a pipe.
+    mux.receive_from (pipe_, state == engine_shutting_down);
+    if (state == engine_connected)
+        poller->set_pollout (handle);
+}
+
+void zmq::bp_tcp_engine_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe.
+    pipe_->writer_terminated ();
+
+    //  Remove all references to the pipe.
+    demux.release_pipe (pipe_);
+}
+
+void zmq::bp_tcp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe.
+    pipe_->reader_terminated ();
+
+    //  Remove all references to the pipe.
+    mux.release_pipe (pipe_);
 }
