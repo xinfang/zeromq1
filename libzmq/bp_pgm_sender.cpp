@@ -27,8 +27,8 @@
 #include <zmq/ip.hpp>
 #include <iostream>
 
-#define PGM_SENDER_DEBUG
-#define PGM_SENDER_DEBUG_LEVEL 4
+//#define PGM_SENDER_DEBUG
+//#define PGM_SENDER_DEBUG_LEVEL 4
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -37,7 +37,8 @@
 #ifndef PGM_SENDER_DEBUG
 #   define zmq_log(n, ...)  while (0)
 #else
-#   define zmq_log(n, ...)    do { if ((n) <= PGM_SENDER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_SENDER_DEBUG_LEVEL) \
+        { printf (__VA_ARGS__);}} while (0)
 #endif
 
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
@@ -66,7 +67,15 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     delim++;
 
-    sprintf (arguments, "bp/pgm://%s", delim);
+    //  If we are using UDP encapsulation "bp/pgm://udp:mcast_address:port" is
+    //  registered into zmq_server.
+    if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
+          interface_ [1] == 'd' && interface_ [2] == 'p' && 
+          interface_ [3] == ':') {
+        sprintf (arguments, "bp/pgm://udp:%s", delim);
+    } else {
+        sprintf (arguments, "bp/pgm://%s", delim);
+    }
 
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder.

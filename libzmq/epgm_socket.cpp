@@ -27,8 +27,8 @@
 #include <zmq/epgm_socket.hpp>
 #include <zmq/wire.hpp>
 
-#define EPGM_SOCKET_DEBUG
-#define EPGM_SOCKET_DEBUG_LEVEL 4
+//#define EPGM_SOCKET_DEBUG
+//#define EPGM_SOCKET_DEBUG_LEVEL 4
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -37,7 +37,8 @@
 #ifndef EPGM_SOCKET_DEBUG
 #   define zmq_log(n, ...)  while (0)
 #else
-#   define zmq_log(n, ...)    do { if ((n) <= EPGM_SOCKET_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#   define zmq_log(n, ...)    do { if ((n) <= EPGM_SOCKET_DEBUG_LEVEL) \
+        { printf (__VA_ARGS__);}} while (0)
 #endif
 
 zmq::epgm_socket_t::epgm_socket_t (bool receiver_, const char *interface_, 

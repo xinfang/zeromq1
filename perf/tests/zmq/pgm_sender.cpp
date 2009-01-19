@@ -27,6 +27,10 @@ int main (int argc, char *argv [])
     if (argc != 5) {
         cerr << "Usage: pgm_sender <hostname> <exchange interface> "
             "<message size> <message count>" << endl;
+        cerr << "exchange interface format: iface;mcast_group:port "
+            "for raw PGM" << std::endl;
+        cerr << "                           udp:iface;mcast_group:port "
+            "for UDP encapsulation" << std::endl;
         return 1;
     }
 

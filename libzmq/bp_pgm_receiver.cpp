@@ -34,7 +34,8 @@
 #ifndef PGM_RECEIVER_DEBUG
 #   define zmq_log(n, ...)  while (0)
 #else
-#   define zmq_log(n, ...)    do { if ((n) <= PGM_RECEIVER_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_RECEIVER_DEBUG_LEVEL) \
+        { printf (__VA_ARGS__);}} while (0)
 #endif
 
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
@@ -44,13 +45,32 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     epgm_socket (NULL),
     iov (NULL), iov_len (0)
 {
-    
-    //  Note that in arguments_ is stored mcast interface to listen at,
-    //  comming from bind argument from api.
-    //  It has to be added before the transport info taken from zmq_server.
+    //  If UDP encapsulation is used network_ parameter contain 
+    //  "udp:mcast_address:port". Interface name is comming from bind api
+    //  argument in arguments_ variable. 
+    //  Final format has to be udp:iface_name;mcast_group:port for UDP 
+    //  encapsulation and iface;mcast_group:port otherwise.
+    bool udp_encapsulation = false;
+
+    if (strlen (network_) > 4 && network_ [0] == 'u' && 
+          network_ [1] == 'd' && network_ [2] == 'p' && 
+          network_ [3] == ':') {
+        udp_encapsulation = true;
+
+        //  Shift network_ pointer after ':'.
+        network_ = network_ + 4;
+    }
+
     std::string transport_info (network_);
     std::string mcast_interface (arguments_);
-    std::string network = mcast_interface + ";" + network_;
+    std::string network;
+
+    //  Construct string for epgm_socket creation.
+    if (udp_encapsulation) {
+        network = "udp:" + mcast_interface + ";" + network_;
+    } else {
+        network = mcast_interface + ";" + network_;
+    }
 
     //  Create epgm_socket object
     epgm_socket = new epgm_socket_t (true, network.c_str (), readbuf_size_);

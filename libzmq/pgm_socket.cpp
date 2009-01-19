@@ -28,8 +28,8 @@
 
 #include <zmq/pgm_socket.hpp>
 
-#define PGM_SOCKET_DEBUG
-#define PGM_SOCKET_DEBUG_LEVEL 4
+//#define PGM_SOCKET_DEBUG
+//#define PGM_SOCKET_DEBUG_LEVEL 4
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -38,7 +38,8 @@
 #ifndef PGM_SOCKET_DEBUG
 #   define zmq_log(n, ...)  while (0)
 #else
-#   define zmq_log(n, ...)    do { if ((n) <= PGM_SOCKET_DEBUG_LEVEL) { printf (__VA_ARGS__);}} while (0)
+#   define zmq_log(n, ...)    do { if ((n) <= PGM_SOCKET_DEBUG_LEVEL) \
+        { printf (__VA_ARGS__);}} while (0)
 #endif
 
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_, 
@@ -47,8 +48,16 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     pgm_msgv (NULL), 
     pgm_msgv_len (-1)
 {
-    
+
+    zmq_log (4, "interface_  %s, %s(%i)\n", interface_, __FILE__, __LINE__);
+
+    //  Whether or not we are using UDP encapsulation.
+    bool udp_encapsulation = false;
+
     //  Init PGM transport.
+    //  Note that if you want to use gettimeofday and sleep for openPGM timing,
+    //  set environment variables PGM_TIMER to "GTOD" 
+    //  and PGM_SLEEP to "USLEEP".
     pgm_init ();
 
     pgm_gsi_t gsi;
@@ -59,6 +68,17 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     struct group_source_req recv_gsr, send_gsr;
     int recv_len = 1;
 
+    //  Check if we are encapsulating into UDP, interface string has to 
+    //  start with udp:.
+    if (strlen (interface_) > 4 && interface_ [0] == 'u' && interface_ [1] == 'd'
+        && interface_ [2] == 'p' && interface_ [3] == ':') {
+        
+        //  Shift interface_ pointer after ':'.
+        interface_ = interface_ + 4;
+
+        udp_encapsulation = true;
+    }
+
     //  Parse port number from interface_ string.
     char *port_delim = strchr (interface_, ':');
     assert (port_delim);
@@ -66,7 +86,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     port_delim++;
 
     uint16_t port = atoi (port_delim);
-
+    
     //  Strip port number from interface_ string.
     std::string interface (interface_);
     std::string::size_type pos = interface.find (":");
@@ -74,11 +94,25 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     assert (pos != std::string::npos);
 
     interface = interface.substr (0, pos);
-   
+ 
+    zmq_log (4, "parsed: interface  %s, port %i, udp encaps. %s, %s(%i)\n", 
+        interface.c_str (), port, udp_encapsulation ? "yes" : "no",
+        __FILE__, __LINE__);
+  
     rc = pgm_if_parse_transport (interface.c_str (), AF_INET, &recv_gsr, 
         &recv_len, &send_gsr);
     assert (rc == 0);
     assert (recv_len == 1);
+
+    //  If we are using UDP encapsulation update send_gsr & recv_gsr 
+    //  structures. Note that send_gsr & recv_gsr has to be updated after 
+    //  pgm_if_parse_transport call.
+    if (udp_encapsulation) {
+
+        //  Use the same port for UDP encapsulation.
+        ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = g_htons (port);
+	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = g_htons (port);
+    }
 
     rc = pgm_transport_create (&g_transport, &gsi, 0, port, &recv_gsr, 1, 
         &send_gsr);
