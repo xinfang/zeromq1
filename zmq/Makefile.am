@@ -42,7 +42,8 @@ pkginclude_HEADERS = \
     raw_message.hpp \
     message.hpp \
     ip.hpp \
-    i_poller.hpp
+    i_poller.hpp \
+    msg_store.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -63,7 +64,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     bp_listener.cpp \
     locator.cpp \
     tcp_listener.cpp \
-    ip.cpp
+    ip.cpp \
+    msg_store.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic
