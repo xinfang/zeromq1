@@ -29,13 +29,15 @@
 #include <zmq/epgm_socket.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_engine.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 
 namespace zmq
 {
 
-    class bp_pgm_receiver_t : public i_engine, public i_pollable
+    class bp_pgm_receiver_t :
+        public engine_base_t <true, false>,
+        public i_pollable
     {
     
         //  Allow class factory to create this engine.
@@ -46,13 +48,14 @@ namespace zmq
         //  i_engine interface implemtation.
         i_pollable *cast_to_pollable ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
-        void send_to (const char *exchange_, pipe_t *pipe_);
+        void send_to (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
         void unregister_event ();
+
     private:
 
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
@@ -70,8 +73,7 @@ namespace zmq
         //  confirmations from other threads.
         bool shutting_down;
 
-        //  demux & bp_decoder.
-        demux_t demux;
+        //  Message decoder.
         bp_decoder_t decoder;
        
         //  PGM socket.

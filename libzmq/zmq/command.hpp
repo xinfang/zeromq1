@@ -55,11 +55,9 @@ namespace zmq
                 uint64_t position;
             } head;
             struct {
-                char exchange [16];
                 class pipe_t *pipe;
             } send_to;
             struct {
-                char queue [16];
                 class pipe_t *pipe;
             } receive_from;
             struct {
@@ -117,29 +115,19 @@ namespace zmq
             args.unregister_engine.engine = engine_;
         }
 
-        inline void init_engine_send_to (i_engine *engine_,
-            const char *exchange_, pipe_t *pipe_)
+        inline void init_engine_send_to (i_engine *engine_, pipe_t *pipe_)
         {
-            assert (strlen (exchange_) < 16);
-
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::send_to;
-            zmq_strncpy (args.engine_command.command.args.send_to.exchange,
-                exchange_, 16);
             args.engine_command.command.args.send_to.pipe = pipe_;
         }
 
-        inline void init_engine_receive_from (i_engine *engine_,
-            const char *queue_, pipe_t *pipe_)
+        inline void init_engine_receive_from (i_engine *engine_, pipe_t *pipe_)
         {
-            assert (strlen (queue_) < 16);
-
             type = engine_command;
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::receive_from;
-            zmq_strncpy (args.engine_command.command.args.receive_from.queue,
-                queue_, 16);
             args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 

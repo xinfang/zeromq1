@@ -35,10 +35,7 @@ namespace zmq
 
         //  Returns i_pollable interface of the engine. If the engine is not
         //  pollable, it fails.
-        virtual struct i_pollable *cast_to_pollable ()
-        {
-            assert (false);
-        }
+        virtual struct i_pollable *cast_to_pollable () = 0;
 
         //  Returns high and low watermarks for the specified engine. High and
         //  low watermarks for a pipe are computed by adding high and low
@@ -49,40 +46,15 @@ namespace zmq
         //  Returns modified arguments string.
         //  This function will be obsoleted with the shift to centralised
         //  management of configuration.
-        virtual const char *get_arguments ()
-        {
-            assert (false);
-        }
+        virtual const char *get_arguments () = 0;
 
-        virtual void revive (class pipe_t *pipe_)
-        {
-            assert (false);
-        }
-
-        virtual void head (class pipe_t *pipe_, uint64_t position_)
-        {
-            assert (false);
-        }
-
-        virtual void send_to (const char *exchange_, class pipe_t *pipe_)
-        {
-            assert (false);
-        }
-
-        virtual void receive_from (const char *queue_, class pipe_t *pipe_)
-        {
-            assert (false);
-        }
-
-        virtual void terminate_pipe (class pipe_t *pipe_)
-        {
-            assert (false);
-        }
-
-        virtual void terminate_pipe_ack (class pipe_t *pipe_)
-        {
-            assert (false);
-        }
+        //  Inter-thread commands.
+        virtual void revive (class pipe_t *pipe_) = 0;
+        virtual void head (class pipe_t *pipe_, uint64_t position_) = 0;
+        virtual void send_to (class pipe_t *pipe_) = 0;
+        virtual void receive_from (class pipe_t *pipe_) = 0;
+        virtual void terminate_pipe (class pipe_t *pipe_) = 0;
+        virtual void terminate_pipe_ack (class pipe_t *pipe_) = 0;
     };
 
 }

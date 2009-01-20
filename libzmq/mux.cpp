@@ -29,15 +29,10 @@ zmq::mux_t::~mux_t ()
 {
 }
 
-void zmq::mux_t::receive_from (pipe_t *pipe_, bool shutting_down_)
+void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
     //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
-
-    //  If we are already in shut down phase, initiate shut down of the pipe
-    //  immediately.
-    if (shutting_down_)
-        pipe_->terminate_reader ();
 }
 
 bool zmq::mux_t::read (message_t *msg_)

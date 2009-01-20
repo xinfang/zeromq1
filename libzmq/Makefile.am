@@ -68,7 +68,8 @@ pkginclude_HEADERS = \
     ./zmq/amqp_encoder.hpp \
     ./zmq/amqp_decoder.hpp \
     ./zmq/amqp_marshaller.hpp \
-    ./zmq/amqp_unmarshaller.hpp
+    ./zmq/amqp_unmarshaller.hpp \
+    ./zmq/engine_base.hpp
 
 lib_LTLIBRARIES = libzmq.la
 

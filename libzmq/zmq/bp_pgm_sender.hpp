@@ -30,13 +30,15 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/epgm_socket.hpp>
-#include <zmq/i_engine.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 
 namespace zmq
 {
 
-    class bp_pgm_sender_t : public i_engine, public i_pollable
+    class bp_pgm_sender_t :
+        public engine_base_t <false, true>,
+        public i_pollable
     {
 
         //  Allow class factory to create this engine.
@@ -48,7 +50,7 @@ namespace zmq
         i_pollable *cast_to_pollable ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         const char *get_arguments ();
-        void receive_from (const char *queue_, pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
         void revive (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
@@ -56,8 +58,6 @@ namespace zmq
         void in_event ();
         void out_event ();
         void unregister_event ();
-
-        //  i_listener interface implementation.
 
     private:
 
@@ -73,8 +73,7 @@ namespace zmq
         //  confirmations from other threads.
         bool shutting_down;
 
-        //  mux & bp_encoder.
-        mux_t mux; 
+        //  Message encoder.
         bp_encoder_t encoder;
 
         //  Callback to the poller.

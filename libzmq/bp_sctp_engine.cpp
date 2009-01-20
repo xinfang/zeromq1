@@ -190,8 +190,7 @@ void zmq::bp_sctp_engine_t::revive (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
-        //  Forward the revive command to the pipe.
-        pipe_->revive ();
+        engine_base_t <true,true>::revive (pipe_);
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
@@ -203,14 +202,11 @@ void zmq::bp_sctp_engine_t::revive (pipe_t *pipe_)
 
 void zmq::bp_sctp_engine_t::head (pipe_t *pipe_, uint64_t position_)
 {
-    //  Forward pipe statistics to the appropriate pipe.
-    if (!shutting_down) {
-        pipe_->set_head (position_);
-        in_event ();
-    }
+    engine_base_t <true,true>::head (pipe_, position_);
+    in_event ();
 }
 
-void zmq::bp_sctp_engine_t::send_to (const char *exchange_, pipe_t *pipe_)
+void zmq::bp_sctp_engine_t::send_to (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
@@ -221,34 +217,18 @@ void zmq::bp_sctp_engine_t::send_to (const char *exchange_, pipe_t *pipe_)
             poller->set_pollin (handle);
 
         //  Start sending messages to a pipe.
-        demux.send_to (pipe_);
+        engine_base_t <true,true>::send_to (pipe_);
     }
 }
 
-void zmq::bp_sctp_engine_t::receive_from (const char *queue_, pipe_t *pipe_)
+void zmq::bp_sctp_engine_t::receive_from (pipe_t *pipe_)
 {
     //  Start receiving messages from a pipe.
-    mux.receive_from (pipe_, shutting_down);
-    if (!shutting_down)
+    engine_base_t <true,true>::receive_from (pipe_);
+    if (shutting_down)
+        pipe_->terminate_reader ();
+    else
         poller->set_pollout (handle);
-}
-
-void zmq::bp_sctp_engine_t::terminate_pipe (pipe_t *pipe_)
-{
-    //  Forward the command to the pipe.
-    pipe_->writer_terminated ();
-
-    //  Remove all references to the pipe.
-    demux.release_pipe (pipe_);
-}
-
-void zmq::bp_sctp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    //  Forward the command to the pipe.
-    pipe_->reader_terminated ();
-
-    //  Remove all references to the pipe.
-    mux.release_pipe (pipe_);
 }
 
 #endif

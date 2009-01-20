@@ -54,7 +54,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     first_message_offset (-1)
 
 {
-
     //  Store interface. Note that interface name is not stored in locator.
     char *delim = strchr (interface_, ';');
     assert (delim);
@@ -92,12 +91,12 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     //  Bind new engine to the destination end of the pipe.
     command_t cmd_receive_from;
     cmd_receive_from.init_engine_receive_from (
-        destination_engine, "", pipe);
+        destination_engine, pipe);
     calling_thread_->send_command (thread_, cmd_receive_from);
 
     //  Bind the peer to the source end of the pipe.
     command_t cmd_send_to;
-    cmd_send_to.init_engine_send_to (peer_engine_, peer_name_, pipe);
+    cmd_send_to.init_engine_send_to (peer_engine_, pipe);
     calling_thread_->send_command (peer_thread_, cmd_send_to);
 }
 
@@ -201,14 +200,14 @@ void zmq::bp_pgm_sender_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_pgm_sender_t::receive_from (const char *queue_, pipe_t *pipe_)
-{
-    //  Start receiving messages from a pipe.
-    mux.receive_from (pipe_, shutting_down);
+void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
+{    
+    engine_base_t <false, true>::receive_from (pipe_);
 
-    if (!shutting_down)
+    if (shutting_down)
+        pipe_->terminate_reader ();
+    else
         poller->set_pollout (handle);
-
 }
 
 void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
@@ -217,7 +216,7 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
     if (!shutting_down) {
                 
         //  Forward the revive command to the pipe. 
-        pipe_->revive ();
+        engine_base_t <false, true>::revive (pipe_);
 
         //  There is at least one engine (that one which sent revive) that 
         //  has messages ready. Try to write data to the socket, thus 

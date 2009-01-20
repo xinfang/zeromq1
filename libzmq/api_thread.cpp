@@ -165,12 +165,12 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
 
     //  Bind the source end of the pipe.
     command_t cmd_send_to;
-    cmd_send_to.init_engine_send_to (exchange_engine, exchange_, pipe);
+    cmd_send_to.init_engine_send_to (exchange_engine, pipe);
     send_command (exchange_thread, cmd_send_to);
 
     //  Bind the destination end of the pipe.
     command_t cmd_receive_from;
-    cmd_receive_from.init_engine_receive_from (queue_engine, queue_, pipe);
+    cmd_receive_from.init_engine_receive_from (queue_engine, pipe);
     send_command (queue_thread, cmd_receive_from);
 
 }
@@ -355,12 +355,10 @@ void zmq::api_thread_t::process_command (const command_t &command_)
                 engine->head (engcmd.args.head.pipe, engcmd.args.head.position);
                 break;
             case engine_command_t::send_to:
-                engine->send_to (engcmd.args.send_to.exchange,
-                    engcmd.args.send_to.pipe);
+                engine->send_to (engcmd.args.send_to.pipe);
                 break;
             case engine_command_t::receive_from:
-                engine->receive_from (engcmd.args.receive_from.queue,
-                    engcmd.args.receive_from.pipe);
+                engine->receive_from (engcmd.args.receive_from.pipe);
                 break;
             case engine_command_t::terminate_pipe:
                 engine->terminate_pipe (engcmd.args.terminate_pipe.pipe);

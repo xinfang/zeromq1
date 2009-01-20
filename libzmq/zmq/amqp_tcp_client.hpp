@@ -27,10 +27,8 @@
 #include <zmq/export.hpp>
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
-#include <zmq/mux.hpp>
-#include <zmq/demux.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/amqp_decoder.hpp>
@@ -38,7 +36,10 @@
 namespace zmq
 {
 
-    class amqp_tcp_client_t : public i_engine, public i_pollable, private i_amqp
+    class amqp_tcp_client_t :
+        public engine_base_t <true, true>,
+        public i_pollable,
+        private i_amqp
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -50,10 +51,8 @@ namespace zmq
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void revive (pipe_t *pipe_);
         void head (pipe_t *pipe_, uint64_t position_);
-        void send_to (const char *exchange_, pipe_t *pipe_);
-        void receive_from (const char *queue_, pipe_t *pipe_);
-        void terminate_pipe (pipe_t *pipe_);
-        void terminate_pipe_ack (pipe_t *pipe_);
+        void send_to (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -115,14 +114,8 @@ namespace zmq
         //  Object to decode AMQP commands/messages.
         amqp_decoder_t decoder;
 
-        //  Object to aggregate messages from inbound pipes.
-        mux_t mux;
-
         //  Object to encode AMQP commands/messages.
         amqp_encoder_t encoder;
-
-        //  Object to distribute messages to outbound pipes.
-        demux_t demux;
 
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;

@@ -49,22 +49,3 @@ void zmq::out_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
     *hwm_ = 0;
     *lwm_ = 0;
 }
-
-void zmq::out_engine_t::head (pipe_t *pipe_, uint64_t position_)
-{
-    //  Forward pipe head position to the appropriate pipe.
-    pipe_->set_head (position_);
-}
-
-void zmq::out_engine_t::send_to (const char *exchange_, pipe_t *pipe_)
-{
-    //  Start sending messages to a pipe.
-    demux.send_to (pipe_);
-}
-
-void zmq::out_engine_t::terminate_pipe (pipe_t *pipe_)
-{
-    //  Forward the command to the pipe. Drop reference to the pipe.
-    pipe_->writer_terminated ();
-    demux.release_pipe (pipe_);
-}

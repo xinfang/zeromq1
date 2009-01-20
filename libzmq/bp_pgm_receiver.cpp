@@ -58,7 +58,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
           network_ [3] == ':') {
         udp_encapsulation = true;
 
-        //  Shift network_ pointer after ':'.
+        //  Shift network_ pointer beyond ':'.
         network_ += 4;
     }
 
@@ -89,7 +89,6 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
 
 zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
-
     //  Cleanup.
     delete epgm_socket;
 
@@ -173,7 +172,7 @@ void zmq::bp_pgm_receiver_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_pgm_receiver_t::send_to (const char *exchange_, pipe_t *pipe_)
+void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
@@ -184,7 +183,7 @@ void zmq::bp_pgm_receiver_t::send_to (const char *exchange_, pipe_t *pipe_)
     }
 
     //  Start sending messages to a pipe.
-    demux.send_to (pipe_);
+    engine_base_t <true, false>::send_to (pipe_);
 }
 
 #endif

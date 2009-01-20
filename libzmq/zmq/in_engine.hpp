@@ -20,14 +20,12 @@
 #ifndef __ZMQ_IN_ENGINE_HPP_INCLUDED__
 #define __ZMQ_IN_ENGINE_HPP_INCLUDED__
 
-#include <zmq/stdint.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/mux.hpp>
+#include <zmq/engine_base.hpp>
 
 namespace zmq
 {
 
-    class in_engine_t : public i_engine
+    class in_engine_t : public engine_base_t <false, true>
     {
     public:
 
@@ -37,16 +35,11 @@ namespace zmq
 
         //  i_engine implementation.
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
-        void revive (pipe_t *pipe_);
-        void receive_from (const char *queue_, pipe_t *pipe_);
-        void terminate_pipe_ack (pipe_t *pipe_);
 
     private:
 
         in_engine_t (uint64_t hwm_, uint64_t lwm_);
         ~in_engine_t ();
-
-        mux_t mux;
 
         uint64_t hwm;
         uint64_t lwm;

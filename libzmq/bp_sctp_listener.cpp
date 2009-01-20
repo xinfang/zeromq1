@@ -146,13 +146,12 @@ void zmq::bp_sctp_listener_t::in_event ()
 
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
-        cmd_send_to.init_engine_send_to (source_engine, "", pipe);
+        cmd_send_to.init_engine_send_to (source_engine, pipe);
         thread->send_command (source_thread, cmd_send_to);
 
         //  Bind the peer to the destination end of the pipe.
         command_t cmd_receive_from;
-        cmd_receive_from.init_engine_receive_from (peer_engine,
-            peer_name, pipe);
+        cmd_receive_from.init_engine_receive_from (peer_engine, pipe);
         thread->send_command (peer_thread, cmd_receive_from);
     }
     else {
@@ -171,12 +170,12 @@ void zmq::bp_sctp_listener_t::in_event ()
         //  Bind new engine to the destination end of the pipe.
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (
-            destination_engine, "", pipe);
+            destination_engine, pipe);
         thread->send_command (destination_thread, cmd_receive_from);
 
         //  Bind the peer to the source end of the pipe.
         command_t cmd_send_to;
-        cmd_send_to.init_engine_send_to (peer_engine, peer_name, pipe);
+        cmd_send_to.init_engine_send_to (peer_engine, pipe);
         thread->send_command (peer_thread, cmd_send_to);
     }
 

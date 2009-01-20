@@ -46,19 +46,3 @@ void zmq::in_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
     *hwm_ = hwm;
     *lwm_ = lwm;
 }
-
-void zmq::in_engine_t::revive (pipe_t *pipe_)
-{
-    pipe_->revive ();
-}
-
-void zmq::in_engine_t::receive_from (const char *queue_, pipe_t *pipe_)
-{
-    mux.receive_from (pipe_, false);
-}
-
-void zmq::in_engine_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    pipe_->reader_terminated ();
-    mux.release_pipe (pipe_);
-}

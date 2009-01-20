@@ -40,7 +40,7 @@ namespace zmq
         ZMQ_EXPORT ~mux_t ();
 
         //  Adds a pipe to receive messages from.
-        ZMQ_EXPORT void receive_from (pipe_t *pipe_, bool shutting_down_);
+        ZMQ_EXPORT void receive_from (pipe_t *pipe_);
 
         //  Returns a message, if available. If not, returns false.
         ZMQ_EXPORT bool read (message_t *msg_);
