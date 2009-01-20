@@ -41,11 +41,6 @@ bool zmq::in_engine_t::read (message_t *msg_)
     return mux.read (msg_);
 }
 
-zmq::engine_type_t zmq::in_engine_t::type ()
-{
-    return engine_type_api;
-}
-
 void zmq::in_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = hwm;

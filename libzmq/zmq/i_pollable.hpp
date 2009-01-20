@@ -21,7 +21,6 @@
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
 #include <zmq/export.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_poller.hpp>
 
 namespace zmq
@@ -29,7 +28,7 @@ namespace zmq
     //  Virtual interface to be exposed by engines for communication with
     //  file-descriptor-oriented I/O threads.
 
-    struct i_pollable : public i_engine
+    struct i_pollable
     {
         ZMQ_EXPORT virtual ~i_pollable () {};
 

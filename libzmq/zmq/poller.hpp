@@ -274,16 +274,15 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 
         //  Ask engine to register itself.
         engine = command_.args.register_engine.engine;
-        assert (engine->type () == engine_type_fd);
-        ((i_pollable*) engine)->register_event (this);
+        engine->cast_to_pollable ()->register_event (this);
         break;
 
     //  Unregister the engine.
     case command_t::unregister_engine:
 
+        //  Ask engine to unregister itself.
         engine = command_.args.unregister_engine.engine;
-        assert (engine->type () == engine_type_fd);
-        ((i_pollable*) engine)->unregister_event ();
+        engine->cast_to_pollable ()->unregister_event ();
         break;
 
     //  Forward the command to the specified engine.

@@ -57,8 +57,7 @@ pkginclude_HEADERS = \
     ./zmq/fd.hpp \
     ./zmq/out_engine.hpp \
     ./zmq/in_engine.hpp \
-    ./zmq/pollable_factory.hpp \
-    ./zmq/i_listener.hpp \
+    ./zmq/engine_factory.hpp \
     ./zmq/bp_sctp_listener.hpp \
     ./zmq/bp_sctp_engine.hpp \
     ./zmq/pgm_socket.hpp \
@@ -99,7 +98,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     select_thread.cpp \
     out_engine.cpp \
     in_engine.cpp \
-    pollable_factory.cpp \
+    engine_factory.cpp \
     bp_sctp_listener.cpp \
     bp_sctp_engine.cpp \
     pgm_socket.cpp \

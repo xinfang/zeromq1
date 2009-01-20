@@ -27,32 +27,32 @@
 namespace zmq
 {
 
-    enum engine_type_t
-    {
-        //  Engines of this type expose i_pollable interface.
-        engine_type_fd,
-
-        //  Exposed by api_thread_t.
-        engine_type_api
-    };
-
     //  Virtual interface to be exposed by engines so that they can receive
     //  commands from other engines.
     struct i_engine
     {
         ZMQ_EXPORT virtual ~i_engine () {};
 
-        //  Returns type of the engine. This can be in theory implemented on
-        //  the base of standard C++ RTTI, however, it's unclear whether RTTI
-        //  is supported by all compilers and if so, what's the impact of RTTI
-        //  performance on overall performance of the product.
-        virtual engine_type_t type () = 0;
+        //  Returns i_pollable interface of the engine. If the engine is not
+        //  pollable, it fails.
+        virtual struct i_pollable *cast_to_pollable ()
+        {
+            assert (false);
+        }
 
         //  Returns high and low watermarks for the specified engine. High and
         //  low watermarks for a pipe are computed by adding high and low
         //  watermarks of the engines the pipe is connecting. hwm equal to -1
         //  means that there should be unlimited storage space for the engine.
         virtual void get_watermarks (uint64_t *hwm_, uint64_t *lwm_) = 0;
+
+        //  Returns modified arguments string.
+        //  This function will be obsoleted with the shift to centralised
+        //  management of configuration.
+        virtual const char *get_arguments ()
+        {
+            assert (false);
+        }
 
         virtual void revive (class pipe_t *pipe_)
         {

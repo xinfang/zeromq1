@@ -36,7 +36,6 @@ namespace zmq
         ZMQ_EXPORT bool read (message_t *msg_);
 
         //  i_engine implementation.
-        engine_type_t type ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void revive (pipe_t *pipe_);
         void receive_from (const char *queue_, pipe_t *pipe_);

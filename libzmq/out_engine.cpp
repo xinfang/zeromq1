@@ -44,11 +44,6 @@ void zmq::out_engine_t::flush ()
     demux.flush ();
 }
 
-zmq::engine_type_t zmq::out_engine_t::type ()
-{
-    return engine_type_api;
-}
-
 void zmq::out_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = 0;

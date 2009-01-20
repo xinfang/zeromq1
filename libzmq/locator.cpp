@@ -22,7 +22,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/locator.hpp>
-#include <zmq/pollable_factory.hpp>
+#include <zmq/engine_factory.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 
@@ -74,7 +74,7 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         assert (strlen (interface_) < 256);
          
         //  Create a listener for the object.
-        i_listener *listener = pollable_factory_t::create_listener (
+        i_engine *listener = engine_factory_t::create_listener (
             calling_thread_, listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
             type_id_ == exchange_type_id ? false : true,
@@ -150,7 +150,7 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
         iface [size] = 0;
 
         //  Create the proxy engine for the object.
-        i_pollable *engine = pollable_factory_t::create_engine (calling_thread_,
+        i_engine *engine = engine_factory_t::create_engine (calling_thread_,
             handler_thread_, iface, local_object_, engine_arguments_);
 
         //  Write it into object repository.

@@ -18,12 +18,11 @@
 */
 
 
-#ifndef __ZMQ_POLLABLE_FACTORY_HPP_INCLUDED__
-#define __ZMQ_POLLABLE_FACTORY_HPP_INCLUDED__
+#ifndef __ZMQ_ENGINE_FACTORY_HPP_INCLUDED__
+#define __ZMQ_ENGINE_FACTORY_HPP_INCLUDED__
 
 #include <zmq/i_thread.hpp>
-#include <zmq/i_pollable.hpp>
-#include <zmq/i_listener.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/export.hpp>
 
 namespace zmq
@@ -31,18 +30,18 @@ namespace zmq
 
     //  This class acts as an object factory for pollable engines
 
-    class pollable_factory_t
+    class engine_factory_t
     {
     public:
 
-        ZMQ_EXPORT static i_listener *create_listener (
+        ZMQ_EXPORT static i_engine *create_listener (
             i_thread *calling_thread_, i_thread *thread_,
             const char *arguments_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
 
-        ZMQ_EXPORT static i_pollable *create_engine (
+        ZMQ_EXPORT static i_engine *create_engine (
             i_thread *calling_thread_, i_thread *thread_,
             const char *arguments_, const char *local_object_,
             const char *engine_arguments_);

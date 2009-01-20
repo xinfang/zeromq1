@@ -21,11 +21,12 @@
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
 #include <zmq/export.hpp>
-#include <zmq/i_thread.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/i_thread.hpp>
 
 namespace zmq
 {
+
     union handle_t
     {
         fd_t fd;

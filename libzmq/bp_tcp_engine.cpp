@@ -83,9 +83,9 @@ zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
     free (writebuf);
 }
 
-zmq::engine_type_t zmq::bp_tcp_engine_t::type ()
+zmq::i_pollable *zmq::bp_tcp_engine_t::cast_to_pollable ()
 {
-    return engine_type_fd;
+    return this;
 }
 
 void zmq::bp_tcp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)

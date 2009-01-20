@@ -27,6 +27,7 @@
 #include <zmq/export.hpp>
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/demux.hpp>
@@ -37,15 +38,15 @@
 namespace zmq
 {
 
-    class amqp_tcp_client_t : public i_pollable, private i_amqp
+    class amqp_tcp_client_t : public i_engine, public i_pollable, private i_amqp
     {
         //  Allow class factory to create this engine.
-        friend class pollable_factory_t;
+        friend class engine_factory_t;
 
     public:
 
-        //  i_pollable interface implementation.
-        engine_type_t type ();
+        //  i_engine interface implementation.
+        i_pollable *cast_to_pollable ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void revive (pipe_t *pipe_);
         void head (pipe_t *pipe_, uint64_t position_);
@@ -53,6 +54,8 @@ namespace zmq
         void receive_from (const char *queue_, pipe_t *pipe_);
         void terminate_pipe (pipe_t *pipe_);
         void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();

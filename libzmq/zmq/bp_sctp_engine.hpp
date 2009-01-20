@@ -35,6 +35,7 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/mux.hpp>
@@ -50,18 +51,18 @@ namespace zmq
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_sctp_engine_t : public i_pollable
+    class bp_sctp_engine_t : public i_engine, public i_pollable
     {
         //  Allow class factory to create this engine.
-        friend class pollable_factory_t;
+        friend class engine_factory_t;
 
         //  Allow BP/SCTP listener to create the engine.
         friend class bp_sctp_listener_t;
 
     public:
 
-        //  i_pollable interface implementation.
-        engine_type_t type ();
+        //  i_engine interface implementation.
+        i_pollable *cast_to_pollable ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
         void revive (pipe_t *pipe_);
         void head (pipe_t *pipe_, uint64_t position_);
@@ -69,6 +70,8 @@ namespace zmq
         void receive_from (const char *queue_, pipe_t *pipe_);
         void terminate_pipe (pipe_t *pipe_);
         void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();

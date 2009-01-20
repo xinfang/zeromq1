@@ -105,9 +105,9 @@ zmq::bp_sctp_listener_t::~bp_sctp_listener_t ()
     errno_assert (rc == 0);
 }
 
-zmq::engine_type_t zmq::bp_sctp_listener_t::type ()
+zmq::i_pollable *zmq::bp_sctp_listener_t::cast_to_pollable ()
 {
-    return engine_type_fd;
+    return this;
 }
 
 void zmq::bp_sctp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
