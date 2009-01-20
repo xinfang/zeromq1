@@ -27,36 +27,37 @@
 #include <vector>
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_listener.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/epgm_socket.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_pollable.hpp>
 
 namespace zmq
 {
 
-    class bp_pgm_sender_t : public i_listener
+    class bp_pgm_sender_t : public i_engine, public i_pollable
     {
 
         //  Allow class factory to create this engine.
-        friend class pollable_factory_t;
+        friend class engine_factory_t;
 
     public:
 
         //  i_engine interface implemtation.
-        engine_type_t type ();
+        i_pollable *cast_to_pollable ();
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
-        void process_command (const engine_command_t &command_);
+        const char *get_arguments ();
+        void receive_from (const char *queue_, pipe_t *pipe_);
+        void revive (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
-        void error_event ();
         void unregister_event ();
 
         //  i_listener interface implementation.
-        const char *get_arguments ();
 
     private:
 
@@ -68,8 +69,8 @@ namespace zmq
         //  Arguments string for this listener.
         char arguments [256];
 
-        //  If true, engine is already shutting down, waiting for confirmations
-        //  from other threads.
+        //  If true, engine is already shutting down, waiting for 
+        //  confirmations from other threads.
         bool shutting_down;
 
         //  mux & bp_encoder.

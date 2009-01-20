@@ -41,6 +41,7 @@
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
       i_thread *thread_, const char *network_, const char *local_object_, 
       size_t readbuf_size_, const char *arguments_) :
+    shutting_down (false),
     decoder (&demux),
     epgm_socket (NULL),
     iov (NULL), iov_len (0)
@@ -58,7 +59,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
         udp_encapsulation = true;
 
         //  Shift network_ pointer after ':'.
-        network_ = network_ + 4;
+        network_ += 4;
     }
 
     std::string transport_info (network_);
@@ -97,9 +98,9 @@ zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
     }
 }
 
-zmq::engine_type_t zmq::bp_pgm_receiver_t::type ()
+zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
 {
-    return engine_type_fd;
+    return this;
 }
 
 void zmq::bp_pgm_receiver_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
@@ -172,18 +173,18 @@ void zmq::bp_pgm_receiver_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_pgm_receiver_t::process_command 
-    (const engine_command_t &command_)
+void zmq::bp_pgm_receiver_t::send_to (const char *exchange_, pipe_t *pipe_)
 {
-    switch (command_.type) {
-        case engine_command_t::send_to:
-            demux.send_to (command_.args.receive_from.pipe);
-            poller->set_pollin (socket_handle);
-            poller->set_pollin (pipe_handle);
-            break;
-        default:
-            assert (false);
+    //  If pipe limits are set, POLLIN may be turned off
+    //  because there are no pipes to send messages to.
+    //  So, if this is the first pipe in demux, start polling.
+    if (!shutting_down && demux.no_pipes ()) {
+        poller->set_pollin (socket_handle);
+        poller->set_pollin (pipe_handle);      
     }
+
+    //  Start sending messages to a pipe.
+    demux.send_to (pipe_);
 }
 
 #endif

@@ -306,7 +306,7 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
     
     // We have to write all data as one packet.
     if (nbytes > 0) {
-        assert (nbytes == data_len_);
+        assert (nbytes == (ssize_t)data_len_);
     }
 
     return nbytes;

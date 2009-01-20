@@ -24,9 +24,9 @@ using namespace std;
 
 int main (int argc, char *argv []) 
 {
-    if (argc != 5) {
-        cerr << "Usage: pgm_sender <hostname> <exchange interface> "
-            "<message size> <message count>" << endl;
+    if (argc != 6) {
+        cerr << "Usage: pgm_sender <hostname> <exchange_name> "
+            "<exchange interface> <message size> <message count>" << endl;
         cerr << "exchange interface format: iface;mcast_group:port "
             "for raw PGM" << std::endl;
         cerr << "                           udp:iface;mcast_group:port "
@@ -37,17 +37,18 @@ int main (int argc, char *argv [])
     //  Input arguments parsing.
     const char *host = argv [1];
 
+    //  Global exchange name.
+    const char *ex_name = argv [2];
+
     char network [256];
-    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [2]);
+    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [3]);
     network [sizeof (network) - 1] = '\0';
 
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
-
-    //  Global exchange name.
-    char ex_name [] = "G_XCHG";
+    size_t msg_size = atoi (argv [4]);
+    int msg_count = atoi (argv [5]);
 
     cout << "network: " << network << endl;
+    cout << "exchange name: " << ex_name << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 

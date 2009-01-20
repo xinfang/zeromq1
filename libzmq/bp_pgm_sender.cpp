@@ -108,9 +108,9 @@ zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
     }
 }
 
-zmq::engine_type_t zmq::bp_pgm_sender_t::type ()
+zmq::i_pollable *zmq::bp_pgm_sender_t::cast_to_pollable ()
 {
-    return engine_type_fd;
+    return this;
 }
 
 void zmq::bp_pgm_sender_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
@@ -201,31 +201,33 @@ void zmq::bp_pgm_sender_t::unregister_event ()
     assert (false);
 }
 
-void zmq::bp_pgm_sender_t::process_command (const engine_command_t &command_)
+void zmq::bp_pgm_sender_t::receive_from (const char *queue_, pipe_t *pipe_)
 {
-    switch (command_.type) {
-        case engine_command_t::receive_from:
-            //  Start receiving messages from a pipe.
-            mux.receive_from (command_.args.receive_from.pipe, shutting_down);
-            if (!shutting_down)
-                poller->set_pollout (handle);
-            break;
+    //  Start receiving messages from a pipe.
+    mux.receive_from (pipe_, shutting_down);
 
-        case engine_command_t::revive:
+    if (!shutting_down)
+        poller->set_pollout (handle);
 
-            //  We have some messages in encoder.
-            if (!shutting_down) {
+}
+
+void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
+{
+    //  We have some messages in encoder.
+    if (!shutting_down) {
                 
-                //  Forward the revive command to the pipe. 
-                command_.args.revive.pipe->revive ();
-                
-                poller->set_pollout (handle);
-                out_event ();
-            }
-            break;
+        //  Forward the revive command to the pipe. 
+        pipe_->revive ();
 
-        default:
-            assert (false);
+        //  There is at least one engine (that one which sent revive) that 
+        //  has messages ready. Try to write data to the socket, thus 
+        //  eliminating one polling for POLLOUT event.
+        //  Note that if write_size is zero it means that buffer is empty and
+        //  we can read data from encoder.
+        if (!write_size) {
+            poller->set_pollout (handle);
+            out_event ();
+        }
     }
 }
 

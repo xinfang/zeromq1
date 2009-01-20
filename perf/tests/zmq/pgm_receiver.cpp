@@ -25,26 +25,28 @@ using namespace std;
 
 int main (int argc, char *argv []) 
 {
-    if (argc != 5) {
-        cerr << "Usage: pgm_receiver <hostname> <mcast interface> "
-            "<message size> <message count>" << endl;
+    if (argc != 6) {
+        cerr << "Usage: pgm_receiver <hostname> <exchange name> "
+            "<mcast interface> <message size> <message count>" << endl;
         return 1;
     }
 
     //  Input arguments parsing.
     const char *host = argv [1];
 
-    const char *mcast_interface = argv [2];
-
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
-
     //  Global exchange name.
-    char ex_name [] = "G_XCHG";
+    const char *ex_name = argv [2];
+
+    const char *mcast_interface = argv [3];
+
+    size_t msg_size = atoi (argv [4]);
+    int msg_count = atoi (argv [5]);
 
     //  Local queue name.
     char q_name [] = "L_QUEUE";
 
+    cout << "interface: " << mcast_interface << endl;
+    cout << "exchange name: " << ex_name << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl;
 
