@@ -50,25 +50,24 @@ namespace zmq
     public __gc class Dnzmq
     {
         public:
-               
-            void create (String *host_);
-            void destroy ();
+            Dnzmq (String *host_);
+            ~Dnzmq ();
             int create_exchange (String *exchange_, int scope_,
                 String *nic_);
             int create_queue (String *queue_, int scope_,
                 String *nic_);
             void bind (String *exchange_, String *queue_);
             void send (int eid_, byte data_ __gc[], size_t size_);
-            void receive (byte (__gc* data) __gc[], size_t *size_);
-
+            size_t receive (byte data_ __gc[]);
+           
             static const int ZMQ_SCOPE_LOCAL = 0;
             static const int ZMQ_SCOPE_GLOBAL = 1;
 
         private:
             context_t *context; 
     };
-    
-    void Dnzmq::create (String *host_)
+
+    Dnzmq::Dnzmq(String *host_)
     {
         //  Convert input arguments to char*.
         char* host = (char*)(void*)Marshal::StringToHGlobalAnsi(host_);
@@ -95,10 +94,10 @@ namespace zmq
         assert (context->api_thread);
 
         Marshal::FreeHGlobal(host);
-
     }
+       
 
-    void Dnzmq::destroy ()
+    Dnzmq::~Dnzmq ()
     {
         //  Deallocate the 0MQ infrastructure.
         delete context->dispatcher;
@@ -184,7 +183,7 @@ namespace zmq
         context->api_thread->send (eid_, msg);
     }
  
-    void Dnzmq::receive (byte (__gc* data) __gc[], size_t *size_)
+    size_t Dnzmq::receive (byte data_ __gc[]) //byte (__gc* data) __gc[]
     {
         //  Forward the call to native 0MQ library.
         zmq::message_t msg ;
@@ -196,8 +195,8 @@ namespace zmq
         memcpy (buf, msg.data (), msg.size ());
   
         //  Return the message.
-        Marshal::Copy ((IntPtr)buf, *data, 0, msg.size());
-        *size_ = msg.size ();
+        Marshal::Copy ((IntPtr)buf, data_, 0, msg.size());
+        return msg.size ();
     }
-
+  
 }
