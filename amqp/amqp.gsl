@@ -1,5 +1,5 @@
 .-
-.-    Copyright (c) 2007-2008 FastMQ Inc.
+.-    Copyright (c) 2007-2009 FastMQ Inc.
 .-
 .-    This file is part of 0MQ.
 .-
@@ -175,7 +175,7 @@
 .
 .output "../libzmq/zmq/i_amqp.hpp"
 /*
-    Copyright (c) 2007-2008 FastMQ Inc.
+    Copyright (c) 2007-2009 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -306,7 +306,7 @@ $(field.name:c)_$(last ()??''?',')\
 .close
 .output "../libzmq/zmq/amqp_unmarshaller.hpp"
 /*
-    Copyright (c) 2007-2008 FastMQ Inc.
+    Copyright (c) 2007-2009 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -379,7 +379,7 @@ namespace zmq
 .close
 .output "../libzmq/amqp_unmarshaller.cpp"
 /*
-    Copyright (c) 2007-2008 FastMQ Inc.
+    Copyright (c) 2007-2009 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -502,7 +502,7 @@ void zmq::amqp_unmarshaller_t::get_field_table (unsigned char *args,
 .close
 .output "../libzmq/zmq/amqp_marshaller.hpp"
 /*
-    Copyright (c) 2007-2008 FastMQ Inc.
+    Copyright (c) 2007-2009 FastMQ Inc.
 
     This file is part of 0MQ.
 
@@ -596,7 +596,7 @@ $(field.name:c)_$(last ()??''?',')\
 .close
 .output "../libzmq/amqp_marshaller.cpp"
 /*
-    Copyright (c) 2007-2008 FastMQ Inc.
+    Copyright (c) 2007-2009 FastMQ Inc.
 
     This file is part of 0MQ.
 

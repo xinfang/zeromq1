@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2007-2008 FastMQ Inc.
+# Copyright (c) 2007-2009 FastMQ Inc.
 #
 # This file is part of 0MQ.
 #
