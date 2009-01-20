@@ -23,16 +23,14 @@ namespace local_thr
             String iface = args[1];
             uint msg_size = Convert.ToUInt32 (args[2]);
             int roundtrip_count = Convert.ToInt32 (args[3]);
+            uint size;
 
             /*  Print out the test parameters.  */
             Console.Out.WriteLine ("message size: " + msg_size + " [B]");
             Console.Out.WriteLine ("roundtrip count: " + roundtrip_count);
 
             //  Create the Dnzmq class.
-            Dnzmq w = new Dnzmq ();
-
-            //  Create 0MQ transport.
-            w.create (host);
+            Dnzmq w = new Dnzmq (host);
 
             //  Create 0MQ queue.
             w.create_queue ("Q", Dnzmq.ZMQ_SCOPE_GLOBAL, iface);
@@ -41,7 +39,8 @@ namespace local_thr
             byte[] msg = new byte[msg_size];
 
             //  Receive the first message.
-            msg_size = w.receive (msg);
+            size = w.receive (msg);
+            Debug.Assert (size == msg_size);
 
             /*  Get initial timestamp.  */
             System.Diagnostics.Stopwatch watch;
@@ -50,7 +49,10 @@ namespace local_thr
 
             //  Start receiving messages
             for (int i = 0; i < roundtrip_count; i++)
-                msg_size = w.receive (msg);
+            {
+                size = w.receive (msg);
+                Debug.Assert (size == msg_size);
+            }
 
             /*  Get final timestamp.  */
             watch.Stop ();

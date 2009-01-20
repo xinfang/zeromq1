@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 using zmq;
 using System.Runtime.InteropServices;
 
@@ -23,17 +24,15 @@ namespace remote_lat
             String out_interface = args[2];
             uint msg_size = Convert.ToUInt32 (args[3]);
             int num_msg = Convert.ToInt32 (args[4]);
+            uint size;
 
             //  Exchange and queue ids
             int ex;
             int que;
 
             //  Create 0MQ Dnzmq class.
-            Dnzmq w = new Dnzmq ();
+            Dnzmq w = new Dnzmq (host);
 
-            //  Create 0MQ transport.
-            w.create (host);
-            
             //  Create 0MQ exchange.
             ex = w.create_exchange ("EG", Dnzmq.ZMQ_SCOPE_GLOBAL, out_interface);
                         
@@ -46,7 +45,8 @@ namespace remote_lat
             //  Start sending and receiving.
             for (int i = 0; i < num_msg; i++)
             {
-                msg_size = w.receive (msg);
+                size = w.receive (msg);
+                Debug.Assert (size == msg_size);                
                 w.send (ex, msg, msg_size);
             }
 

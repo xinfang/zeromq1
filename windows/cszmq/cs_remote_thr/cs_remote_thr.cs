@@ -25,11 +25,8 @@ namespace remote_thr
             int ex;
 
             //  Create 0MQ Dnzmq class
-            Dnzmq w = new Dnzmq ();
+            Dnzmq w = new Dnzmq (host);
             
-            //  Create 0MQ transport.
-            w.create (host);
-
             //  Create 0MQ exchnge.           
             ex = w.create_exchange ("E", Dnzmq.ZMQ_SCOPE_LOCAL, host);
 

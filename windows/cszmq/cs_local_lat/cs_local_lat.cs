@@ -23,6 +23,7 @@ namespace gcTest
             String host = args[0];
             uint msg_size = Convert.ToUInt32 (args[1]);
             int roundtrip_count = Convert.ToInt32 (args[2]);
+            uint size;
 
             /*  Print out the test parameters.  */
             Console.Out.WriteLine ("message size: " + msg_size + " [B]");
@@ -32,10 +33,7 @@ namespace gcTest
             int eid;
 
             //  Create 0MQ Dnzmq class.
-            Dnzmq w = new Dnzmq ();
-
-            //  Create 0MQ transport.
-            w.create (host);
+            Dnzmq w = new Dnzmq (host);
 
             //  Create 0MQ exchange.
             eid = w.create_exchange ("EL", Dnzmq.ZMQ_SCOPE_LOCAL, host);
@@ -61,7 +59,8 @@ namespace gcTest
             for (int i = 0; i < roundtrip_count; i++)
             {
                 w.send (eid, msg, msg_size);
-                msg_size = w.receive (msg);
+                size = w.receive (msg);
+                Debug.Assert (size == msg_size);
             }
 
             /*  Get final timestamp.  */
