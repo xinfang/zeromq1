@@ -22,17 +22,32 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string>
+#include <string.h>
 
 #include "msg_store.hpp"
 
-zmq::msg_store_t::msg_store_t (const char *filename_, size_t filesize_) :
+zmq::msg_store_t::msg_store_t (const char *filename_,
+        size_t filesize_, size_t block_size_) :
     filename (filename_),
     filesize (filesize_),
     file_pos (0),
     write_pos (0),
     read_pos (0),
-    n_msgs (0)
+    n_msgs (0),
+    block_size (block_size_),
+    write_buf_start_addr (0)
 {
+    assert (filesize > 0);
+    assert (block_size > 0);
+
+    buf1 = new char [block_size];
+    assert (buf1);
+
+    buf2 = new char [block_size];
+    assert (buf2);
+
+    read_buf = write_buf = buf1;
+
     //  Open the message store file.
     fd = open (filename.c_str (), O_RDWR | O_CREAT, 0600);
     errno_assert (fd != -1);
@@ -44,6 +59,9 @@ zmq::msg_store_t::msg_store_t (const char *filename_, size_t filesize_) :
 
 zmq::msg_store_t::~msg_store_t ()
 {
+    delete [] buf1;
+    delete [] buf2;
+
     int rc = close (fd);
     errno_assert (rc == 0);
 
@@ -99,30 +117,46 @@ unsigned long zmq::msg_store_t::size ()
     return n_msgs;
 }
 
+static size_t min2 (size_t a, size_t b)
+{
+    if (a < b)
+        return a;
+    return b;
+}
+
+static size_t min3 (size_t a, size_t b, size_t c)
+{
+    if (a < b) {
+        if (a < c)
+            return a;
+        else
+            return c;
+    }
+    else if (b < c)
+        return b;
+    else
+        return c;
+}
 void zmq::msg_store_t::copy_from_file (void *buf_, size_t count_)
 {
     char *ptr = (char *) buf_;
-    size_t n_read, n_left = count_;
+    size_t n, n_left = count_;
 
     while (n_left > 0) {
 
-        if (read_pos != file_pos) {
-            off_t offset = lseek (fd, read_pos, SEEK_SET);
-            errno_assert (offset == read_pos);
-            file_pos = read_pos;
-        }
+        n = min3 (n_left, filesize - read_pos,
+            block_size - read_pos % block_size);
 
-        if (n_left < filesize - read_pos)
-            n_read = n_left;
-        else
-            n_read = filesize - read_pos;
-
-        ssize_t n = read (fd, ptr, n_read);
-        errno_assert (n > 0);
-
+        memcpy (ptr, &read_buf [read_pos % block_size], n);
         ptr += n;
-        file_pos += n;
+
         read_pos = (read_pos + n) % filesize;
+        if (read_pos % block_size == 0) {
+            if (read_pos / block_size == write_pos / block_size)
+                read_buf = write_buf;
+            else
+                fill_read_buf ();
+        }
 
         n_left -= n;
     }
@@ -131,30 +165,72 @@ void zmq::msg_store_t::copy_from_file (void *buf_, size_t count_)
 void zmq::msg_store_t::copy_to_file (const void *buf_, size_t count_)
 {
     char *ptr = (char *) buf_;
-    size_t n_write, n_left = count_;
+    size_t n, n_left = count_;
 
     while (n_left > 0) {
 
-        if (write_pos != file_pos) {
-            off_t offset = lseek (fd, write_pos, SEEK_SET);
-            errno_assert (offset == write_pos);
-            file_pos = write_pos;
-        }
+        n = min3 (n_left, filesize - write_pos,
+            block_size - write_pos % block_size);
 
-        if (n_left < filesize - write_pos)
-            n_write = n_left;
-        else
-            n_write = filesize - write_pos;
-
-        ssize_t n = write (fd, ptr, n_write);
-        errno_assert (n > 0);
-
+        memcpy (&write_buf [write_pos % block_size], ptr, n);
         ptr += n;
-        file_pos += n;
+
         write_pos = (write_pos + n) % filesize;
+        if (write_pos % block_size == 0) {
+
+            save_write_buf ();
+            write_buf_start_addr = write_pos;
+
+            if (write_buf == read_buf) {
+                if (read_buf == buf2)
+                    write_buf = buf1;
+                else
+                    write_buf = buf2;
+            }
+        }
 
         n_left -= n;
     }
+}
+
+void zmq::msg_store_t::fill_read_buf ()
+{
+    if (file_pos != read_pos) {
+        off_t offset = lseek (fd, read_pos, SEEK_SET);
+        errno_assert (offset == read_pos);
+        file_pos = read_pos;
+    }
+
+    size_t i = 0;
+    size_t n = min2 (block_size, filesize - read_pos);
+
+    while (i < n) {
+        ssize_t rc = read (fd, &read_buf [i], n - i);
+        errno_assert (rc > 0);
+        i += rc;
+    }
+
+    file_pos += n;
+}
+
+void zmq::msg_store_t::save_write_buf ()
+{
+    if (file_pos != write_buf_start_addr) {
+        off_t offset = lseek (fd, write_buf_start_addr, SEEK_SET);
+        errno_assert (offset == write_buf_start_addr);
+        file_pos = write_buf_start_addr;
+    }
+
+    size_t i = 0;
+    size_t n = min2 (block_size, filesize - write_buf_start_addr);
+
+    while (i < n) {
+        ssize_t rc = write (fd, &write_buf [i], n - i);
+        errno_assert (rc > 0);
+        i += rc;
+    }
+
+    file_pos += n;
 }
 
 size_t zmq::msg_store_t::buffer_space ()

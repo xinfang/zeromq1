@@ -34,8 +34,11 @@ namespace zmq
     {
     public:
 
+        enum { default_block_size = 8192 };
+
         //  Initializes new message store.
-        msg_store_t (const char *filename, size_t filesize);
+        msg_store_t (const char *filename,
+            size_t filesize, size_t block_size = default_block_size);
 
         ~msg_store_t ();
 
@@ -66,6 +69,10 @@ namespace zmq
         //  Returns the buffer space available.
         size_t buffer_space ();
 
+        void fill_read_buf ();
+
+        void save_write_buf ();
+
         //  File descriptor to the message store's backing file.
         int fd;
 
@@ -86,6 +93,15 @@ namespace zmq
 
         //  Current number of messages kept in the message store.
         unsigned long n_msgs;
+
+        size_t block_size;
+
+        char *buf1;
+        char *buf2;
+        char *read_buf;
+        char *write_buf;
+
+        off_t write_buf_start_addr;
     };
 
 }
