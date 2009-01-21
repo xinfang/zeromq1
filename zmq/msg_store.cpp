@@ -23,7 +23,7 @@
 #include <fcntl.h>
 #include <string>
 
-#include <zmq/msg_store.hpp>
+#include "msg_store.hpp"
 
 zmq::msg_store_t::msg_store_t (const char *filename_, size_t filesize_) :
     filename (filename_),
