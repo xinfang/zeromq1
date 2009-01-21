@@ -56,11 +56,11 @@ namespace zmq
     private:
 
         //  Copies data from the memory buffer to the message store's file.
-        //  Wrap around when reaching maximum file size.
+        //  Wraps around when reaching maximum file size.
         void copy_from_file (void *buf, size_t count);
 
         //  Copies data from the message store's file to the memory buffer.
-        //  Wrap around when reaching end-of-file.
+        //  Wraps around when reaching end-of-file.
         void copy_to_file (const void *buf, size_t count);
 
         //  Returns the buffer space available.
