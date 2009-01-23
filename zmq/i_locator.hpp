@@ -20,6 +20,7 @@
 #ifndef __ZMQ_I_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_I_LOCATOR_HPP_INCLUDED__
 
+#include "stdint.hpp"
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "scope.hpp"
@@ -48,7 +49,8 @@ namespace zmq
             i_context *context_, i_engine *engine_, scope_t scope_,
             const char *interface_,
             poll_thread_t *listener_thread_, int handler_thread_count_,
-            poll_thread_t **handler_threads_, int hwm_, int lwm_) = 0;
+            poll_thread_t **handler_threads_, int hwm_, int lwm_,
+            uint64_t swap_size_) = 0;
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is not known.

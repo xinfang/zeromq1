@@ -22,11 +22,13 @@
 
 #include <string>
 
+#include "stdint.hpp"
 #include "i_context.hpp"
 #include "i_engine.hpp"
 #include "ypipe.hpp"
 #include "raw_message.hpp"
 #include "config.hpp"
+#include "msg_store.hpp"
 
 namespace zmq
 {
@@ -39,7 +41,8 @@ namespace zmq
             struct i_engine *source_engine_,
             struct i_context *destination_context_,
             struct i_engine *destination_engine_,
-            int hwm_ = 0, int lwm_ = 0, const char *queue_name_ = NULL);
+            int hwm_ = 0, int lwm_ = 0, const char *queue_name_ = NULL,
+            uint64_t swap_size_ = 0);
         ~pipe_t ();
 
         //  Sets pointer to the mux object on receiving side of the pipe.
@@ -128,6 +131,17 @@ namespace zmq
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
         uint64_t last_head;
+
+        //  File to swap messages to. If NULL, swapping is disabled.
+        msg_store_t *swap;
+
+        //  If true, swap is non-empty. Otherwise swap is not being used at the
+        //  moment.
+        bool swapping;
+
+        //  When swapping, this is sequence number of the last message held
+        //  in memory (not on swap).
+        uint64_t in_memory_tail;
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);

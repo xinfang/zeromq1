@@ -21,7 +21,7 @@
 #define __ZMQ_MSG_STORE_HPP_INCLUDED__
 
 #include <sys/types.h>
-#include <zmq/message.hpp>
+#include <zmq/raw_message.hpp>
 
 namespace zmq
 {
@@ -44,11 +44,11 @@ namespace zmq
 
         //  Stores the message into the message store. The function
         //  returns false if the message store is full and true otherwise.
-        bool store (message_t &msg);
+        bool store (raw_message_t *msg);
 
         //  Fetches the oldest message from the message store. It is an error
         //  call this function when the message store is empty.
-        void fetch (message_t &msg);
+        void fetch (raw_message_t *msg);
 
         //  Returns true if the message store is empty and false otherwise.
         bool empty ();

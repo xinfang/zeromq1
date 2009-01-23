@@ -25,11 +25,12 @@ zmq::bp_listener_t *zmq::bp_listener_t::create (poll_thread_t *thread_,
     const char *interface_, int handler_thread_count_,
     poll_thread_t **handler_threads_, bool source_,
     i_context *peer_context_, i_engine *peer_engine_,
-    const char *peer_name_, int hwm_, int lwm_, const char *queue_name_)
+    const char *peer_name_, int hwm_, int lwm_, const char *queue_name_,
+    uint64_t swap_size_)
 {
     bp_listener_t *instance = new bp_listener_t (thread_, interface_,
         handler_thread_count_, handler_threads_, source_, peer_context_,
-        peer_engine_, peer_name_, hwm_, lwm_, queue_name_);
+        peer_engine_, peer_name_, hwm_, lwm_, queue_name_, swap_size_);
     assert (instance);
 
     return instance;
@@ -39,7 +40,8 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
       const char *interface_, int handler_thread_count_,
       poll_thread_t **handler_threads_, bool source_,
       i_context *peer_context_, i_engine *peer_engine_,
-      const char *peer_name_, int hwm_, int lwm_, const char *queue_name_) :
+      const char *peer_name_, int hwm_, int lwm_, const char *queue_name_,
+      uint64_t swap_size_) :
     source (source_),
     context (thread_),
     peer_context (peer_context_),
@@ -47,7 +49,8 @@ zmq::bp_listener_t::bp_listener_t (poll_thread_t *thread_,
     listener (interface_),
     hwm (hwm_),
     lwm (lwm_),
-    size_monitoring (source_)
+    size_monitoring (source_),
+    swap_size (swap_size_)
 {
     //  Copy the peer name.
     assert (strlen (peer_name_) < 16);
@@ -96,7 +99,8 @@ bool zmq::bp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (source_context, source_engine,
-            peer_context, peer_engine, hwm, lwm, queue_name.c_str ());
+            peer_context, peer_engine, hwm, lwm, queue_name.c_str (),
+            swap_size);
         assert (pipe);
 
         //  Bind new engine to the source end of the pipe.

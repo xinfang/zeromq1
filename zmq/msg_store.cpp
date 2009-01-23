@@ -69,9 +69,9 @@ zmq::msg_store_t::~msg_store_t ()
     errno_assert (rc == 0);
 }
 
-bool zmq::msg_store_t::store (message_t &msg)
+bool zmq::msg_store_t::store (raw_message_t *msg)
 {
-    size_t msg_size = msg.size ();
+    size_t msg_size = raw_message_size (msg);
 
     //  Check buffer space availability.
     //  NOTE: We always keep one byte open.
@@ -82,7 +82,10 @@ bool zmq::msg_store_t::store (message_t &msg)
     copy_to_file (&msg_size, sizeof msg_size);
 
     //  Write the message body.
-    copy_to_file (msg.data (), msg.size ());
+    copy_to_file (raw_message_data (msg), msg_size);
+
+    //  Destroy the message.
+    raw_message_destroy (msg);
 
     //  Update the message counter.
     n_msgs ++;
@@ -90,7 +93,7 @@ bool zmq::msg_store_t::store (message_t &msg)
     return true;
 }
 
-void zmq::msg_store_t::fetch (message_t &msg)
+void zmq::msg_store_t::fetch (raw_message_t *msg)
 {
     //  There must be at least one message available.
     assert (n_msgs > 0);
@@ -100,8 +103,8 @@ void zmq::msg_store_t::fetch (message_t &msg)
     copy_from_file (&msg_size, sizeof msg_size);
 
     //  Build the message.
-    msg.rebuild (msg_size);
-    copy_from_file (msg.data (), msg.size ());
+    raw_message_init (msg, msg_size);  
+    copy_from_file (raw_message_data (msg), msg_size);
 
     //  Update the message counter.
     n_msgs --;
