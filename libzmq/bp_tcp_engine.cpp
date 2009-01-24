@@ -33,9 +33,10 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
-    socket (hostname_),
     poller (NULL),
     local_object (local_object_),
+    reconnect_flag (true),
+    hostname (hostname_),
     state (engine_connecting)
 {
     //  Allocate read and write buffers.
@@ -43,6 +44,10 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
+
+    //  Open the underlying socket.
+    socket = new tcp_socket_t (hostname.c_str ());
+    assert (socket);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -60,9 +65,9 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
-    socket (listener_),
     poller (NULL),
     local_object (local_object_),
+    reconnect_flag (false),
     state (engine_connected)
 {
     //  Allocate read and write buffers.
@@ -70,6 +75,10 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
+
+    //  Open the underlying socket by accepting it from listener.
+    socket = new tcp_socket_t (listener_);
+    assert (socket);
 
     //  Register BP/TCP engine with the I/O thread.
     command_t command;
@@ -79,8 +88,56 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
 
 zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
 {
+    delete socket;
     free (readbuf);
     free (writebuf);
+}
+
+void zmq::bp_tcp_engine_t::reconnect ()
+{
+    //  Stop polling the socket.
+    poller->rm_fd (handle);
+
+    //  Clear data buffers.
+    read_pos = read_size;
+    write_pos = write_size;
+
+    //  Destroy the existing socket and create a new one. This
+    //  initiates the TCP connection establishment.
+    delete socket;
+    socket = new tcp_socket_t (hostname.c_str ());
+    assert (socket);
+
+    encoder.reset ();
+    decoder.reset ();
+
+    //  The output event is used to signal that we can get
+    //  the connection status. Register our interest in it.
+    handle = poller->add_fd (socket->get_fd (), this);
+    poller->set_pollout (handle);
+
+    state = engine_connecting;
+}
+
+void zmq::bp_tcp_engine_t::shutdown ()
+{
+    //  Report connection failure to the client.
+    //  If there is no error handler, application crashes immediately.
+    //  If the error handler returns false, it crashes as well.
+    //  Otherwise, the error is ignored.
+    error_handler_t *eh = get_error_handler ();
+    assert (eh);
+    if (!eh (local_object.c_str ()))
+        assert (false);
+
+    //  Remove the file descriptor from the pollset.
+    poller->rm_fd (handle);
+
+    //  Ask all inbound & outound pipes to shut down.
+    demux.initialise_shutdown ();
+    mux.initialise_shutdown ();
+
+    state = engine_shutting_down;
 }
 
 zmq::i_pollable *zmq::bp_tcp_engine_t::cast_to_pollable ()
@@ -100,7 +157,7 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
     poller = poller_;
 
     //  Initialise the poll handle.
-    handle = poller->add_fd (socket.get_fd (), this);
+    handle = poller->add_fd (socket->get_fd (), this);
 
     if (state == engine_connecting)
         //  Wait for completion of connect() call.
@@ -120,28 +177,15 @@ void zmq::bp_tcp_engine_t::in_event ()
     if (read_pos == read_size) {
 
         //  Read as much data as possible to the read buffer.
-        read_size = socket.read (readbuf, readbuf_size);
+        read_size = socket->read (readbuf, readbuf_size);
         read_pos = 0;
 
-        //  The other party closed the connection.
+        //  Check whether the peer has closed the connection.
         if (read_size == -1) {
-
-            //  Report connection failure to the client.
-            //  If there is no error handler, application crashes immediately.
-            //  If the error handler returns false, it crashes as well.
-            //  If error handler returns true, the error is ignored.       
-            error_handler_t *eh = get_error_handler ();
-            assert (eh);
-            if (!eh (local_object.c_str ()))
-                assert (false);
-
-            //  Remove the file descriptor from the pollset.
-            poller->rm_fd (handle);    
-
-            //  Ask all inbound & outound pipes to shut down.
-            demux.initialise_shutdown ();
-            mux.initialise_shutdown ();
-            state = engine_shutting_down;
+            if (reconnect_flag)
+                reconnect ();
+            else
+                shutdown ();
             return;
         }
     }
@@ -181,13 +225,27 @@ void zmq::bp_tcp_engine_t::in_event ()
 void zmq::bp_tcp_engine_t::out_event ()
 {
     if (state == engine_connecting) {
-        int rc = socket.socket_error ();
-        assert (rc == 0);
+
+        int so_error = socket->socket_error ();
+        switch (so_error) {
+        case ECONNREFUSED:
+        case ETIMEDOUT:
+        case ECONNRESET:
+        case EADDRNOTAVAIL:
+        case EHOSTUNREACH:
+            //  Temporary error, try again.
+            reconnect ();
+            return;
+
+        default:
+            errno_assert (so_error == 0);
+            break;
+        }
+
         if (mux.empty ())
             poller->reset_pollout (handle);
         poller->set_pollin (handle);
         state = engine_connected;
-
         return;
     }
 
@@ -205,12 +263,17 @@ void zmq::bp_tcp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        int nbytes = socket.write (writebuf + write_pos,
+        int nbytes = socket->write (writebuf + write_pos,
             write_size - write_pos);
 
         //  The other party closed the connection.
-        if (nbytes == -1)
+        if (nbytes == -1) {
+           if (reconnect_flag)
+                reconnect ();
+            else
+                shutdown ();
             return;
+        }
 
         write_pos += nbytes;
     }

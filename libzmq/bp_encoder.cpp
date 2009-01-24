@@ -27,8 +27,13 @@ zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
     next_step (NULL, 0, &bp_encoder_t::message_ready, true);
 }
 
-zmq::bp_encoder_t::~bp_encoder_t ()
+void zmq::bp_encoder_t::reset ()
 {
+    //  Free the message buffer.
+    message.rebuild (0);
+
+    //  Restart the FSM.
+    next_step (NULL, 0, &bp_encoder_t::message_ready, true);
 }
 
 bool zmq::bp_encoder_t::size_ready ()

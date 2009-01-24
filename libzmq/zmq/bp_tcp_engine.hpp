@@ -95,6 +95,12 @@ namespace zmq
 
         ~bp_tcp_engine_t ();
 
+        //  Reconnect to the remote peer.
+        void reconnect ();
+
+        //  Initialise engine shutdown.
+        void shutdown ();
+
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;
         int writebuf_size;
@@ -114,7 +120,7 @@ namespace zmq
         bp_decoder_t decoder;
 
         //  Underlying TCP/IP socket.
-        tcp_socket_t socket;
+        tcp_socket_t *socket;
 
         //  Callback to poller.
         i_poller *poller;
@@ -124,6 +130,14 @@ namespace zmq
 
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
+
+        //  Flag indicating whether the engine should try to reconnect on
+        //  connection failure or not.
+        bool reconnect_flag;
+
+        //  The hostname the engine should reconnect to. Undefined when
+        //  reconnect_flag is false.
+        std::string hostname;
 
         //  Engine state.
         engine_state_t state;

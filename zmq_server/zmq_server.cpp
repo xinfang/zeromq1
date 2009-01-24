@@ -94,6 +94,9 @@ int main (int argc, char *argv [])
     assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
 #endif
 
+    //  Preconfigured AMQP broker.
+    object_info_t amqp_object_info = {"amqp/tcp://127.0.0.1:5672", -1};
+
     //  Create a tcp_listener.
     char iface [256];
     int port = (argc == 2 ? atoi (argv [1]) : default_locator_port);
@@ -266,22 +269,31 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
                         name [size] = 0;
 
-                        //  Find the exchange in the repository.
-                        objects_t::iterator it =
-                            objects [type_id].find (name);
-                        if (it == objects [type_id].end ()) {
+                        object_info_t *info;
 
-                             //  Send the error.
-                             reply = fail_id;
+                        //  Special AMQP broker pre-configured entry.
+                        if (std::string ("AMQP") == name)
+                            info = &amqp_object_info;
+                        else {
 
-                             nbytes = socket_list [pos]->write (&reply, 1);                             
-                             assert (nbytes == 1);
+                            //  Find the exchange in the repository.
+                            objects_t::iterator it =
+                                objects [type_id].find (name);
+                            if (it == objects [type_id].end ()) {
+
+                                //  Send the error.
+                                reply = fail_id;
+
+                                nbytes = socket_list [pos]->write (&reply, 1);                             
+                                assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                             printf ("Error when looking for an object: "
-                                 "object %d:%s does not exist.\n",
-                                 (int) type_id, name);
+                                printf ("Error when looking for an object: "
+                                    "object %d:%s does not exist.\n",
+                                    (int) type_id, name);
 #endif
-                             break;
+                                break;
+                            }
+                            info = &(it->second);
                         }
 
                         //  Send reply command.
@@ -290,16 +302,16 @@ int main (int argc, char *argv [])
                         assert (nbytes == 1);
 
                         //  Send the interface.
-                        size = it->second.iface.size ();
+                        size = info->iface.size ();
                         nbytes = socket_list [pos]->write (&size, 1);
                         assert (nbytes == 1);
                         nbytes = socket_list [pos]->write (
-                            it->second.iface.c_str (), size);
+                            info->iface.c_str (), size);
                         assert (nbytes == size);
 
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name, it->second.iface.c_str ());
+                            name, info->iface.c_str ());
 #endif
                         break;
                     }

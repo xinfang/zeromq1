@@ -27,6 +27,15 @@ zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
     next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
 }
 
+void zmq::bp_decoder_t::reset ()
+{
+    //  Free the message buffer.
+    message.rebuild (0);
+
+    //  Restart the FSM.
+    next_step (tmpbuf, 1, &bp_decoder_t::one_byte_size_ready);
+}
+
 bool zmq::bp_decoder_t::one_byte_size_ready ()
 {
     //  First byte of size is read. If it is 0xff read 8-byte size.

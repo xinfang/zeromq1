@@ -38,7 +38,9 @@ namespace zmq
     public:
 
         ZMQ_EXPORT bp_encoder_t (mux_t *mux_);
-        ZMQ_EXPORT ~bp_encoder_t ();
+
+        //  Clears any partially encoded messages.
+        ZMQ_EXPORT void reset ();
 
     private:
 

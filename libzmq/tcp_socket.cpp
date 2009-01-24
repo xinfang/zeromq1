@@ -127,8 +127,8 @@ int zmq::tcp_socket_t::read (void *data, int size)
     if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
         return 0;
 
-    //  Signalise peer failure.
-    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAECONNRESET)
+    //  Connection failure.
+    if (nbytes == -1 && (errno == ECONNRESET || errno == ECONNREFUSED))
         return -1;
 
     wsa_assert (nbytes != SOCKET_ERROR);
@@ -243,7 +243,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
         return 0;
 
     //  Signalise peer failure.
-    if (nbytes == -1 && errno == ECONNRESET)
+    if (nbytes == -1 && (errno == ECONNRESET || errno == ECONNREFUSED))
         return -1;
 
     errno_assert (nbytes != -1);

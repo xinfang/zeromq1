@@ -36,6 +36,9 @@ namespace zmq
 
         ZMQ_EXPORT bp_decoder_t (demux_t *demux_);
 
+        //  Clears any partially decoded messages.
+        ZMQ_EXPORT void reset ();
+
     private:
 
         bool one_byte_size_ready ();
