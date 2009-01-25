@@ -65,8 +65,9 @@ namespace zmq
         //  returned.
         ZMQ_EXPORT int read (void *data, int size);
 
-        //  Returns the pending socket error.
-        ZMQ_EXPORT int socket_error ();
+        //  Returns true if there is recoverable socket error. False if there
+        //  is no error. Fails in case on unrecoverable error.
+        ZMQ_EXPORT bool socket_error ();
 
     private:
 

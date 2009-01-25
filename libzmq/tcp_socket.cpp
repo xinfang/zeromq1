@@ -128,7 +128,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
         return 0;
 
     //  Connection failure.
-    if (nbytes == -1 && (errno == ECONNRESET || errno == ECONNREFUSED))
+    if (nbytes == -1 && (errno == WSAECONNRESET || errno == WSAECONNREFUSED))
         return -1;
 
     wsa_assert (nbytes != SOCKET_ERROR);
@@ -140,7 +140,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
     return (size_t) nbytes;
 }
 
-int zmq::tcp_socket_t::socket_error ()
+bool zmq::tcp_socket_t::socket_error ()
 {
     int err;
 
@@ -148,7 +148,7 @@ int zmq::tcp_socket_t::socket_error ()
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
     wsa_assert (rc != SOCKET_ERROR);
 
-    return err;
+    return err != 0;
 }
 
 #else
@@ -255,7 +255,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
     return (size_t) nbytes;
 }
 
-int zmq::tcp_socket_t::socket_error ()
+bool zmq::tcp_socket_t::socket_error ()
 {
     int err;
 
@@ -263,7 +263,10 @@ int zmq::tcp_socket_t::socket_error ()
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
     errno_assert (rc != -1);
 
-    return err;
+    assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
+        err == ECONNRESET || err == EADDRNOTAVAIL || err == EHOSTUNREACH);
+
+    return err != 0;
 }
 
 #endif

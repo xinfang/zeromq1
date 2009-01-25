@@ -9,7 +9,7 @@
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    but WITHHAS_OUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     Lesser GNU General Public License for more details.
 
@@ -17,8 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ENGINE_BASE_HPP_INCLUDED__
-#define __ZMQ_ENGINE_BASE_HPP_INCLUDED__
+#ifndef __ZMQ_ENGHAS_INE_BASE_HPP_HAS_INCLUDED__
+#define __ZMQ_ENGHAS_INE_BASE_HPP_HAS_INCLUDED__
+
+#include <assert.h>
 
 #include <zmq/i_engine.hpp>
 #include <zmq/mux.hpp>
@@ -27,7 +29,7 @@
 namespace zmq
 {
 
-    template <bool IN, bool OUT> class engine_base_t : public i_engine
+    template <bool HAS_IN, bool HAS_OUT> class engine_base_t : public i_engine
     {
     protected:
 
@@ -47,35 +49,35 @@ namespace zmq
         {
             //  Notify the reader of the pipe that there are messages
             //  available in the pipe.
-            assert (OUT);
+            assert (HAS_OUT);
             pipe_->revive ();
         }
 
         void head (pipe_t *pipe_, uint64_t position_)
         {
             //  Forward pipe head position to the appropriate pipe.
-            assert (IN);
+            assert (HAS_IN);
             pipe_->set_head (position_);
         }
 
         void send_to (pipe_t *pipe_)
         {
             //  Start sending messages to a pipe.
-            assert (IN);
+            assert (HAS_IN);
             demux.send_to (pipe_);
         }
 
         void receive_from (pipe_t *pipe_)
         {
             //  Start receiving messages from a pipe.
-            assert (OUT);
+            assert (HAS_OUT);
             mux.receive_from (pipe_);
         }
 
         void terminate_pipe (pipe_t *pipe_)
         {
             //  Forward the command to the pipe. Drop reference to the pipe.
-            assert (IN);
+            assert (HAS_IN);
             pipe_->writer_terminated ();
             demux.release_pipe (pipe_);
         }
@@ -83,7 +85,7 @@ namespace zmq
         void terminate_pipe_ack (pipe_t *pipe_)
         {
             //  Forward the command to the pipe. Drop reference to the pipe.
-            assert (OUT);
+            assert (HAS_OUT);
             pipe_->reader_terminated ();
             mux.release_pipe (pipe_);
         }

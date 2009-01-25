@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\engine_factory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\epoll_thread.cpp"
 				>
 			</File>
@@ -247,10 +251,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\poll_thread.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\pollable_factory.cpp"
 				>
 			</File>
 			<File
@@ -360,6 +360,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\engine_base.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\engine_factory.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\epoll_thread.hpp"
 				>
 			</File>
@@ -449,10 +457,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\poll_thread.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\pollable_factory.hpp"
 				>
 			</File>
 			<File

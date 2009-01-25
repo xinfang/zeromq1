@@ -226,20 +226,11 @@ void zmq::bp_tcp_engine_t::out_event ()
 {
     if (state == engine_connecting) {
 
-        int so_error = socket->socket_error ();
-        switch (so_error) {
-        case ECONNREFUSED:
-        case ETIMEDOUT:
-        case ECONNRESET:
-        case EADDRNOTAVAIL:
-        case EHOSTUNREACH:
+        if (socket->socket_error ()) {
+
             //  Temporary error, try again.
             reconnect ();
             return;
-
-        default:
-            errno_assert (so_error == 0);
-            break;
         }
 
         if (mux.empty ())
