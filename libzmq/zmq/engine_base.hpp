@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ENGHAS_INE_BASE_HPP_HAS_INCLUDED__
-#define __ZMQ_ENGHAS_INE_BASE_HPP_HAS_INCLUDED__
+#ifndef __ZMQ_ENGINE_BASE_HPP_INCLUDED__
+#define __ZMQ_ENGINE_BASE_HPP_INCLUDED__
 
 #include <assert.h>
 

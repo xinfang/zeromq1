@@ -23,17 +23,6 @@
 using namespace System;
 using namespace System::Runtime::InteropServices;
 
-#pragma unmanaged
-
-void unmanaged_free (void *p_)
-{
-    free (p_);
-}
-void *unmanaged_malloc (int size_)
-{
-    return malloc (size_);
-}
-
 #pragma managed
 
 namespace zmq
@@ -57,8 +46,8 @@ namespace zmq
             int create_queue (String *queue_, int scope_,
                 String *nic_);
             void bind (String *exchange_, String *queue_);
-            void send (int eid_, byte data_ __gc[], size_t size_);
-            size_t receive (byte data_ __gc[]);
+            void send (int eid_, Byte data_ __gc []);
+            Byte receive () __gc [];
            
             static const int ZMQ_SCOPE_LOCAL = 0;
             static const int ZMQ_SCOPE_GLOBAL = 1;
@@ -70,7 +59,7 @@ namespace zmq
     Dnzmq::Dnzmq(String *host_)
     {
         //  Convert input arguments to char*.
-        char* host = (char*)(void*)Marshal::StringToHGlobalAnsi(host_);
+        char* host = (char*)(void*) Marshal::StringToHGlobalAnsi(host_);
        
         //  Call WSAStartUp.
         WORD version_requested = MAKEWORD (2, 2);
@@ -96,7 +85,6 @@ namespace zmq
         Marshal::FreeHGlobal(host);
     }
        
-
     Dnzmq::~Dnzmq ()
     {
         //  Deallocate the 0MQ infrastructure.
@@ -105,59 +93,54 @@ namespace zmq
         delete context;
     }
 
-    int Dnzmq::create_exchange (String *exchange_, int scope_,
-        String *nic_)
+    int Dnzmq::create_exchange (String *exchange_, int scope_, String *nic_)
     {   
         //  Convert input parameters to char*.
-        char* exchange = (char*)(void*)Marshal::StringToHGlobalAnsi(exchange_);
-        char* nic = (char*)(void*)Marshal::StringToHGlobalAnsi(nic_);
+        char* exchange = (char*)(void*) Marshal::StringToHGlobalAnsi (exchange_);
+        char* nic = (char*)(void*) Marshal::StringToHGlobalAnsi (nic_);
         
         //  Get the scope.
         zmq::scope_t scope = zmq::scope_local;
         if (scope_ == ZMQ_SCOPE_GLOBAL)
             scope = zmq::scope_global;
         
-        __try {
-         
-            //  Forward the call to native 0MQ library.
-            return context->api_thread->create_exchange (exchange, 
-                scope, nic, context->io_thread, 1, &context->io_thread);
-        }
-        __finally {
-            Marshal::FreeHGlobal(exchange);
-            Marshal::FreeHGlobal(nic);
-        }
+        //  Forward the call to native 0MQ library.
+        int eid = context->api_thread->create_exchange (exchange, 
+            scope, nic, context->io_thread, 1, &context->io_thread);
+
+        //  Deallocate the parameters.
+        Marshal::FreeHGlobal(exchange);
+        Marshal::FreeHGlobal(nic);
+
+        return eid;
     }
 
-    int Dnzmq::create_queue (String *queue_, int scope_, 
-        String *nic_)
+    int Dnzmq::create_queue (String *queue_, int scope_, String *nic_)
     {      
         //  Convert input parameters to char*.
-        char* queue = (char*)(void*)Marshal::StringToHGlobalAnsi(queue_);
-        char* nic = (char*)(void*)Marshal::StringToHGlobalAnsi(nic_);
+        char* queue = (char*)(void*) Marshal::StringToHGlobalAnsi (queue_);
+        char* nic = (char*)(void*) Marshal::StringToHGlobalAnsi (nic_);
         
         //  Get the scope.
         zmq::scope_t scope = zmq::scope_local;
         if (scope_ == ZMQ_SCOPE_GLOBAL)
             scope = zmq::scope_global;
 
-        __try {
-            
-            //  Forward the call to native 0MQ library.
-            return context->api_thread->create_queue (queue, 
-                scope, nic, context->io_thread, 1, &context->io_thread);
-        }
-        __finally {
-            Marshal::FreeHGlobal(queue);
-            Marshal::FreeHGlobal(nic);
-        }
+        //  Forward the call to native 0MQ library.
+        int qid = context->api_thread->create_queue (queue, 
+            scope, nic, context->io_thread, 1, &context->io_thread);
+
+        Marshal::FreeHGlobal(queue);
+        Marshal::FreeHGlobal(nic);
+
+        return qid;
     }
   
     void Dnzmq::bind (String *exchange_, String *queue_)
     {
         //  Convert input parameters to char*.
-        char* exchange = (char*)(void*)Marshal::StringToHGlobalAnsi(exchange_);
-        char* queue = (char*)(void*)Marshal::StringToHGlobalAnsi(queue_);
+        char* exchange = (char*)(void*) Marshal::StringToHGlobalAnsi (exchange_);
+        char* queue = (char*)(void*) Marshal::StringToHGlobalAnsi (queue_);
                 
         //  Forward the call to native 0MQ library.
        context->api_thread->bind (exchange, queue, context->io_thread,
@@ -165,38 +148,37 @@ namespace zmq
        
         Marshal::FreeHGlobal(exchange);        
         Marshal::FreeHGlobal(queue);
-   
     }
  
-    void Dnzmq::send (int eid_, byte data_ __gc[], size_t size_)
+    void Dnzmq::send (int eid_, Byte data_ __gc [])
     {
-        //  Copy data to the unmanaged buffer.
-        byte __pin *tmp_data;
-        tmp_data = &data_[0];
-        void *data = unmanaged_malloc (size_);
-        assert (data);
-        memcpy (data, (byte*) tmp_data, size_);
-       
+        //  Pin the data to the fixed memory location so that it doesn't
+        //  get moved during the call to memcpy.
+        byte __pin *tmp_data = &data_ [0];
 
+        //  Copy data to the unmanaged buffer.
+        void *data = malloc (data_->Length);
+        assert (data);
+        memcpy (data, (byte*) tmp_data, data_->Length);
+       
         //  Forward the call to native 0MQ library.
-        zmq::message_t msg (data, size_, unmanaged_free);
+        zmq::message_t msg (data, data_->Length, free);
         context->api_thread->send (eid_, msg);
     }
  
-    size_t Dnzmq::receive (byte data_ __gc[]) //byte (__gc* data) __gc[]
+    Byte Dnzmq::receive () __gc []
     {
         //  Forward the call to native 0MQ library.
         zmq::message_t msg ;
         context->api_thread->receive (&msg);
+  
+        //  Allocate a managed array and pin it down to the memory.
+        Byte data __gc [] = new Byte __gc [msg.size ()];
+        byte __pin *tmp_data = &data [0];
 
-        //  Copy the data to the managed buffer.
-        byte *buf = (byte *) malloc (msg.size ());
-        assert (buf);
-        memcpy (buf, msg.data (), msg.size ());
-  
-        //  Return the message.
-        Marshal::Copy ((IntPtr)buf, data_, 0, msg.size());
-        return msg.size ();
+        //  Copy the message to the managed buffer.
+        memcpy ((byte*) tmp_data, msg.data (), msg.size ());
+
+        return data;
     }
-  
 }
