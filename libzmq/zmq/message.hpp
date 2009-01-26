@@ -103,6 +103,12 @@ namespace zmq
             return raw_message_size (this);
         }
 
+        //  Returns true is message is a gap notification.
+        inline bool is_gap ()
+        {
+            return raw_message_is_gap (this);
+        }
+
     private:
 
         //  Disable implicit message copying, so that users won't use shared

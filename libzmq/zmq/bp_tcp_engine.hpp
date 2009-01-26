@@ -95,6 +95,9 @@ namespace zmq
 
         ~bp_tcp_engine_t ();
 
+        //  Handle connection error.
+        void error ();
+
         //  Reconnect to the remote peer.
         void reconnect ();
 
@@ -132,7 +135,8 @@ namespace zmq
         std::string local_object;
 
         //  Flag indicating whether the engine should try to reconnect on
-        //  connection failure or not.
+        //  connection failure or not. In general, listeners do not try to
+        //  reconnect - they rely on connecters to reestablish connection.
         bool reconnect_flag;
 
         //  The hostname the engine should reconnect to. Undefined when

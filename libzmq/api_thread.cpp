@@ -32,7 +32,8 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     ticks (0),
     dispatcher (dispatcher_),
     locator (locator_),
-    current_queue (0)
+    current_queue (0),
+    notifications (0)
 {
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
     last_command_time = 0;
@@ -172,7 +173,11 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     command_t cmd_receive_from;
     cmd_receive_from.init_engine_receive_from (queue_engine, pipe);
     send_command (queue_thread, cmd_receive_from);
+}
 
+void zmq::api_thread_t::set_notification_filter (uint32_t notifications_)
+{
+    notifications = notifications_;
 }
 
 bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
@@ -264,8 +269,16 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
                    current_queue = 0;
 
                //  If we have a message exit the small loop.
-               if (retrieved)
-                   break;
+               if (retrieved) {
+
+                   //  If the message is gap notification and the user is not
+                   //  interested in those, proceed as if no message was
+                   //  retrieved.
+                   if (msg_->is_gap () && !(notifications & notification_gap))
+                       retrieved = false;
+                   else
+                       break;
+               }
 
                //  If we've iterated over all the queues exit the loop.
                if (current_queue == start)

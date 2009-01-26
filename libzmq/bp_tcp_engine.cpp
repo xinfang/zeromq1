@@ -93,6 +93,38 @@ zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
     free (writebuf);
 }
 
+void zmq::bp_tcp_engine_t::error ()
+{
+    if (state == engine_connected) {
+
+        //  Push a gap notification to the pipe.
+        //  TODO: Handle the case where the pipe is full.
+        raw_message_t msg;
+        raw_message_init_gap (&msg);
+        if (!demux.write ((message_t&) msg))
+            assert (false);
+        demux.flush ();
+
+        //  Clean half-processed inbound and outbound data.
+        encoder.reset ();
+        decoder.reset ();
+    }
+
+    //  Report connection failure to the client.
+    //  If there is no error handler registered, continue quietly.
+    //  If error handler returns true, continue quietly.
+    //  If error handler returns false, crash the application.
+    error_handler_t *eh = get_error_handler ();
+    if (eh && !eh (local_object.c_str ()))
+        assert (false);
+
+    //  Either reestablish the connection or destroy associated resources.
+    if (reconnect_flag)
+        reconnect ();
+    else
+        shutdown ();
+}
+
 void zmq::bp_tcp_engine_t::reconnect ()
 {
     //  Stop polling the socket.
@@ -108,9 +140,6 @@ void zmq::bp_tcp_engine_t::reconnect ()
     socket = new tcp_socket_t (hostname.c_str ());
     assert (socket);
 
-    encoder.reset ();
-    decoder.reset ();
-
     //  The output event is used to signal that we can get
     //  the connection status. Register our interest in it.
     handle = poller->add_fd (socket->get_fd (), this);
@@ -121,15 +150,6 @@ void zmq::bp_tcp_engine_t::reconnect ()
 
 void zmq::bp_tcp_engine_t::shutdown ()
 {
-    //  Report connection failure to the client.
-    //  If there is no error handler, application crashes immediately.
-    //  If the error handler returns false, it crashes as well.
-    //  Otherwise, the error is ignored.
-    error_handler_t *eh = get_error_handler ();
-    assert (eh);
-    if (!eh (local_object.c_str ()))
-        assert (false);
-
     //  Remove the file descriptor from the pollset.
     poller->rm_fd (handle);
 
@@ -182,10 +202,7 @@ void zmq::bp_tcp_engine_t::in_event ()
 
         //  Check whether the peer has closed the connection.
         if (read_size == -1) {
-            if (reconnect_flag)
-                reconnect ();
-            else
-                shutdown ();
+            error ();
             return;
         }
     }
@@ -227,9 +244,7 @@ void zmq::bp_tcp_engine_t::out_event ()
     if (state == engine_connecting) {
 
         if (socket->socket_error ()) {
-
-            //  Temporary error, try again.
-            reconnect ();
+            error ();
             return;
         }
 
@@ -257,12 +272,9 @@ void zmq::bp_tcp_engine_t::out_event ()
         int nbytes = socket->write (writebuf + write_pos,
             write_size - write_pos);
 
-        //  The other party closed the connection.
+        //  Handle problems with the connection.
         if (nbytes == -1) {
-           if (reconnect_flag)
-                reconnect ();
-            else
-                shutdown ();
+            error ();
             return;
         }
 
@@ -278,9 +290,11 @@ void zmq::bp_tcp_engine_t::unregister_event ()
 
 void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)
 {
-    if (state == engine_connected) {
+    //  Mark pipe as alive.
+    engine_base_t <true,true>::revive (pipe_);
 
-        engine_base_t <true,true>::revive (pipe_);
+    //  Don't start polling for output if you are not connected.
+    if (state == engine_connected) {
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
