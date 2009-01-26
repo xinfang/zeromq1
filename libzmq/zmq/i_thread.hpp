@@ -20,7 +20,6 @@
 #ifndef __ZMQ_I_THREAD_HPP_INCLUDED__
 #define __ZMQ_I_THREAD_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/command.hpp>
 
 namespace zmq
@@ -32,7 +31,7 @@ namespace zmq
 
     struct i_thread
     {
-        ZMQ_EXPORT virtual ~i_thread () {};
+        virtual ~i_thread () {};
 
         //  Returns unique ID of the thread.
         virtual int get_thread_id () = 0;

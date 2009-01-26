@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include <zmq/platform.hpp>
+#include <zmq/export.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq/i_signaler.hpp>
 #include <zmq/err.hpp>
@@ -139,7 +140,7 @@ namespace zmq
         //  Waits for a signal. Returns a set of signals in form of a bitmap.
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc.
-        ZMQ_EXPORT inline uint32_t poll ()
+        inline uint32_t poll ()
         {
             DWORD rc = WaitForSingleObject ((HANDLE) r, INFINITE);
             assert (rc != WAIT_ABANDONED);
@@ -152,7 +153,7 @@ namespace zmq
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc. If there is no signal available,
         //  it returns zero immediately.
-        ZMQ_EXPORT inline uint32_t check ()
+        inline uint32_t check ()
         {
             char buffer [256];
           
@@ -168,7 +169,7 @@ namespace zmq
         }
 
         //  Get the file descriptor associated with the pipe.
-        ZMQ_EXPORT inline fd_t get_fd ()
+        inline fd_t get_fd ()
         {
             return r;
         }

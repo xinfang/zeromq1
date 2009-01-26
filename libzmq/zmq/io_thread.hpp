@@ -21,7 +21,6 @@
 #define __ZMQ_IO_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
-
 #include <zmq/poll_thread.hpp>
 #include <zmq/select_thread.hpp>
 #include <zmq/epoll_thread.hpp>

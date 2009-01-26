@@ -20,7 +20,6 @@
 #ifndef __ZMQ_I_POLLER_HPP_INCLUDED__
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/i_thread.hpp>
 
@@ -38,7 +37,7 @@ namespace zmq
 
     struct i_poller : public i_thread
     {
-        ZMQ_EXPORT virtual ~i_poller () {};
+        virtual ~i_poller () {};
 
         //  Add file descriptor to the polling set. Return handle
         //  representing the descriptor.

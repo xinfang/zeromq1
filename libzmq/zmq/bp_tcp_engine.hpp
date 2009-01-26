@@ -24,7 +24,6 @@
 #include <string>
 
 #include <zmq/stdint.hpp>
-#include <zmq/export.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/engine_base.hpp>

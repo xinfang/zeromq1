@@ -21,6 +21,7 @@
 #define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
+#include <zmq/export.hpp>
 
 #include <stddef.h>
 #include <vector>

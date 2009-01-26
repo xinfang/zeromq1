@@ -30,7 +30,7 @@
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/amqp_tcp_client.hpp>
 
-ZMQ_EXPORT zmq::i_engine *zmq::engine_factory_t::create_listener (
+zmq::i_engine *zmq::engine_factory_t::create_listener (
     i_thread *calling_thread_, i_thread *thread_, const char *arguments_,
     int handler_thread_count_, i_thread **handler_threads_,
     bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
@@ -83,7 +83,7 @@ ZMQ_EXPORT zmq::i_engine *zmq::engine_factory_t::create_listener (
     return NULL;
 }
 
-ZMQ_EXPORT zmq::i_engine *zmq::engine_factory_t::create_engine (
+zmq::i_engine *zmq::engine_factory_t::create_engine (
     i_thread *calling_thread_, i_thread *thread_, const char *arguments_,
     const char *local_object_, const char *engine_arguments_)
 {

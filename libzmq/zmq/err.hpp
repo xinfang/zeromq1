@@ -39,7 +39,7 @@
 namespace zmq
 {
 
-    ZMQ_EXPORT const char * wsa_error ();
+    ZMQ_EXPORT const char *wsa_error ();
     ZMQ_EXPORT void win_error (char *buffer_, size_t buffer_size_);
   
 }

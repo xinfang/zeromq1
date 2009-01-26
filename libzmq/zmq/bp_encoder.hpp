@@ -24,7 +24,6 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include <zmq/export.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/encoder.hpp>
 #include <zmq/message.hpp>
@@ -37,10 +36,10 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT bp_encoder_t (mux_t *mux_);
+        bp_encoder_t (mux_t *mux_);
 
         //  Clears any partially encoded messages.
-        ZMQ_EXPORT void reset ();
+        void reset ();
 
     private:
 

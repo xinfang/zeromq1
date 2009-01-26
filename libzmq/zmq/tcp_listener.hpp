@@ -42,20 +42,20 @@ namespace zmq
 
         //  Get the file descriptor to poll on to get notified about
         //  newly created connections.
-        ZMQ_EXPORT inline fd_t get_fd ()
+        inline fd_t get_fd ()
         {
             return s;
         }
 
         //  Returns port listener is listening on. The pointer returned is
         //  valid only while the listener object exists.
-        ZMQ_EXPORT inline const char *get_interface ()
+        inline const char *get_interface ()
         {
             return iface; 
         }
 
         //  Accept the new connection.
-        ZMQ_EXPORT fd_t accept ();
+        fd_t accept ();
 
     private:
 

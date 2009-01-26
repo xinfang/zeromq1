@@ -49,4 +49,4 @@
 #include <winsock.h>
 #endif
 
-#endif // __ZMQ_WINDOWS_HPP_INCLUDED__
+#endif

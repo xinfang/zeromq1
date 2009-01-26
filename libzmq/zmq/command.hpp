@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include <zmq/export.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq/i_engine.hpp>
 #include <zmq/pipe.hpp>

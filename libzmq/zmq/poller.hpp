@@ -23,7 +23,6 @@
 #include <vector>
 #include <cstdlib>
 
-#include <zmq/export.hpp>
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/dispatcher.hpp>
@@ -50,7 +49,7 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT static i_thread *create (dispatcher_t *dispatcher_);
+        static i_thread *create (dispatcher_t *dispatcher_);
         
         //  i_poller implementation.
         int get_thread_id ();

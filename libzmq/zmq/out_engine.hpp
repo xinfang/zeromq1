@@ -29,10 +29,10 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT static out_engine_t *create ();
+        static out_engine_t *create ();
 
-        ZMQ_EXPORT bool write (message_t &msg_);
-        ZMQ_EXPORT void flush ();
+        bool write (message_t &msg_);
+        void flush ();
 
         //  i_engine implementation.
         void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);

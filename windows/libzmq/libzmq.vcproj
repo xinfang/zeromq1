@@ -392,10 +392,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\i_listener.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\zmq\i_locator.hpp"
 				>
 			</File>

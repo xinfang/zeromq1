@@ -21,7 +21,6 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/demux.hpp>
 #include <zmq/decoder.hpp>
 #include <zmq/message.hpp>
@@ -34,10 +33,10 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT bp_decoder_t (demux_t *demux_);
+        bp_decoder_t (demux_t *demux_);
 
         //  Clears any partially decoded messages.
-        ZMQ_EXPORT void reset ();
+        void reset ();
 
     private:
 

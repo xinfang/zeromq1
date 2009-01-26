@@ -20,7 +20,6 @@
 #ifndef __ZMQ_IP_HPP_INCLUDED__
 #define __ZMQ_IP_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -40,17 +39,17 @@ namespace zmq
     //  This function resolves a sting contaning a network interface name.
     //  Interface name is either textual name (e.g. "eth0") or an IP addess
     //  of the interface.
-    ZMQ_EXPORT void resolve_nic_name (in_addr* addr_, 
+    void resolve_nic_name (in_addr* addr_, 
         char const *interface_);
 
     //  Resolves network interface name in <nic-name>:<port> format. If port
     //  is not specified, system should use a port from unused ports pool.
-    ZMQ_EXPORT void resolve_ip_interface (sockaddr_in* addr_, 
+    void resolve_ip_interface (sockaddr_in* addr_, 
         char const *interface_);
 
     //  This function resolves a string in <hostname>:<port-number> format.
     //  Hostname can be either the name of the host or its IP address.
-    ZMQ_EXPORT void resolve_ip_hostname (sockaddr_in *addr_, 
+    void resolve_ip_hostname (sockaddr_in *addr_, 
         const char *hostname_);
 }
 

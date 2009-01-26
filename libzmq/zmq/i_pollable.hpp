@@ -20,7 +20,6 @@
 #ifndef __ZMQ_I_POLLABLE_HPP_INCLUDED__
 #define __ZMQ_I_POLLABLE_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/i_poller.hpp>
 
 namespace zmq
@@ -30,7 +29,7 @@ namespace zmq
 
     struct i_pollable
     {
-        ZMQ_EXPORT virtual ~i_pollable () {};
+        virtual ~i_pollable () {};
 
         //  Called by I/O thread when engine is being registered
         //  with the thread.

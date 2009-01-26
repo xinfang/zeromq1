@@ -21,7 +21,6 @@
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
 #include <zmq/stdint.hpp>
-#include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/ypipe.hpp>
 #include <zmq/raw_message.hpp>
@@ -39,43 +38,43 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        ZMQ_EXPORT pipe_t (struct i_thread *source_thread_,
+        pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
             struct i_thread *destination_thread_,
             struct i_engine *destination_engine_);
-        ZMQ_EXPORT ~pipe_t ();
+        ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether
         //  pipe limits are exceeded. If true, it's OK to write the message
         //  to the pipe.
-        ZMQ_EXPORT bool check_write ();
+        bool check_write ();
 
         //  Write a message to the pipe.
-        ZMQ_EXPORT void write (raw_message_t *msg_);
+        void write (raw_message_t *msg_);
 
         //  Flush all the written messages to be accessible for reading.
-        ZMQ_EXPORT void flush ();
+        void flush ();
 
         //  Reads a message from the pipe.
-        ZMQ_EXPORT bool read (raw_message_t *msg);
+        bool read (raw_message_t *msg);
 
         //  Make the dead pipe alive once more.
-        ZMQ_EXPORT void revive ();
+        void revive ();
 
         //  Process the 'head' command from reader thread.
-        ZMQ_EXPORT void set_head (uint64_t position_);
+        void set_head (uint64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
-        ZMQ_EXPORT void terminate_writer ();
+        void terminate_writer ();
 
         //  Confirms pipe shut down to the writer.
-        ZMQ_EXPORT void writer_terminated ();
+        void writer_terminated ();
 
         //  Used by the pipe reader to initialise  pipe shut down.
-        ZMQ_EXPORT void terminate_reader ();
+        void terminate_reader ();
 
         //  Confirms pipe shut down to the reader.
-        ZMQ_EXPORT void reader_terminated ();
+        void reader_terminated ();
 
     private:
 

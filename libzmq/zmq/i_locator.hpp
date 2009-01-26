@@ -20,7 +20,6 @@
 #ifndef __ZMQ_I_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_I_LOCATOR_HPP_INCLUDED__
 
-#include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/i_engine.hpp>
 #include <zmq/scope.hpp>
@@ -31,7 +30,7 @@ namespace zmq
 
     struct i_locator
     {
-        ZMQ_EXPORT virtual ~i_locator () {};
+        virtual ~i_locator () {};
 
         //  Creates an object.
         virtual void create (i_thread *calling_thread_,

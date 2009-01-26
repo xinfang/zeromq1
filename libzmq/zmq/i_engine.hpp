@@ -21,7 +21,6 @@
 #define __ZMQ_I_ENGINE_HPP_INCLUDED__
 
 #include <zmq/stdint.hpp>
-#include <zmq/export.hpp>
 #include <zmq/command.hpp>
 
 namespace zmq
@@ -31,7 +30,7 @@ namespace zmq
     //  commands from other engines.
     struct i_engine
     {
-        ZMQ_EXPORT virtual ~i_engine () {};
+        virtual ~i_engine () {};
 
         //  Returns i_pollable interface of the engine. If the engine is not
         //  pollable, it fails.

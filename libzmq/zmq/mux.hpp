@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <vector>
 
-#include <zmq/export.hpp>
 #include <zmq/message.hpp>
 #include <zmq/pipe.hpp>
 
@@ -36,23 +35,23 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT mux_t ();
-        ZMQ_EXPORT ~mux_t ();
+        mux_t ();
+        ~mux_t ();
 
         //  Adds a pipe to receive messages from.
-        ZMQ_EXPORT void receive_from (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
 
         //  Returns a message, if available. If not, returns false.
-        ZMQ_EXPORT bool read (message_t *msg_);
+        bool read (message_t *msg_);
 
         //  Returns true if there are no pipes attached.
-        ZMQ_EXPORT bool empty ();
+        bool empty ();
 
         //  Drop references to the specified pipe.
-        ZMQ_EXPORT void release_pipe (pipe_t *pipe_);
+        void release_pipe (pipe_t *pipe_);
 
         //  Initiate shutdown of all associated pipes.
-        ZMQ_EXPORT void initialise_shutdown ();
+        void initialise_shutdown ();
 
     private:
 

@@ -24,7 +24,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <zmq/export.hpp>
 #include <zmq/message.hpp>
 #include <zmq/pipe.hpp>
 
@@ -37,11 +36,11 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT demux_t ();
-        ZMQ_EXPORT ~demux_t ();
+        demux_t ();
+        ~demux_t ();
 
         //  Start sending messages to the specified pipe.
-        ZMQ_EXPORT void send_to (pipe_t *pipe_);
+        void send_to (pipe_t *pipe_);
 
         //  Send the message (actual send is delayed till next flush). Function
         //  returns true if message is written to at least one pipe. The message
@@ -50,16 +49,16 @@ namespace zmq
         bool write (message_t &msg_);
 
         //  Flush the messages.
-        ZMQ_EXPORT void flush ();
+        void flush ();
 
         //  Returns true if there are no pipes attached.
-        ZMQ_EXPORT bool empty ();
+        bool empty ();
 
         //  Drop references to the specified pipe.
-        ZMQ_EXPORT void release_pipe (pipe_t *pipe_);
+        void release_pipe (pipe_t *pipe_);
 
         //  Initiate shutdown of all associated pipes.
-        ZMQ_EXPORT void initialise_shutdown ();
+        void initialise_shutdown ();
 
         //  Returns true if there are no pipes to send messages to.
         inline bool no_pipes ()

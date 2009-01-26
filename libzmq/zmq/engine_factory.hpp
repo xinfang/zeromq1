@@ -23,7 +23,6 @@
 
 #include <zmq/i_thread.hpp>
 #include <zmq/i_engine.hpp>
-#include <zmq/export.hpp>
 
 namespace zmq
 {
@@ -34,14 +33,14 @@ namespace zmq
     {
     public:
 
-        ZMQ_EXPORT static i_engine *create_listener (
+        static i_engine *create_listener (
             i_thread *calling_thread_, i_thread *thread_,
             const char *arguments_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
 
-        ZMQ_EXPORT static i_engine *create_engine (
+        static i_engine *create_engine (
             i_thread *calling_thread_, i_thread *thread_,
             const char *arguments_, const char *local_object_,
             const char *engine_arguments_);
