@@ -25,14 +25,14 @@
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *exchange_) :
+zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *queue_) :
     mux (mux_),
-    exchange (exchange_),
+    queue (queue_),
     flow_on (false)
 {
     command.args = NULL;
 
-    //  Encode the protocol header and stat the normal workflow.
+    //  Encode the protocol header (AMQP/0-9-1) and stat the normal workflow.
     const char *protocol_header = "AMQP\x00\x00\x09\x01";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
@@ -127,18 +127,18 @@ bool zmq::amqp_encoder_t::message_ready ()
     put_uint16 (framebuf + offset, 0);
     offset += sizeof (uint16_t);
 
-    //  Exchange name.
-    assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, (uint8_t) exchange.size ());
-    offset += sizeof (uint8_t);
-    assert (offset + exchange.size () <= framebuf_size);
-    memcpy (framebuf + offset, exchange.c_str (), exchange.size ());
-    offset += exchange.size ();
-
-    //  Empty routing key.
+    //  Default exchange.
     assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, 0);
     offset += sizeof (uint8_t);
+
+    //  Routing key.
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
+    put_uint8 (framebuf + offset, (uint8_t) queue.size ());
+    offset += sizeof (uint8_t);
+    assert (offset + queue.size () <= framebuf_size);
+    memcpy (framebuf + offset, queue.c_str (), queue.size ());
+    offset += queue.size ();
 
     //  Mandatory = false, immediate = false.
     assert (offset + sizeof (uint8_t) <= framebuf_size);

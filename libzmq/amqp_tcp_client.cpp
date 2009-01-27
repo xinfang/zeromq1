@@ -39,7 +39,8 @@ zmq::amqp_tcp_client_t::amqp_tcp_client_t (i_thread *calling_thread_,
     read_pos (0),
     socket (hostname_),
     poller (NULL),
-    local_object (local_object_)
+    local_object (local_object_),
+    arguments (arguments_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -311,12 +312,46 @@ void zmq::amqp_tcp_client_t::channel_open_ok (
     const i_amqp::longstr_t reserved_1_)
 {
     assert (state == state_waiting_for_channel_open_ok);
+
+    i_amqp::field_table_t queue_args;
+    encoder.queue_declare (0, arguments.c_str (),
+        false, false, false, false, false, queue_args);
+
+    state = state_waiting_for_queue_declare_ok;
+
+    //  There are data to send - start polling for output.
+    poller->set_pollout (handle);
+}
+
+void zmq::amqp_tcp_client_t::queue_declare_ok (
+    const i_amqp::shortstr_t queue_,
+    uint32_t message_count_,
+    uint32_t consumer_count_)
+{
+    assert (state == state_waiting_for_queue_declare_ok);
+
+    i_amqp::field_table_t consume_args;
+    encoder.basic_consume (0, arguments.c_str (), "",
+        true, true, false, false, consume_args);
+
+    state = state_waiting_for_basic_consume_ok;
+
+    //  There are data to send - start polling for output.
+    poller->set_pollout (handle);
+}
+
+void zmq::amqp_tcp_client_t::basic_consume_ok (
+    const i_amqp::shortstr_t consumer_tag_)
+{
+    assert (state == state_waiting_for_basic_consume_ok);
+
     encoder.flow (true);
     state = state_active;
 
     //  Start polling for out - in case there are messages already prepared
     //  to be sent via this connection.
-    poller->set_pollout (handle);
+    poller->set_pollout (handle);   
+
 }
 
 void zmq::amqp_tcp_client_t::channel_close (

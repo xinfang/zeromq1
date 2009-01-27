@@ -85,6 +85,14 @@ namespace zmq
         void channel_open_ok (
             const i_amqp::longstr_t reserved_1_);
 
+        void queue_declare_ok (
+            const i_amqp::shortstr_t queue_,
+            uint32_t message_count_,
+            uint32_t consumer_count_);
+
+        void basic_consume_ok (
+            const i_amqp::shortstr_t consumer_tag_);
+
         void channel_close (
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
@@ -104,6 +112,8 @@ namespace zmq
             state_waiting_for_connection_tune,
             state_waiting_for_connection_open_ok,
             state_waiting_for_channel_open_ok,
+            state_waiting_for_queue_declare_ok,
+            state_waiting_for_basic_consume_ok,
             state_active,
             state_shutting_down
         };
@@ -139,6 +149,8 @@ namespace zmq
         handle_t handle;
 
         std::string local_object;
+
+        std::string arguments;
     };
 
 }

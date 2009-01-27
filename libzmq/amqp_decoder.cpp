@@ -147,6 +147,7 @@ bool zmq::amqp_decoder_t::content_body_frame_end_ready ()
     if (message_offset == message.size ()) {
         if (!demux->write (message))
             return false;
+        demux->flush ();
         next_step (framebuf, 7, &amqp_decoder_t::method_frame_header_ready);
     }
     else

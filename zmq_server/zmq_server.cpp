@@ -94,8 +94,10 @@ int main (int argc, char *argv [])
     assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
 #endif
 
+#ifdef ZMQ_HAVE_AMQP
     //  Preconfigured AMQP broker.
     object_info_t amqp_object_info = {"amqp/tcp://127.0.0.1:5672", -1};
+#endif
 
     //  Create a tcp_listener.
     char iface [256];
@@ -271,10 +273,12 @@ int main (int argc, char *argv [])
 
                         object_info_t *info;
 
+#ifdef ZMQ_HAVE_AMQP
                         //  Special AMQP broker pre-configured entry.
                         if (std::string ("AMQP") == name)
                             info = &amqp_object_info;
                         else {
+#endif
 
                             //  Find the exchange in the repository.
                             objects_t::iterator it =
@@ -294,7 +298,10 @@ int main (int argc, char *argv [])
                                 break;
                             }
                             info = &(it->second);
+
+#ifdef ZMQ_HAVE_AMQP
                         }
+#endif
 
                         //  Send reply command.
                         reply = get_ok_id;
