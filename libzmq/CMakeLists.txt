@@ -12,83 +12,97 @@ include_directories(
 
 set(libzmq_headers
  zmq.hpp
- zmq/api_thread.hpp
- zmq/atomic_ptr.hpp
- zmq/atomic_bitmap.hpp
- zmq/atomic_counter.hpp
- zmq/bp_decoder.hpp
- zmq/decoder.hpp
- zmq/dispatcher.hpp
- zmq/err.hpp
- zmq/i_signaler.hpp
- zmq/tcp_socket.hpp
- zmq/wire.hpp
- zmq/ypipe.hpp
- zmq/ypollset.hpp
- zmq/ysemaphore.hpp
- zmq/ysocketpair.hpp
- zmq/io_thread.hpp
- zmq/poller.hpp
- zmq/poll_thread.hpp
- zmq/epoll_thread.hpp
- zmq/devpoll_thread.hpp
- zmq/kqueue_thread.hpp
- zmq/bp_encoder.hpp
- zmq/encoder.hpp
- zmq/stdint.hpp
- zmq/bp_tcp_engine.hpp
- zmq/i_pollable.hpp
- zmq/command.hpp
- zmq/mux.hpp
- zmq/demux.hpp
- zmq/i_thread.hpp
- zmq/pipe.hpp
- zmq/bp_tcp_listener.hpp
- zmq/locator.hpp
- zmq/i_engine.hpp
- zmq/scope.hpp
- zmq/config.hpp
- zmq/yqueue.hpp
- zmq/tcp_listener.hpp
- zmq/i_locator.hpp
- zmq/raw_message.hpp
- zmq/message.hpp
- zmq/ip.hpp
- zmq/i_poller.hpp
- zmq/thread.hpp
- zmq/mutex.hpp
- zmq/platform.hpp
- zmq/formatting.hpp
- zmq/select_thread.hpp
- zmq/export.hpp
- zmq/server_protocol.hpp
- zmq/windows.hpp
- zmq/fd.hpp
- zmq/out_engine.hpp
- zmq/in_engine.hpp
- zmq/pollable_factory.hpp
- zmq/i_listener.hpp
- zmq/bp_sctp_listener.hpp
- zmq/bp_sctp_engine.hpp
- zmq/pgm_socket.hpp
- zmq/epgm_socket.hpp
- zmq/bp_pgm_sender.hpp
- zmq/bp_pgm_receiver.hpp
- zmq/amqp_tcp_client.hpp
- zmq/amqp_encoder.hpp
+  zmq/amqp_decoder.hpp
+  zmq/amqp_encoder.hpp
+  zmq/amqp_marshaller.hpp
+  zmq/amqp_tcp_client.hpp
+  zmq/amqp_unmarshaller.hpp
+  zmq/api_thread.hpp
+  zmq/atomic_bitmap.hpp
+  zmq/atomic_counter.hpp
+  zmq/atomic_ptr.hpp
+  zmq/bp_decoder.hpp
+  zmq/bp_encoder.hpp
+  zmq/bp_pgm_receiver.hpp
+  zmq/bp_pgm_sender.hpp
+  zmq/bp_tcp_engine.hpp
+  zmq/bp_tcp_listener.hpp
+  zmq/command.hpp
+  zmq/config.hpp
+  zmq/decoder.hpp
+  zmq/demux.hpp
+  zmq/devpoll_thread.hpp
+  zmq/dispatcher.hpp
+  zmq/encoder.hpp
+  zmq/engine_base.hpp
+  zmq/engine_factory.hpp
+  zmq/epgm_socket.hpp
+  zmq/epoll_thread.hpp
+  zmq/err.hpp
+  zmq/export.hpp
+  zmq/fd.hpp
+  zmq/formatting.hpp
+  zmq/i_amqp.hpp
+  zmq/i_engine.hpp
+  zmq/i_locator.hpp
+  zmq/in_engine.hpp
+  zmq/io_thread.hpp
+  zmq/ip.hpp
+  zmq/i_pollable.hpp
+  zmq/i_poller.hpp
+  zmq/i_signaler.hpp
+  zmq/i_thread.hpp
+  zmq/kqueue_thread.hpp
+  zmq/locator.hpp
+  zmq/message.hpp
+  zmq/mutex.hpp
+  zmq/mux.hpp
+  zmq/out_engine.hpp
+  zmq/pgm_socket.hpp
+  zmq/pipe.hpp
+  zmq/poller.hpp
+  zmq/poll_thread.hpp
+  zmq/raw_message.hpp
+  zmq/scope.hpp
+  zmq/select_thread.hpp
+  zmq/server_protocol.hpp
+  zmq/stdint.hpp
+  zmq/tcp_listener.hpp
+  zmq/tcp_socket.hpp
+  zmq/thread.hpp
+  zmq/windows.hpp
+  zmq/wire.hpp
+  zmq/ypipe.hpp
+  zmq/ypollset.hpp
+  zmq/yqueue.hpp
+  zmq/ysemaphore.hpp
+  zmq/ysocketpair.hpp
+  zmq/bp_sctp_engine.hpp
+  zmq/bp_sctp_listener.hpp
+  ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
 set(libzmq_sources
   ${libzmq_headers}
+
+  amqp_decoder.cpp
+  amqp_encoder.cpp
+  amqp_marshaller.cpp
+  amqp_tcp_client.cpp
+  amqp_unmarshaller.cpp
   api_thread.cpp
-  bp_decoder.cpp 
-  bp_encoder.cpp 
+  bp_decoder.cpp
+  bp_encoder.cpp
+  bp_pgm_receiver.cpp
+  bp_pgm_sender.cpp
   bp_tcp_engine.cpp
   bp_tcp_listener.cpp
-  demux.cpp 
-  devpoll_thread.cpp 
+  demux.cpp
+  devpoll_thread.cpp
   dispatcher.cpp
-  epoll_thread.cpp 
+  engine_factory.cpp
+  epgm_socket.cpp
+  epoll_thread.cpp
   err.cpp
   in_engine.cpp
   ip.cpp
@@ -96,16 +110,18 @@ set(libzmq_sources
   locator.cpp
   mux.cpp
   out_engine.cpp
-  pipe.cpp 
-  pollable_factory.cpp
+  pgm_socket.cpp
+  pipe.cpp
   poll_thread.cpp
   select_thread.cpp
-  tcp_listener.cpp 
+  tcp_listener.cpp
   tcp_socket.cpp
   thread.cpp
   ypollset.cpp
   ysemaphore.cpp
   ysocketpair.cpp
+  bp_sctp_engine.cpp
+  bp_sctp_listener.cpp
 )
 
 set(libzmq_libraries
@@ -114,11 +130,6 @@ set(libzmq_libraries
 )
 
 IF(ZMQ_HAVE_SCTP)
-  set(libzmq_sources
-    ${libzmq_sources}
-    bp_sctp_engine.cpp
-    bp_sctp_listener.cpp
-  )
   set(libzmq_libraries
     ${libzmq_libraries}
     ${LIBSCTP_LIBRARIES}
