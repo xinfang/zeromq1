@@ -35,3 +35,6 @@
 
 /* Have Stream Control Transmission Protocol */
 #cmakedefine ZMQ_HAVE_SCTP 1
+
+/* Have OpenPGM */
+#cmakedefine ZMQ_HAVE_OPENPGM 1

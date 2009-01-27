@@ -9,8 +9,9 @@ project(zmq)
 # build options
 option(BUILD_SHARED_LIBS "Build Shared Libs?"        ON)
 option(WITH_C            "Build C language binding?" OFF)
-option(WITH_SCTP         "Build with SCTP protocol?" OFF)
 option(WITH_PERF         "Build performance tests?" OFF)
+option(WITH_SCTP         "Build with SCTP protocol?" OFF)
+option(WITH_OPENPGM      "Build with OpenPGM protocol?" OFF)
 
 #  By default gettime is used for time measure
 set (time_measure "gettime")
@@ -69,4 +70,5 @@ MESSAGE(STATUS  " C language binding ......... ${WITH_C}" )
 MESSAGE(STATUS  " Python language binding .... ${WITH_PYTHON}" )
 MESSAGE(STATUS  " Java language binding ...... ${WITH_JAVA}" )
 MESSAGE(STATUS  " SCTP capable ............... ${WITH_SCTP}" )
+MESSAGE(STATUS  " OpenPGM capable ............ ${WITH_OPENPGM}" )
 MESSAGE(STATUS  "")

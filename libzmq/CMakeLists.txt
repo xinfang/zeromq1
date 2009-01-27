@@ -136,5 +136,10 @@ IF(ZMQ_HAVE_SCTP)
   )
 ENDIF(ZMQ_HAVE_SCTP)
 
+IF(ZMQ_HAVE_OPENPGM)
+  LINK_LIBRARIES ("pgm-pic" ${GLIB2_LIBRARIES})
+  INCLUDE_DIRECTORIES (${GLIB2_INCLUDE_DIRS})
+ENDIF(ZMQ_HAVE_OPENPGM)
+
 zmq_add_library(zmq ${libzmq_sources})
 target_link_libraries( zmq ${libzmq_libraries})

@@ -65,6 +65,18 @@ if(WITH_SCTP)
 endif(WITH_SCTP)
 
 # -----------------------------------------------------------------------------
+# OpenPGM functionality
+# -----------------------------------------------------------------------------
+
+if(WITH_OPENPGM)
+  INCLUDE(FindPkgConfig)
+  pkg_check_modules (GLIB2 REQUIRED glib-2.0>=2.10 gthread-2.0)
+  # pkg_check_modules should fail if not found so there
+
+  set(ZMQ_HAVE_OPENPGM 1)
+endif(WITH_OPENPGM)
+
+# -----------------------------------------------------------------------------
 # Other platform specific checks here
 # -----------------------------------------------------------------------------
 
