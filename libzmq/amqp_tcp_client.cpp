@@ -346,6 +346,7 @@ void zmq::amqp_tcp_client_t::basic_consume_ok (
     assert (state == state_waiting_for_basic_consume_ok);
 
     encoder.flow (true);
+    decoder.flow (true);
     state = state_active;
 
     //  Start polling for out - in case there are messages already prepared

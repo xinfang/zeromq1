@@ -22,7 +22,6 @@
 
 #if defined ZMQ_HAVE_AMQP
 
-#include <zmq/export.hpp>
 #include <zmq/i_amqp.hpp>
 #include <zmq/decoder.hpp>
 #include <zmq/amqp_unmarshaller.hpp>
@@ -40,6 +39,9 @@ namespace zmq
 
         amqp_decoder_t (demux_t *demux_, i_amqp *callback_);
         ~amqp_decoder_t ();
+
+        //  Switch message flow on/off.
+        void flow (bool flow_on_);
 
     private:
 
@@ -65,6 +67,10 @@ namespace zmq
         //  data was already decoded into the message.
         message_t message;
         size_t message_offset;
+
+        //  If true, messages may pass through the decoder. If false, only
+        //  AMQP commands are passed (e.g. during initial AMQP handshaking).
+        bool flow_on;
 
         //  Buffer to read the frames in (excluding actual message content).
         unsigned char framebuf [i_amqp::frame_min_size];

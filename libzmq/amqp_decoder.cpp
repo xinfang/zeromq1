@@ -25,7 +25,8 @@
 
 zmq::amqp_decoder_t::amqp_decoder_t (demux_t *demux_, i_amqp *callback_) :
     amqp_unmarshaller_t (callback_),
-    demux (demux_)
+    demux (demux_),
+    flow_on (false)
 {
     //  Wait for frame header to arrive.
     next_step (framebuf, 7, &amqp_decoder_t::method_frame_header_ready);
@@ -33,6 +34,11 @@ zmq::amqp_decoder_t::amqp_decoder_t (demux_t *demux_, i_amqp *callback_) :
 
 zmq::amqp_decoder_t::~amqp_decoder_t ()
 {
+}
+
+void zmq::amqp_decoder_t::flow (bool flow_on_)
+{
+    flow_on = flow_on_;
 }
 
 bool zmq::amqp_decoder_t::method_frame_header_ready ()
@@ -62,6 +68,7 @@ bool zmq::amqp_decoder_t::method_payload_ready ()
     //  If the former, forward it to the protocol state machine
     //  (via unmarshaller). If the latter, start reading message content header.
     if (class_id == i_amqp::basic_id && method_id == i_amqp::basic_deliver_id) {
+       assert (flow_on);
        next_step (framebuf, 7,
            &amqp_decoder_t::content_header_frame_header_ready);
     }
