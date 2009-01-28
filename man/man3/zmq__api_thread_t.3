@@ -31,9 +31,16 @@ namespace zmq
             const char *interface = NULL,
             poll_thread_t *listener_thread = NULL,
             int handler_thread_count = 0,
-            poll_thread_t **handler_threads = NULL);
-        void bind (const char *exchange, const char *queue,
-            poll_thread_t *exchange_thread, poll_thread_t *queue_thread);
+            poll_thread_t **handler_threads = NULL,
+            uint64_t hwm = -1,
+            uint64_t lwm = -1);
+        void bind (
+            const char *exchange,
+            const char *queue,
+            poll_thread_t *exchange_thread,
+            poll_thread_t *queue_thread,
+            const char *exchange_arguments = NULL,
+            const char *queue_arguments = NULL);
         void send (int exchange_id, message_t &msg);
         void presend (int exchange_id, message_t &msg);
         void flush ();
@@ -95,7 +102,7 @@ array.  The size of the array is specified by the
 .IR handler_thread_count
 parameter. Newly created connections are distributed between handler threads
 in a round-robin manner.
-.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL)\fP
+.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, uint64_t hwm = -1, uint64_t lwm = -1)\fP
 Creates a queue. The name of the queue to create is specified by the
 .IR queue
 parameter.  The
@@ -122,7 +129,24 @@ array. The size of the array is specified by the
 .IR handler_thread_count
 parameter. Newly created connections are distributed between handler threads
 in a round-robin manner.
-.IP "\fBvoid bind (const char *exchange, const char *queue, poll_thread_t *exchange_thread, poll_thread_t *queue_thread)\fP
+.IR hwm
+specifies the high water mark for the queue. When there is specified
+number of messages in the queue it blocks and no more messages can be written
+to it. Application attempting to write a message to the queue will be blocked
+until number of messages in it drops below low water mark.
+.IR hwm
+equal to -1 means there's no limit on the number of messages in the queue.
+.IR lwm
+specifies low water mark for the queue. If the queue is blocked because
+high watermark was reached, it becomes unblocked once the number of messages
+in it drops below
+.IR lwm .
+If
+.IR hwm
+is set to unlimited (-1)
+.IR lwm
+paramter is ignored.
+.IP "\fBvoid bind (const char *exchange, const char *queue, poll_thread_t *exchange_thread, poll_thread_t *queue_thread, const char *exchange_arguments = NULL, const char *queue_arguments = NULL)\fP
 Binds
 .IR queue
 to
@@ -142,6 +166,11 @@ resides in a different process the
 .IR queue_thread
 parameter specifies which I/O thread should be used to handle the network
 traffic.
+.IR exchange_arguments
+and
+.IR queue_arguments
+can contain additional information passed to eachange and queue engine.
+Interpretation of these strings is dependent on the transport mechanism used.
 .IP "\fBvoid send (int exchange_id, message_t &msg)\fP
 Sends a message to exchange specified by the
 .IR exchange_id

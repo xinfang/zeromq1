@@ -20,7 +20,11 @@ Registers the function to handle 0MQ exception. When an exception
 .IR local_object
 parameter is set to the name of the object (exchange or queue) that caused
 the exception. If error handler returns false, application will fail.
-If it returns true, exception is silently ignored.
+If it returns true, exception is silently ignored and automatic reconnection
+is attempted. If no error handler is specified (
+.IR set_error_handler
+function is not called), exception is silently ignored and automatic
+reconnection is attempted.
 .SH EXAMPLE
 .nf
 #include <zmq.hpp>
