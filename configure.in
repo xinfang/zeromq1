@@ -331,6 +331,8 @@ if test "x$with_sctp_ext" != "xno"; then
         ;;
         *solaris*)
         ;;
+        *freebsd*)
+        ;;
         *)
             AC_MSG_ERROR([SCTP extesion is not supported on this platform $host.])
         ;;
