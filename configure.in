@@ -121,7 +121,7 @@ AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
 
 if test "x$have_pkg_config" != "xno"; then
     #  First instance of PKG_CHECK_ has to be executed
-    PKG_CHECK_EXISTS([dummy_pkg], [], [])
+    PKG_CHECK_MODULES(DUMMY, dummy,[dummy=yes],[dummy=no])
 fi
 
 perf="no"
