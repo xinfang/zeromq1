@@ -167,7 +167,7 @@ namespace zmq
         //  VSMs and delimiters require no special handling.
         if (src_->content !=
               (message_content_t*) raw_message_t::delimiter_tag &&
-              src_->content != (message_content_t*) raw_message_t::vsm_tag ||
+              src_->content != (message_content_t*) raw_message_t::vsm_tag &&
               src_->content != (message_content_t*) raw_message_t::gap_tag) {
 
             //  One reference is added to shared messages. Non-shared messages
