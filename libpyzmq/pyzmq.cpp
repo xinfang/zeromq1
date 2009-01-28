@@ -30,12 +30,6 @@ struct pyZMQ
     zmq::api_thread_t *api_thread;
 };
 
-bool error_handler (const char*)
-{
-    //  We don't want to fail when peer disconnects
-    return true;
-}
-
 void pyZMQ_dealloc (pyZMQ *self)
 {
     if (self->dispatcher) {
@@ -73,9 +67,6 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s", (char**) kwlist,
           &hostname))
         return -1;
-
-    //  Set error handler function (to ignore disconnected receivers).
-    zmq::set_error_handler (error_handler);
 
     self->dispatcher = new zmq::dispatcher_t (2);
     self->locator = new zmq::locator_t (hostname);
@@ -169,6 +160,13 @@ PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
     return PyString_FromStringAndSize ((char*) msg.data (), msg.size ());
 }
 
+PyObject *pyZMQ_receive2 (pyZMQ *self, PyObject *args, PyObject *kwdict)
+{
+    zmq::message_t msg;
+    int qid = self->api_thread->receive (&msg);
+    return Py_BuildValue ("is#", qid, (char*) msg.data (), msg.size ());
+}
+
 static PyMethodDef pyZMQ_methods [] =
 {
     {
@@ -217,6 +215,13 @@ static PyMethodDef pyZMQ_methods [] =
         METH_VARARGS | METH_KEYWORDS, 
         "receive () -> message\n\n"
         "Receive a message."
+    },
+    {
+        "receive2",
+        (PyCFunction) pyZMQ_receive2,
+        METH_VARARGS | METH_KEYWORDS, 
+        "receive2 () -> (queue-id, message)\n\n"
+        "Receive a message. Get ID of the queue it was received from."
     },
     {
         NULL
