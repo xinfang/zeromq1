@@ -34,6 +34,9 @@
 /* Have OpenPGM extension */
 #undef ZMQ_HAVE_OPENPGM
 
+/* Have eventfd extension. */
+#undef ZMQ_HAVE_EVENTFD
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif

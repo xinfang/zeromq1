@@ -113,6 +113,9 @@ fi
 AC_HEADER_STDC
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
 
+# Check if we have eventfd.h header file.
+AC_CHECK_HEADERS(sys/eventfd.h, [AC_DEFINE(ZMQ_HAVE_EVENTFD, 1, [Have eventfd extension.])])
+
 # Use c++ in subsequent tests
 AC_LANG(C++)
 
