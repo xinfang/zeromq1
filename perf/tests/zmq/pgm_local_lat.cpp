@@ -112,6 +112,9 @@ int main (int argc, char *argv [])
     zmq::message_t sync_message (1);
     api->send (ex_id, sync_message);
 
+    //  Stop for a while that sync message is being send.
+    sleep (1);
+
     //  Set 2 fixed decimal places.
     std::cout.setf(std::ios::fixed);
     std::cout.precision (2);
