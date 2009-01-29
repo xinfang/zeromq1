@@ -138,22 +138,19 @@ void zmq::bp_sctp_engine_t::in_event ()
     int msg_nbr;
     for (msg_nbr = 0; msg_nbr != 1; msg_nbr ++) {
 
-            //  TODO: How do we know whether buffer overflow occured?
-            //  How can we read messages larger than N bytes?
-            //  TODO: Make this non-blocking...
-            unsigned char buffer [4096]; 
-            int msg_flags;
-            ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
-                NULL, 0, NULL, &msg_flags);
-            errno_assert (nbytes != -1);
+        unsigned char buffer [4096]; 
+        int msg_flags;
+        ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
+            NULL, 0, NULL, &msg_flags);
+        errno_assert (nbytes != -1);
 
-            //  Create 0MQ message from the data.
-            message_t msg (nbytes);
-            memcpy (msg.data (), buffer, nbytes);
+        //  Create 0MQ message from the data.
+        message_t msg (nbytes);
+        memcpy (msg.data (), buffer, nbytes);
 
-            //  TODO: Implement queue-full handling.
-            bool ok = demux.write (msg);
-            assert (ok);
+        //  TODO: Implement queue-full handling.
+        bool ok = demux.write (msg);
+        assert (ok);
     }
 
     //  Flash the messages to system, if there are any.
@@ -172,7 +169,6 @@ void zmq::bp_sctp_engine_t::out_event ()
     }
 
     //  Send the data over the wire.
-    //  TODO: This call should not block. Investigate the behaviour...
     ssize_t nbytes = sctp_sendmsg (s, msg.data (), msg.size (),
         NULL, 0, 0, 0, 0, 0, 0);
     errno_assert (nbytes != -1);

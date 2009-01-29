@@ -88,15 +88,6 @@ namespace zmq
         //  Underlying SCTP socket.
         int s;
 
-        //  Partially read message.
-        message_t in_msg;
-
-        //  Object to aggregate messages from inbound pipes.
-        mux_t mux;
-
-        //  Object to distribute messages to outbound pipes.
-        demux_t demux;  
-
         //  Callback to poller.
         i_poller *poller;
 
