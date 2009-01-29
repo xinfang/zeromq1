@@ -75,7 +75,13 @@ namespace zmq
 
         //  High and low watermark for backend protocol engines.
         bp_hwm = 10000,
-        bp_lwm = 5000
+        bp_lwm = 5000,
+
+        //  Due to unimplemented "explicit EOR" mechanism in Linux kernel
+        //  implementation of SCTP we are not able to send SCTP messages
+        //  larger than SCTP tx buffer. This setting allows to set the upper
+        //  limit for SCTP message size.
+        max_sctp_message_size = 4096
     };
 
 }

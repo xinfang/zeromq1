@@ -138,7 +138,7 @@ void zmq::bp_sctp_engine_t::in_event ()
     int msg_nbr;
     for (msg_nbr = 0; msg_nbr != 1; msg_nbr ++) {
 
-        unsigned char buffer [4096]; 
+        unsigned char buffer [max_sctp_message_size]; 
         int msg_flags;
         ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
             NULL, 0, NULL, &msg_flags);
