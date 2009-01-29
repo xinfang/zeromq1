@@ -134,7 +134,7 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
 
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp") {
-        i_engine *engine = new amqp_tcp_client_t (calling_thread_,
+        i_engine *engine = new amqp_client_t (calling_thread_,
             thread_, transport_args.c_str (), local_object_, engine_arguments_);
         assert (engine);
         return engine;
