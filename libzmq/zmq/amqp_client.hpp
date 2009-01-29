@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_AMQP_TCP_CLIENT_HPP_INCLUDED__
-#define __ZMQ_AMQP_TCP_CLIENT_HPP_INCLUDED__
+#ifndef __ZMQ_AMQP_CLIENT_HPP_INCLUDED__
+#define __ZMQ_AMQP_CLIENT_HPP_INCLUDED__
 
 #if defined ZMQ_HAVE_AMQP
 
@@ -36,7 +36,7 @@
 namespace zmq
 {
 
-    class amqp_tcp_client_t :
+    class amqp_client_t :
         public engine_base_t <true, true>,
         public i_pollable,
         private i_amqp
@@ -62,10 +62,10 @@ namespace zmq
 
     private:
 
-        amqp_tcp_client_t (i_thread *calling_thread_, i_thread *thread_,
+        amqp_client_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
             const char *arguments_);
-        ~amqp_tcp_client_t ();
+        ~amqp_client_t ();
 
         void connection_start (
             uint8_t version_major_,
@@ -139,7 +139,7 @@ namespace zmq
         int read_size;
         int read_pos;
 
-        //  AMQP/TCP socket connected to the broker.
+        //  AMQP socket connected to the broker.
         tcp_socket_t socket;
 
         //  Reference to the I/O thread managing this engine.

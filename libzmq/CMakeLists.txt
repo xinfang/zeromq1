@@ -15,7 +15,7 @@ set(libzmq_headers
   zmq/amqp_decoder.hpp
   zmq/amqp_encoder.hpp
   zmq/amqp_marshaller.hpp
-  zmq/amqp_tcp_client.hpp
+  zmq/amqp_client.hpp
   zmq/amqp_unmarshaller.hpp
   zmq/api_thread.hpp
   zmq/atomic_bitmap.hpp
@@ -88,7 +88,7 @@ set(libzmq_sources
   amqp_decoder.cpp
   amqp_encoder.cpp
   amqp_marshaller.cpp
-  amqp_tcp_client.cpp
+  amqp_client.cpp
   amqp_unmarshaller.cpp
   api_thread.cpp
   bp_decoder.cpp

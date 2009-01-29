@@ -21,11 +21,11 @@
 
 #include <stdio.h>
 
-#include <zmq/amqp_tcp_client.hpp>
+#include <zmq/amqp_client.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/config.hpp>
 
-zmq::amqp_tcp_client_t::amqp_tcp_client_t (i_thread *calling_thread_,
+zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
       const char *arguments_) :
     state (state_connecting),
@@ -48,24 +48,24 @@ zmq::amqp_tcp_client_t::amqp_tcp_client_t (i_thread *calling_thread_,
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
 
-    //  Register AMQP/TCP engine with the I/O thread.
+    //  Register AMQP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::amqp_tcp_client_t::~amqp_tcp_client_t ()
+zmq::amqp_client_t::~amqp_client_t ()
 {
     free (readbuf);
     free (writebuf);
 }
 
-zmq::i_pollable *zmq::amqp_tcp_client_t::cast_to_pollable ()
+zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
 {
     return this;
 }
 
-void zmq::amqp_tcp_client_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::amqp_client_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     //  TODO: Rename bp_hwm & bp_lwm to generic "connection_hwm" &
     //  "connection_lwm" it is not tied strictly to the backend protocol.
@@ -73,7 +73,7 @@ void zmq::amqp_tcp_client_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
     *lwm_ = bp_lwm;
 }
 
-void zmq::amqp_tcp_client_t::revive (pipe_t *pipe_)
+void zmq::amqp_client_t::revive (pipe_t *pipe_)
 {
     if (state != state_connecting && state != state_shutting_down) {
 
@@ -89,7 +89,7 @@ void zmq::amqp_tcp_client_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::amqp_tcp_client_t::head (pipe_t *pipe_, uint64_t position_)
+void zmq::amqp_client_t::head (pipe_t *pipe_, uint64_t position_)
 {
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {
@@ -98,7 +98,7 @@ void zmq::amqp_tcp_client_t::head (pipe_t *pipe_, uint64_t position_)
     }
 }
 
-void zmq::amqp_tcp_client_t::send_to (pipe_t *pipe_)
+void zmq::amqp_client_t::send_to (pipe_t *pipe_)
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
@@ -110,7 +110,7 @@ void zmq::amqp_tcp_client_t::send_to (pipe_t *pipe_)
     engine_base_t <true, true>::send_to (pipe_);
 }
 
-void zmq::amqp_tcp_client_t::receive_from (pipe_t *pipe_)
+void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
 {
     //  Start receiving messages from a pipe.
     engine_base_t <true, true>::receive_from (pipe_);
@@ -122,7 +122,7 @@ void zmq::amqp_tcp_client_t::receive_from (pipe_t *pipe_)
         poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::register_event (i_poller *poller_)
+void zmq::amqp_client_t::register_event (i_poller *poller_)
 {
     assert (state == state_connecting);
 
@@ -136,7 +136,7 @@ void zmq::amqp_tcp_client_t::register_event (i_poller *poller_)
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::in_event ()
+void zmq::amqp_client_t::in_event ()
 {
     //  This variable determines whether processing incoming messages is
     //  stuck because of exceeded pipe limits.
@@ -205,7 +205,7 @@ void zmq::amqp_tcp_client_t::in_event ()
     }
 }
 
-void zmq::amqp_tcp_client_t::out_event ()
+void zmq::amqp_client_t::out_event ()
 {
     if (state == state_connecting) {
 
@@ -245,12 +245,12 @@ void zmq::amqp_tcp_client_t::out_event ()
     }
 }
 
-void zmq::amqp_tcp_client_t::unregister_event ()
+void zmq::amqp_client_t::unregister_event ()
 {
     assert (false);
 }
 
-void zmq::amqp_tcp_client_t::connection_start (
+void zmq::amqp_client_t::connection_start (
     uint8_t version_major_,
     uint8_t version_minor_,
     const i_amqp::field_table_t &server_properties_,
@@ -274,7 +274,7 @@ void zmq::amqp_tcp_client_t::connection_start (
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::connection_tune (
+void zmq::amqp_client_t::connection_tune (
     uint16_t channel_max_,
     uint32_t frame_max_,
     uint16_t heartbeat_)
@@ -295,7 +295,7 @@ void zmq::amqp_tcp_client_t::connection_tune (
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::connection_open_ok (
+void zmq::amqp_client_t::connection_open_ok (
     const i_amqp::shortstr_t reserved_1_)
 {
     assert (state == state_waiting_for_connection_open_ok);
@@ -308,7 +308,7 @@ void zmq::amqp_tcp_client_t::connection_open_ok (
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::channel_open_ok (
+void zmq::amqp_client_t::channel_open_ok (
     const i_amqp::longstr_t reserved_1_)
 {
     assert (state == state_waiting_for_channel_open_ok);
@@ -323,7 +323,7 @@ void zmq::amqp_tcp_client_t::channel_open_ok (
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::queue_declare_ok (
+void zmq::amqp_client_t::queue_declare_ok (
     const i_amqp::shortstr_t queue_,
     uint32_t message_count_,
     uint32_t consumer_count_)
@@ -340,7 +340,7 @@ void zmq::amqp_tcp_client_t::queue_declare_ok (
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_tcp_client_t::basic_consume_ok (
+void zmq::amqp_client_t::basic_consume_ok (
     const i_amqp::shortstr_t consumer_tag_)
 {
     assert (state == state_waiting_for_basic_consume_ok);
@@ -355,7 +355,7 @@ void zmq::amqp_tcp_client_t::basic_consume_ok (
 
 }
 
-void zmq::amqp_tcp_client_t::channel_close (
+void zmq::amqp_client_t::channel_close (
     uint16_t reply_code_,
     const i_amqp::shortstr_t reply_text_,
     uint16_t class_id_,
@@ -365,7 +365,7 @@ void zmq::amqp_tcp_client_t::channel_close (
     assert (false);
 }
 
-void zmq::amqp_tcp_client_t::connection_close (
+void zmq::amqp_client_t::connection_close (
     uint16_t reply_code_,
     const i_amqp::shortstr_t reply_text_,
     uint16_t class_id_,

@@ -64,7 +64,7 @@ pkginclude_HEADERS = \
     ./zmq/epgm_socket.hpp \
     ./zmq/bp_pgm_sender.hpp \
     ./zmq/bp_pgm_receiver.hpp \
-    ./zmq/amqp_tcp_client.hpp \
+    ./zmq/amqp_client.hpp \
     ./zmq/amqp_encoder.hpp \
     ./zmq/amqp_decoder.hpp \
     ./zmq/amqp_marshaller.hpp \
@@ -106,7 +106,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     epgm_socket.cpp \
     bp_pgm_sender.cpp \
     bp_pgm_receiver.cpp \
-    amqp_tcp_client.cpp \
+    amqp_client.cpp \
     amqp_encoder.cpp \
     amqp_decoder.cpp \
     amqp_marshaller.cpp \
