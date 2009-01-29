@@ -18,8 +18,8 @@
 */
 
 
-#ifndef __ZMQ_BP_SCTP_ENGINE_HPP_INCLUDED__
-#define __ZMQ_BP_SCTP_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_SCTP_ENGINE_HPP_INCLUDED__
+#define __ZMQ_SCTP_ENGINE_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -44,21 +44,22 @@
 namespace zmq
 {
 
-    //  BP/SCTP engine is defined by follwowing properties:
+    //  SCTP engine is defined by follwowing properties:
     //
     //  1. Underlying transport is SCTP.
-    //  2. Wire-level protocol is 0MQ backend protocol.
+    //  2. There's no MOM-level protocol. 0MQ messages are translated
+    //     directly to SCTP messages.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_sctp_engine_t :
+    class sctp_engine_t :
         public engine_base_t <true, true>,
         public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
 
-        //  Allow BP/SCTP listener to create the engine.
-        friend class bp_sctp_listener_t;
+        //  Allow SCTP listener to create the engine.
+        friend class sctp_listener_t;
 
     public:
 
@@ -78,12 +79,12 @@ namespace zmq
 
     private:
 
-        bp_sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
             const char *arguments_);
-        bp_sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             int listener_, const char *local_object_);
-        ~bp_sctp_engine_t ();
+        ~sctp_engine_t ();
 
         //  Underlying SCTP socket.
         int s;
@@ -101,8 +102,8 @@ namespace zmq
         //  from other threads.
         bool shutting_down;
 
-        bp_sctp_engine_t (const bp_sctp_engine_t&);
-        void operator = (const bp_sctp_engine_t&);
+        sctp_engine_t (const sctp_engine_t&);
+        void operator = (const sctp_engine_t&);
     };
 
 }

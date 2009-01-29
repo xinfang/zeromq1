@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_BP_SCTP_LISTENER_HPP_INCLUDED__
-#define __ZMQ_BP_SCTP_LISTENER_HPP_INCLUDED__
+#ifndef __ZMQ_SCTP_LISTENER_HPP_INCLUDED__
+#define __ZMQ_SCTP_LISTENER_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -40,10 +40,10 @@
 namespace zmq
 {
 
-    //  BP (backend protocol) listener. Listens on a specified network
-    //  interface and port and creates a BP engine for every new connection.
+    //  SCTP listener. Listens on a specified network interface and port and
+    //  creates a SCTP engine for every new connection.
 
-    class bp_sctp_listener_t :
+    class sctp_listener_t :
         public engine_base_t <false, false>, 
         public i_pollable
     {
@@ -65,14 +65,14 @@ namespace zmq
 
     private:
 
-        //  Creates a BP listener. Handler thread array determines
-        //  the threads that will serve newly-created BP engines.
-        bp_sctp_listener_t (i_thread *calling_thread_, i_thread *thread_,
+        //  Creates a SCTP listener. Handler thread array determines
+        //  the threads that will serve newly-created SCTP engines.
+        sctp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
-        ~bp_sctp_listener_t ();
+        ~sctp_listener_t ();
 
         //  Listening socket.
         int s;
@@ -95,16 +95,16 @@ namespace zmq
         //  Arguments string for this listener.
         char arguments [256];
 
-        //  The thread array to manage newly-created BP engines.
+        //  The thread array to manage newly-created SCTP engines.
         typedef std::vector <i_thread*> handler_threads_t;
         handler_threads_t handler_threads;
 
-        //  Points to the I/O thread to use to handle next BP connection.
+        //  Points to the I/O thread to use to handle next SCTP connection.
         //  (Handler threads are used in round-robin fashion.)
         handler_threads_t::size_type current_handler_thread;
 
-        bp_sctp_listener_t (const bp_sctp_listener_t&);
-        void operator = (const bp_sctp_listener_t&);
+        sctp_listener_t (const sctp_listener_t&);
+        void operator = (const sctp_listener_t&);
     };
 
 }

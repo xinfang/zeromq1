@@ -23,13 +23,13 @@
 
 #include <fcntl.h>
 
-#include <zmq/bp_sctp_engine.hpp>
+#include <zmq/sctp_engine.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/ip.hpp>
 
-zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
+zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
       const char *arguments_) :
     poller (NULL),
@@ -74,7 +74,7 @@ zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
+zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, int listener_, const char *local_object_) :
     poller (NULL),
     local_object (local_object_),
@@ -96,31 +96,31 @@ zmq::bp_sctp_engine_t::bp_sctp_engine_t (i_thread *calling_thread_,
     rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
     errno_assert (rc != -1);
 
-    //  Register BP engine with the I/O thread.
+    //  Register SCTP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_sctp_engine_t::~bp_sctp_engine_t ()
+zmq::sctp_engine_t::~sctp_engine_t ()
 {
     //  Cleanup the socket.
     int rc = ::close (s);
     errno_assert (rc == 0);
 }
 
-zmq::i_pollable *zmq::bp_sctp_engine_t::cast_to_pollable ()
+zmq::i_pollable *zmq::sctp_engine_t::cast_to_pollable ()
 {
     return this;
 }
 
-void zmq::bp_sctp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::sctp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
 }
 
-void zmq::bp_sctp_engine_t::register_event (i_poller *poller_)
+void zmq::sctp_engine_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -130,7 +130,7 @@ void zmq::bp_sctp_engine_t::register_event (i_poller *poller_)
     poller->set_pollin (handle);
 }
 
-void zmq::bp_sctp_engine_t::in_event ()
+void zmq::sctp_engine_t::in_event ()
 {
     //  Receive N messages in one go if possible - this way we'll avoid
     //  excessive polling.
@@ -158,7 +158,7 @@ void zmq::bp_sctp_engine_t::in_event ()
         demux.flush ();
 }
 
-void zmq::bp_sctp_engine_t::out_event ()
+void zmq::sctp_engine_t::out_event ()
 {
     message_t msg;
     if (!mux.read (&msg)) {
@@ -175,13 +175,13 @@ void zmq::bp_sctp_engine_t::out_event ()
     assert (nbytes == (ssize_t) msg.size ());
 }
 
-void zmq::bp_sctp_engine_t::unregister_event ()
+void zmq::sctp_engine_t::unregister_event ()
 {
     //  TODO: Implement this.
     assert (false);
 }
 
-void zmq::bp_sctp_engine_t::revive (pipe_t *pipe_)
+void zmq::sctp_engine_t::revive (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
@@ -195,13 +195,13 @@ void zmq::bp_sctp_engine_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::bp_sctp_engine_t::head (pipe_t *pipe_, uint64_t position_)
+void zmq::sctp_engine_t::head (pipe_t *pipe_, uint64_t position_)
 {
     engine_base_t <true,true>::head (pipe_, position_);
     in_event ();
 }
 
-void zmq::bp_sctp_engine_t::send_to (pipe_t *pipe_)
+void zmq::sctp_engine_t::send_to (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
@@ -216,7 +216,7 @@ void zmq::bp_sctp_engine_t::send_to (pipe_t *pipe_)
     }
 }
 
-void zmq::bp_sctp_engine_t::receive_from (pipe_t *pipe_)
+void zmq::sctp_engine_t::receive_from (pipe_t *pipe_)
 {
     //  Start receiving messages from a pipe.
     engine_base_t <true,true>::receive_from (pipe_);

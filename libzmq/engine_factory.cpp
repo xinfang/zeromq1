@@ -24,8 +24,8 @@
 #include <zmq/engine_factory.hpp>
 #include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_engine.hpp>
-#include <zmq/bp_sctp_listener.hpp>
-#include <zmq/bp_sctp_engine.hpp>
+#include <zmq/sctp_listener.hpp>
+#include <zmq/sctp_engine.hpp>
 #include <zmq/bp_pgm_sender.hpp>
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/amqp_tcp_client.hpp>
@@ -60,8 +60,8 @@ zmq::i_engine *zmq::engine_factory_t::create_listener (
     }
 
 #if defined ZMQ_HAVE_SCTP
-    if (transport_type == "bp/sctp") {
-        i_engine *engine = new bp_sctp_listener_t (calling_thread_, thread_,
+    if (transport_type == "sctp") {
+        i_engine *engine = new sctp_listener_t (calling_thread_, thread_,
             transport_args.c_str (), handler_thread_count_, handler_threads_,
             source_, peer_thread_, peer_engine_, peer_name_);
         assert (engine);
@@ -114,8 +114,8 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
     }
 
 #if defined ZMQ_HAVE_SCTP
-    if (transport_type == "bp/sctp") {
-        i_engine *engine = new bp_sctp_engine_t (calling_thread_, thread_,
+    if (transport_type == "sctp") {
+        i_engine *engine = new sctp_engine_t (calling_thread_, thread_,
             transport_args.c_str (), local_object_, engine_arguments_);
         assert (engine);
         return engine;

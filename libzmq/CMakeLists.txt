@@ -77,8 +77,8 @@ set(libzmq_headers
   zmq/yqueue.hpp
   zmq/ysemaphore.hpp
   zmq/ysocketpair.hpp
-  zmq/bp_sctp_engine.hpp
-  zmq/bp_sctp_listener.hpp
+  zmq/sctp_engine.hpp
+  zmq/sctp_listener.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
@@ -120,8 +120,8 @@ set(libzmq_sources
   ypollset.cpp
   ysemaphore.cpp
   ysocketpair.cpp
-  bp_sctp_engine.cpp
-  bp_sctp_listener.cpp
+  sctp_engine.cpp
+  sctp_listener.cpp
 )
 
 set(libzmq_libraries

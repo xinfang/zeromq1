@@ -21,13 +21,13 @@
 
 #if defined ZMQ_HAVE_SCTP
 
-#include <zmq/bp_sctp_listener.hpp>
-#include <zmq/bp_sctp_engine.hpp>
+#include <zmq/sctp_listener.hpp>
+#include <zmq/sctp_engine.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
 
-zmq::bp_sctp_listener_t::bp_sctp_listener_t (i_thread *calling_thread_,
+zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
       i_thread **handler_threads_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,
@@ -73,7 +73,7 @@ zmq::bp_sctp_listener_t::bp_sctp_listener_t (i_thread *calling_thread_,
     //  TODO: This string should be stored in the locator rather than here.
     const char *rcp;
     size_t isz;
-    zmq_strncpy (arguments, "bp/sctp://", sizeof (arguments));
+    zmq_strncpy (arguments, "sctp://", sizeof (arguments));
     isz = strlen (arguments); 
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (arguments + isz, sizeof (arguments) - isz);
@@ -92,42 +92,42 @@ zmq::bp_sctp_listener_t::bp_sctp_listener_t (i_thread *calling_thread_,
     rc = listen (s, 10);
     errno_assert (rc == 0);
 
-    //  Register BP engine with the I/O thread.
+    //  Register SCTP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_sctp_listener_t::~bp_sctp_listener_t ()
+zmq::sctp_listener_t::~sctp_listener_t ()
 {
     //  Cleanup the socket.
     int rc = ::close (s);
     errno_assert (rc == 0);
 }
 
-zmq::i_pollable *zmq::bp_sctp_listener_t::cast_to_pollable ()
+zmq::i_pollable *zmq::sctp_listener_t::cast_to_pollable ()
 {
     return this;
 }
 
-void zmq::bp_sctp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::sctp_listener_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.
     assert (false);
 }
 
-void zmq::bp_sctp_listener_t::register_event (i_poller *poller_)
+void zmq::sctp_listener_t::register_event (i_poller *poller_)
 {
     handle_t handle = poller_->add_fd (s, this);
     poller_->set_pollin (handle);
 }
 
-void zmq::bp_sctp_listener_t::in_event ()
+void zmq::sctp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_sctp_engine_t *engine = new bp_sctp_engine_t (thread,
+    sctp_engine_t *engine = new sctp_engine_t (thread,
         handler_threads [current_handler_thread], s, peer_name);
     assert (engine);
 
@@ -185,19 +185,19 @@ void zmq::bp_sctp_listener_t::in_event ()
         current_handler_thread = 0;
 }
 
-void zmq::bp_sctp_listener_t::out_event ()
+void zmq::sctp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
     assert (false);
 }
 
-void zmq::bp_sctp_listener_t::unregister_event ()
+void zmq::sctp_listener_t::unregister_event ()
 {
     //  TODO: implement this
     assert (false);
 }
 
-const char *zmq::bp_sctp_listener_t::get_arguments ()
+const char *zmq::sctp_listener_t::get_arguments ()
 {
     return arguments;
 }

@@ -58,8 +58,8 @@ pkginclude_HEADERS = \
     ./zmq/out_engine.hpp \
     ./zmq/in_engine.hpp \
     ./zmq/engine_factory.hpp \
-    ./zmq/bp_sctp_listener.hpp \
-    ./zmq/bp_sctp_engine.hpp \
+    ./zmq/sctp_listener.hpp \
+    ./zmq/sctp_engine.hpp \
     ./zmq/pgm_socket.hpp \
     ./zmq/epgm_socket.hpp \
     ./zmq/bp_pgm_sender.hpp \
@@ -100,8 +100,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     out_engine.cpp \
     in_engine.cpp \
     engine_factory.cpp \
-    bp_sctp_listener.cpp \
-    bp_sctp_engine.cpp \
+    sctp_listener.cpp \
+    sctp_engine.cpp \
     pgm_socket.cpp \
     epgm_socket.cpp \
     bp_pgm_sender.cpp \
