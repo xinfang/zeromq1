@@ -20,6 +20,8 @@
 #ifndef __ZMQ_AMQP_DECODER_HPP_INCLUDED__
 #define __ZMQ_AMQP_DECODER_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <zmq/i_amqp.hpp>

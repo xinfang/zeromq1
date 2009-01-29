@@ -198,6 +198,8 @@
 #ifndef __ZMQ_I_AMQP_HPP_INCLUDED__
 #define __ZMQ_I_AMQP_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <assert.h>
@@ -329,6 +331,8 @@ $(field.name:c)_$(last ()??''?',')\
 #ifndef __ZMQ_AMQP_UNMARSHALLER_HPP_INCLUDED__
 #define __ZMQ_AMQP_UNMARSHALLER_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <zmq/i_amqp.hpp>
@@ -398,6 +402,8 @@ namespace zmq
 
     This file is generated from $(arg?filename) by $(script) using GSL/4.
 */
+
+#include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_AMQP
 
@@ -525,6 +531,8 @@ void zmq::amqp_unmarshaller_t::get_field_table (unsigned char *args,
 #ifndef __ZMQ_AMQP_MARSHALLER_HPP_INCLUDED__
 #define __ZMQ_AMQP_MARSHALLER_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <queue>
@@ -615,6 +623,8 @@ $(field.name:c)_$(last ()??''?',')\
 
     This file is generated from $(arg?filename) by $(script) using GSL/4.
 */
+
+#include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_AMQP
 

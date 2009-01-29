@@ -19,6 +19,8 @@
     This file is generated from amqp0-9-1.xml by amqp.gsl using GSL/4.
 */
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <zmq/amqp_marshaller.hpp>

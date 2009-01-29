@@ -37,6 +37,9 @@
 /* Have eventfd extension. */
 #undef ZMQ_HAVE_EVENTFD
 
+/* Have AMQP extension. */
+#undef ZMQ_HAVE_AMQP
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif

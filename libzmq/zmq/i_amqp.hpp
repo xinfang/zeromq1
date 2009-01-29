@@ -22,6 +22,8 @@
 #ifndef __ZMQ_I_AMQP_HPP_INCLUDED__
 #define __ZMQ_I_AMQP_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #if defined ZMQ_HAVE_AMQP
 
 #include <assert.h>

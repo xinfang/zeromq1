@@ -393,6 +393,16 @@ if test "x$with_openpgm_ext" != "xno"; then
     openpgm_ext="yes"
 fi
 
+#  AMQP extension.
+amqp_ext="no"
+AC_ARG_WITH([amqp], [AS_HELP_STRING([--with-amqp],
+    [build libzmq with AMQP extension [default=no]])],
+    [with_amqp_ext=yes], [with_amqp_ext=no])
+if test "x$with_amqp_ext" != "xno"; then
+    AC_DEFINE(ZMQ_HAVE_AMQP, 1, [Have AMQP extension.])
+    amqp_ext="yes"
+fi
+
 AM_CONDITIONAL(BUILD_PERF, test "x$perf" = "xyes") 
 AM_CONDITIONAL(BUILD_CAMERA, test "x$camera" = "xyes") 
 AM_CONDITIONAL(BUILD_EXCHANGE, test "x$exchange" = "xyes")
@@ -455,6 +465,7 @@ AC_MSG_RESULT([ libzmq install dir: $prefix])
 AC_MSG_RESULT([ libzmq extesions:])
 AC_MSG_RESULT([   SCTP: $sctp_ext])
 AC_MSG_RESULT([   OpenPGM: $openpgm_ext])
+AC_MSG_RESULT([   AMQP: $amqp_ext])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ Utilities:])
 AC_MSG_RESULT([   zmq_server: $zmq_server])
