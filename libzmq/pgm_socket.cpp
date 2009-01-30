@@ -25,11 +25,12 @@
 #include <zmq/err.hpp>
 #include <string>
 #include <assert.h>
+#include <zmq/config.hpp>
 
 #include <zmq/pgm_socket.hpp>
 
 //#define PGM_SOCKET_DEBUG
-//#define PGM_SOCKET_DEBUG_LEVEL 4
+//#define PGM_SOCKET_DEBUG_LEVEL 1
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -49,7 +50,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     pgm_msgv_len (-1)
 {
 
-    zmq_log (4, "interface_  %s, %s(%i)\n", interface_, __FILE__, __LINE__);
+    zmq_log (1, "interface_  %s, %s(%i)\n", interface_, __FILE__, __LINE__);
 
     //  Whether or not we are using UDP encapsulation.
     bool udp_encapsulation = false;
@@ -95,7 +96,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
 
     interface = interface.substr (0, pos);
  
-    zmq_log (4, "parsed: interface  %s, port %i, udp encaps. %s, %s(%i)\n", 
+    zmq_log (1, "parsed: interface  %s, port %i, udp encaps. %s, %s(%i)\n", 
         interface.c_str (), port, udp_encapsulation ? "yes" : "no",
         __FILE__, __LINE__);
   
@@ -118,17 +119,10 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
         &send_gsr);
     errno_assert (rc == 0);
 
-    //  Size of window in sequence numbers. The same for transmit and receive
-    //  window.
-    int g_sqns = 100;
-
-    //  The maximum transport protocol data unit (TPDU) size.
-    int g_max_tpdu = 1500;
-
     //  Common parameters for receiver and sender.
 
-    //  Set maximum transport data unit size.
-    rc = pgm_transport_set_max_tpdu (g_transport, g_max_tpdu);
+    //  Set maximum transport protocol data unit size (TPDU).
+    rc = pgm_transport_set_max_tpdu (g_transport, pgm_max_tpdu);
     assert (rc == 0);
 
     //  Set maximum number of network hops to cross.
@@ -165,7 +159,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
         assert (rc == 0);
 
         //  Set retries for NCF after NAK (NAK_NCF_RETRIES).
-        rc = pgm_transport_set_nak_ncf_retries (g_transport, 5);
+        rc = pgm_transport_set_nak_ncf_retries (g_transport, 2);
         assert (rc == 0);
 
         //  Set timeout for removing a dead peer [us].
@@ -176,24 +170,66 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
         rc = pgm_transport_set_spmr_expiry (g_transport, 250*1000);
         assert (rc == 0);
 
-        //  Set receive window size in sequence numbers.
-        rc = pgm_transport_set_rxw_sqns (g_transport, g_sqns);
-        assert (rc == 0);
-        
+        if (pgm_window_size > 0) {
+            //  Set receive window size in sequence numbers.
+            rc = pgm_transport_set_rxw_sqns (g_transport, pgm_window_size);
+            assert (rc == 0);
+
+        } else {
+
+            //  Set the size of the receive window size by max
+            //  data rate in bytes per second.
+            assert (pgm_max_rte > 0);
+            rc = pgm_transport_set_rxw_max_rte (g_transport, pgm_max_rte);
+            assert (rc ==0);
+
+            //  Set receive window size in seconds. 
+            assert (pgm_secs > 0);
+            rc = pgm_transport_set_rxw_secs (g_transport, pgm_secs);
+            assert (rc == 0);
+        }
+
     //  Sender transport.
     } else {
 
         //  Set transport->can_recv = FALSE, data packets will not be read.
-        rc = pgm_transport_set_send_only (g_transport);
+        //rc = pgm_transport_set_send_only (g_transport);
+        //assert (rc == 0);
+
+        int to_preallocate = 0;
+
+        if (pgm_window_size > 0) {
+            //  Set send window size in sequence numbers.
+            rc = pgm_transport_set_txw_sqns (g_transport, pgm_window_size);
+            assert (rc == 0);
+
+            //  Preallocate full window.
+            to_preallocate = pgm_window_size;
+
+        } else {
+
+            //  Set the size of the send window size by 
+            //  data rate in bytes per second.
+            assert (pgm_max_rte > 0);
+            rc = pgm_transport_set_txw_max_rte (g_transport, pgm_max_rte);
+            assert (rc ==0);
+
+            //  Set send window size in seconds. 
+            assert (pgm_secs > 0);
+            rc = pgm_transport_set_txw_secs (g_transport, pgm_secs);
+            assert (rc == 0);
+
+            //  Preallocate full transmit window. For simplification always 
+            //  worst case is used (40 bytes ipv6 header and 20 bytes UDP 
+            //  encapsulation).
+            to_preallocate = pgm_secs * pgm_max_rte / (pgm_max_tpdu - 40 - 20);
+        }
+
+        rc = pgm_transport_set_txw_preallocate (g_transport, to_preallocate);
         assert (rc == 0);
 
-        //  Set send window size in sequence numbers. 
-	rc = pgm_transport_set_txw_sqns (g_transport, g_sqns);
-        assert (rc == 0);
-
-        //  Preallocate full (g_sqns) transmit window.
-        rc = pgm_transport_set_txw_preallocate (g_transport, g_sqns);
-        assert (rc == 0);
+        zmq_log (1, "Preallocated %i slices in TX window. %s(%i)\n", 
+            to_preallocate, __FILE__, __LINE__);
 
         //  Set interval of background SPM packets [us].
         rc = pgm_transport_set_ambient_spm (g_transport, 8192*1000);
@@ -243,7 +279,8 @@ int zmq::pgm_socket_t::get_receiver_fds (int *recv_fd_,
     memset (fds, '\0', fds_array_size * sizeof (fds));
 
     //  Retrieve pollfds from pgm_transport.
-    int rc = pgm_transport_poll_info (g_transport, fds, &fds_array_size, POLLIN);
+    int rc = pgm_transport_poll_info (g_transport, fds, &fds_array_size, 
+        POLLIN);
 
     //  pgm_transport_poll_info has to return 2 pollfds for POLLIN. 
     //  Note that fds_array_size parameter can be 
@@ -270,7 +307,8 @@ int zmq::pgm_socket_t::get_sender_fd (int *send_fd_)
     memset (fds, '\0', fds_array_size * sizeof (fds));
 
     //  Retrieve pollfds from pgm_transport
-    int rc = pgm_transport_poll_info (g_transport, fds, &fds_array_size, POLLOUT);
+    int rc = pgm_transport_poll_info (g_transport, fds, &fds_array_size, 
+        POLLOUT);
 
     //  pgm_transport_poll_info has to return 1 pollfds for POLLOUT. 
     //  Note that fds_array_size parameter can be 
@@ -290,7 +328,8 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
 {
     iovec iov = {data_,data_len_};
 
-    ssize_t nbytes = pgm_transport_send_packetv (g_transport, &iov, 1, MSG_DONTWAIT | MSG_WAITALL, true);
+    ssize_t nbytes = pgm_transport_send_packetv (g_transport, &iov, 1, 
+        MSG_DONTWAIT | MSG_WAITALL, true);
 
     assert (nbytes != -EINVAL);
 
@@ -302,7 +341,7 @@ size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
     //  now. We have to call write_one_pkt again.
     nbytes = nbytes == -1 ? 0 : nbytes;
 
-    zmq_log (2, "wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
+    zmq_log (4, "wrote %iB, %s(%i)\n", (int)nbytes, __FILE__, __LINE__);
     
     // We have to write all data as one packet.
     if (nbytes > 0) {
@@ -371,6 +410,7 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
     //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
     //  For data loss nbytes == -1 errno == ECONNRESET.
     if (nbytes == -1 && errno != EAGAIN) {
+        sleep (5);
         errno_assert (false); 
     }
 

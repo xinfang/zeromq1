@@ -71,16 +71,16 @@ int main (int argc, char *argv [])
 
     cout << "Start pgm_remote_thr on remote host and "
             "pres enter to continue." << endl;
-
     getchar ();
 
     for (int i = 0; i < msg_count; i++) {
-        zmq::message_t message_out (msg_size);
-        api->send (ex_id, message_out);
+        zmq::message_t message (msg_size);
+        api->send (ex_id, message);
     }
 
-    //  Wait for a while that all messages are sent.
-    sleep (1);
+    //  Wait for enter to finish.
+    cout << "Pres enter when pgm_remote_thr exits." << endl;
+    getchar ();
 
     return 0;
 }

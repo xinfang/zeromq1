@@ -36,9 +36,28 @@ namespace zmq
         //  unnecessary network stack traversals.
         bp_in_batch_size = 8192,
 
-        //  pgm engine buffer (receiver)
+        //  Maximum transport data unit size for PGM (TPDU).
+        pgm_max_tpdu = 1500,
+
+        //  PGM engine buffer (receiver)
         pgm_in_batch_size = 1000,
 
+        //  The OpenPGM transmit/receive window size can be set by count of 
+        //  sequence numbers pgm_window_size or by maximum transmit / receive 
+        //  rate and a time interval.
+        //  When pgm_window_size is 0 window is defined by pgm_max_rte and
+        //  pgm_secs.
+        pgm_window_size = 0,
+
+        //  PGM maximum transmit/receive rate B/s.
+        //   10mb :   1250000
+        //  100mb :  12500000
+        //    1gb : 125000000
+        pgm_max_rte = 1250000,
+
+        //  PGM reliability time interval.
+        pgm_secs = 10,
+    
         //  Maximal batching size for outgoing backend protocol messages.
         //  So, if there are 10 messages that fit into the batch size, all of
         //  them may be sent by a single 'write' system call, thus avoiding
