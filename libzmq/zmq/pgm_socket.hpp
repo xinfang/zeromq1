@@ -47,8 +47,9 @@ namespace zmq
         //   Get receiver fds and store them into user allocated memory.
         int get_receiver_fds (int *recv_fd_, int *waiting_pipe_fd_);
 
-        //   Get sender fd and store it to user allocated memory.
-        int get_sender_fd (int *sender_fd_);
+        //   Get sender and receiver fds and store it to user allocated 
+        //   memory. Receive fd is used to process NAKs from peers.
+        int get_sender_fds (int *send_fd_, int *receive_fd_);
 
         //  Send one APDU, transmit window owned memory.
         size_t write_one_pkt (unsigned char *data_, size_t data_len_);
@@ -68,6 +69,10 @@ namespace zmq
         //  Receive exactly iov_len count APDUs.
         size_t read_pkt (iovec *iov_, size_t iov_len_);
 
+        //  POLLIN on sender side should mean NAK receiving. process_NAK 
+        //  function is used to handle such a situation.
+        void process_NAK (void);
+
     protected:
     
         //  OpenPGM transport
@@ -82,8 +87,8 @@ namespace zmq
         //  Size of pgm_msgv array.
         size_t pgm_msgv_len;
 
-        //  Sender transport uses 1 fd.
-        enum {pgm_sender_fd_count = 1};
+        //  Sender transport uses 2 fd.
+        enum {pgm_sender_fd_count = 2};
     
         //  Receiver transport uses 2 fd.
         enum {pgm_receiver_fd_count = 2};

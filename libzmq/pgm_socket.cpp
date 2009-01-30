@@ -30,7 +30,7 @@
 #include <zmq/pgm_socket.hpp>
 
 //#define PGM_SOCKET_DEBUG
-//#define PGM_SOCKET_DEBUG_LEVEL 1
+//#define PGM_SOCKET_DEBUG_LEVEL 2
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -192,9 +192,9 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     //  Sender transport.
     } else {
 
-        //  Set transport->can_recv = FALSE, data packets will not be read.
-        //rc = pgm_transport_set_send_only (g_transport);
-        //assert (rc == 0);
+        //  Set transport->can_recv = FALSE, waiting_pipe wont not be read.
+        rc = pgm_transport_set_send_only (g_transport);
+        assert (rc == 0);
 
         int to_preallocate = 0;
 
@@ -296,27 +296,30 @@ int zmq::pgm_socket_t::get_receiver_fds (int *recv_fd_,
     return pgm_receiver_fd_count;
 }
 
-//   Get sender fd and store it to user allocated memory. 
+//   Get fds and store them into user allocated memory. 
 //   sender_fd is from pgm_transport->send_sock.
-int zmq::pgm_socket_t::get_sender_fd (int *send_fd_)
+//   receive_fd_ is from  transport->recv_sock.
+int zmq::pgm_socket_t::get_sender_fds (int *send_fd_, int *receive_fd_)
 {
 
-    //  For POLLOUT there are 1 pollfds in pgm_transport.
+    //  Preallocate pollfds array.
     int fds_array_size = pgm_sender_fd_count;
     pollfd *fds = new pollfd [fds_array_size];
     memset (fds, '\0', fds_array_size * sizeof (fds));
 
     //  Retrieve pollfds from pgm_transport
     int rc = pgm_transport_poll_info (g_transport, fds, &fds_array_size, 
-        POLLOUT);
+        POLLOUT | POLLIN);
 
-    //  pgm_transport_poll_info has to return 1 pollfds for POLLOUT. 
+    //  pgm_transport_poll_info has to return one pollfds for POLLOUT and
+    //  second for POLLIN.
     //  Note that fds_array_size parameter can be 
     //  changed inside pgm_transport_poll_info call.
     assert (rc == pgm_sender_fd_count);
  
     //  Store pfds into user allocated space.
-    *send_fd_ = fds [0].fd;
+    *receive_fd_ = fds [0].fd;
+    *send_fd_ = fds [1].fd;
 
     delete [] fds;
 
@@ -449,11 +452,24 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
     nbytes = nbytes == -1 ? 0 : nbytes;
     
     if (nbytes)
-        zmq_log (2, "received %i bytes, ", (int)nbytes);
+        zmq_log (4, "received %i bytes, ", (int)nbytes);
 
     assert (nbytes == translated);
 
     return (size_t) nbytes;
+}
+
+void zmq::pgm_socket_t::process_NAK (void)
+{
+    //  We acctually do not want to read any data here we are going to 
+    //  process NAK.
+    pgm_msgv_t dummy_msg;
+
+    ssize_t dummy_bytes = pgm_transport_recvmsgv (g_transport, &dummy_msg,
+        1, MSG_DONTWAIT);
+    
+    //  No data should be returned.
+    assert (dummy_bytes == -1 && errno == EAGAIN);
 }
 
 #endif

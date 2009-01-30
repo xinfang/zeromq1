@@ -123,22 +123,31 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     //  Store the callback.
     poller = poller_;
 
-    //  Alocate 1 fd for PGM socket.
-    int socket_fd;
+    //  Alocate 2 fds for PGM socket.
+    int downlink_socket_fd;
+    int uplink_socket_fd;
 
     //  Fill socket_fd from PGM transport.
-    epgm_socket.get_sender_fd (&socket_fd);
+    epgm_socket.get_sender_fds (&downlink_socket_fd, &uplink_socket_fd);
 
-    //  Add socket_fd into poller.
-    handle = poller->add_fd (socket_fd, this);
+    //  Add downlink_socket_fd into poller.
+    handle = poller->add_fd (downlink_socket_fd, this);
 
-    //  Set POLLOUT for socket_handle.
+    //  Set POLLOUT for downlink_socket_handle.
     poller->set_pollout (handle);
+
+    //  Add uplink_socket_fd into the poller.
+    handle_t uplink_handle = poller->add_fd (uplink_socket_fd, this);
+
+    //  Set POLLIN. We wont never want to stop polling for uplink = we never
+    //  want to stop porocess NAKs.
+    poller->set_pollin (uplink_handle);
 }
 
+//  In event on sender side means NAK receiving from some peer.
 void zmq::bp_pgm_sender_t::in_event ()
 {
-    assert (false);
+    epgm_socket.process_NAK ();
 }
 
 void zmq::bp_pgm_sender_t::out_event ()
