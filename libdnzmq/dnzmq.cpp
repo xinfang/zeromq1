@@ -179,3 +179,4 @@ Byte Dnzmq::receive () __gc []
 
     return data;
 }
+
