@@ -182,11 +182,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_sctp_engine.cpp"
+				RelativePath="..\..\libzmq\sctp_engine.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_sctp_listener.cpp"
+				RelativePath="..\..\libzmq\sctp_listener.cpp"
 				>
 			</File>
 			<File
@@ -316,11 +316,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\bp_sctp_engine.hpp"
+				RelativePath="..\..\libzmq\zmq\sctp_engine.hpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\bp_sctp_listener.hpp"
+				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
 				>
 			</File>
 			<File
