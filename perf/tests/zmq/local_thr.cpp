@@ -31,18 +31,38 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 6) {
-        cerr << "Usage: local_thr <hostname> <interface> <message size> "
+    if (argc != 7) {
+        cerr << "Usage: local_thr <hostname> <exchange interface> "
+            "<queue interface> <message size> "
             "<message count> <number of threads>" << endl;
         return 1;
     }
 
     //  Parse & print command line arguments.
     const char *host = argv [1];
-    const char *iface = argv [2];
-    size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
-    int thread_count = atoi (argv [5]);
+    const char *exchange_interface = argv [2];
+    const char *queue_interface = argv [3];
+    size_t msg_size = atoi (argv [4]);
+    int msg_count = atoi (argv [5]);
+    int thread_count = atoi (argv [6]);
+
+    //  Check if port numbers are speciffied.
+    uint16_t exchange_base_port = 0;
+    uint16_t queue_base_port = 0;
+
+    //  If supplied extract port number from exchange interface argument.
+    char *colon = strchr (exchange_interface, ':');
+    if (colon) {
+        exchange_base_port = atoi (colon + 1);
+        *colon = '\0';
+    }
+
+    //  If supplied extract port number from queue interface argument.
+    colon = strchr (queue_interface, ':');
+    if (colon) {
+        queue_base_port = atoi (colon + 1);
+        *colon = '\0';
+    }
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -60,14 +80,29 @@ int main (int argc, char *argv [])
         string queue_name ("Q");
         queue_name += perf::to_string (thread_nbr);
 
+        //  Create queue interface
+        string queue_iface = (queue_interface);
+        if (queue_base_port) {
+            queue_iface += ":";
+            queue_iface += perf::to_string (queue_base_port + thread_nbr);
+        }
+
         //  Create exchange name E0, E1, ...
         string exchange_name ("E");
         exchange_name += perf::to_string (thread_nbr);
 
+        //  Create exchange interface.
+        string exchange_iface = (exchange_interface);
+        if (exchange_base_port) {
+            exchange_iface += ":";
+            exchange_iface += perf::to_string (exchange_base_port + thread_nbr);
+        }
+        
         //  Create zmq transport with bind = false. It means that global queue
         //  QX and global exchange EX will be created without any bindings.
         transports [thread_nbr] = new perf::zmq_t (host, false,
-            exchange_name.c_str (), queue_name.c_str (), iface, iface);
+            exchange_name.c_str (), queue_name.c_str (), exchange_iface.c_str (), 
+            queue_iface.c_str ());
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
