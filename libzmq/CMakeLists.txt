@@ -79,6 +79,7 @@ set(libzmq_headers
   zmq/ysocketpair.hpp
   zmq/sctp_engine.hpp
   zmq/sctp_listener.hpp
+  zmq/xmlParser.h
   ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
@@ -122,6 +123,7 @@ set(libzmq_sources
   ysocketpair.cpp
   sctp_engine.cpp
   sctp_listener.cpp
+  xmlParser.cpp
 )
 
 set(libzmq_libraries
