@@ -257,8 +257,13 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
             //  checking whether any of them has messages available.
             while (true) {
 
-               //  Get a message.
-               retrieved = queues [current_queue].second->read (msg_);
+               //  Get a message or notification that user is subscribed for.
+               while (true) {
+                   retrieved = queues [current_queue].second->read (msg_);
+                   if (msg_->is_gap () && !(notifications & notification_gap))
+                       continue;
+                   break;
+               }
 
                if (retrieved)
                    qid = current_queue + 1;
@@ -269,16 +274,8 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
                    current_queue = 0;
 
                //  If we have a message exit the small loop.
-               if (retrieved) {
-
-                   //  If the message is gap notification and the user is not
-                   //  interested in those, proceed as if no message was
-                   //  retrieved.
-                   if (msg_->is_gap () && !(notifications & notification_gap))
-                       retrieved = false;
-                   else
-                       break;
-               }
+               if (retrieved)
+                   break;
 
                //  If we've iterated over all the queues exit the loop.
                if (current_queue == start)
