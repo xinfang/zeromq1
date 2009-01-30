@@ -128,7 +128,8 @@ int zmq::tcp_socket_t::read (void *data, int size)
         return 0;
 
     //  Connection failure.
-    if (nbytes == -1 && (errno == WSAECONNRESET || errno == WSAECONNREFUSED))
+    if (nbytes == -1 && (WSAGetLastError () == WSAECONNRESET ||
+          WSAGetLastError () == WSAECONNREFUSED))
         return -1;
 
     wsa_assert (nbytes != SOCKET_ERROR);
