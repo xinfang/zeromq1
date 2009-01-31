@@ -33,7 +33,7 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     dispatcher (dispatcher_),
     locator (locator_),
     current_queue (0),
-    notifications (0)
+    message_mask (message_data)
 {
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
     last_command_time = 0;
@@ -175,9 +175,9 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     send_command (queue_thread, cmd_receive_from);
 }
 
-void zmq::api_thread_t::set_notification_filter (uint32_t notifications_)
+void zmq::api_thread_t::mask (uint32_t message_mask_)
 {
-    notifications = notifications_;
+    message_mask = message_mask_ | message_data;
 }
 
 bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
@@ -260,7 +260,7 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
                //  Get a message or notification that user is subscribed for.
                while (true) {
                    retrieved = queues [current_queue].second->read (msg_);
-                   if (msg_->is_gap () && !(notifications & notification_gap))
+                   if (retrieved && !(msg_->type () & message_mask))
                        continue;
                    break;
                }

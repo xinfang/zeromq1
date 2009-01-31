@@ -48,6 +48,9 @@ int main (int argc, const char *argv [])
     i_thread *pt = io_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
+    //  We want to receive gap notifications.
+    api->mask (message_gap);
+
     //  Create local queue to receive messages.
     api->create_queue ("Q");
 
@@ -62,6 +65,9 @@ int main (int argc, const char *argv [])
         //  Get a message and print it to the console.
         message_t message;
         api->receive (&message);
-        cout << (char*) message.data () << flush;
+        if (message.type () == message_gap)
+            cout << "Problems connecting to the chatroom..." << endl;
+        else
+            cout << (char*) message.data () << flush;
     }
 }

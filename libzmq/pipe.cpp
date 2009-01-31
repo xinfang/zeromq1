@@ -160,7 +160,8 @@ void zmq::pipe_t::terminate_writer ()
         //  Push the delimiter to the pipe. Delimiter is a message for pipe
         //  reader that there will be no more messages in the pipe.
         raw_message_t delimiter;
-        raw_message_init_delimiter (&delimiter);
+        raw_message_init_notification (&delimiter,
+            raw_message_t::delimiter_tag);
         pipe.write (delimiter);
         flush ();
         writer_terminating = true;

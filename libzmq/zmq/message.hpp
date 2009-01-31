@@ -25,6 +25,13 @@
 namespace zmq
 {
 
+    //  Message types.
+    enum {
+        message_data = 1 << 0,
+        message_gap = 1 << raw_message_t::gap_tag,
+        message_delimiter = 1 << raw_message_t::delimiter_tag
+    };
+
     //  0MQ message. Caution: Don't change the body of the message once you've
     //  copied it - the behaviour would be undefined. Don't change the body
     //  of the message that you've received, other threads may be accessing
@@ -103,10 +110,10 @@ namespace zmq
             return raw_message_size (this);
         }
 
-        //  Returns true is message is a gap notification.
-        inline bool is_gap ()
+        //  Returns message type.
+        inline uint32_t type ()
         {
-            return raw_message_is_gap (this);
+            return raw_message_type (this);
         }
 
     private:

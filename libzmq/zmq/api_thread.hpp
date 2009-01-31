@@ -38,10 +38,6 @@
 
 namespace zmq
 {
-    //  Notification types. To be used in set_notification_filter function.
-    enum {
-        notification_gap = 1
-    };
 
     //  Thread object to be used as a proxy for client application thread.
     //  It is not thread-safe. In case you want to use 0MQ from several
@@ -75,9 +71,11 @@ namespace zmq
             const char *exchange_arguments_ = NULL,
             const char *queue_arguments_ = NULL);
 
-        //  Allows user to filter notification not to be bothered by unneeded
-        //  ones. By default, no notifications are sent.
-        ZMQ_EXPORT void set_notification_filter (uint32_t notifications_);
+        //  Allows user to specify which messages to receive. Use binary OR
+        //  operator to combine individual message types into the message mask.
+        //  Reception of data messages cannot be switched off. By default
+        //  only data messages are received. 
+        ZMQ_EXPORT void mask (uint32_t message_mask_);
 
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
@@ -155,9 +153,9 @@ namespace zmq
         //  next message.
         queues_t::size_type current_queue; 
 
-        //  Filter specifying which notifications are requested by user and
-        //  which should be dropped silently.
-        uint32_t notifications;
+        //  Filter specifying what types of messages are wanted by user.
+        //  Oher message types are dropped silently.
+        uint32_t message_mask;
 
 #if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
         //  Time when last command processing was performed (in ticks).

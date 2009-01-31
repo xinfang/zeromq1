@@ -60,9 +60,14 @@ namespace zmq
     struct raw_message_t
     {
         enum {
-            delimiter_tag = 0,
-            vsm_tag = 1,
-            gap_tag = 2
+            //  Notifications.
+            gap_tag = 1,
+
+            //  Unused tags 2-30 can be used for new notification types.
+            delimiter_tag = 31,
+
+            //  From 32 upwards the message is a regular data message.
+            vsm_tag = 32
         };
 
         message_content_t *content;
@@ -109,18 +114,12 @@ namespace zmq
         msg_->content->ffn = ffn_;
     }
 
-    //  Initialises raw_message_t to be a pipe delimiter.
-    inline void raw_message_init_delimiter (
-        raw_message_t *msg_)
+    //  Initialises raw_message_t to be of a non-data type.
+    inline void raw_message_init_notification (raw_message_t *msg_,
+        uint32_t tag_)
     {
-        msg_->content = (message_content_t*) raw_message_t::delimiter_tag;
-    }
-
-    //  Initialises raw_message_t to be a gap notification.
-    inline void raw_message_init_gap (
-        raw_message_t *msg_)
-    {
-        msg_->content = (message_content_t*) raw_message_t::gap_tag;
+        msg_->shared = false;
+        msg_->content = (message_content_t*) tag_;
     }
 
     //  Releases the resources associated with the message. Obviously, if
@@ -207,10 +206,12 @@ namespace zmq
         return msg_->content->size;
     }
 
-    //  Returns true is message is a gap notification.
-    inline bool raw_message_is_gap (raw_message_t *msg_)
+    //  Returns type of the message.
+    inline uint32_t raw_message_type (raw_message_t *msg_)
     {
-        return msg_->content == (message_content_t*) raw_message_t::gap_tag;
+        if (msg_->content >= (message_content_t*) raw_message_t::vsm_tag)
+            return 1 << 0;
+        return 1 << (int) msg_->content;
     }
 
 }
