@@ -24,8 +24,8 @@ import time
 
 def main ():
     if len(sys.argv) < 6:
-        print ('usage: remote_lat <hostname> <in-interface> <out-interface> ' +
-            '<message-size> <roundtrip-count>')
+        print ('usage: py_remote_lat <hostname> <in-interface> ' +
+            '<out-interface> <message-size> <roundtrip-count>')
         sys.exit (1)
 
     try:

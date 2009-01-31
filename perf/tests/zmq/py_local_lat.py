@@ -23,7 +23,7 @@ import libpyzmq
 
 def main ():
     if len (sys.argv) < 4:
-        print 'usage: local_lat <hostname> <message-size> <roundtrip-count>'
+        print 'usage: py_local_lat <hostname> <message-size> <roundtrip-count>'
         sys.exit (1)
 
     try:

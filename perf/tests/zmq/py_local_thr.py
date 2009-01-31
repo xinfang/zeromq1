@@ -23,7 +23,7 @@ import libpyzmq
 
 def main ():
     if len (sys.argv) < 5:
-        print ('usage: local_thr <hostname> <interface> <message-size> ' +
+        print ('usage: py_local_thr <hostname> <interface> <message-size> ' +
             '<message-count>')
         sys.exit (1)
 
