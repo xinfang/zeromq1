@@ -30,12 +30,12 @@ class cs_local_thr
         if (args.Length != 4)
         {
             Console.Out.WriteLine ("usage: local_thr <hostname> " +
-                "<interface> <message-size> <message-count>\n");
+                "<in-interface> <message-size> <message-count>\n");
             return 1;
         }
 
         String host = args [0];
-        String iface = args [1];
+        String in_interface = args [1];
         uint msg_size = Convert.ToUInt32 (args [2]);
         int msg_count = Convert.ToInt32 (args [3]);
 
@@ -47,7 +47,7 @@ class cs_local_thr
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        w.create_queue ("Q", Dnzmq.ZMQ_SCOPE_GLOBAL, iface);
+        w.create_queue ("Q", Dnzmq.SCOPE_GLOBAL, in_interface);
 
         //  Receive the first message.
         byte [] msg = w.receive ();
@@ -74,10 +74,10 @@ class cs_local_thr
         Int64 message_throughput;
         Int64 megabit_throughput;
 
-        //  Elapsed_time should be divided by 10000, but then in 
+        //  Elapsed_time should be divided by 10000. Later on in the 
         //  calculation of message throughput it should be multiplied
-        //  by 100000, therefore  message_throuhput is calculated as 
-        //  msg_count /(time)) * 10.
+        //  by 100000. Therefore,  message_throuhput is calculated as 
+        //  msg_count /time * 10.
         message_throughput = (Int64) (msg_count / (time)) * 10;
         megabit_throughput = message_throughput * msg_size * 8 /
             1000000;

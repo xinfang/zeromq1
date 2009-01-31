@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 class cs_remote_lat
 {
 
-    static unsafe int Main (string[] args)
+    static unsafe int Main (string [] args)
     {
         if (args.Length != 5)
         {
@@ -46,9 +46,9 @@ class cs_remote_lat
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EG", Dnzmq.ZMQ_SCOPE_GLOBAL,
+        int eid = w.create_exchange ("EG", Dnzmq.SCOPE_GLOBAL,
             out_interface);
-        int qid = w.create_queue ("QG", Dnzmq.ZMQ_SCOPE_GLOBAL,
+        int qid = w.create_queue ("QG", Dnzmq.SCOPE_GLOBAL,
             in_interface);
         
         //  Bounce the received messages.

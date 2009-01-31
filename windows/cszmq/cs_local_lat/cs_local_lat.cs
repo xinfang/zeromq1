@@ -30,7 +30,7 @@ class cs_local_lat
     {
         if (args.Length != 3)
         {
-            Console.Out.WriteLine ("usage: local_lat <hostname> " +
+            Console.Out.WriteLine ("usage: cs_local_lat <hostname> " +
                 "<message-size> <roundtrip-count>\n");
             return 1;
         }
@@ -47,13 +47,13 @@ class cs_local_lat
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EL", Dnzmq.ZMQ_SCOPE_LOCAL, host);
-        int qid = w.create_queue ("QL", Dnzmq.ZMQ_SCOPE_LOCAL, host);
+        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "");
+        int qid = w.create_queue ("QL", Dnzmq.SCOPE_LOCAL, "");
         w.bind ("EL", "QG");
         w.bind ("EG", "QL");
 
         //  Create a message to send.
-        byte[] out_msg = new byte[msg_size];
+        byte [] out_msg = new byte [msg_size];
         
         //  Start measuring the time.
         System.Diagnostics.Stopwatch watch;

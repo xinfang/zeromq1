@@ -46,8 +46,8 @@ public:
     void send (int eid_, Byte data_ __gc []);
     Byte receive () __gc [];
        
-    static const int ZMQ_SCOPE_LOCAL = 0;
-    static const int ZMQ_SCOPE_GLOBAL = 1;
+    static const int SCOPE_LOCAL = 0;
+    static const int SCOPE_GLOBAL = 1;
 
 private:
 
@@ -99,7 +99,7 @@ int Dnzmq::create_exchange (String *exchange_, int scope_, String *nic_)
     
     //  Get the scope.
     zmq::scope_t scope = zmq::scope_local;
-    if (scope_ == ZMQ_SCOPE_GLOBAL)
+    if (scope_ == SCOPE_GLOBAL)
         scope = zmq::scope_global;
     
     //  Forward the call to native 0MQ library.
@@ -121,7 +121,7 @@ int Dnzmq::create_queue (String *queue_, int scope_, String *nic_)
     
     //  Get the scope.
     zmq::scope_t scope = zmq::scope_local;
-    if (scope_ == ZMQ_SCOPE_GLOBAL)
+    if (scope_ == SCOPE_GLOBAL)
         scope = zmq::scope_global;
 
     //  Forward the call to native 0MQ library.
