@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <zmq/platform.hpp>
+#include <zmq/stdint.hpp>
 #include <zmq/czmq.h>
 
 #include <stddef.h>
@@ -30,19 +31,6 @@
 #include <Windows.h>
 #else
 #include <sys/time.h>
-#endif
-
-#ifdef ZMQ_HAVE_SOLARIS
-#include <inttypes.h>
-#elif defined ZMQ_HAVE_WINDOWS
-
-typedef __int8 uint8_t;
-typedef __int16 uint16_t;
-typedef __int32 uint32_t;
-typedef __int64 uint64_t;
-
-#else
-#include <stdint.h>
 #endif
 
 #ifdef ZMQ_HAVE_WINDOWS

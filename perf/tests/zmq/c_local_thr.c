@@ -18,6 +18,7 @@
 */
 
 #include <zmq/platform.hpp>
+#include <zmq/stdint.hpp>
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -29,19 +30,6 @@
 #include <Windows.h>
 #else
 #include <sys/time.h>
-#endif
-
-#ifdef ZMQ_HAVE_SOLARIS
-#include <inttypes.h>
-#elif defined ZMQ_HAVE_WINDOWS
-
-typedef __int8 uint8_t;
-typedef __int16 uint16_t;
-typedef __int32 uint32_t;
-typedef __int64 uint64_t;
-
-#else
-#include <stdint.h>
 #endif
 
 #include <zmq/czmq.h>
