@@ -29,7 +29,7 @@ class cs_local_thr
     {
         if (args.Length != 4)
         {
-            Console.Out.WriteLine ("usage: local_thr <hostname> " +
+            Console.Out.WriteLine ("usage: cs_local_thr <hostname> " +
                 "<in-interface> <message-size> <message-count>\n");
             return 1;
         }

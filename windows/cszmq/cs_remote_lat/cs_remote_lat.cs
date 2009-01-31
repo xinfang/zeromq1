@@ -30,7 +30,7 @@ class cs_remote_lat
     {
         if (args.Length != 5)
         {
-            Console.Out.WriteLine ("usage: remote_lat <hostname> " +
+            Console.Out.WriteLine ("usage: cs_remote_lat <hostname> " +
                 "<in-interface> <out-interface> " +
                 "<message-size> <roundtrip-count>\n");
             return 1;

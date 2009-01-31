@@ -28,7 +28,7 @@ class cs_remote_thr
     {
         if (args.Length != 3)
         {
-            Console.Out.WriteLine ("usage: remote_thr <hostname> " +
+            Console.Out.WriteLine ("usage: cs_remote_thr <hostname> " +
             " <message-size> <message-count>\n");
             return 1;
         }
