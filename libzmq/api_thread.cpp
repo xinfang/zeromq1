@@ -182,6 +182,10 @@ void zmq::api_thread_t::mask (uint32_t message_mask_)
 
 bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 {
+    //  Only data messages can be sent. Notifications are intended for notifying
+    //  the client about different events rather than for passing them around.
+    assert (msg_.type () == message_data);
+
     //  Process pending commands, if any.
     process_commands ();
 
@@ -209,6 +213,10 @@ bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
 
 bool zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
 {
+    //  Only data messages can be sent. Notifications are intended for notifying
+    //  the client about different events rather than for passing them around.
+    assert (msg_.type () == message_data);
+
     //  Try to send the message.
     bool sent = exchanges [exchange_id_].second->write (msg_);
 
