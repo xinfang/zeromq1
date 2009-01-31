@@ -92,7 +92,7 @@ int main (int argc, char *argv [])
 
     /*  Parse command line arguments.  */
     if (argc != 4) {
-        printf ("usage: local_lat <hostname> <message-size> "
+        printf ("usage: c_local_lat <hostname> <message-size> "
             "<roundtrip-count>\n");
         return 1;
     }

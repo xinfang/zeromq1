@@ -42,7 +42,7 @@ int main (int argc, char *argv [])
 
     /*  Parse command line arguments.  */
     if (argc != 4) {
-        printf ("usage: remote_thr <hostname> <message-size> "
+        printf ("usage: c_remote_thr <hostname> <message-size> "
             "<message-count>\n");
         return 1;
     }

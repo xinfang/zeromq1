@@ -76,7 +76,7 @@ inline uint64_t now ()
 int main (int argc, char *argv [])
 {
     const char *host;
-    const char *iface;
+    const char *in_interface;
     int message_size;
     int message_count;
     void *handle;
@@ -91,12 +91,12 @@ int main (int argc, char *argv [])
 
     /*  Parse command line arguments.  */
     if (argc != 5) {
-        printf ("usage: local_thr <hostname> <interface> "
+        printf ("usage: c_local_thr <hostname> <in-interface> "
             "<message-size> <message-count>\n");
         return 1;
     }
     host = argv [1];
-    iface = argv [2];
+    in_interface = argv [2];
     message_size = atoi (argv [3]);
     message_count = atoi (argv [4]);
 
@@ -108,7 +108,7 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, iface);
+    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, in_interface);
 
     /*  Receive first message.  */
     czmq_receive (handle, &buf, &size, &ffn);
