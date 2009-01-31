@@ -51,14 +51,14 @@ int main (int argc, char *argv [])
     uint16_t queue_base_port = 0;
 
     //  If supplied extract port number from exchange interface argument.
-    char *colon = strchr (exchange_interface, ':');
+    char *colon = (char*) strchr (exchange_interface, ':');
     if (colon) {
         exchange_base_port = atoi (colon + 1);
         *colon = '\0';
     }
 
     //  If supplied extract port number from queue interface argument.
-    colon = strchr (queue_interface, ':');
+    colon = (char*) strchr (queue_interface, ':');
     if (colon) {
         queue_base_port = atoi (colon + 1);
         *colon = '\0';
