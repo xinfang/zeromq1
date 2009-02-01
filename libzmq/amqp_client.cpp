@@ -31,8 +31,6 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
       const char *arguments_) :
     state (state_connecting),
-    decoder (&demux, this),
-    encoder (&mux, arguments_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -50,6 +48,11 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
 
+    decoder = new amqp_decoder_t (&demux, this);
+    errno_assert (decoder);
+    encoder = new amqp_encoder_t (&mux, arguments_);
+    errno_assert (encoder);
+
     //  Register AMQP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
@@ -58,6 +61,9 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
 
 zmq::amqp_client_t::~amqp_client_t ()
 {
+    delete encoder;
+    delete decoder;
+
     free (readbuf);
     free (writebuf);
 }
@@ -178,7 +184,7 @@ void zmq::amqp_client_t::in_event ()
     if (read_pos < read_size) {
 
         //  Push the data to the decoder and adjust read position in the buffer.
-        int  nbytes = decoder.decoder_t<amqp_decoder_t>::write (
+        int  nbytes = decoder->decoder_t<amqp_decoder_t>::write (
             readbuf + read_pos, read_size - read_pos);
         read_pos += nbytes;
 
@@ -224,7 +230,7 @@ void zmq::amqp_client_t::out_event ()
     //  If write buffer is empty, try to read new data from the encoder.
     if (write_pos == write_size) {
 
-        write_size = encoder.zmq::encoder_t<amqp_encoder_t>::read (
+        write_size = encoder->zmq::encoder_t<amqp_encoder_t>::read (
             writebuf, writebuf_size);
         write_pos = 0;
 
@@ -267,7 +273,7 @@ void zmq::amqp_client_t::connection_start (
 
     //  TODO: Security mechanisms and locales should be checked. Client should
     //  use user-supplied login/password rather than hard-wired guest/guest.
-    encoder.connection_start_ok (i_amqp::field_table_t (), "PLAIN",
+    encoder->connection_start_ok (i_amqp::field_table_t (), "PLAIN",
         i_amqp::longstr_t ("\x00guest\x00guest", 12), "en_US");
 
     state = state_waiting_for_connection_tune;
@@ -285,11 +291,11 @@ void zmq::amqp_client_t::connection_tune (
 
     //  TODO: Frame size should be adjusted to match server's min size
     //  TODO: Heartbeats are not implemented at the moment
-    encoder.connection_tune_ok (1, i_amqp::frame_min_size, 0);
+    encoder->connection_tune_ok (1, i_amqp::frame_min_size, 0);
 
     //  TODO: Virtual host name should be suplied by client application 
     //  rather than hardwired
-    encoder.connection_open ("/", "", true);
+    encoder->connection_open ("/", "", true);
     
     state = state_waiting_for_connection_open_ok;
 
@@ -302,7 +308,7 @@ void zmq::amqp_client_t::connection_open_ok (
 {
     assert (state == state_waiting_for_connection_open_ok);
 
-    encoder.channel_open ("");
+    encoder->channel_open ("");
 
     state = state_waiting_for_channel_open_ok;
 
@@ -316,7 +322,7 @@ void zmq::amqp_client_t::channel_open_ok (
     assert (state == state_waiting_for_channel_open_ok);
 
     i_amqp::field_table_t queue_args;
-    encoder.queue_declare (0, arguments.c_str (),
+    encoder->queue_declare (0, arguments.c_str (),
         false, false, false, false, false, queue_args);
 
     state = state_waiting_for_queue_declare_ok;
@@ -333,7 +339,7 @@ void zmq::amqp_client_t::queue_declare_ok (
     assert (state == state_waiting_for_queue_declare_ok);
 
     i_amqp::field_table_t consume_args;
-    encoder.basic_consume (0, arguments.c_str (), "",
+    encoder->basic_consume (0, arguments.c_str (), "",
         true, true, false, false, consume_args);
 
     state = state_waiting_for_basic_consume_ok;
@@ -347,8 +353,8 @@ void zmq::amqp_client_t::basic_consume_ok (
 {
     assert (state == state_waiting_for_basic_consume_ok);
 
-    encoder.flow (true);
-    decoder.flow (true);
+    encoder->flow (true);
+    decoder->flow (true);
     state = state_active;
 
     //  Start polling for out - in case there are messages already prepared

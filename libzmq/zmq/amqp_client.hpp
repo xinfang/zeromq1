@@ -124,10 +124,10 @@ namespace zmq
         state_t state;
 
         //  Object to decode AMQP commands/messages.
-        amqp_decoder_t decoder;
+        amqp_decoder_t *decoder;
 
         //  Object to encode AMQP commands/messages.
-        amqp_encoder_t encoder;
+        amqp_encoder_t *encoder;
 
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;

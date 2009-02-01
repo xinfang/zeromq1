@@ -42,6 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../libzmq"
+				PreprocessorDefinitions="ZMQ_HAVE_AMQP"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
@@ -115,6 +116,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../libzmq"
+				PreprocessorDefinitions="ZMQ_HAVE_AMQP"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -170,6 +172,26 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\libzmq\amqp_client.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\amqp_decoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\amqp_encoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\amqp_marshaller.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\amqp_unmarshaller.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\api_thread.cpp"
 				>
 			</File>
@@ -179,14 +201,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\bp_encoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\sctp_engine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\sctp_listener.cpp"
 				>
 			</File>
 			<File
@@ -254,6 +268,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\sctp_engine.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\sctp_listener.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\select_thread.cpp"
 				>
 			</File>
@@ -292,6 +314,26 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\..\libzmq\zmq\amqp_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\amqp_decoder.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\amqp_encoder.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\amqp_marshaller.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\amqp_unmarshaller.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\api_thread.hpp"
 				>
 			</File>
@@ -313,14 +355,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\bp_encoder.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\sctp_engine.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
 				>
 			</File>
 			<File
@@ -465,6 +499,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\scope.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\sctp_engine.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
 				>
 			</File>
 			<File
