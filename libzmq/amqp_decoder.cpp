@@ -113,7 +113,7 @@ bool zmq::amqp_decoder_t::content_header_payload_ready ()
     assert (framebuf [bytes_read] == i_amqp::frame_end);
 
     //  Allocate message large enough to hold the entire payload.
-    message.rebuild (body_size);
+    message.rebuild ((size_t) body_size);
     message_offset = 0;
 
     next_step (framebuf, 7, &amqp_decoder_t::content_body_frame_header_ready);

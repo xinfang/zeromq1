@@ -60,7 +60,7 @@
 .       if bit_offset = 0
                 assert (offset + sizeof (uint8_t) <= args_size);
 .       endif
-                bool $(field.name:c) = args [offset] & (0x1 << $(bit_offset));
+                bool $(field.name:c) = (args [offset] & (0x1 << $(bit_offset))) != 0;
 .       bit_offset = bit_offset + 1
 .   elsif type = "octet"
                 assert (offset + sizeof (uint8_t) <= args_size);
@@ -205,6 +205,8 @@
 #include <assert.h>
 #include <map>
 #include <string>
+
+#include <zmq/stdint.hpp>
 
 namespace zmq
 {
