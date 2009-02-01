@@ -41,6 +41,7 @@ namespace zmq
             poll_thread_t *queue_thread,
             const char *exchange_arguments = NULL,
             const char *queue_arguments = NULL);
+        void mask (uint32_t message_mask);
         void send (int exchange_id, message_t &msg);
         void presend (int exchange_id, message_t &msg);
         void flush ();
@@ -171,6 +172,14 @@ and
 .IR queue_arguments
 can contain additional information passed to eachange and queue engine.
 Interpretation of these strings is dependent on the transport mechanism used.
+.IP "\fBvoid mask (uint32_t message_mask)\fP
+This function allows you to specify what messages are to be received.
+By default only standard data messages are received. Check
+.IR message_t
+manpage for different types of messages. Combine individual message types
+you want to receive using binary OR operator to get
+.IR message_mask
+argument. Receiving data messages cannot be switched off.
 .IP "\fBvoid send (int exchange_id, message_t &msg)\fP
 Sends a message to exchange specified by the
 .IR exchange_id

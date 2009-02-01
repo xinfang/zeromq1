@@ -8,6 +8,11 @@ zmq::message_t \- class encapulating 0MQ message
 
 namespace zmq
 {
+    enum {
+        message_data,
+        message_gap
+    };
+
     typedef void (free_fn) (void *data_);
 
     class message_t
@@ -19,6 +24,7 @@ namespace zmq
         void rebuild (void *data, size_t size, free_fn *ffn);
         void move_to (message_t *msg);
         void copy_to (message_t *msg);
+        uint32_t type ();
         void *data ();
         size_t size ();
     };
@@ -81,6 +87,15 @@ Copies the content of the message to the message identified by the
 parameter. The message content is not necessarily copied, the operation may be
 handled by copying pointer and increasing reference count of the message.
 Thus the content of the message shouldn't be changed after it has been copied.
+.IP "\fBuint32_t *type ()\fP"
+Returns type of the message. In the case the message is raw data message
+returned value equals to
+.IR message_data
+constant. If the message is a gap notification (message specifying that some
+messages may be missing at the particular point of the queue) return value
+equals to
+.IR message_gap
+constant.
 .IP "\fBvoid *data ()\fP"
 Returns pointer to the message data. It can be used both to read and write
 the message content. Don't store the pointer for extended periods of time.

@@ -98,6 +98,12 @@ namespace zmq
             raw_message_copy (this, (raw_message_t*) msg_);
         }
 
+        //  Returns message type.
+        inline uint32_t type ()
+        {
+            return raw_message_type (this);
+        }
+
         //  Returns pointer to message's data buffer.
         inline void *data ()
         {
@@ -108,12 +114,6 @@ namespace zmq
         inline size_t size ()
         {
             return raw_message_size (this);
-        }
-
-        //  Returns message type.
-        inline uint32_t type ()
-        {
-            return raw_message_type (this);
         }
 
     private:
