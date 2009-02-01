@@ -30,6 +30,8 @@
 #include <map>
 #include <string>
 
+#include <zmq/stdint.hpp>
+
 namespace zmq
 {
 

@@ -188,7 +188,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 reserved_1.data = (char*) (args + offset);
                 offset += reserved_1.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool reserved_2 = args [offset] & (0x1 << 0);
+                bool reserved_2 = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->connection_open (
                     virtual_host,
@@ -282,7 +282,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::channel_flow_id:
             {
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool active = args [offset] & (0x1 << 0);
+                bool active = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->channel_flow (
                     active);
@@ -292,7 +292,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::channel_flow_ok_id:
             {
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool active = args [offset] & (0x1 << 0);
+                bool active = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->channel_flow_ok (
                     active);
@@ -356,11 +356,11 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 type.data = (char*) (args + offset);
                 offset += type.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool passive = args [offset] & (0x1 << 0);
-                bool durable = args [offset] & (0x1 << 1);
-                bool reserved_2 = args [offset] & (0x1 << 2);
-                bool reserved_3 = args [offset] & (0x1 << 3);
-                bool no_wait = args [offset] & (0x1 << 4);
+                bool passive = (args [offset] & (0x1 << 0)) != 0;
+                bool durable = (args [offset] & (0x1 << 1)) != 0;
+                bool reserved_2 = (args [offset] & (0x1 << 2)) != 0;
+                bool reserved_3 = (args [offset] & (0x1 << 3)) != 0;
+                bool no_wait = (args [offset] & (0x1 << 4)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
@@ -398,8 +398,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 exchange.data = (char*) (args + offset);
                 offset += exchange.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool if_unused = args [offset] & (0x1 << 0);
-                bool no_wait = args [offset] & (0x1 << 1);
+                bool if_unused = (args [offset] & (0x1 << 0)) != 0;
+                bool no_wait = (args [offset] & (0x1 << 1)) != 0;
 
                 callback->exchange_delete (
                     reserved_1,
@@ -432,11 +432,11 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 queue.data = (char*) (args + offset);
                 offset += queue.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool passive = args [offset] & (0x1 << 0);
-                bool durable = args [offset] & (0x1 << 1);
-                bool exclusive = args [offset] & (0x1 << 2);
-                bool auto_delete = args [offset] & (0x1 << 3);
-                bool no_wait = args [offset] & (0x1 << 4);
+                bool passive = (args [offset] & (0x1 << 0)) != 0;
+                bool durable = (args [offset] & (0x1 << 1)) != 0;
+                bool exclusive = (args [offset] & (0x1 << 2)) != 0;
+                bool auto_delete = (args [offset] & (0x1 << 3)) != 0;
+                bool no_wait = (args [offset] & (0x1 << 4)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
@@ -503,7 +503,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 routing_key.data = (char*) (args + offset);
                 offset += routing_key.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool no_wait = args [offset] & (0x1 << 0);
+                bool no_wait = (args [offset] & (0x1 << 0)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
@@ -583,7 +583,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 queue.data = (char*) (args + offset);
                 offset += queue.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool no_wait = args [offset] & (0x1 << 0);
+                bool no_wait = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->queue_purge (
                     reserved_1,
@@ -616,9 +616,9 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 queue.data = (char*) (args + offset);
                 offset += queue.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool if_unused = args [offset] & (0x1 << 0);
-                bool if_empty = args [offset] & (0x1 << 1);
-                bool no_wait = args [offset] & (0x1 << 2);
+                bool if_unused = (args [offset] & (0x1 << 0)) != 0;
+                bool if_empty = (args [offset] & (0x1 << 1)) != 0;
+                bool no_wait = (args [offset] & (0x1 << 2)) != 0;
 
                 callback->queue_delete (
                     reserved_1,
@@ -652,7 +652,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint16_t prefetch_count = get_uint16 (args + offset);
                 offset += sizeof (uint16_t);
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool global = args [offset] & (0x1 << 0);
+                bool global = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_qos (
                     prefetch_size,
@@ -688,10 +688,10 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 consumer_tag.data = (char*) (args + offset);
                 offset += consumer_tag.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool no_local = args [offset] & (0x1 << 0);
-                bool no_ack = args [offset] & (0x1 << 1);
-                bool exclusive = args [offset] & (0x1 << 2);
-                bool no_wait = args [offset] & (0x1 << 3);
+                bool no_local = (args [offset] & (0x1 << 0)) != 0;
+                bool no_ack = (args [offset] & (0x1 << 1)) != 0;
+                bool exclusive = (args [offset] & (0x1 << 2)) != 0;
+                bool no_wait = (args [offset] & (0x1 << 3)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
@@ -733,7 +733,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 consumer_tag.data = (char*) (args + offset);
                 offset += consumer_tag.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool no_wait = args [offset] & (0x1 << 0);
+                bool no_wait = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_cancel (
                     consumer_tag,
@@ -776,8 +776,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 routing_key.data = (char*) (args + offset);
                 offset += routing_key.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool mandatory = args [offset] & (0x1 << 0);
-                bool immediate = args [offset] & (0x1 << 1);
+                bool mandatory = (args [offset] & (0x1 << 0)) != 0;
+                bool immediate = (args [offset] & (0x1 << 1)) != 0;
 
                 callback->basic_publish (
                     reserved_1,
@@ -836,7 +836,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint64_t delivery_tag = get_uint64 (args + offset);
                 offset += sizeof (uint64_t);
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool redelivered = args [offset] & (0x1 << 0);
+                bool redelivered = (args [offset] & (0x1 << 0)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::shortstr_t exchange;
                 assert (offset + sizeof (uint8_t) <= args_size);
@@ -875,7 +875,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 queue.data = (char*) (args + offset);
                 offset += queue.size;
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool no_ack = args [offset] & (0x1 << 0);
+                bool no_ack = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_get (
                     reserved_1,
@@ -890,7 +890,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint64_t delivery_tag = get_uint64 (args + offset);
                 offset += sizeof (uint64_t);
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool redelivered = args [offset] & (0x1 << 0);
+                bool redelivered = (args [offset] & (0x1 << 0)) != 0;
                 offset += sizeof (uint8_t);
                 i_amqp::shortstr_t exchange;
                 assert (offset + sizeof (uint8_t) <= args_size);
@@ -940,7 +940,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint64_t delivery_tag = get_uint64 (args + offset);
                 offset += sizeof (uint64_t);
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool multiple = args [offset] & (0x1 << 0);
+                bool multiple = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_ack (
                     delivery_tag,
@@ -954,7 +954,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint64_t delivery_tag = get_uint64 (args + offset);
                 offset += sizeof (uint64_t);
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool requeue = args [offset] & (0x1 << 0);
+                bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_reject (
                     delivery_tag,
@@ -965,7 +965,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::basic_recover_async_id:
             {
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool requeue = args [offset] & (0x1 << 0);
+                bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_recover_async (
                     requeue);
@@ -975,7 +975,7 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::basic_recover_id:
             {
                 assert (offset + sizeof (uint8_t) <= args_size);
-                bool requeue = args [offset] & (0x1 << 0);
+                bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
                 callback->basic_recover (
                     requeue);
