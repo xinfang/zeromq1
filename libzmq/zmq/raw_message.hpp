@@ -119,7 +119,10 @@ namespace zmq
         uint32_t tag_)
     {
         msg_->shared = false;
-        msg_->content = (message_content_t*) tag_;
+
+        //  Trick the compiler to belive that tag_ is a valid pointer.
+        unsigned char *offset = 0;
+        msg_->content = (message_content_t*) (offset + tag_);
     }
 
     //  Releases the resources associated with the message. Obviously, if
@@ -211,7 +214,10 @@ namespace zmq
     {
         if (msg_->content >= (message_content_t*) raw_message_t::vsm_tag)
             return 1 << 0;
-        return 1 << (int) msg_->content;
+
+        //   Trick the compiler to believe that content is an integer.
+        unsigned char *offset = 0;
+        return 1 << (int) (((unsigned char*) msg_->content) - offset);
     }
 
 }
