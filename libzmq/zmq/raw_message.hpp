@@ -121,7 +121,7 @@ namespace zmq
         msg_->shared = false;
 
         //  Trick the compiler to belive that tag_ is a valid pointer.
-        unsigned char *offset = 0;
+        const unsigned char *offset = 0;
         msg_->content = (message_content_t*) (offset + tag_);
     }
 
@@ -217,7 +217,7 @@ namespace zmq
 
         //   Trick the compiler to believe that content is an integer.
         unsigned char *offset = 0;
-        return 1 << (int) (((unsigned char*) msg_->content) - offset);
+        return 1 << (int) (((const unsigned char*) msg_->content) - offset);
     }
 
 }
