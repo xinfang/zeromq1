@@ -32,8 +32,8 @@ namespace zmq
             poll_thread_t *listener_thread = NULL,
             int handler_thread_count = 0,
             poll_thread_t **handler_threads = NULL,
-            uint64_t hwm = -1,
-            uint64_t lwm = -1);
+            int64_t hwm = -1,
+            int64_t lwm = -1);
         void bind (
             const char *exchange,
             const char *queue,
@@ -103,7 +103,7 @@ array.  The size of the array is specified by the
 .IR handler_thread_count
 parameter. Newly created connections are distributed between handler threads
 in a round-robin manner.
-.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, uint64_t hwm = -1, uint64_t lwm = -1)\fP
+.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, int64_t hwm = -1, int64_t lwm = -1)\fP
 Creates a queue. The name of the queue to create is specified by the
 .IR queue
 parameter.  The
