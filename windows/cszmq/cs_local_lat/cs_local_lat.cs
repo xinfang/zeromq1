@@ -34,7 +34,7 @@ class cs_local_lat
                 "<message-size> <roundtrip-count>\n");
             return 1;
         }
-
+        
         String host = args [0];
         uint msg_size = Convert.ToUInt32 (args [1]);
         int roundtrip_count = Convert.ToInt32 (args [2]);
@@ -42,7 +42,7 @@ class cs_local_lat
         //  Print out the test parameters.
         Console.Out.WriteLine ("message size: " + msg_size + " [B]");
         Console.Out.WriteLine ("roundtrip count: " + roundtrip_count);
-
+        
         //  Create 0MQ Dnzmq class.
         Dnzmq w = new Dnzmq (host);
 
@@ -79,7 +79,7 @@ class cs_local_lat
             latency.ToString ("f2"));
 
         System.Threading.Thread.Sleep (5000);
-
+ 
         return 0;
     }
 }
