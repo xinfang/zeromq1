@@ -48,6 +48,7 @@ namespace zmq
         //  malloc and freed using standard free function.
         struct command_t
         {
+            uint16_t channel;
             uint16_t class_id;
             uint16_t method_id;
             unsigned char *args;
@@ -58,6 +59,7 @@ namespace zmq
         ~amqp_marshaller_t ();
 
         void connection_start (
+            uint16_t channel_,
             uint8_t version_major_,
             uint8_t version_minor_,
             const i_amqp::field_table_t &server_properties_,
@@ -65,64 +67,80 @@ namespace zmq
             const i_amqp::longstr_t locales_);
 
         void connection_start_ok (
+            uint16_t channel_,
             const i_amqp::field_table_t &client_properties_,
             const i_amqp::shortstr_t mechanism_,
             const i_amqp::longstr_t response_,
             const i_amqp::shortstr_t locale_);
 
         void connection_secure (
+            uint16_t channel_,
             const i_amqp::longstr_t challenge_);
 
         void connection_secure_ok (
+            uint16_t channel_,
             const i_amqp::longstr_t response_);
 
         void connection_tune (
+            uint16_t channel_,
             uint16_t channel_max_,
             uint32_t frame_max_,
             uint16_t heartbeat_);
 
         void connection_tune_ok (
+            uint16_t channel_,
             uint16_t channel_max_,
             uint32_t frame_max_,
             uint16_t heartbeat_);
 
         void connection_open (
+            uint16_t channel_,
             const i_amqp::shortstr_t virtual_host_,
             const i_amqp::shortstr_t reserved_1_,
             bool reserved_2_);
 
         void connection_open_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_);
 
         void connection_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
             uint16_t method_id_);
 
-        void connection_close_ok ();
+        void connection_close_ok (
+            uint16_t channel_);
 
         void channel_open (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_);
 
         void channel_open_ok (
+            uint16_t channel_,
             const i_amqp::longstr_t reserved_1_);
 
         void channel_flow (
+            uint16_t channel_,
             bool active_);
 
         void channel_flow_ok (
+            uint16_t channel_,
             bool active_);
 
         void channel_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
             uint16_t method_id_);
 
-        void channel_close_ok ();
+        void channel_close_ok (
+            uint16_t channel_);
 
         void exchange_declare (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t type_,
@@ -133,17 +151,21 @@ namespace zmq
             bool no_wait_,
             const i_amqp::field_table_t &arguments_);
 
-        void exchange_declare_ok ();
+        void exchange_declare_ok (
+            uint16_t channel_);
 
         void exchange_delete (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             bool if_unused_,
             bool no_wait_);
 
-        void exchange_delete_ok ();
+        void exchange_delete_ok (
+            uint16_t channel_);
 
         void queue_declare (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool passive_,
@@ -154,11 +176,13 @@ namespace zmq
             const i_amqp::field_table_t &arguments_);
 
         void queue_declare_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t queue_,
             uint32_t message_count_,
             uint32_t consumer_count_);
 
         void queue_bind (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t exchange_,
@@ -166,26 +190,32 @@ namespace zmq
             bool no_wait_,
             const i_amqp::field_table_t &arguments_);
 
-        void queue_bind_ok ();
+        void queue_bind_ok (
+            uint16_t channel_);
 
         void queue_unbind (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t routing_key_,
             const i_amqp::field_table_t &arguments_);
 
-        void queue_unbind_ok ();
+        void queue_unbind_ok (
+            uint16_t channel_);
 
         void queue_purge (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool no_wait_);
 
         void queue_purge_ok (
+            uint16_t channel_,
             uint32_t message_count_);
 
         void queue_delete (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool if_unused_,
@@ -193,16 +223,20 @@ namespace zmq
             bool no_wait_);
 
         void queue_delete_ok (
+            uint16_t channel_,
             uint32_t message_count_);
 
         void basic_qos (
+            uint16_t channel_,
             uint32_t prefetch_size_,
             uint16_t prefetch_count_,
             bool global_);
 
-        void basic_qos_ok ();
+        void basic_qos_ok (
+            uint16_t channel_);
 
         void basic_consume (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t consumer_tag_,
@@ -213,16 +247,20 @@ namespace zmq
             const i_amqp::field_table_t &arguments_);
 
         void basic_consume_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_);
 
         void basic_cancel (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_,
             bool no_wait_);
 
         void basic_cancel_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_);
 
         void basic_publish (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t routing_key_,
@@ -230,12 +268,14 @@ namespace zmq
             bool immediate_);
 
         void basic_return (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t routing_key_);
 
         void basic_deliver (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_,
             uint64_t delivery_tag_,
             bool redelivered_,
@@ -243,11 +283,13 @@ namespace zmq
             const i_amqp::shortstr_t routing_key_);
 
         void basic_get (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool no_ack_);
 
         void basic_get_ok (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool redelivered_,
             const i_amqp::shortstr_t exchange_,
@@ -255,35 +297,47 @@ namespace zmq
             uint32_t message_count_);
 
         void basic_get_empty (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_);
 
         void basic_ack (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool multiple_);
 
         void basic_reject (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool requeue_);
 
         void basic_recover_async (
+            uint16_t channel_,
             bool requeue_);
 
         void basic_recover (
+            uint16_t channel_,
             bool requeue_);
 
-        void basic_recover_ok ();
+        void basic_recover_ok (
+            uint16_t channel_);
 
-        void tx_select ();
+        void tx_select (
+            uint16_t channel_);
 
-        void tx_select_ok ();
+        void tx_select_ok (
+            uint16_t channel_);
 
-        void tx_commit ();
+        void tx_commit (
+            uint16_t channel_);
 
-        void tx_commit_ok ();
+        void tx_commit_ok (
+            uint16_t channel_);
 
-        void tx_rollback ();
+        void tx_rollback (
+            uint16_t channel_);
 
-        void tx_rollback_ok ();
+        void tx_rollback_ok (
+            uint16_t channel_);
 
 
     protected:

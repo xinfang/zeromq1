@@ -11,8 +11,6 @@
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
-
     You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -53,7 +51,7 @@ namespace zmq
         //  on encapsulated i_amqp interface. Parameter for the method are
         //  parsed from the binary data specified by 'args' and 'args_size'
         //  arguments.
-        void write (uint16_t class_id, uint16_t method_id,
+        void write (uint16_t channel_, uint16_t class_id, uint16_t method_id,
             unsigned char *args, size_t args_size);
 
     private:

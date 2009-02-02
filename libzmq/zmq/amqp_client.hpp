@@ -70,6 +70,7 @@ namespace zmq
         ~amqp_client_t ();
 
         void connection_start (
+            uint16_t channel_,
             uint8_t version_major_,
             uint8_t version_minor_,
             const i_amqp::field_table_t &server_properties_,
@@ -77,31 +78,38 @@ namespace zmq
             const i_amqp::longstr_t locales_);
 
         void connection_tune (
+            uint16_t channel_,
             uint16_t channel_max_,
             uint32_t frame_max_,
             uint16_t heartbeat_);
 
         void connection_open_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_);
 
         void channel_open_ok (
+            uint16_t channel_,
             const i_amqp::longstr_t reserved_1_);
 
         void queue_declare_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t queue_,
             uint32_t message_count_,
             uint32_t consumer_count_);
 
         void basic_consume_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_);
 
         void channel_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
             uint16_t method_id_);
 
         void connection_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
@@ -122,6 +130,9 @@ namespace zmq
 
         //  State of AMQP connection.
         state_t state;
+
+        //  ID of the AMQP channel used to pass messages.
+        uint16_t channel;
 
         //  Object to decode AMQP commands/messages.
         amqp_decoder_t *decoder;

@@ -30,7 +30,8 @@
 zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *queue_) :
     mux (mux_),
     queue (queue_),
-    flow_on (false)
+    flow_on (false),
+    message_channel (0)
 {
     command.args = NULL;
 
@@ -46,9 +47,10 @@ zmq::amqp_encoder_t::~amqp_encoder_t ()
         free (command.args);
 }
 
-void zmq::amqp_encoder_t::flow (bool flow_on_)
+void zmq::amqp_encoder_t::flow (bool flow_on_, uint16_t channel_)
 {
     flow_on = flow_on_;
+    message_channel = channel_;
 }
 
 bool zmq::amqp_encoder_t::message_ready ()
@@ -64,9 +66,9 @@ bool zmq::amqp_encoder_t::message_ready ()
         put_uint8 (framebuf + offset, i_amqp::frame_method);
         offset += sizeof (uint8_t);
 
-        //  Channel zero.
+        //  Channel ID.
         assert (offset + sizeof (uint16_t) <= framebuf_size);
-        put_uint16 (framebuf + offset, 0);
+        put_uint16 (framebuf + offset, command.channel);
         offset += sizeof (uint16_t);
 
         //  Length of the frame (class + method + arguments).
@@ -101,9 +103,9 @@ bool zmq::amqp_encoder_t::message_ready ()
     put_uint8 (framebuf + offset, i_amqp::frame_method);
     offset += sizeof (uint8_t);
 
-    //  Channel zero.
+    //  Channel ID.
     assert (offset + sizeof (uint16_t) <= framebuf_size);
-    put_uint16 (framebuf + offset, 0);
+    put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Leave frame length empty for now. To be filled in later when we know
@@ -191,9 +193,9 @@ bool zmq::amqp_encoder_t::content_header ()
     put_uint8 (framebuf + offset, i_amqp::frame_header);
     offset += sizeof (uint8_t);
 
-    //  Channel 1.
+    //  Channel ID.
     assert (offset + sizeof (uint16_t) <= framebuf_size);
-    put_uint16 (framebuf + offset, 1);
+    put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Leave frame size empty. To be filled in later.
@@ -249,9 +251,9 @@ bool zmq::amqp_encoder_t::content_body_frame_header ()
     put_uint8 (framebuf + offset, i_amqp::frame_body);
     offset += sizeof (uint8_t);
 
-    //  Channel 1.
+    //  Channel ID.
     assert (offset + sizeof (uint16_t) <= framebuf_size);
-    put_uint16 (framebuf + offset, 1);
+    put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Frame size.

@@ -43,7 +43,7 @@ namespace zmq
         ~amqp_decoder_t ();
 
         //  Switch message flow on/off.
-        void flow (bool flow_on_);
+        void flow (bool flow_on_, uint16_t channel_);
 
     private:
 
@@ -65,6 +65,9 @@ namespace zmq
         //  TODO: Shouldn't it be moved to generic decoder_t class?
         size_t bytes_read;
 
+        //  Channel ID of the command being decoded.
+        uint16_t channel;
+
         //  Message currently being decoded. message_offset points to how much
         //  data was already decoded into the message.
         message_t message;
@@ -73,6 +76,9 @@ namespace zmq
         //  If true, messages may pass through the decoder. If false, only
         //  AMQP commands are passed (e.g. during initial AMQP handshaking).
         bool flow_on;
+
+        //  Channel to receive message on.
+        uint16_t message_channel;
 
         //  Buffer to read the frames in (excluding actual message content).
         unsigned char framebuf [i_amqp::frame_min_size];

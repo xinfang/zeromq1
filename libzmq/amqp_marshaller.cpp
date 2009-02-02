@@ -41,6 +41,7 @@ zmq::amqp_marshaller_t::~amqp_marshaller_t ()
 }
 
 void zmq::amqp_marshaller_t::connection_start (
+            uint16_t channel_,
             uint8_t version_major_,
             uint8_t version_minor_,
             const i_amqp::field_table_t &server_properties_,
@@ -72,6 +73,7 @@ void zmq::amqp_marshaller_t::connection_start (
     offset += locales_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_start_id,
         args,
@@ -81,6 +83,7 @@ void zmq::amqp_marshaller_t::connection_start (
 }
 
 void zmq::amqp_marshaller_t::connection_start_ok (
+            uint16_t channel_,
             const i_amqp::field_table_t &client_properties_,
             const i_amqp::shortstr_t mechanism_,
             const i_amqp::longstr_t response_,
@@ -111,6 +114,7 @@ void zmq::amqp_marshaller_t::connection_start_ok (
     offset += locale_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_start_ok_id,
         args,
@@ -120,6 +124,7 @@ void zmq::amqp_marshaller_t::connection_start_ok (
 }
 
 void zmq::amqp_marshaller_t::connection_secure (
+            uint16_t channel_,
             const i_amqp::longstr_t challenge_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -134,6 +139,7 @@ void zmq::amqp_marshaller_t::connection_secure (
     offset += challenge_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_secure_id,
         args,
@@ -143,6 +149,7 @@ void zmq::amqp_marshaller_t::connection_secure (
 }
 
 void zmq::amqp_marshaller_t::connection_secure_ok (
+            uint16_t channel_,
             const i_amqp::longstr_t response_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -157,6 +164,7 @@ void zmq::amqp_marshaller_t::connection_secure_ok (
     offset += response_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_secure_ok_id,
         args,
@@ -166,6 +174,7 @@ void zmq::amqp_marshaller_t::connection_secure_ok (
 }
 
 void zmq::amqp_marshaller_t::connection_tune (
+            uint16_t channel_,
             uint16_t channel_max_,
             uint32_t frame_max_,
             uint16_t heartbeat_)
@@ -185,6 +194,7 @@ void zmq::amqp_marshaller_t::connection_tune (
     offset += sizeof (uint16_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_tune_id,
         args,
@@ -194,6 +204,7 @@ void zmq::amqp_marshaller_t::connection_tune (
 }
 
 void zmq::amqp_marshaller_t::connection_tune_ok (
+            uint16_t channel_,
             uint16_t channel_max_,
             uint32_t frame_max_,
             uint16_t heartbeat_)
@@ -213,6 +224,7 @@ void zmq::amqp_marshaller_t::connection_tune_ok (
     offset += sizeof (uint16_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_tune_ok_id,
         args,
@@ -222,6 +234,7 @@ void zmq::amqp_marshaller_t::connection_tune_ok (
 }
 
 void zmq::amqp_marshaller_t::connection_open (
+            uint16_t channel_,
             const i_amqp::shortstr_t virtual_host_,
             const i_amqp::shortstr_t reserved_1_,
             bool reserved_2_)
@@ -248,6 +261,7 @@ void zmq::amqp_marshaller_t::connection_open (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_open_id,
         args,
@@ -257,6 +271,7 @@ void zmq::amqp_marshaller_t::connection_open (
 }
 
 void zmq::amqp_marshaller_t::connection_open_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -271,6 +286,7 @@ void zmq::amqp_marshaller_t::connection_open_ok (
     offset += reserved_1_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_open_ok_id,
         args,
@@ -280,6 +296,7 @@ void zmq::amqp_marshaller_t::connection_open_ok (
 }
 
 void zmq::amqp_marshaller_t::connection_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
@@ -306,6 +323,7 @@ void zmq::amqp_marshaller_t::connection_close (
     offset += sizeof (uint16_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_close_id,
         args,
@@ -314,7 +332,8 @@ void zmq::amqp_marshaller_t::connection_close (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::connection_close_ok ()
+void zmq::amqp_marshaller_t::connection_close_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -322,6 +341,7 @@ void zmq::amqp_marshaller_t::connection_close_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::connection_id,
         i_amqp::connection_close_ok_id,
         args,
@@ -331,6 +351,7 @@ void zmq::amqp_marshaller_t::connection_close_ok ()
 }
 
 void zmq::amqp_marshaller_t::channel_open (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -345,6 +366,7 @@ void zmq::amqp_marshaller_t::channel_open (
     offset += reserved_1_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_open_id,
         args,
@@ -354,6 +376,7 @@ void zmq::amqp_marshaller_t::channel_open (
 }
 
 void zmq::amqp_marshaller_t::channel_open_ok (
+            uint16_t channel_,
             const i_amqp::longstr_t reserved_1_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -368,6 +391,7 @@ void zmq::amqp_marshaller_t::channel_open_ok (
     offset += reserved_1_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_open_ok_id,
         args,
@@ -377,6 +401,7 @@ void zmq::amqp_marshaller_t::channel_open_ok (
 }
 
 void zmq::amqp_marshaller_t::channel_flow (
+            uint16_t channel_,
             bool active_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -389,6 +414,7 @@ void zmq::amqp_marshaller_t::channel_flow (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_flow_id,
         args,
@@ -398,6 +424,7 @@ void zmq::amqp_marshaller_t::channel_flow (
 }
 
 void zmq::amqp_marshaller_t::channel_flow_ok (
+            uint16_t channel_,
             bool active_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -410,6 +437,7 @@ void zmq::amqp_marshaller_t::channel_flow_ok (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_flow_ok_id,
         args,
@@ -419,6 +447,7 @@ void zmq::amqp_marshaller_t::channel_flow_ok (
 }
 
 void zmq::amqp_marshaller_t::channel_close (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             uint16_t class_id_,
@@ -445,6 +474,7 @@ void zmq::amqp_marshaller_t::channel_close (
     offset += sizeof (uint16_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_close_id,
         args,
@@ -453,7 +483,8 @@ void zmq::amqp_marshaller_t::channel_close (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::channel_close_ok ()
+void zmq::amqp_marshaller_t::channel_close_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -461,6 +492,7 @@ void zmq::amqp_marshaller_t::channel_close_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::channel_id,
         i_amqp::channel_close_ok_id,
         args,
@@ -470,6 +502,7 @@ void zmq::amqp_marshaller_t::channel_close_ok ()
 }
 
 void zmq::amqp_marshaller_t::exchange_declare (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t type_,
@@ -510,6 +543,7 @@ void zmq::amqp_marshaller_t::exchange_declare (
     put_field_table (args, i_amqp::frame_min_size, offset, arguments_);
 
     command_t cmd = {
+        channel_,
         i_amqp::exchange_id,
         i_amqp::exchange_declare_id,
         args,
@@ -518,7 +552,8 @@ void zmq::amqp_marshaller_t::exchange_declare (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::exchange_declare_ok ()
+void zmq::amqp_marshaller_t::exchange_declare_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -526,6 +561,7 @@ void zmq::amqp_marshaller_t::exchange_declare_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::exchange_id,
         i_amqp::exchange_declare_ok_id,
         args,
@@ -535,6 +571,7 @@ void zmq::amqp_marshaller_t::exchange_declare_ok ()
 }
 
 void zmq::amqp_marshaller_t::exchange_delete (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             bool if_unused_,
@@ -560,6 +597,7 @@ void zmq::amqp_marshaller_t::exchange_delete (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::exchange_id,
         i_amqp::exchange_delete_id,
         args,
@@ -568,7 +606,8 @@ void zmq::amqp_marshaller_t::exchange_delete (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::exchange_delete_ok ()
+void zmq::amqp_marshaller_t::exchange_delete_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -576,6 +615,7 @@ void zmq::amqp_marshaller_t::exchange_delete_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::exchange_id,
         i_amqp::exchange_delete_ok_id,
         args,
@@ -585,6 +625,7 @@ void zmq::amqp_marshaller_t::exchange_delete_ok ()
 }
 
 void zmq::amqp_marshaller_t::queue_declare (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool passive_,
@@ -618,6 +659,7 @@ void zmq::amqp_marshaller_t::queue_declare (
     put_field_table (args, i_amqp::frame_min_size, offset, arguments_);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_declare_id,
         args,
@@ -627,6 +669,7 @@ void zmq::amqp_marshaller_t::queue_declare (
 }
 
 void zmq::amqp_marshaller_t::queue_declare_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t queue_,
             uint32_t message_count_,
             uint32_t consumer_count_)
@@ -649,6 +692,7 @@ void zmq::amqp_marshaller_t::queue_declare_ok (
     offset += sizeof (uint32_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_declare_ok_id,
         args,
@@ -658,6 +702,7 @@ void zmq::amqp_marshaller_t::queue_declare_ok (
 }
 
 void zmq::amqp_marshaller_t::queue_bind (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t exchange_,
@@ -697,6 +742,7 @@ void zmq::amqp_marshaller_t::queue_bind (
     put_field_table (args, i_amqp::frame_min_size, offset, arguments_);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_bind_id,
         args,
@@ -705,7 +751,8 @@ void zmq::amqp_marshaller_t::queue_bind (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::queue_bind_ok ()
+void zmq::amqp_marshaller_t::queue_bind_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -713,6 +760,7 @@ void zmq::amqp_marshaller_t::queue_bind_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_bind_ok_id,
         args,
@@ -722,6 +770,7 @@ void zmq::amqp_marshaller_t::queue_bind_ok ()
 }
 
 void zmq::amqp_marshaller_t::queue_unbind (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t exchange_,
@@ -756,6 +805,7 @@ void zmq::amqp_marshaller_t::queue_unbind (
     put_field_table (args, i_amqp::frame_min_size, offset, arguments_);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_unbind_id,
         args,
@@ -764,7 +814,8 @@ void zmq::amqp_marshaller_t::queue_unbind (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::queue_unbind_ok ()
+void zmq::amqp_marshaller_t::queue_unbind_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -772,6 +823,7 @@ void zmq::amqp_marshaller_t::queue_unbind_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_unbind_ok_id,
         args,
@@ -781,6 +833,7 @@ void zmq::amqp_marshaller_t::queue_unbind_ok ()
 }
 
 void zmq::amqp_marshaller_t::queue_purge (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool no_wait_)
@@ -804,6 +857,7 @@ void zmq::amqp_marshaller_t::queue_purge (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_purge_id,
         args,
@@ -813,6 +867,7 @@ void zmq::amqp_marshaller_t::queue_purge (
 }
 
 void zmq::amqp_marshaller_t::queue_purge_ok (
+            uint16_t channel_,
             uint32_t message_count_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -824,6 +879,7 @@ void zmq::amqp_marshaller_t::queue_purge_ok (
     offset += sizeof (uint32_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_purge_ok_id,
         args,
@@ -833,6 +889,7 @@ void zmq::amqp_marshaller_t::queue_purge_ok (
 }
 
 void zmq::amqp_marshaller_t::queue_delete (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool if_unused_,
@@ -860,6 +917,7 @@ void zmq::amqp_marshaller_t::queue_delete (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_delete_id,
         args,
@@ -869,6 +927,7 @@ void zmq::amqp_marshaller_t::queue_delete (
 }
 
 void zmq::amqp_marshaller_t::queue_delete_ok (
+            uint16_t channel_,
             uint32_t message_count_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -880,6 +939,7 @@ void zmq::amqp_marshaller_t::queue_delete_ok (
     offset += sizeof (uint32_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::queue_id,
         i_amqp::queue_delete_ok_id,
         args,
@@ -889,6 +949,7 @@ void zmq::amqp_marshaller_t::queue_delete_ok (
 }
 
 void zmq::amqp_marshaller_t::basic_qos (
+            uint16_t channel_,
             uint32_t prefetch_size_,
             uint16_t prefetch_count_,
             bool global_)
@@ -909,6 +970,7 @@ void zmq::amqp_marshaller_t::basic_qos (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_qos_id,
         args,
@@ -917,7 +979,8 @@ void zmq::amqp_marshaller_t::basic_qos (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::basic_qos_ok ()
+void zmq::amqp_marshaller_t::basic_qos_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -925,6 +988,7 @@ void zmq::amqp_marshaller_t::basic_qos_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_qos_ok_id,
         args,
@@ -934,6 +998,7 @@ void zmq::amqp_marshaller_t::basic_qos_ok ()
 }
 
 void zmq::amqp_marshaller_t::basic_consume (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             const i_amqp::shortstr_t consumer_tag_,
@@ -972,6 +1037,7 @@ void zmq::amqp_marshaller_t::basic_consume (
     put_field_table (args, i_amqp::frame_min_size, offset, arguments_);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_consume_id,
         args,
@@ -981,6 +1047,7 @@ void zmq::amqp_marshaller_t::basic_consume (
 }
 
 void zmq::amqp_marshaller_t::basic_consume_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -995,6 +1062,7 @@ void zmq::amqp_marshaller_t::basic_consume_ok (
     offset += consumer_tag_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_consume_ok_id,
         args,
@@ -1004,6 +1072,7 @@ void zmq::amqp_marshaller_t::basic_consume_ok (
 }
 
 void zmq::amqp_marshaller_t::basic_cancel (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_,
             bool no_wait_)
 {
@@ -1023,6 +1092,7 @@ void zmq::amqp_marshaller_t::basic_cancel (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_cancel_id,
         args,
@@ -1032,6 +1102,7 @@ void zmq::amqp_marshaller_t::basic_cancel (
 }
 
 void zmq::amqp_marshaller_t::basic_cancel_ok (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -1046,6 +1117,7 @@ void zmq::amqp_marshaller_t::basic_cancel_ok (
     offset += consumer_tag_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_cancel_ok_id,
         args,
@@ -1055,6 +1127,7 @@ void zmq::amqp_marshaller_t::basic_cancel_ok (
 }
 
 void zmq::amqp_marshaller_t::basic_publish (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t exchange_,
             const i_amqp::shortstr_t routing_key_,
@@ -1087,6 +1160,7 @@ void zmq::amqp_marshaller_t::basic_publish (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_publish_id,
         args,
@@ -1096,6 +1170,7 @@ void zmq::amqp_marshaller_t::basic_publish (
 }
 
 void zmq::amqp_marshaller_t::basic_return (
+            uint16_t channel_,
             uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
             const i_amqp::shortstr_t exchange_,
@@ -1128,6 +1203,7 @@ void zmq::amqp_marshaller_t::basic_return (
     offset += routing_key_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_return_id,
         args,
@@ -1137,6 +1213,7 @@ void zmq::amqp_marshaller_t::basic_return (
 }
 
 void zmq::amqp_marshaller_t::basic_deliver (
+            uint16_t channel_,
             const i_amqp::shortstr_t consumer_tag_,
             uint64_t delivery_tag_,
             bool redelivered_,
@@ -1174,6 +1251,7 @@ void zmq::amqp_marshaller_t::basic_deliver (
     offset += routing_key_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_deliver_id,
         args,
@@ -1183,6 +1261,7 @@ void zmq::amqp_marshaller_t::basic_deliver (
 }
 
 void zmq::amqp_marshaller_t::basic_get (
+            uint16_t channel_,
             uint16_t reserved_1_,
             const i_amqp::shortstr_t queue_,
             bool no_ack_)
@@ -1206,6 +1285,7 @@ void zmq::amqp_marshaller_t::basic_get (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_get_id,
         args,
@@ -1215,6 +1295,7 @@ void zmq::amqp_marshaller_t::basic_get (
 }
 
 void zmq::amqp_marshaller_t::basic_get_ok (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool redelivered_,
             const i_amqp::shortstr_t exchange_,
@@ -1249,6 +1330,7 @@ void zmq::amqp_marshaller_t::basic_get_ok (
     offset += sizeof (uint32_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_get_ok_id,
         args,
@@ -1258,6 +1340,7 @@ void zmq::amqp_marshaller_t::basic_get_ok (
 }
 
 void zmq::amqp_marshaller_t::basic_get_empty (
+            uint16_t channel_,
             const i_amqp::shortstr_t reserved_1_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -1272,6 +1355,7 @@ void zmq::amqp_marshaller_t::basic_get_empty (
     offset += reserved_1_.size;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_get_empty_id,
         args,
@@ -1281,6 +1365,7 @@ void zmq::amqp_marshaller_t::basic_get_empty (
 }
 
 void zmq::amqp_marshaller_t::basic_ack (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool multiple_)
 {
@@ -1297,6 +1382,7 @@ void zmq::amqp_marshaller_t::basic_ack (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_ack_id,
         args,
@@ -1306,6 +1392,7 @@ void zmq::amqp_marshaller_t::basic_ack (
 }
 
 void zmq::amqp_marshaller_t::basic_reject (
+            uint16_t channel_,
             uint64_t delivery_tag_,
             bool requeue_)
 {
@@ -1322,6 +1409,7 @@ void zmq::amqp_marshaller_t::basic_reject (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_reject_id,
         args,
@@ -1331,6 +1419,7 @@ void zmq::amqp_marshaller_t::basic_reject (
 }
 
 void zmq::amqp_marshaller_t::basic_recover_async (
+            uint16_t channel_,
             bool requeue_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -1343,6 +1432,7 @@ void zmq::amqp_marshaller_t::basic_recover_async (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_recover_async_id,
         args,
@@ -1352,6 +1442,7 @@ void zmq::amqp_marshaller_t::basic_recover_async (
 }
 
 void zmq::amqp_marshaller_t::basic_recover (
+            uint16_t channel_,
             bool requeue_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
@@ -1364,6 +1455,7 @@ void zmq::amqp_marshaller_t::basic_recover (
     offset += sizeof (uint8_t);
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_recover_id,
         args,
@@ -1372,7 +1464,8 @@ void zmq::amqp_marshaller_t::basic_recover (
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::basic_recover_ok ()
+void zmq::amqp_marshaller_t::basic_recover_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1380,6 +1473,7 @@ void zmq::amqp_marshaller_t::basic_recover_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::basic_id,
         i_amqp::basic_recover_ok_id,
         args,
@@ -1388,7 +1482,8 @@ void zmq::amqp_marshaller_t::basic_recover_ok ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_select ()
+void zmq::amqp_marshaller_t::tx_select (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1396,6 +1491,7 @@ void zmq::amqp_marshaller_t::tx_select ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_select_id,
         args,
@@ -1404,7 +1500,8 @@ void zmq::amqp_marshaller_t::tx_select ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_select_ok ()
+void zmq::amqp_marshaller_t::tx_select_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1412,6 +1509,7 @@ void zmq::amqp_marshaller_t::tx_select_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_select_ok_id,
         args,
@@ -1420,7 +1518,8 @@ void zmq::amqp_marshaller_t::tx_select_ok ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_commit ()
+void zmq::amqp_marshaller_t::tx_commit (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1428,6 +1527,7 @@ void zmq::amqp_marshaller_t::tx_commit ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_commit_id,
         args,
@@ -1436,7 +1536,8 @@ void zmq::amqp_marshaller_t::tx_commit ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_commit_ok ()
+void zmq::amqp_marshaller_t::tx_commit_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1444,6 +1545,7 @@ void zmq::amqp_marshaller_t::tx_commit_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_commit_ok_id,
         args,
@@ -1452,7 +1554,8 @@ void zmq::amqp_marshaller_t::tx_commit_ok ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_rollback ()
+void zmq::amqp_marshaller_t::tx_rollback (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1460,6 +1563,7 @@ void zmq::amqp_marshaller_t::tx_rollback ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_rollback_id,
         args,
@@ -1468,7 +1572,8 @@ void zmq::amqp_marshaller_t::tx_rollback ()
     command_queue.push (cmd);
 }
 
-void zmq::amqp_marshaller_t::tx_rollback_ok ()
+void zmq::amqp_marshaller_t::tx_rollback_ok (
+            uint16_t channel_)
 {
     unsigned char *args = (unsigned char*) malloc (i_amqp::frame_min_size);
     assert (args);
@@ -1476,6 +1581,7 @@ void zmq::amqp_marshaller_t::tx_rollback_ok ()
     size_t offset = 0;
 
     command_t cmd = {
+        channel_,
         i_amqp::tx_id,
         i_amqp::tx_rollback_ok_id,
         args,

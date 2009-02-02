@@ -27,7 +27,7 @@
 #include <zmq/formatting.hpp>
 #include <zmq/wire.hpp>
 
-void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
+void zmq::amqp_unmarshaller_t::write (uint16_t channel_, uint16_t class_id,
             uint16_t method_id, unsigned char *args, size_t args_size)
 {
     size_t offset = 0;
@@ -60,7 +60,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 locales.data = (void*) (args + offset);
                 offset += locales.size;
 
-                callback->connection_start (
+                callback->connection_start (  channel_
+,
                     version_major,
                     version_minor,
                     server_properties,
@@ -95,7 +96,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 locale.data = (char*) (args + offset);
                 offset += locale.size;
 
-                callback->connection_start_ok (
+                callback->connection_start_ok (  channel_
+,
                     client_properties,
                     mechanism,
                     response,
@@ -113,7 +115,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 challenge.data = (void*) (args + offset);
                 offset += challenge.size;
 
-                callback->connection_secure (
+                callback->connection_secure (  channel_
+,
                     challenge);
 
                 return;
@@ -128,7 +131,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 response.data = (void*) (args + offset);
                 offset += response.size;
 
-                callback->connection_secure_ok (
+                callback->connection_secure_ok (  channel_
+,
                     response);
 
                 return;
@@ -145,7 +149,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint16_t heartbeat = get_uint16 (args + offset);
                 offset += sizeof (uint16_t);
 
-                callback->connection_tune (
+                callback->connection_tune (  channel_
+,
                     channel_max,
                     frame_max,
                     heartbeat);
@@ -164,7 +169,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint16_t heartbeat = get_uint16 (args + offset);
                 offset += sizeof (uint16_t);
 
-                callback->connection_tune_ok (
+                callback->connection_tune_ok (  channel_
+,
                     channel_max,
                     frame_max,
                     heartbeat);
@@ -190,7 +196,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool reserved_2 = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->connection_open (
+                callback->connection_open (  channel_
+,
                     virtual_host,
                     reserved_1,
                     reserved_2);
@@ -207,7 +214,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 reserved_1.data = (char*) (args + offset);
                 offset += reserved_1.size;
 
-                callback->connection_open_ok (
+                callback->connection_open_ok (  channel_
+,
                     reserved_1);
 
                 return;
@@ -231,7 +239,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint16_t method_id = get_uint16 (args + offset);
                 offset += sizeof (uint16_t);
 
-                callback->connection_close (
+                callback->connection_close (  channel_
+,
                     reply_code,
                     reply_text,
                     class_id,
@@ -242,7 +251,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::connection_close_ok_id:
             {
 
-                callback->connection_close_ok ();
+                callback->connection_close_ok (  channel_
+);
 
                 return;
             }
@@ -259,7 +269,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 reserved_1.data = (char*) (args + offset);
                 offset += reserved_1.size;
 
-                callback->channel_open (
+                callback->channel_open (  channel_
+,
                     reserved_1);
 
                 return;
@@ -274,7 +285,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 reserved_1.data = (void*) (args + offset);
                 offset += reserved_1.size;
 
-                callback->channel_open_ok (
+                callback->channel_open_ok (  channel_
+,
                     reserved_1);
 
                 return;
@@ -284,7 +296,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool active = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->channel_flow (
+                callback->channel_flow (  channel_
+,
                     active);
 
                 return;
@@ -294,7 +307,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool active = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->channel_flow_ok (
+                callback->channel_flow_ok (  channel_
+,
                     active);
 
                 return;
@@ -318,7 +332,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint16_t method_id = get_uint16 (args + offset);
                 offset += sizeof (uint16_t);
 
-                callback->channel_close (
+                callback->channel_close (  channel_
+,
                     reply_code,
                     reply_text,
                     class_id,
@@ -329,7 +344,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::channel_close_ok_id:
             {
 
-                callback->channel_close_ok ();
+                callback->channel_close_ok (  channel_
+);
 
                 return;
             }
@@ -365,7 +381,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
 
-                callback->exchange_declare (
+                callback->exchange_declare (  channel_
+,
                     reserved_1,
                     exchange,
                     type,
@@ -381,7 +398,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::exchange_declare_ok_id:
             {
 
-                callback->exchange_declare_ok ();
+                callback->exchange_declare_ok (  channel_
+);
 
                 return;
             }
@@ -401,7 +419,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 bool if_unused = (args [offset] & (0x1 << 0)) != 0;
                 bool no_wait = (args [offset] & (0x1 << 1)) != 0;
 
-                callback->exchange_delete (
+                callback->exchange_delete (  channel_
+,
                     reserved_1,
                     exchange,
                     if_unused,
@@ -412,7 +431,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::exchange_delete_ok_id:
             {
 
-                callback->exchange_delete_ok ();
+                callback->exchange_delete_ok (  channel_
+);
 
                 return;
             }
@@ -441,7 +461,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
 
-                callback->queue_declare (
+                callback->queue_declare (  channel_
+,
                     reserved_1,
                     queue,
                     passive,
@@ -469,7 +490,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint32_t consumer_count = get_uint32 (args + offset);
                 offset += sizeof (uint32_t);
 
-                callback->queue_declare_ok (
+                callback->queue_declare_ok (  channel_
+,
                     queue,
                     message_count,
                     consumer_count);
@@ -508,7 +530,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
 
-                callback->queue_bind (
+                callback->queue_bind (  channel_
+,
                     reserved_1,
                     queue,
                     exchange,
@@ -521,7 +544,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::queue_bind_ok_id:
             {
 
-                callback->queue_bind_ok ();
+                callback->queue_bind_ok (  channel_
+);
 
                 return;
             }
@@ -554,7 +578,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
 
-                callback->queue_unbind (
+                callback->queue_unbind (  channel_
+,
                     reserved_1,
                     queue,
                     exchange,
@@ -566,7 +591,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::queue_unbind_ok_id:
             {
 
-                callback->queue_unbind_ok ();
+                callback->queue_unbind_ok (  channel_
+);
 
                 return;
             }
@@ -585,7 +611,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool no_wait = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->queue_purge (
+                callback->queue_purge (  channel_
+,
                     reserved_1,
                     queue,
                     no_wait);
@@ -598,7 +625,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint32_t message_count = get_uint32 (args + offset);
                 offset += sizeof (uint32_t);
 
-                callback->queue_purge_ok (
+                callback->queue_purge_ok (  channel_
+,
                     message_count);
 
                 return;
@@ -620,7 +648,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 bool if_empty = (args [offset] & (0x1 << 1)) != 0;
                 bool no_wait = (args [offset] & (0x1 << 2)) != 0;
 
-                callback->queue_delete (
+                callback->queue_delete (  channel_
+,
                     reserved_1,
                     queue,
                     if_unused,
@@ -635,7 +664,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint32_t message_count = get_uint32 (args + offset);
                 offset += sizeof (uint32_t);
 
-                callback->queue_delete_ok (
+                callback->queue_delete_ok (  channel_
+,
                     message_count);
 
                 return;
@@ -654,7 +684,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool global = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_qos (
+                callback->basic_qos (  channel_
+,
                     prefetch_size,
                     prefetch_count,
                     global);
@@ -664,7 +695,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::basic_qos_ok_id:
             {
 
-                callback->basic_qos_ok ();
+                callback->basic_qos_ok (  channel_
+);
 
                 return;
             }
@@ -696,7 +728,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 i_amqp::field_table_t arguments;
                 get_field_table (args, args_size, offset, arguments);
 
-                callback->basic_consume (
+                callback->basic_consume (  channel_
+,
                     reserved_1,
                     queue,
                     consumer_tag,
@@ -718,7 +751,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 consumer_tag.data = (char*) (args + offset);
                 offset += consumer_tag.size;
 
-                callback->basic_consume_ok (
+                callback->basic_consume_ok (  channel_
+,
                     consumer_tag);
 
                 return;
@@ -735,7 +769,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool no_wait = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_cancel (
+                callback->basic_cancel (  channel_
+,
                     consumer_tag,
                     no_wait);
 
@@ -751,7 +786,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 consumer_tag.data = (char*) (args + offset);
                 offset += consumer_tag.size;
 
-                callback->basic_cancel_ok (
+                callback->basic_cancel_ok (  channel_
+,
                     consumer_tag);
 
                 return;
@@ -779,7 +815,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 bool mandatory = (args [offset] & (0x1 << 0)) != 0;
                 bool immediate = (args [offset] & (0x1 << 1)) != 0;
 
-                callback->basic_publish (
+                callback->basic_publish (  channel_
+,
                     reserved_1,
                     exchange,
                     routing_key,
@@ -815,7 +852,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 routing_key.data = (char*) (args + offset);
                 offset += routing_key.size;
 
-                callback->basic_return (
+                callback->basic_return (  channel_
+,
                     reply_code,
                     reply_text,
                     exchange,
@@ -853,7 +891,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 routing_key.data = (char*) (args + offset);
                 offset += routing_key.size;
 
-                callback->basic_deliver (
+                callback->basic_deliver (  channel_
+,
                     consumer_tag,
                     delivery_tag,
                     redelivered,
@@ -877,7 +916,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool no_ack = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_get (
+                callback->basic_get (  channel_
+,
                     reserved_1,
                     queue,
                     no_ack);
@@ -910,7 +950,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 uint32_t message_count = get_uint32 (args + offset);
                 offset += sizeof (uint32_t);
 
-                callback->basic_get_ok (
+                callback->basic_get_ok (  channel_
+,
                     delivery_tag,
                     redelivered,
                     exchange,
@@ -929,7 +970,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 reserved_1.data = (char*) (args + offset);
                 offset += reserved_1.size;
 
-                callback->basic_get_empty (
+                callback->basic_get_empty (  channel_
+,
                     reserved_1);
 
                 return;
@@ -942,7 +984,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool multiple = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_ack (
+                callback->basic_ack (  channel_
+,
                     delivery_tag,
                     multiple);
 
@@ -956,7 +999,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_reject (
+                callback->basic_reject (  channel_
+,
                     delivery_tag,
                     requeue);
 
@@ -967,7 +1011,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_recover_async (
+                callback->basic_recover_async (  channel_
+,
                     requeue);
 
                 return;
@@ -977,7 +1022,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
                 assert (offset + sizeof (uint8_t) <= args_size);
                 bool requeue = (args [offset] & (0x1 << 0)) != 0;
 
-                callback->basic_recover (
+                callback->basic_recover (  channel_
+,
                     requeue);
 
                 return;
@@ -985,7 +1031,8 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::basic_recover_ok_id:
             {
 
-                callback->basic_recover_ok ();
+                callback->basic_recover_ok (  channel_
+);
 
                 return;
             }
@@ -995,42 +1042,48 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
         case i_amqp::tx_select_id:
             {
 
-                callback->tx_select ();
+                callback->tx_select (  channel_
+);
 
                 return;
             }
         case i_amqp::tx_select_ok_id:
             {
 
-                callback->tx_select_ok ();
+                callback->tx_select_ok (  channel_
+);
 
                 return;
             }
         case i_amqp::tx_commit_id:
             {
 
-                callback->tx_commit ();
+                callback->tx_commit (  channel_
+);
 
                 return;
             }
         case i_amqp::tx_commit_ok_id:
             {
 
-                callback->tx_commit_ok ();
+                callback->tx_commit_ok (  channel_
+);
 
                 return;
             }
         case i_amqp::tx_rollback_id:
             {
 
-                callback->tx_rollback ();
+                callback->tx_rollback (  channel_
+);
 
                 return;
             }
         case i_amqp::tx_rollback_ok_id:
             {
 
-                callback->tx_rollback_ok ();
+                callback->tx_rollback_ok (  channel_
+);
 
                 return;
             }

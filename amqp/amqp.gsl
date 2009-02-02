@@ -286,12 +286,13 @@ namespace zmq
 
 .for class
 .   for method
-        inline virtual void $(class.name:c)_$(method.name:c) (\
+        inline virtual void $(class.name:c)_$(method.name:c) (
+            uint16_t channel_\
 .       bit_offset = 0
 .       for field
-
+,
 .               add_field_format ()
-$(field.name:c)_$(last ()??''?',')\
+$(field.name:c)_\
 .       endfor
 )
         {
@@ -322,8 +323,6 @@ $(field.name:c)_$(last ()??''?',')\
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
-
     You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -364,7 +363,7 @@ namespace zmq
         //  on encapsulated i_amqp interface. Parameter for the method are
         //  parsed from the binary data specified by 'args' and 'args_size'
         //  arguments.
-        void write (uint16_t class_id, uint16_t method_id,
+        void write (uint16_t channel_, uint16_t class_id, uint16_t method_id,
             unsigned char *args, size_t args_size);
 
     private:
@@ -413,7 +412,7 @@ namespace zmq
 #include <zmq/formatting.hpp>
 #include <zmq/wire.hpp>
 
-void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
+void zmq::amqp_unmarshaller_t::write (uint16_t channel_, uint16_t class_id,
             uint16_t method_id, unsigned char *args, size_t args_size)
 {
     size_t offset = 0;
@@ -430,9 +429,10 @@ void zmq::amqp_unmarshaller_t::write (uint16_t class_id,
 .       endfor
 
                 callback->$(class.name:c)_$(method.name:c) (\
+                    channel_
 .       for field
-
-                    $(field.name:c)$(last ()??''?',')\
+,
+                    $(field.name:c)\
 .       endfor
 );
 
@@ -559,6 +559,7 @@ namespace zmq
         //  malloc and freed using standard free function.
         struct command_t
         {
+            uint16_t channel;
             uint16_t class_id;
             uint16_t method_id;
             unsigned char *args;
@@ -570,12 +571,13 @@ namespace zmq
 
 .for class
 .   for method
-        void $(class.name:c)_$(method.name:c) (\
+        void $(class.name:c)_$(method.name:c) (
+            uint16_t channel_\
 .       bit_offset = 0
 .       for field
-
+,
 .               add_field_format ()
-$(field.name:c)_$(last ()??''?',')\
+$(field.name:c)_\
 .       endfor
 );
 
@@ -649,12 +651,13 @@ zmq::amqp_marshaller_t::~amqp_marshaller_t ()
 
 .for class
 .   for method
-void zmq::amqp_marshaller_t::$(class.name:c)_$(method.name:c) (\
+void zmq::amqp_marshaller_t::$(class.name:c)_$(method.name:c) (
+            uint16_t channel_\
 .       bit_offset = 0
 .       for field
-
+,
 .               add_field_format ()
-$(field.name:c)_$(last ()??''?',')\
+$(field.name:c)_\
 .       endfor
 )
 {
@@ -669,6 +672,7 @@ $(field.name:c)_$(last ()??''?',')\
 .           put_padding ()
 
     command_t cmd = {
+        channel_,
         i_amqp::$(class.name:c)_id,
         i_amqp::$(class.name:c)_$(method.name:c)_id,
         args,
