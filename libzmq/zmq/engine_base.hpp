@@ -53,7 +53,7 @@ namespace zmq
             pipe_->revive ();
         }
 
-        void head (pipe_t *pipe_, uint64_t position_)
+        void head (pipe_t *pipe_, int64_t position_)
         {
             //  Forward pipe head position to the appropriate pipe.
             assert (HAS_IN);

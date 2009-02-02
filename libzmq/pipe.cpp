@@ -39,13 +39,13 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     //  Compute watermarks for the pipe. If either of engines has infinite
     //  watermarks (hwm = 0) the pipe watermarks will be infinite as well.
     //  Otherwise pipe watermarks are sum of exchange and queue watermarks.
-    uint64_t shwm;
-    uint64_t slwm;
+    int64_t shwm;
+    int64_t slwm;
     source_engine->get_watermarks (&shwm, &slwm);
-    uint64_t dhwm;
-    uint64_t dlwm;
+    int64_t dhwm;
+    int64_t dlwm;
     destination_engine->get_watermarks (&dhwm, &dlwm);
-    if (shwm == (uint64_t) -1 || dhwm == (uint64_t) -1) {
+    if (shwm == -1 || dhwm == -1) {
         hwm = 0;
         lwm = 0;
     }
@@ -70,12 +70,12 @@ bool zmq::pipe_t::check_write ()
         return true;
 
     //  If pipe size have reached high watermark, reject the write.
-    //  The else branch will come into effect after 500,000 years of
+    //  The else branch will come into effect after 250,000 years of
     //  passing 1,000,000 messages a second but still, it's implemented just
     //  in case ...
     //  TODO: Can size be possibly negative? If so, what then?
-    uint64_t size = last_head <= tail ? tail - last_head :
-        std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
+    int64_t size = last_head <= tail ? tail - last_head :
+        std::numeric_limits <int64_t>::max () - last_head + tail + 1;
     assert (size <= hwm);
      
     return size < hwm;
@@ -96,7 +96,7 @@ void zmq::pipe_t::revive ()
     alive = true;
 }
 
-void zmq::pipe_t::set_head (uint64_t position_)
+void zmq::pipe_t::set_head (int64_t position_)
 {
     //  This may cause the next write to succeed.
     last_head = position_;

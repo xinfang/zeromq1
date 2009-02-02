@@ -54,7 +54,7 @@ namespace zmq
 
         //  i_engine implementation.
         i_pollable *cast_to_pollable ();
-        void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         const char *get_arguments ();
 
         //  i_pollable implementation.

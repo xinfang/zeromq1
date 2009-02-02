@@ -78,7 +78,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     const char *interface_, i_thread *listener_thread_,
     int handler_thread_count_, i_thread **handler_threads_,
-    uint64_t hwm_, uint64_t lwm_)
+    int64_t hwm_, int64_t lwm_)
 {
     //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.

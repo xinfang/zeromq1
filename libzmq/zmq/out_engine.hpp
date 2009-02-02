@@ -35,7 +35,7 @@ namespace zmq
         void flush ();
 
         //  i_engine implementation.
-        void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
 
     private:
 

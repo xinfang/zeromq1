@@ -40,7 +40,7 @@ namespace zmq
         //  low watermarks for a pipe are computed by adding high and low
         //  watermarks of the engines the pipe is connecting. hwm equal to -1
         //  means that there should be unlimited storage space for the engine.
-        virtual void get_watermarks (uint64_t *hwm_, uint64_t *lwm_) = 0;
+        virtual void get_watermarks (int64_t *hwm_, int64_t *lwm_) = 0;
 
         //  Returns modified arguments string.
         //  This function will be obsoleted with the shift to centralised
@@ -49,7 +49,7 @@ namespace zmq
 
         //  Inter-thread commands.
         virtual void revive (class pipe_t *pipe_) = 0;
-        virtual void head (class pipe_t *pipe_, uint64_t position_) = 0;
+        virtual void head (class pipe_t *pipe_, int64_t position_) = 0;
         virtual void send_to (class pipe_t *pipe_) = 0;
         virtual void receive_from (class pipe_t *pipe_) = 0;
         virtual void terminate_pipe (class pipe_t *pipe_) = 0;

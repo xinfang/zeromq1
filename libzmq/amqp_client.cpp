@@ -73,7 +73,7 @@ zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::amqp_client_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::amqp_client_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     //  TODO: Rename bp_hwm & bp_lwm to generic "connection_hwm" &
     //  "connection_lwm" it is not tied strictly to the backend protocol.
@@ -97,7 +97,7 @@ void zmq::amqp_client_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::amqp_client_t::head (pipe_t *pipe_, uint64_t position_)
+void zmq::amqp_client_t::head (pipe_t *pipe_, int64_t position_)
 {
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {

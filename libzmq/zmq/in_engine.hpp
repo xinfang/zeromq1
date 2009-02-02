@@ -29,20 +29,20 @@ namespace zmq
     {
     public:
 
-        static in_engine_t *create (uint64_t hwm_, uint64_t lwm_);
+        static in_engine_t *create (int64_t hwm_, int64_t lwm_);
 
         bool read (message_t *msg_);
 
         //  i_engine implementation.
-        void get_watermarks (uint64_t *hwm_, uint64_t *lwm_);
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
 
     private:
 
-        in_engine_t (uint64_t hwm_, uint64_t lwm_);
+        in_engine_t (int64_t hwm_, int64_t lwm_);
         ~in_engine_t ();
 
-        uint64_t hwm;
-        uint64_t lwm;
+        int64_t hwm;
+        int64_t lwm;
     };
 
 }

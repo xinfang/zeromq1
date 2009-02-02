@@ -44,7 +44,7 @@ void zmq::out_engine_t::flush ()
     demux.flush ();
 }
 
-void zmq::out_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     *hwm_ = 0;
     *lwm_ = 0;

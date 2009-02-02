@@ -62,7 +62,7 @@ namespace zmq
         void revive ();
 
         //  Process the 'head' command from reader thread.
-        void set_head (uint64_t position_);
+        void set_head (int64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
@@ -96,22 +96,22 @@ namespace zmq
 
         //  If hwm is non-zero, the size of pipe is limited. In that case hwm
         //  is the high water mark for the pipe and lwm is the low water mark.
-        uint64_t hwm;
-        uint64_t lwm;
+        int64_t hwm;
+        int64_t lwm;
 
         //  Following message sequence numbers use RFC1982-like wraparound.
 
         //  Reader thread uses this variable to track the sequence number of
         //  the current message to read.
-        uint64_t head;
+        int64_t head;
 
         //  Writer thread uses 'tail' variable to track the sequence number of
         //  the current message to write.
-        uint64_t tail;
+        int64_t tail;
 
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
-        uint64_t last_head;
+        int64_t last_head;
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.

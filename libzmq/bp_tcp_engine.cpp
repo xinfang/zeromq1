@@ -165,7 +165,7 @@ zmq::i_pollable *zmq::bp_tcp_engine_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::bp_tcp_engine_t::get_watermarks (uint64_t *hwm_, uint64_t *lwm_)
+void zmq::bp_tcp_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
@@ -306,7 +306,7 @@ void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, uint64_t position_)
+void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, int64_t position_)
 {
     engine_base_t <true,true>::head (pipe_, position_);
 
