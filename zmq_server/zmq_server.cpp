@@ -75,6 +75,27 @@ void unregister (int s_, objects_t *objects_)
 
 int main (int argc, char *argv [])
 {
+#ifdef ZMQ_HAVE_AMQP
+
+    //  Check command line parameters.
+    if ((argc != 1 && argc != 2 && argc != 3) || (argc == 2 &&
+          strcmp (argv [1], "--help") == 0)) {
+        printf ("Usage: zmq_server [port] [amqp-server]\n");
+        printf ("Default port is %d.\n", (int) default_locator_port);
+
+        return 1;
+    }
+    
+    //  Preconfigured AMQP broker.
+    object_info_t amqp_object_info = {"", -1};
+    
+    if (argc >= 3) {
+       char buff [256];
+       zmq_snprintf (buff, 256, "amqp://%s:5672", argv [2]);
+       amqp_object_info.iface = buff;
+    }
+    
+#else
 
     //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
@@ -84,6 +105,7 @@ int main (int argc, char *argv [])
         
         return 1;
     }
+#endif
 
 #ifdef ZMQ_HAVE_WINDOWS
     //  Initialise Windows socker layer.
@@ -94,14 +116,9 @@ int main (int argc, char *argv [])
     assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
 #endif
 
-#ifdef ZMQ_HAVE_AMQP
-    //  Preconfigured AMQP broker.
-    object_info_t amqp_object_info = {"amqp/tcp://127.0.0.1:5672", -1};
-#endif
-
     //  Create a tcp_listener.
     char iface [256];
-    int port = (argc == 2 ? atoi (argv [1]) : default_locator_port);
+    int port = (argc >= 2 ? atoi (argv [1]) : default_locator_port);
     zmq_snprintf (iface, sizeof (iface), "0.0.0.0:%d", port);
     tcp_listener_t listening_socket (iface);
      
@@ -275,7 +292,8 @@ int main (int argc, char *argv [])
 
 #ifdef ZMQ_HAVE_AMQP
                         //  Special AMQP broker pre-configured entry.
-                        if (std::string ("AMQP") == name)
+                        if (std::string ("AMQP") == name &&
+                              amqp_object_info.iface.size ())
                             info = &amqp_object_info;
                         else {
 #endif
