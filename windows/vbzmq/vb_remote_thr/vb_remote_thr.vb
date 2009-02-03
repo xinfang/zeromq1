@@ -6,8 +6,8 @@
         '  Parse the command line.
         Dim Arguments() As String = Split(Command$)
         If Arguments.Count <> 3 Then
-            Console.Write("usage: vb_remote_lat <hostname> <message-size>")
-            Console.WriteLine("<roundtrip-count>")
+            Console.Write("usage: vb_remote_lat <hostname> <message-size> ")
+            Console.WriteLine("<message-count>")
             Return
         End If
         Dim Host As String = Arguments(0)
@@ -22,7 +22,7 @@
         Transport.bind("E", "Q")
 
         '  Create a message to send.
-        Dim Message(MessageSize) As Byte
+        Dim Message(MessageSize - 1) As Byte
 
         '  Start sending messages.
         For i As Integer = 0 To RoundtripCount + 1

@@ -6,7 +6,7 @@
         '  Parse the command line.
         Dim Arguments() As String = Split(Command$)
         If Arguments.Count <> 4 Then
-            Console.Write("usage: vb_local_thr <hostname> <interface>")
+            Console.Write("usage: vb_local_thr <hostname> <interface> ")
             Console.WriteLine("<message-size> <message-count>")
             Return
         End If

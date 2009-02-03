@@ -6,7 +6,7 @@
         '  Parse the command line.
         Dim Arguments() As String = Split(Command$)
         If Arguments.Count <> 5 Then
-            Console.Write("usage: vb_remote_lat <hostname> <in-interface>")
+            Console.Write("usage: vb_remote_lat <hostname> <in-interface> ")
             Console.WriteLine("<out-interface> <message-size> <roundtrip-count>")
             Return
         End If

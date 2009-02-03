@@ -6,7 +6,7 @@
         '  Parse the command line.
         Dim Arguments() As String = Split(Command$)
         If Arguments.Count <> 3 Then
-            Console.Write("usage: vb_local_lat <hostname> <message-size>")
+            Console.Write("usage: vb_local_lat <hostname> <message-size> ")
             Console.WriteLine("<roundtrip-count>")
             Return
         End If
@@ -31,7 +31,7 @@
         Dim StartTime As DateTime = DateTime.Now()
 
         '  Start sending messages.
-        Dim Msg(MsgSize) As Byte
+        Dim Msg(MsgSize - 1) As Byte
         For i As Integer = 0 To RoundtripCount
             Transport.send(ExchangeId, Msg)
             Msg = Transport.receive()
@@ -44,7 +44,7 @@
 
         '  Compute and print out the latency.
         Dim Latency As Double = ElapsedTime * 1000 / RoundtripCount / 2
-        Console.WriteLine("Your average latency is {0} [us]", latency.ToString("f2"))
+        Console.WriteLine("Your average latency is {0} [us]", Latency.ToString("f2"))
 
         Sleep(5000)
 
