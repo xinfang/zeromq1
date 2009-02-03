@@ -110,7 +110,7 @@ zmq::i_pollable *zmq::sctp_listener_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::sctp_listener_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
+void zmq::sctp_listener_t::get_watermarks (int64_t *, int64_t *)
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.

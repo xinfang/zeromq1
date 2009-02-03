@@ -1607,7 +1607,7 @@ void zmq::amqp_marshaller_t::put_field_table (
     const i_amqp::field_table_t &table_)
 {
     //  Skip field table size (to be filled in later)
-    assert (offset + sizeof (uint32_t) <= i_amqp::frame_min_size);
+    assert (offset + sizeof (uint32_t) <= args_size);
     offset += sizeof (uint32_t);
     size_t table_size = 0;
 
@@ -1624,7 +1624,7 @@ void zmq::amqp_marshaller_t::put_field_table (
         offset += table_it->first.size ();
 
         //  Put field type
-        assert (offset + sizeof (uint8_t) <= i_amqp::frame_min_size);
+        assert (offset + sizeof (uint8_t) <= args_size);
         put_uint8 (args + offset, 'S');
         offset += sizeof (uint8_t);
 

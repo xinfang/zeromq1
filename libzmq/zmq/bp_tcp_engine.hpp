@@ -88,7 +88,7 @@ namespace zmq
         //  and passed to error handler function when connection breaks.
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
-            const char *arguments_);
+            const char * /* arguments_*/);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, const char *local_object_);
 

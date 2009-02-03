@@ -24,7 +24,7 @@
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char *arguments_) :
+      const char * /* arguments_*/) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),

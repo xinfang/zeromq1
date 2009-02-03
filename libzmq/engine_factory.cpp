@@ -62,7 +62,7 @@ zmq::i_engine *zmq::engine_factory_t::create_listener (
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm") {
         i_engine *engine = new bp_pgm_sender_t (calling_thread_, thread_,
-            transport_args.c_str (), peer_thread_, peer_engine_, peer_name_);
+            transport_args.c_str (), peer_thread_, peer_engine_);
         assert (engine);
         return engine;
     }
@@ -116,7 +116,7 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "bp/pgm") {
         i_engine *engine = new bp_pgm_receiver_t (calling_thread_,
-            thread_, transport_args.c_str (), local_object_, pgm_in_batch_size,
+            thread_, transport_args.c_str (), pgm_in_batch_size,
             engine_arguments_);
         assert (engine);
         return engine;

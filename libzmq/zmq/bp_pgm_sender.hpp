@@ -63,7 +63,7 @@ namespace zmq
 
         bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, i_thread *peer_thread_, 
-            i_engine *peer_engine_, const char *peer_name_);
+            i_engine *peer_engine_);
         ~bp_pgm_sender_t ();
 
         //  Arguments string for this listener.

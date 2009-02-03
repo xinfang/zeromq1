@@ -61,8 +61,8 @@ namespace zmq
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
         //  using network_ parameter.
         bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *network_, const char *local_object_, 
-            size_t readbuf_size_, const char *arguments_);
+            const char *network_, size_t readbuf_size_, 
+            const char *arguments_);
 
         ~bp_pgm_receiver_t ();
 

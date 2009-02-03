@@ -31,7 +31,7 @@
 
 zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char *arguments_) :
+      const char * /* arguments_ */) :
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)

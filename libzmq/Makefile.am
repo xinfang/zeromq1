@@ -113,7 +113,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_unmarshaller.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
-libzmq_la_CXXFLAGS = -Wall -pedantic
+libzmq_la_CXXFLAGS = -Wall -pedantic -Wextra -Werror
 
 dist-hook:
 		-rm $(distdir)/zmq/platform.hpp

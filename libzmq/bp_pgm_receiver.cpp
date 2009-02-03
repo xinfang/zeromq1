@@ -39,8 +39,8 @@
 #endif
 
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
-      i_thread *thread_, const char *network_, const char *local_object_, 
-      size_t readbuf_size_, const char *arguments_) :
+      i_thread *thread_, const char *network_, size_t readbuf_size_, 
+      const char *arguments_) :
     shutting_down (false),
     decoder (&demux),
     epgm_socket (NULL),

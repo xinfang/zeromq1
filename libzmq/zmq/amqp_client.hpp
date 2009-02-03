@@ -73,9 +73,9 @@ namespace zmq
             uint16_t channel_,
             uint8_t version_major_,
             uint8_t version_minor_,
-            const i_amqp::field_table_t &server_properties_,
-            const i_amqp::longstr_t mechanisms_,
-            const i_amqp::longstr_t locales_);
+            const i_amqp::field_table_t &/* server_properties_*/,
+            const i_amqp::longstr_t /* mechanisms_ */,
+            const i_amqp::longstr_t /* locales_ */);
 
         void connection_tune (
             uint16_t channel_,
@@ -85,35 +85,35 @@ namespace zmq
 
         void connection_open_ok (
             uint16_t channel_,
-            const i_amqp::shortstr_t reserved_1_);
+            const i_amqp::shortstr_t /* reserved_1_ */);
 
         void channel_open_ok (
             uint16_t channel_,
-            const i_amqp::longstr_t reserved_1_);
+            const i_amqp::longstr_t /* reserved_1_ */);
 
         void queue_declare_ok (
             uint16_t channel_,
-            const i_amqp::shortstr_t queue_,
-            uint32_t message_count_,
-            uint32_t consumer_count_);
+            const i_amqp::shortstr_t /* queue_ */,
+            uint32_t /* message_count_ */,
+            uint32_t /* consumer_count_ */);
 
         void basic_consume_ok (
             uint16_t channel_,
-            const i_amqp::shortstr_t consumer_tag_);
+            const i_amqp::shortstr_t /* consumer_tag_ */);
 
         void channel_close (
             uint16_t channel_,
-            uint16_t reply_code_,
+            uint16_t /* reply_code_ */,
             const i_amqp::shortstr_t reply_text_,
-            uint16_t class_id_,
-            uint16_t method_id_);
+            uint16_t /* class_id_ */,
+            uint16_t /* method_id_ */);
 
         void connection_close (
             uint16_t channel_,
-            uint16_t reply_code_,
+            uint16_t /* reply_code_ */,
             const i_amqp::shortstr_t reply_text_,
-            uint16_t class_id_,
-            uint16_t method_id_);
+            uint16_t /* class_id_ */,
+            uint16_t /* method_id_ */);
         
         enum state_t
         {

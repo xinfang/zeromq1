@@ -262,9 +262,9 @@ void zmq::amqp_client_t::connection_start (
     uint16_t channel_,
     uint8_t version_major_,
     uint8_t version_minor_,
-    const i_amqp::field_table_t &server_properties_,
-    const i_amqp::longstr_t mechanisms_,
-    const i_amqp::longstr_t locales_)
+    const i_amqp::field_table_t &/* server_properties_ */,
+    const i_amqp::longstr_t /* mechanisms_ */,
+    const i_amqp::longstr_t /* locales_ */)
 {
     assert (channel_ == 0);
     assert (state = state_waiting_for_connection_start);
@@ -286,9 +286,9 @@ void zmq::amqp_client_t::connection_start (
 
 void zmq::amqp_client_t::connection_tune (
     uint16_t channel_,
-    uint16_t channel_max_,
-    uint32_t frame_max_,
-    uint16_t heartbeat_)
+    uint16_t /* channel_max_ */,
+    uint32_t /* frame_max_ */,
+    uint16_t /* heartbeat_ */)
 {
     assert (channel_ == 0);
     assert (state == state_waiting_for_connection_tune);
@@ -309,7 +309,7 @@ void zmq::amqp_client_t::connection_tune (
 
 void zmq::amqp_client_t::connection_open_ok (
     uint16_t channel_,
-    const i_amqp::shortstr_t reserved_1_)
+    const i_amqp::shortstr_t /* reserved_1_ */)
 {
     assert (channel_ == 0);
     assert (state == state_waiting_for_connection_open_ok);
@@ -324,7 +324,7 @@ void zmq::amqp_client_t::connection_open_ok (
 
 void zmq::amqp_client_t::channel_open_ok (
     uint16_t channel_,
-    const i_amqp::longstr_t reserved_1_)
+    const i_amqp::longstr_t /* reserved_1_ */)
 {
     assert (state == state_waiting_for_channel_open_ok);
 
@@ -343,9 +343,9 @@ void zmq::amqp_client_t::channel_open_ok (
 
 void zmq::amqp_client_t::queue_declare_ok (
     uint16_t channel_,
-    const i_amqp::shortstr_t queue_,
-    uint32_t message_count_,
-    uint32_t consumer_count_)
+    const i_amqp::shortstr_t /* queue_ */,
+    uint32_t /* message_count_ */,
+    uint32_t /* consumer_count_ */)
 {
     assert (channel_ == channel);
     assert (state == state_waiting_for_queue_declare_ok);
@@ -362,7 +362,7 @@ void zmq::amqp_client_t::queue_declare_ok (
 
 void zmq::amqp_client_t::basic_consume_ok (
     uint16_t channel_,
-    const i_amqp::shortstr_t consumer_tag_)
+    const i_amqp::shortstr_t /* consumer_tag_ */)
 {
     assert (channel_ == channel);
     assert (state == state_waiting_for_basic_consume_ok);
@@ -379,10 +379,10 @@ void zmq::amqp_client_t::basic_consume_ok (
 
 void zmq::amqp_client_t::channel_close (
     uint16_t channel_,
-    uint16_t reply_code_,
+    uint16_t /* reply_code_ */,
     const i_amqp::shortstr_t reply_text_,
-    uint16_t class_id_,
-    uint16_t method_id_)
+    uint16_t /* class_id_ */,
+    uint16_t /* method_id_ */)
 {
     assert (channel_ == channel);
     printf ("AMQP error received: %s\n", reply_text_.data);
@@ -391,10 +391,10 @@ void zmq::amqp_client_t::channel_close (
 
 void zmq::amqp_client_t::connection_close (
     uint16_t channel_,
-    uint16_t reply_code_,
+    uint16_t /* reply_code_ */,
     const i_amqp::shortstr_t reply_text_,
-    uint16_t class_id_,
-    uint16_t method_id_)
+    uint16_t /* class_id_ */,
+    uint16_t /* method_id_ */)
 {
     assert (channel_ == 0);
     printf ("AMQP error received: %s\n", reply_text_.data);

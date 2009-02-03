@@ -43,7 +43,7 @@
 
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
-      i_engine *peer_engine_, const char *peer_name_) :
+      i_engine *peer_engine_) :
     shutting_down (false),
     encoder (&mux),
     epgm_socket (false, interface_),
