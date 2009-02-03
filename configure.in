@@ -26,6 +26,9 @@ AC_CANONICAL_HOST
 # Note that on MinGW manpages are not installed.
 install_man="yes"
 
+# Extra CXXFLAGS are appended at the end of CXXFLAGS for libzmq.
+LIBZMQ_EXTRA_CXXFLAGS=""
+
 case "${host_os}" in
     *linux*)
         AC_DEFINE(ZMQ_HAVE_LINUX, 1, [Have Linux OS])
@@ -50,6 +53,7 @@ case "${host_os}" in
     *darwin*)
         AC_DEFINE(ZMQ_HAVE_OSX, 1, [Have DarwinOSX OS])
         LIBS="-pthread"
+        LIBZMQ_EXTRA_CXXFLAGS+="-Wno-uninitialized"
         ;;
     *openbsd*)
         AC_DEFINE(ZMQ_HAVE_OPENBSD, 1, [Have OpenBSD OS])
@@ -375,7 +379,8 @@ if test "x$with_openpgm_ext" != "xno"; then
     esac
 
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
-    CPPFLAGS+=" -Wno-variadic-macros -Wno-long-long "
+    LIBZMQ_EXTRA_CXXFLAGS+=" -Wno-variadic-macros -Wno-long-long "
+    CPPFLAGS+=" "
     CPPFLAGS+=$GLIB_CFLAGS
     LIBS+=$GLIB_LIBS
 
@@ -439,6 +444,10 @@ fi
 
 AC_SUBST(stdint)
 AC_SUBST(inttypes)
+
+# Subst LIBZMQ_EXTRA_CXXFLAGS
+AC_SUBST(LIBZMQ_EXTRA_CXXFLAGS)
+
 
 # Checks for library functions.
 AC_FUNC_MALLOC
