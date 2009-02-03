@@ -74,11 +74,7 @@ class cs_local_thr
         Int64 message_throughput;
         Int64 megabit_throughput;
 
-        //  Elapsed_time should be divided by 10000. Later on in the 
-        //  calculation of message throughput it should be multiplied
-        //  by 100000. Therefore,  message_throuhput is calculated as 
-        //  msg_count /time * 10.
-        message_throughput = (Int64) (msg_count / (time)) * 10;
+        message_throughput = (Int64) (msg_count / time);
         megabit_throughput = message_throughput * msg_size * 8 /
             1000000;
        

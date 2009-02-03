@@ -74,7 +74,7 @@ class cs_local_lat
 
         //  Compute and print out the latency.
         double latency = (double) (elapsed_time) / roundtrip_count / 2 *
-            100000 / Stopwatch.Frequency;
+            1000000 / Stopwatch.Frequency;
         Console.Out.WriteLine ("Your average latency is {0} [us]",
             latency.ToString ("f2"));
 
