@@ -1,0 +1,75 @@
+.TH zmq 7 "" "(c)2007-2009 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+0MQ \- thin messaging implementation.
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.hpp>
+.fi
+\fP
+.SH DESCRIPTION
+0MQ is an extensible middleware framework.
+.SH MULTI-PROTOCOL SUPPORT
+0MQ/0.5 allows for different transport-level and MOM-level protocols. To keep backward compatibility original 0MQ backend protocol over TCP was made default. You can specify the global object location in the old way, say "eth0:5555". However, this is now considered only an abbreviated version of full object location, i.e. "bp/tcp://eth0:5555".
+.IP "\fBTCP/IP protocol\fP"
+.RS
+.TP 10
+.I Format:
+bp/tcp://interface_name_or_ip_address:port
+.TP 
+Examples: bp/tcp://eth0:5555 or bp/tcp://192.168.1.1:5555
+.RE
+.IP "\fBSCTP protocol\fP"
+.RS
+.TP 10
+.I Format:
+sctp://interface_name_or_ip_address:port
+.TP 
+Examples: sctp://eth0:5555 or sctp://192.168.1.2:5555
+.RE
+.IP "\fBAMQP protocol\fP"
+.RS
+.TP 10
+.I Format:
+amqp://broker_ip_address:port
+.TP 
+Example:  amqp://192.168.1.3:5555
+.RE
+.IP "\fBOpenPGM\fP"
+.RS
+.TP 10
+.I Format:
+bp/pgm://interface_name;multicast_group:port
+.BR
+bp/pgm://udp:interface_name;multicast_group:port for UDP encapsulation.
+.TP 
+Example:  bp/pgm://eth0;226.0.0.1:7501
+.RE
+.SH WEB PAGE
+Documentation related to 0MQ project can be found on www.zeromq.org.
+.SH MAILING LIST
+0MQ has mailing list which can be reached at
+.PP
+.PD 0
+.TP
+.PD
+\fB<zeromq-dev@lists.zeromq.org>\fP
+General discusion on the 0MQ project
+.PP
+For subscription information, see the website.
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq_server (1),
+.BR zmq::locator_t (3),
+.BR zmq::api_thread_t (3),
+.BR zmq::io_thread_t (3),
+.BR zmq::dispatcher_t (3),
+.BR zmq::message_t (3),
+.BR zmq::select_thread_t (3),
+.BR zmq::poll_thread_t (3),
+.BR zmq::epoll_thread_t (3),
+.BR zmq::devpoll_thread_t (3),
+.BR zmq::kqueue_thread_t (3),
+.BR zmq::set_error_handler (3)
+

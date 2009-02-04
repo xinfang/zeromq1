@@ -1,4 +1,4 @@
-dist_man_MANS = man1/zmq_server.1 
+dist_man_MANS = man1/zmq_server.1 man7/zmq.7
 
 install-data-hook:
 		$(mkdir_p) "$(DESTDIR)$(mandir)/man3";
