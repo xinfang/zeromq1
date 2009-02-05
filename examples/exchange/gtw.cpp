@@ -21,6 +21,7 @@
 
 #include <zmq.hpp>
 #include <zmq/thread.hpp>
+#include <zmq/platform.hpp>
 
 #include "../../perf/helpers/ticker.hpp"
 using namespace perf;
@@ -52,6 +53,13 @@ public:
         api->bind ("OE", "OQ", pt, pt);
         se_id = api->create_exchange ("SE");
         api->bind ("SE", "SQ", pt, pt);
+        
+        // Wait for a while to create connections.
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (1000);
+#else
+        sleep (1);
+#endif
     }
 
     void run (uint64_t frequency_)
@@ -142,6 +150,13 @@ public:
         api->bind ("TE", "TQ", pt, pt);
         se_id = api->create_exchange ("SE");
         api->bind ("SE", "SQ", pt, pt);
+
+        // Wait for a while to create connections.
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (1000);
+#else
+        sleep (1);
+#endif
     }
 
     void run ()
