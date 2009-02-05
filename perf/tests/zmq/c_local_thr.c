@@ -36,32 +36,33 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-    __inline uint64_t now () {
-        
-        double ticksDivM;
-        LARGE_INTEGER ticksPerSecond;
+__inline uint64_t now ()
+{    
+    double ticksDivM;
+    LARGE_INTEGER ticksPerSecond;
 
-        /*  A point in time.  */
-        LARGE_INTEGER tick;
+    /*  A point in time.  */
+    LARGE_INTEGER tick;
 
-        /*  For converting tick into real time.  */
-        ULARGE_INTEGER time;
+    /*  For converting tick into real time.  */
+    ULARGE_INTEGER time;
 
-        /*  Get the high resolution counter's accuracy.  */
-        QueryPerformanceFrequency (&ticksPerSecond);
+    /*  Get the high resolution counter's accuracy.  */
+    QueryPerformanceFrequency (&ticksPerSecond);
 
-        /*  What time is it?  */
-        QueryPerformanceCounter (&tick);
+    /*  What time is it?  */
+    QueryPerformanceCounter (&tick);
 
-        /*  Convert the tick number into the number of seconds  */
-        /*  since the system was started...  */
-        ticksDivM = (double) (ticksPerSecond.QuadPart / 1000000000);
-        time.QuadPart = (ULONGLONG) (tick.QuadPart / ticksDivM);
-             
-        return time.QuadPart;
-    }
+    /*  Convert the tick number into the number of seconds  */
+    /*  since the system was started...  */
+    ticksDivM = (double) (ticksPerSecond.QuadPart / 1000000);
+    time.QuadPart = (ULONGLONG) (tick.QuadPart / ticksDivM);
+         
+    return time.QuadPart;
+}
 
 #else
+
 inline uint64_t now ()
 {
     struct timeval tv;
@@ -71,6 +72,7 @@ inline uint64_t now ()
     assert (rc == 0);
     return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
 }
+
 #endif
 
 int main (int argc, char *argv [])

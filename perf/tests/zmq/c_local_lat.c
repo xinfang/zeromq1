@@ -36,32 +36,30 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-    __inline uint64_t now () {
-        
-        double ticksDivM;
-        LARGE_INTEGER ticksPerSecond;
-        
-        /*  A point in time.  */
-        LARGE_INTEGER tick; 
+__inline uint64_t now ()
+{    
+    double ticksDivM;
+    LARGE_INTEGER ticksPerSecond;
 
-        /*  For converting tick into real time.  */
-        ULARGE_INTEGER time;
+    /*  A point in time.  */
+    LARGE_INTEGER tick;
 
-        /*  Get the high resolution counter's accuracy.  */
-        QueryPerformanceFrequency (&ticksPerSecond);
+    /*  For converting tick into real time.  */
+    ULARGE_INTEGER time;
 
-        /*  What time is it.  */
-        QueryPerformanceCounter (&tick);
+    /*  Get the high resolution counter's accuracy.  */
+    QueryPerformanceFrequency (&ticksPerSecond);
 
-        /*  Convert the tick number into the number of seconds  */
-        /*  since the system was started...  */
-        ticksDivM = (double) ticksPerSecond.QuadPart / 1000000000;
-        time.QuadPart = (ULONGLONG) (tick.QuadPart / ticksDivM);
-       
-      
-        return time.QuadPart;
+    /*  What time is it?  */
+    QueryPerformanceCounter (&tick);
 
-    }
+    /*  Convert the tick number into the number of seconds  */
+    /*  since the system was started...  */
+    ticksDivM = (double) (ticksPerSecond.QuadPart / 1000000);
+    time.QuadPart = (ULONGLONG) (tick.QuadPart / ticksDivM);
+         
+    return time.QuadPart;
+}
 
 #else
 inline uint64_t now ()
