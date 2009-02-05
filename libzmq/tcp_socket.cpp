@@ -177,17 +177,18 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
         errno_assert (rc != -1);        
     }
 
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    errno_assert (rc == 0);
+
     //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         errno_assert (rc == 0);
     else
-        errno_assert (rc == 0 || errno == EINPROGRESS);
+        errno_assert (rc == 0 || errno == EINPROGRESS || errno == ECONNREFUSED);
 
-    //  Disable Nagle's algorithm.
-    int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    errno_assert (rc == 0);
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
