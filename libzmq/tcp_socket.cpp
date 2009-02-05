@@ -186,9 +186,6 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         errno_assert (rc == 0);
-    else
-        errno_assert (rc == 0 || errno == EINPROGRESS || errno == ECONNREFUSED);
-
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
