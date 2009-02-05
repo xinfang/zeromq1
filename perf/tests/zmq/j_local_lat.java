@@ -45,6 +45,14 @@ class j_local_lat
          obj.bind ("EL", "QG");
          obj.bind ("EG", "QL");
 
+        //  Wait a while to create connections.
+         try {
+             Thread.sleep (1000);
+         }
+         catch (InterruptedException e) {
+             e.printStackTrace ();
+         }
+
          //  Get the inital timestamp.
          long start = System.currentTimeMillis ();
 
