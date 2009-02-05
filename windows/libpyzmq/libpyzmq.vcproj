@@ -59,7 +59,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib python26.lib"
-				OutputFile="$(ProjectName).pyd"
+				OutputFile="$(OutDir)\$(ProjectName).pyd"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -131,8 +131,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib python26.lib"
-				OutputFile="$(ProjectName).pyd"
-				AdditionalLibraryDirectories="../../windows/Debug"
+				OutputFile="$(OutDir)\$(ProjectName).pyd"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
