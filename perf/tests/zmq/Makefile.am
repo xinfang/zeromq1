@@ -6,17 +6,16 @@ C_TEST_BINS = c_local_lat c_remote_lat c_local_thr c_remote_thr
 endif
 
 if BUILD_OPENPGM
-PGM_TEST_BINS = pgm_sender pgm_receiver pgm_local_lat pgm_remote_lat \
+PGM_TEST_BINS = pgm_local_lat pgm_remote_lat \
 pgm_local_thr pgm_remote_thr
 endif
 
 noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
-local_fo remote_fo local_fi remote_fi local_thr_lat remote_thr_lat \
 $(C_TEST_BINS) $(PGM_TEST_BINS)
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq_transport.hpp \
 ../../transports/i_transport.hpp ../../helpers/functions.hpp\
-../scenarios/thr.hpp
+../scenarios/thr.hpp ../../helpers/time.hpp ../../helpers/ticker.hpp
 local_thr_LDADD = $(top_builddir)/libzmq/libzmq.la 
 local_thr_CXXFLAGS = -Wall -pedantic -Werror
 
@@ -36,6 +35,7 @@ remote_lat_SOURCES = remote_lat.cpp ../../transports/zmq_transport.hpp \
 remote_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 remote_lat_CXXFLAGS = -Wall -pedantic -Werror
 
+if FALSE
 local_fo_SOURCES = local_fo.cpp ../../transports/zmq_transport.hpp \
 ../../transports/i_transport.hpp ../scenarios/fo.hpp
 local_fo_LDADD = $(top_builddir)/libzmq/libzmq.la
@@ -69,6 +69,7 @@ remote_thr_lat_SOURCES = remote_thr_lat.cpp ../../transports/zmq_transport.hpp \
 ../../helpers/ticker.hpp
 remote_thr_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 remote_thr_lat_CXXFLAGS = -Wall -pedantic -Werror
+endif
 
 if BUILD_C
 c_local_lat_SOURCES = c_local_lat.c ../../../libczmq/zmq/czmq.h
@@ -99,7 +100,7 @@ dist_noinst_JAVA = j_local_lat.java j_remote_lat.java j_local_thr.java \
 j_remote_thr.java
 endif
 
-if BUILD_OPENPGM
+if FALSE
 pgm_sender_SOURCES = pgm_sender.cpp
 pgm_sender_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_sender_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
@@ -107,7 +108,9 @@ pgm_sender_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 pgm_receiver_SOURCES = pgm_receiver.cpp
 pgm_receiver_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_receiver_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
+endif
 
+if BUILD_OPENPGM
 pgm_local_lat_SOURCES = pgm_local_lat.cpp
 pgm_local_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_local_lat_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq

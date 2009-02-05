@@ -28,8 +28,6 @@ DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man
 EXTRA_DIST = \
     $(top_srcdir)/perf/tests/scenarios/thr.sh \
     $(top_srcdir)/perf/tests/scenarios/lat.sh \
-    $(top_srcdir)/perf/tests/scenarios/fo.sh \
-    $(top_srcdir)/perf/tests/scenarios/fi.sh \
     $(top_srcdir)/examples/exchange/graph.pl \
     $(top_srcdir)/perf/tests/zmq/py_local_lat.py \
     $(top_srcdir)/perf/tests/zmq/py_local_thr.py \
