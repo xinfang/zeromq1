@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9.00"
+	Name="pack"
+	ProjectGUID="{8DDBF610-E9AF-4F5D-BF9B-9E1A12C599F7}"
+	RootNamespace="pack"
+	TargetFrameworkVersion="196613"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="10"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine="rmdir $(SolutionDir)\tmp /s /q&#x0D;&#x0A;&#x0D;&#x0A;mkdir $(SolutionDir)\tmp&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\bin&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\lib&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\include&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\java&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\python&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\dotnet&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\perf&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\doc&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.dll $(SolutionDir)\tmp\bin&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.lib $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.exp $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\..\libzmq\zmq.hpp $(SolutionDir)\tmp\include&#x0D;&#x0A;copy $(SolutionDir)\..\libzmq\zmq\*.hpp $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.dll $(SolutionDir)\tmp\bin&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.lib $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.exp $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\..\libczmq\zmq\czmq.h $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libjzmq.dll $(SolutionDir)\tmp\java&#x0D;&#x0A;copy $(SolutionDir)\..\libjzmq\Jzmq.java $(SolutionDir)\tmp\java&#x0D;&#x0A;copy $(SolutionDir)\..\libjzmq\Jzmq.class $(SolutionDir)\tmp\java&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libpyzmq.pyd $(SolutionDir)\tmp\python&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libdnzmq.dll $(SolutionDir)\tmp\dotnet&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\zmq_server.exe $(SolutionDir)\tmp\bin&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\local_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\remote_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\local_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\remote_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_local_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_remote_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_local_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_remote_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\chatroom.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\display.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\prompt.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\chatroom.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\display.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\prompt.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\stat.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\me.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\gtw.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\graph.pl $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\stat.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\me.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\gtw.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\common.hpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\frequency_meter.hpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\matching_engine.hpp $(SolutionDir)\tmp\examples\exchange"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="10"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine="rmdir $(SolutionDir)\tmp /s /q&#x0D;&#x0A;&#x0D;&#x0A;mkdir $(SolutionDir)\tmp&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\bin&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\lib&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\include&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\java&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\python&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\dotnet&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\perf&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;mkdir $(SolutionDir)\tmp\doc&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.dll $(SolutionDir)\tmp\bin&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.lib $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libzmq.exp $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\..\libzmq\zmq.hpp $(SolutionDir)\tmp\include&#x0D;&#x0A;copy $(SolutionDir)\..\libzmq\zmq\*.hpp $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.dll $(SolutionDir)\tmp\bin&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.lib $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libczmq.exp $(SolutionDir)\tmp\lib&#x0D;&#x0A;copy $(SolutionDir)\..\libczmq\zmq\czmq.h $(SolutionDir)\tmp\include\zmq&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libjzmq.dll $(SolutionDir)\tmp\java&#x0D;&#x0A;copy $(SolutionDir)\..\libjzmq\Jzmq.java $(SolutionDir)\tmp\java&#x0D;&#x0A;copy $(SolutionDir)\..\libjzmq\Jzmq.class $(SolutionDir)\tmp\java&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libpyzmq.pyd $(SolutionDir)\tmp\python&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\libdnzmq.dll $(SolutionDir)\tmp\dotnet&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\zmq_server.exe $(SolutionDir)\tmp\bin&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\local_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\remote_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\local_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\remote_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_local_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_remote_lat.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_local_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\c_remote_thr.exe $(SolutionDir)\tmp\perf&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\chatroom.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\display.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\prompt.exe $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\chatroom.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\display.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;copy $(SolutionDir)\..\examples\chat\prompt.cpp $(SolutionDir)\tmp\examples\chat&#x0D;&#x0A;&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\stat.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\me.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\$(ConfigurationName)\gtw.exe $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\graph.pl $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\stat.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\me.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\gtw.cpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\common.hpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\frequency_meter.hpp $(SolutionDir)\tmp\examples\exchange&#x0D;&#x0A;copy $(SolutionDir)\..\examples\exchange\matching_engine.hpp $(SolutionDir)\tmp\examples\exchange"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
