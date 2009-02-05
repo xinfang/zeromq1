@@ -64,8 +64,8 @@ zmq::dispatcher_t::~dispatcher_t ()
 #ifdef ZMQ_HAVE_WINDOWS
 
     //  Uninitialise Windows sockets.
-    int rc = WSACleanup ();
-    wsa_assert (rc != SOCKET_ERROR);
+    //  int rc = WSACleanup ();
+    //  wsa_assert (rc != SOCKET_ERROR);
 #endif
 }
 
