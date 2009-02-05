@@ -68,6 +68,6 @@ class Jzmq
 
      static
      {
-         System.loadLibrary ("libjzmq");
+         System.loadLibrary ("jzmq");
      }
 }
