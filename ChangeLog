@@ -1,3 +1,36 @@
+Version 0.5
+
+ZMQ-17: look at pgm_transport_set_recv_only and ...send_only
+ZMQ-26: Allow for "any" network interface
+ZMQ-31: Implement SCTP support
+ZMQ-45: Normalise API vs. I/O thread
+ZMQ-78: Make connection establishment asynchronous
+ZMQ-79: Refactor handling of broken connections
+ZMQ-100: Move flow control and queue limits from 0.3.3 branch to the trunk
+ZMQ-101: Move reconnection functionality from 0.3.3 branch to the trunk
+ZMQ-112: build via cmake (makefile generator)
+ZMQ-116: Implement .NET extension
+ZMQ-129: Make engine_source part of the polling object
+ZMQ-139: /dev/poll introduces latency on Solaris
+ZMQ-144: Investigate latency impact of using eventfd instead of socketpair on Linux
+ZMQ-146: Check whether i386 and x86_64 in atomic_ptr can be unified
+ZMQ-148: Change watermarks from int to uint64_t
+ZMQ-149: Virtualise creation of 0MQ connections
+ZMQ-150: Negative numbers in unsigned type in atomic_counter
+ZMQ-151: Modify build system to build SCTP extension
+ZMQ-152: Merge BP/PGM functionality into the trunk
+ZMQ-153: compiler warnings on solaris
+ZMQ-155: Build libzmq with sctp support witch cmake
+ZMQ-160: Get rid of create functions in engines
+ZMQ-162: CMakeLists.txt files not updated with latest changes
+ZMQ-165: Implement reconnection notifications
+ZMQ-169: Return queue id from receive function in libpyzmq
+ZMQ-171: Add AMQP support to 0MQ
+ZMQ-173: Throughput test should accept 2 interface specifications
+ZMQ-174: When application is killed on Win32, zmq_server fails
+ZMQ-175: Chatroom example doesn't pass messages after reconnection
+ZMQ-177: Update language extensions to take advantage of auto-reconnect
+ZMQ-181: Rafactor the code to support multiple notification types
 
 Version 0.4
 

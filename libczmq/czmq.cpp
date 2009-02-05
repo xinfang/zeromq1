@@ -131,5 +131,5 @@ void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_)
     //  Return the message.
     *data_ = buf;
     *size_ = msg.size ();
-    *ffn_ = free;   
+    *ffn_ = free;
 }
