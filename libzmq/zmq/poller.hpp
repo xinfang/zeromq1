@@ -217,7 +217,10 @@ void zmq::poller_t <T>::worker_routine (void *arg_)
 template <class T>
 void zmq::poller_t <T>::loop ()
 {
-    while (!event_monitor.process_events (this));
+    while (true) {
+        if (event_monitor.process_events (this))
+           break;
+    }
 }
 
 template <class T>
