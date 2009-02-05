@@ -31,6 +31,7 @@
 #include <Windows.h>
 #else
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -104,7 +105,6 @@ int main (int argc, char *argv [])
     printf ("message size: %d [B]\n", message_size);
     printf ("roundtrip count: %d\n", roundtrip_count);
 
-
     /*  Create 0MQ transport.  */
     handle = czmq_create (host);
 
@@ -113,6 +113,13 @@ int main (int argc, char *argv [])
     czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL);
     czmq_bind (handle, "EL", "QG");
     czmq_bind (handle, "EG", "QL");
+
+    /*  Wait till both connection are accepted by the peer.  */
+#ifdef ZMQ_HAVE_WINDOWS
+    Sleep (1000);
+#else
+    sleep (1);
+#endif
 
     /*  Create message data to send.  */
     out_buf = malloc (message_size);
