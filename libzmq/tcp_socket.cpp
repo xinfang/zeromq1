@@ -62,10 +62,9 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         wsa_assert (rc != SOCKET_ERROR);
-    else {
-        int errcode = WSAGetLastError ();
-        wsa_assert (rc != SOCKET_ERROR || errcode == WSAEWOULDBLOCK);
-    }
+
+    //  We'll ignore the error in the case of non-blocking socket. We'll get
+    //  the error later on in asynchronous manner.
 
     //  Disable Nagle's algorithm.
     int flag = 1;
@@ -186,6 +185,9 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         errno_assert (rc == 0);
+
+    //  We'll ignore the error in the case of non-blocking socket. We'll get
+    //  the error later on in asynchronous manner.
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
