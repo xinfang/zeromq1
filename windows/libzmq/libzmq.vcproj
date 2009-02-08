@@ -292,6 +292,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\xmlParser.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\ypollset.cpp"
 				>
 			</File>
@@ -539,6 +543,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\wire.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\xmlParser.hpp"
 				>
 			</File>
 			<File
