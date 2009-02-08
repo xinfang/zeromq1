@@ -1,4 +1,3 @@
-// This is the main DLL file.
 /*
     Copyright (c) 2007-2009 FastMQ Inc.
 
