@@ -73,6 +73,11 @@ void zmq::select_t::rm_fd (handle_t handle_)
     FD_CLR (fd, &source_set_out);
     FD_CLR (fd, &source_set_err);
 
+    //  Discard all events generated on this file descriptor.
+    FD_CLR (fd, &readfds);
+    FD_CLR (fd, &writefds);
+    FD_CLR (fd, &exceptfds);
+
     //  Adjust the maxfd attribute if we have removed the
     //  highest-numbered file descriptor.
     if (fd == maxfd) {
@@ -115,9 +120,6 @@ void zmq::select_t::reset_pollout (handle_t handle_)
 bool zmq::select_t::process_events (poller_t <select_t> *poller_)
 {
     //  Intialise the pollsets.
-    fd_set readfds;
-    fd_set writefds;
-    fd_set exceptfds;
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
     memcpy (&writefds, &source_set_out, sizeof source_set_out);
     memcpy (&exceptfds, &source_set_err, sizeof source_set_err);

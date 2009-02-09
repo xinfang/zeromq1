@@ -73,6 +73,10 @@ namespace zmq
         fd_set source_set_out;
         fd_set source_set_err;
 
+        fd_set readfds;
+        fd_set writefds;
+        fd_set exceptfds;
+
         //  Maximum file descriptor.
         fd_t maxfd;
 
