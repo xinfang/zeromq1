@@ -61,9 +61,13 @@ namespace zmq
             short events;
             i_pollable *engine;
             bool in_use;
+            bool adopted;
         };
 
         std::vector <fd_entry_t> fd_table;
+
+        typedef std::vector <fd_t> pending_list_t;
+        pending_list_t pending_list;
 
         //  Pollset manipulation function.
         void devpoll_ctl (fd_t fd_, short events_);

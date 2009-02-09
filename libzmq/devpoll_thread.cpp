@@ -71,6 +71,9 @@ zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
     fd_table [fd_].events = 0;
     fd_table [fd_].engine = engine_;
     fd_table [fd_].in_use = true;
+    fd_table [fd_].adopted = false;
+
+    pending_list.push_back (fd_);
 
     devpoll_ctl (fd_, 0);
 
@@ -123,6 +126,10 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
 
+    for (pending_list_t::size_type i = 0; i < pending_list.size (); i ++)
+        fd_table [pending_list [i]].adopted = true;
+    pending_list.clear ();
+
     //  According to the poll(7d) manpage, we can retrieve no more then
     //  (OPEN_MAX - 1) events.
     int nfds = max_io_events;
@@ -141,23 +148,23 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         fd_t fd = ev_buf [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
-        if (!fd_table [fd].in_use)
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
             if (poller_->process_event (engine, event_err))
                 return true;
-        if (!fd_table [fd].in_use)
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & POLLOUT)
             if (poller_->process_event (engine, event_out))
                 return true;
-        if (!fd_table [fd].in_use)
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & POLLIN)
             if (poller_->process_event (engine, event_in))
                 return true;
     }
-    
+
     return false;
 }
 
