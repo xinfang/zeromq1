@@ -16,7 +16,9 @@
     You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <zmq/platform.hpp>
+#include <zmq/stdint.hpp>
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -55,13 +57,13 @@ int main (int argc, char *argv [])
     out_interface = argv [3];
     message_size = atoi (argv [4]);
     roundtrip_count = atoi (argv [5]);
-
+    
      /*  Create 0MQ transport.  */
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
     eid = czmq_create_exchange (handle, "EG", CZMQ_SCOPE_GLOBAL, out_interface);
-    czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface);
+    czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {
         czmq_receive (handle, &buf, &size, &ffn);

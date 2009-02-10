@@ -42,7 +42,7 @@ class cs_remote_thr
         
         //  Set up 0MQ wiring.
         int eid = w.create_exchange ("E", Dnzmq.SCOPE_LOCAL, "");
-        w.bind ("E", "Q");
+        w.bind ("E", "Q", null, null);
 
         //  Create a message to send.
         byte [] msg = new byte [msg_size];

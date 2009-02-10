@@ -49,7 +49,7 @@ class cs_remote_lat
         int eid = w.create_exchange ("EG", Dnzmq.SCOPE_GLOBAL,
             out_interface);
         int qid = w.create_queue ("QG", Dnzmq.SCOPE_GLOBAL,
-            in_interface);
+            in_interface, -1, -1, 0);
         
         //  Bounce the received messages.
         for (int i = 0; i < num_msg; i++)

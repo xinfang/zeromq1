@@ -88,7 +88,7 @@ int main (int argc, char *argv [])
     uint64_t start;
     uint64_t end; 
     double latency;
-
+    
     /*  Parse command line arguments.  */
     if (argc != 4) {
         printf ("usage: c_local_lat <hostname> <message-size> "
@@ -98,7 +98,7 @@ int main (int argc, char *argv [])
     host = argv [1];
     message_size = atoi (argv [2]);
     roundtrip_count = atoi (argv [3]);
-
+    
     /*  Print out the test parameters.  */
     printf ("message size: %d [B]\n", message_size);
     printf ("roundtrip count: %d\n", roundtrip_count);
@@ -108,9 +108,9 @@ int main (int argc, char *argv [])
 
     /*  Create the wiring.  */
     eid = czmq_create_exchange (handle, "EL", CZMQ_SCOPE_LOCAL, NULL);
-    czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL);
-    czmq_bind (handle, "EL", "QG");
-    czmq_bind (handle, "EG", "QL");
+    czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL, -1, -1, 0);
+    czmq_bind (handle, "EL", "QG", NULL, NULL);
+    czmq_bind (handle, "EG", "QL", NULL, NULL);
 
     /*  Wait till both connection are accepted by the peer.  */
 #ifdef ZMQ_HAVE_WINDOWS

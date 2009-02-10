@@ -102,16 +102,20 @@ PyObject *pyZMQ_create_queue (pyZMQ *self, PyObject *args, PyObject *kw)
     char const *queue_name = NULL;
     char const *iface = NULL;
     int scope = zmq::scope_local;
+    int64_t hwm = -1;
+    int64_t lwm = -1;
+    int64_t swap_size = 0;
 
-    static const char* kwlist [] = {"queue_name", "scope", "interface", NULL};
+    static const char* kwlist [] = {"queue_name", "scope", "interface", "hwm", 
+        "lwm", "swap_size", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords (args, kw, "s|is", (char**) kwlist,
-          &queue_name, &scope, &iface)) 
+    if (!PyArg_ParseTupleAndKeywords (args, kw, "s|isLLL", (char**) kwlist,
+          &queue_name, &scope, &iface, &hwm, &lwm, &swap_size)) 
         return NULL;
 
     int qid = self->api_thread->create_queue (queue_name, 
         (zmq::scope_t) scope, iface, self->io_thread, 1,
-        &self->io_thread);
+        &self->io_thread, hwm, lwm, swap_size);
 
     return PyInt_FromLong (qid);
 }
@@ -120,15 +124,18 @@ PyObject* pyZMQ_bind (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     char const *exchange_name = NULL;
     char const *queue_name = NULL;
+    char const *exchange_arguments = NULL;
+    char const *queue_arguments = NULL;
 
-    static const char *kwlist [] = {"exchange", "queue", NULL};
+    static const char *kwlist [] = {"exchange", "queue", "exchange_arguments", 
+        "queue_arguments", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "ss", (char**) kwlist,
-          &exchange_name, &queue_name))
+    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "ss|ss", (char**) kwlist,
+          &exchange_name, &queue_name, &exchange_arguments, &queue_arguments))
         return NULL;
     
     self->api_thread->bind (exchange_name, queue_name, self->io_thread, 
-        self->io_thread);
+        self->io_thread, exchange_arguments, queue_arguments);
 
     Py_INCREF (Py_None);
     return Py_None;

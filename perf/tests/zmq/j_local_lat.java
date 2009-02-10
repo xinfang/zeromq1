@@ -41,9 +41,9 @@ class j_local_lat
 
          //  Create the wiring.
          int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null);
-         obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null);
-         obj.bind ("EL", "QG");
-         obj.bind ("EG", "QL");
+         obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null, -1, -1, 0);
+         obj.bind ("EL", "QG", null, null);
+         obj.bind ("EG", "QL", null, null);
 
         //  Wait a while to create connections.
          try {

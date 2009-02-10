@@ -114,7 +114,8 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
 }
 
 JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
-    jstring queue_, jint scope_, jstring nic_)
+    jstring queue_, jint scope_, jstring nic_, jlong hwm_, jlong lwm_, 
+    jlong swap_size_)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -135,8 +136,12 @@ JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
     if (scope_ == Jzmq_SCOPE_GLOBAL)
         scope = zmq::scope_global;
 
+    int64_t hwm = (int64_t) hwm_;
+    int64_t lwm = (int64_t) lwm_;
+    int64_t swap_size = (int64_t) swap_size_;
+
     jint qid = context->api_thread->create_queue (queue, scope, nic,
-        context->io_thread, 1, &context->io_thread);
+        context->io_thread, 1, &context->io_thread, hwm, lwm, swap_size);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (queue_, queue);
@@ -147,7 +152,8 @@ JNIEXPORT jint JNICALL Java_Jzmq_createQueue (JNIEnv *env, jobject obj,
 }
 
 JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
-    jstring exchange_, jstring queue_)
+    jstring exchange_, jstring queue_, jstring exchange_arguments_,
+    jstring queue_arguments_)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -163,8 +169,15 @@ JNIEXPORT void JNICALL Java_Jzmq_bind (JNIEnv *env, jobject obj,
     char *queue = (char*) env->GetStringUTFChars (queue_, 0);
     assert (queue);
 
+    char *exchange_arguments = (char*) env->GetStringUTFChars (exchange_arguments_, 0);
+    assert (exchange_arguments);
+
+    char *queue_arguments = (char*) env->GetStringUTFChars (queue_arguments_, 0);
+    assert (queue_arguments);
+
     context->api_thread->bind (exchange, queue,
-        context->io_thread, context->io_thread);
+        context->io_thread, context->io_thread, exchange_arguments,
+        queue_arguments);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (exchange_, exchange);

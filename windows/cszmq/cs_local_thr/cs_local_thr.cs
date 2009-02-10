@@ -47,7 +47,7 @@ class cs_local_thr
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        w.create_queue ("Q", Dnzmq.SCOPE_GLOBAL, in_interface);
+        w.create_queue ("Q", Dnzmq.SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
         //  Receive the first message.
         byte [] msg = w.receive ();

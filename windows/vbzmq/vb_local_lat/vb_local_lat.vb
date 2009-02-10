@@ -23,9 +23,9 @@
 
         '  Set up 0MQ wiring.
         Dim ExchangeId As Integer = Transport.create_exchange("EL", Dnzmq.SCOPE_LOCAL, "")
-        Transport.create_queue("QL", Dnzmq.SCOPE_LOCAL, "")
-        Transport.bind("EL", "QG")
-        Transport.bind("EG", "QL")
+        Transport.create_queue("QL", Dnzmq.SCOPE_LOCAL, "", -1, -1, 0)
+        Transport.bind("EL", "QG", "", "")
+        Transport.bind("EG", "QL", "", "")
 
         '  Get initial timestamp. 
         Dim StartTime As DateTime = DateTime.Now()

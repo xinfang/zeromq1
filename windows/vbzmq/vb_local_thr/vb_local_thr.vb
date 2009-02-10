@@ -23,7 +23,7 @@
         Dim Transport As New Dnzmq(Host)
 
         '  Set up 0MQ wiring.
-        Transport.create_queue("Q", Dnzmq.SCOPE_GLOBAL, InInterface)
+        Transport.create_queue("Q", Dnzmq.SCOPE_GLOBAL, InInterface, -1, -1, 0)
 
         '  Receive the first message.
         Dim Msg() As Byte = Transport.receive()

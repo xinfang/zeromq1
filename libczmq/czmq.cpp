@@ -78,7 +78,7 @@ int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
 }
 
 int czmq_create_queue (void *obj_, const char *queue_, int scope_,
-    const char *nic_)
+    const char *nic_, int64_t hwm_, int64_t lwm_, int64_t swap_size_)
 {
     //  Get the context.
     context_t *context = (context_t*) obj_;
@@ -90,17 +90,18 @@ int czmq_create_queue (void *obj_, const char *queue_, int scope_,
 
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_queue (queue_, scope, nic_,
-        context->io_thread, 1, &context->io_thread);
+        context->io_thread, 1, &context->io_thread, hwm_, lwm_, swap_size_);
 }
 
-void czmq_bind (void *obj_, const char *exchange_, const char *queue_)
+void czmq_bind (void *obj_, const char *exchange_, const char *queue_, 
+     const char *exchange_arguments_, const char *queue_arguments_)
 {
     //  Get the context.
     context_t *context = (context_t*) obj_;
 
     //  Forward the call to native 0MQ library.
     context->api_thread->bind (exchange_, queue_,
-        context->io_thread, context->io_thread);
+        context->io_thread, context->io_thread, exchange_arguments_, queue_arguments_);
 }
 
 void czmq_send (void *obj_, int eid_, void *data_, size_t size_,

@@ -39,7 +39,7 @@ int main (int argc, char *argv [])
     int eid;
     int counter;
     void *out_buf;
-
+    
     /*  Parse command line arguments.  */
     if (argc != 4) {
         printf ("usage: c_remote_thr <hostname> <message-size> "
@@ -49,13 +49,13 @@ int main (int argc, char *argv [])
     host = argv [1];
     message_size = atoi (argv [2]);
     message_count = atoi (argv [3]);
-
+    
     /*  Create 0MQ transport.  */
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
     eid = czmq_create_exchange (handle, "E", CZMQ_SCOPE_LOCAL, NULL);
-    czmq_bind (handle, "E", "Q");
+    czmq_bind (handle, "E", "Q", NULL, NULL);
 
     /*  Create message data to send.  */
     out_buf = malloc (message_size);

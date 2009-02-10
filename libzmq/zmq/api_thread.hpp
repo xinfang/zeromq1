@@ -63,7 +63,7 @@ namespace zmq
             const char *queue_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL,
-            int64_t hwm_ = -1, int64_t lwm_ = -1);
+            int64_t hwm_ = -1, int64_t lwm_ = -1, int64_t swap_size_ = 0);
 
         //  Binds an exchange to a queue.
         ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,

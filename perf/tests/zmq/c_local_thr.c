@@ -90,7 +90,7 @@ int main (int argc, char *argv [])
     uint64_t end;
     uint64_t message_throughput;
     uint64_t megabit_throughput;
-
+        
     /*  Parse command line arguments.  */
     if (argc != 5) {
         printf ("usage: c_local_thr <hostname> <in-interface> "
@@ -101,7 +101,7 @@ int main (int argc, char *argv [])
     in_interface = argv [2];
     message_size = atoi (argv [3]);
     message_count = atoi (argv [4]);
-
+    
     /*  Print out the test parameters.  */
     printf ("message size: %d [B]\n", message_size);
     printf ("message count: %d\n", message_count);
@@ -110,7 +110,8 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, in_interface);
+    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, in_interface,
+        -1, -1, 0);
 
     /*  Receive first message.  */
     czmq_receive (handle, &buf, &size, &ffn);

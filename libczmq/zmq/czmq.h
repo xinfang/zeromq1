@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 #include <zmq/export.hpp>
+#include <zmq/stdint.hpp>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,11 +32,13 @@ typedef void (czmq_free_fn) (void *data_);
 
 void ZMQ_EXPORT *czmq_create (const char *host_);
 void ZMQ_EXPORT czmq_destroy (void *obj_);
-int ZMQ_EXPORT czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
-    const char *nic_);
+int ZMQ_EXPORT czmq_create_exchange (void *obj_, const char *exchange_, 
+    int scope_, const char *nic_);
 int ZMQ_EXPORT czmq_create_queue (void *obj_, const char *queue_, int scope_,
-    const char *nic_);
-void ZMQ_EXPORT czmq_bind (void *obj_, const char *exchange_, const char *queue_);
+    const char *nic_, int64_t hwm_, int64_t lwm_, int64_t swap_size_);
+void ZMQ_EXPORT czmq_bind (void *obj_, const char *exchange_, 
+    const char *queue_, const char *exchange_arguments_, 
+    const char *queue_arguments_);
 void ZMQ_EXPORT czmq_send (void *obj_, int eid_, void *data_, size_t size,
     czmq_free_fn *ffn_);
 void ZMQ_EXPORT czmq_receive (void *obj_, void **data_, size_t *size_,

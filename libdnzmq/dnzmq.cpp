@@ -40,8 +40,10 @@ public:
     ~Dnzmq ();
 
     int create_exchange (String *exchange_, int scope_, String *nic_);
-    int create_queue (String *queue_, int scope_, String *nic_);
-    void bind (String *exchange_, String *queue_);
+    int create_queue (String *queue_, int scope_, String *nic_, int64_t hwm_,
+        int64_t lwm_, int64_t swap_size_);
+    void bind (String *exchange_, String *queue_, 
+        String *exchange_arguments_, String *queue_arguments_);
     void send (int eid_, Byte data_ __gc []);
     Byte receive () __gc [];
        
@@ -112,7 +114,8 @@ int Dnzmq::create_exchange (String *exchange_, int scope_, String *nic_)
     return eid;
 }
 
-int Dnzmq::create_queue (String *queue_, int scope_, String *nic_)
+int Dnzmq::create_queue (String *queue_, int scope_, String *nic_, 
+        int64_t hwm_, int64_t lwm_, int64_t swap_size_)
 {      
     //  Convert input parameters to char*.
     char* queue = (char*)(void*) Marshal::StringToHGlobalAnsi (queue_);
@@ -125,7 +128,7 @@ int Dnzmq::create_queue (String *queue_, int scope_, String *nic_)
 
     //  Forward the call to native 0MQ library.
     int qid = context->api_thread->create_queue (queue, 
-        scope, nic, context->io_thread, 1, &context->io_thread);
+        scope, nic, context->io_thread, 1, &context->io_thread, hwm_, lwm_, swap_size_);
 
     Marshal::FreeHGlobal(queue);
     Marshal::FreeHGlobal(nic);
@@ -133,18 +136,23 @@ int Dnzmq::create_queue (String *queue_, int scope_, String *nic_)
     return qid;
 }
 
-void Dnzmq::bind (String *exchange_, String *queue_)
+void Dnzmq::bind (String *exchange_, String *queue_, 
+            String *exchange_arguments_, String *queue_arguments_)
 {
     //  Convert input parameters to char*.
     char* exchange = (char*)(void*) Marshal::StringToHGlobalAnsi (exchange_);
     char* queue = (char*)(void*) Marshal::StringToHGlobalAnsi (queue_);
+    char* exchange_arguments = (char*)(void*) Marshal::StringToHGlobalAnsi (exchange_arguments_);
+    char* queue_arguments = (char*)(void*) Marshal::StringToHGlobalAnsi (queue_arguments_);
             
     //  Forward the call to native 0MQ library.
    context->api_thread->bind (exchange, queue, context->io_thread,
-        context->io_thread, NULL, NULL);
+        context->io_thread, exchange_arguments, queue_arguments);
    
     Marshal::FreeHGlobal(exchange);        
     Marshal::FreeHGlobal(queue);
+    Marshal::FreeHGlobal(exchange_arguments);
+    Marshal::FreeHGlobal(queue_arguments);
 }
 
 void Dnzmq::send (int eid_, Byte data_ __gc [])
