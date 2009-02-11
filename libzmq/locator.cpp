@@ -74,7 +74,7 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         assert (strlen (interface_) < 256);
          
         //  Create a listener for the object.
-        i_engine *listener = engine_factory_t::create_listener (
+        engine_factory_t::create_listener (
             calling_thread_, listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
             type_id_ == exchange_type_id ? false : true,
@@ -88,9 +88,9 @@ void zmq::locator_t::create (i_thread *calling_thread_,
         unsigned char size = (unsigned char) strlen (object_);
         global_locator->write (&size, 1);
         global_locator->write (object_, size);
-        size = (unsigned char) strlen (listener->get_arguments ());
+        size = (unsigned char) strlen (interface_);
         global_locator->write (&size, 1);
-        global_locator->write (listener->get_arguments (), size);
+        global_locator->write (interface_, size);
 
         //  Read the response.
         global_locator->read (&cmd, 1);

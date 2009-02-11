@@ -54,22 +54,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     first_message_offset (-1)
 
 {
-    //  Store interface. Note that interface name is not stored in locator.
-    char *delim = strchr (interface_, ';');
-    assert (delim);
-
-    delim++;
-
-    //  If we are using UDP encapsulation "bp/pgm://udp:mcast_address:port" is
-    //  registered into zmq_server.
-    if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
-          interface_ [1] == 'd' && interface_ [2] == 'p' && 
-          interface_ [3] == ':') {
-        sprintf (arguments, "bp/pgm://udp:%s", delim);
-    } else {
-        sprintf (arguments, "bp/pgm://%s", delim);
-    }
-
     // Get max tsdu size from transmit window, 
     // will be used as max size for filling buffer by encoder.
     max_tsdu_size = epgm_socket.get_max_tsdu_size ();
@@ -237,11 +221,6 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
             out_event ();
         }
     }
-}
-
-const char *zmq::bp_pgm_sender_t::get_arguments ()
-{
-    return arguments;
 }
 
 #endif

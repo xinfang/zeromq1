@@ -55,7 +55,6 @@ namespace zmq
         //  i_engine implementation.
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
-        const char *get_arguments ();
 
         //  i_pollable implementation.
         void register_event (i_poller *poller_);
@@ -91,9 +90,6 @@ namespace zmq
         i_thread *peer_thread;
         i_engine *peer_engine;
         char peer_name [16];
-
-        //  Arguments string for this listener.
-        char arguments [256];
 
         //  The thread array to manage newly-created SCTP engines.
         typedef std::vector <i_thread*> handler_threads_t;

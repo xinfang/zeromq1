@@ -144,10 +144,3 @@ void zmq::bp_tcp_listener_t::unregister_event ()
     //  TODO: implement this
     assert (false);
 }
-
-const char *zmq::bp_tcp_listener_t::get_arguments ()
-{
-    zmq_snprintf (arguments, sizeof (arguments), "bp/tcp://%s",
-        listener.get_interface ());
-    return arguments;
-}

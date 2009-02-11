@@ -62,32 +62,8 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     wsa_assert (rc != SOCKET_ERROR);
 
-    //  If port number was not specified, retrieve the one assigned
-    //  to the socket by the operating system.
-    if (ntohs (ip_address.sin_port) == 0) {
-        sockaddr_in addr;
-        memset (&addr, 0, sizeof (sockaddr_in));
-        socklen_t sz = sizeof (sockaddr_in);
-        int rc = getsockname (s, (sockaddr*) &addr, &sz);
-        wsa_assert (rc != SOCKET_ERROR);
-        ip_address.sin_port = addr.sin_port;
-    }
-
-    //  Fill in the interface name and port.
-    //  TODO: This string should be stored in the locator rather than here.
-    if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
-        rc = gethostname (iface, sizeof (iface));
-        wsa_assert (rc != SOCKET_ERROR);
-    }
-    else
-        zmq_strncpy (iface, inet_ntoa (ip_address.sin_addr), sizeof (iface));
-
-    std::string port;
-    std::stringstream out;
-    out << ntohs (ip_address.sin_port);
-    port = out.str ();
-    zmq_strcat (iface, ":");
-    zmq_strcat (iface, port.c_str ());
+    //  The port number has to be specified.
+    assert (ntohs (ip_address.sin_port));
                   
     //  Listen for incomming connections.
     rc = listen (s, 1);
@@ -131,31 +107,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 
     //  If port number was not specified, retrieve the one assigned
     //  to the socket by the operating system.
-    if (ntohs (ip_address.sin_port) == 0) {
-        sockaddr_in addr;
-        memset (&addr, 0, sizeof (sockaddr_in));
-        socklen_t sz = sizeof (sockaddr_in);
-        int rc = getsockname (s, (sockaddr*) &addr, &sz);
-        errno_assert (rc == 0);
-        ip_address.sin_port = addr.sin_port;
-    }
-
-    //  Fill in the interface name and port.
-    //  TODO: This string should be stored in the locator rather than here.
-    const char *rcp;
-    size_t isz;
-    if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
-        rc = gethostname (iface, sizeof (iface));
-        assert (rc == 0);
-        isz = strlen (iface);
-    }
-    else {
-        rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface, sizeof (iface));
-        assert (rcp);
-        isz = strlen (iface);
-    }
-    zmq_snprintf (iface + isz, sizeof (iface) - isz, ":%d",
-        (int) ntohs (ip_address.sin_port));
+    assert (ntohs (ip_address.sin_port));
               
     //  Listen for incomming connections.
     rc = listen (s, 10);

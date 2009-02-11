@@ -47,20 +47,10 @@ namespace zmq
             return s;
         }
 
-        //  Returns port listener is listening on. The pointer returned is
-        //  valid only while the listener object exists.
-        inline const char *get_interface ()
-        {
-            return iface; 
-        }
-
         //  Accept the new connection.
         fd_t accept ();
 
     private:
-
-        //  Name of the interface listenet is listening on.
-        char iface [256];
 
         //  Underlying socket.
         fd_t s;

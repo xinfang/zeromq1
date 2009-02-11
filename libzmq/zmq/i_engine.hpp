@@ -42,11 +42,6 @@ namespace zmq
         //  means that there should be unlimited storage space for the engine.
         virtual void get_watermarks (int64_t *hwm_, int64_t *lwm_) = 0;
 
-        //  Returns modified arguments string.
-        //  This function will be obsoleted with the shift to centralised
-        //  management of configuration.
-        virtual const char *get_arguments () = 0;
-
         //  Inter-thread commands.
         virtual void revive (class pipe_t *pipe_) = 0;
         virtual void head (class pipe_t *pipe_, int64_t position_) = 0;

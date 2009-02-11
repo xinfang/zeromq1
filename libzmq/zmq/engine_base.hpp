@@ -39,12 +39,6 @@ namespace zmq
             return NULL;
         }
 
-        const char *get_arguments ()
-        {
-            assert (false);
-            return NULL;
-        }
-
         void revive (pipe_t *pipe_)
         {
             //  Notify the reader of the pipe that there are messages

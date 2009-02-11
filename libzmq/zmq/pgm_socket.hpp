@@ -36,7 +36,7 @@ namespace zmq
     {
     public:
         //  If receiver_ is true PGM transport is not generating SPM packets.
-        //  interface format: iface;mcast_group:port for raw PGM socket
+        //  Interface format: iface;mcast_group:port for raw PGM socket
         //                    udp:iface;mcast_goup:port for UDP encapsulacion
         pgm_socket_t (bool receiver_, const char *interface_, 
             size_t readbuf_size_ = 0);

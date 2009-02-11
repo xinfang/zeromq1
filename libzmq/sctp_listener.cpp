@@ -58,36 +58,6 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
     int rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
     errno_assert (rc == 0);
 
-    //  If port number was not specified, retrieve the one assigned
-    //  to the socket by the operating system.
-    if (ntohs (ip_address.sin_port) == 0) {
-        sockaddr_in addr;
-        memset (&addr, 0, sizeof (sockaddr_in));
-        socklen_t sz = sizeof (sockaddr_in);
-        int rc = getsockname (s, (sockaddr*) &addr, &sz);
-        errno_assert (rc == 0);
-        ip_address.sin_port = addr.sin_port;
-    }
-
-    //  Fill in the interface name and port.
-    //  TODO: This string should be stored in the locator rather than here.
-    const char *rcp;
-    size_t isz;
-    zmq_strncpy (arguments, "sctp://", sizeof (arguments));
-    isz = strlen (arguments); 
-    if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
-        rc = gethostname (arguments + isz, sizeof (arguments) - isz);
-        assert (rc == 0);
-    }
-    else {
-        rcp = inet_ntop (AF_INET, &ip_address.sin_addr, arguments + isz,
-            sizeof (arguments) - isz);
-        assert (rcp);
-    }
-    isz = strlen (arguments);
-    zmq_snprintf (arguments + isz, sizeof (arguments) - isz, ":%d",
-        (int) ntohs (ip_address.sin_port));
-
     //  Listen for incomming connections.
     rc = listen (s, 10);
     errno_assert (rc == 0);
@@ -195,11 +165,6 @@ void zmq::sctp_listener_t::unregister_event ()
 {
     //  TODO: implement this
     assert (false);
-}
-
-const char *zmq::sctp_listener_t::get_arguments ()
-{
-    return arguments;
 }
 
 #endif
