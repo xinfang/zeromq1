@@ -23,6 +23,7 @@
 #include <string>
 #include <stdlib.h>
 
+#include <zmq/platform.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/err.hpp>
 #include <zmq/stdint.hpp>
@@ -161,9 +162,9 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     *addr_ = addr;
 }
 
-#elif (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+#elif ((defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_OPENBSD ||\
-    defined ZMQ_HAVE_QNXNTO)
+    defined ZMQ_HAVE_QNXNTO) && defined HAVE_IFADDRS_H)
 
 #include <ifaddrs.h>
 

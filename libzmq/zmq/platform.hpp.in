@@ -40,6 +40,9 @@
 /* Have AMQP extension. */
 #undef ZMQ_HAVE_AMQP
 
+/* Define to 1 if you have the <ifaddrs.h> header file. */
+#undef HAVE_IFADDRS_H
+
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif
