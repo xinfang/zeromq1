@@ -67,7 +67,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
 	assert (rc == 0);
 
     struct group_source_req recv_gsr, send_gsr;
-    int recv_len = 1;
+    gsize recv_len = 1;
 
     //  Check if we are encapsulating into UDP, interface string has to 
     //  start with udp:.
@@ -134,7 +134,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
   
         //  Set transport->may_close_on_failure to true,
         //  after data los recvmsgv returns -1 errno set to ECONNRESET.
-        rc = pgm_transport_set_close_on_failure (g_transport);
+        rc = pgm_transport_set_close_on_failure (g_transport, TRUE);
         assert (rc == 0);
 
         //  Set transport->can_send_data = FALSE.
@@ -193,7 +193,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     } else {
 
         //  Set transport->can_recv = FALSE, waiting_pipe wont not be read.
-        rc = pgm_transport_set_send_only (g_transport);
+        rc = pgm_transport_set_send_only (g_transport, TRUE);
         assert (rc == 0);
 
         int to_preallocate = 0;
@@ -232,14 +232,14 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
             to_preallocate, __FILE__, __LINE__);
 
         //  Set interval of background SPM packets [us].
-        rc = pgm_transport_set_ambient_spm (g_transport, 8192*1000);
+        rc = pgm_transport_set_ambient_spm (g_transport, 8192 * 1000);
         assert (rc == 0);
 
         //  Set intervals of data flushing SPM packets [us].
-        guint spm_heartbeat[] = { 1*1000, 1*1000, 2*1000, 4*1000, 8*1000, 
-            16*1000, 32*1000, 64*1000, 128*1000, 256*1000, 512*1000, 
-            1024*1000, 2048*1000, 4096*1000, 8192*1000 };
-
+        guint spm_heartbeat[] = {4 * 1000, 4 * 1000, 8 * 1000, 16 * 1000, 
+            32 * 1000, 64 * 1000, 128 * 1000, 256 * 1000, 512 * 1000, 
+            1024 * 1000, 2048 * 1000, 4096 * 1000, 8192 * 1000};
+        
 	rc = pgm_transport_set_heartbeat_spm (g_transport, spm_heartbeat, 
             G_N_ELEMENTS(spm_heartbeat));
         assert (rc == 0);
