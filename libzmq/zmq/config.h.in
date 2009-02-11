@@ -163,6 +163,9 @@
 /* Have HPUX OS */
 #undef ZMQ_HAVE_HPUX
 
+/* Have ifaddrs.h header. */
+#undef ZMQ_HAVE_IFADDRS
+
 /* Have Linux OS */
 #undef ZMQ_HAVE_LINUX
 
