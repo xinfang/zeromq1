@@ -36,7 +36,6 @@ namespace zmq
         virtual void create (i_thread *calling_thread_,
             unsigned char type_id_, const char *object_,
             i_thread *thread_, i_engine *engine_, scope_t scope_,
-            const char *interface_,
             i_thread *listener_thread_, int handler_thread_count_,
             i_thread **handler_threads_) = 0;
 

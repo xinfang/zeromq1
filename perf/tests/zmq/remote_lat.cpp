@@ -43,7 +43,7 @@ int main (int argc, char *argv [])
     cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
     //  Create zmq transport.
-    perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
+    perf::zmq_t transport (host, true, "EOUT", "QIN");
 
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     perf::remote_lat (&transport, msg_size, roundtrip_count); 

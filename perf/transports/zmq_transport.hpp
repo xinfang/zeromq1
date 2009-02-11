@@ -36,8 +36,7 @@ namespace perf
     {
     public:
         zmq_t (const char *host_, bool bind_, const char *exchange_name_,
-              const char *queue_name_, const char *exchange_interface_,
-              const char *queue_interface_) :
+              const char *queue_name_) :
             dispatcher (2),
             locator (host_)
         {
@@ -46,9 +45,6 @@ namespace perf
             worker = zmq::io_thread_t::create (&dispatcher);
 
             if (bind_) {
-
-                assert (!exchange_interface_);
-                assert (!queue_interface_);
 
                 //  Create & bind local exchange.
                 exchange_id = api->create_exchange ("E_LOCAL");
@@ -59,15 +55,12 @@ namespace perf
                 api->bind (exchange_name_, "Q_LOCAL", worker, worker);
 
             } else {
-                assert (exchange_interface_);
-                assert (queue_interface_);
                 
                 api->create_queue (queue_name_, zmq::scope_global,
-                    queue_interface_, worker, 1, &worker);
+                    worker, 1, &worker);
 
                 exchange_id = api->create_exchange (exchange_name_, 
-                    zmq::scope_global, exchange_interface_, worker, 
-                    1, &worker);
+                    zmq::scope_global, worker, 1, &worker);
             }
             //  Set error handler function (to ignore disconnected receivers).
             zmq::set_error_handler (error_handler);

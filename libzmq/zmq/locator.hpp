@@ -54,9 +54,8 @@ namespace zmq
         //  Creates object.
         void create (i_thread *calling_thread_, 
             unsigned char type_id_, const char *object_, i_thread *thread_, 
-            i_engine *engine_, scope_t scope_, const char *interface_,
-            i_thread *listener_thread_, int handler_thread_count_,
-            i_thread **handler_threads_);
+            i_engine *engine_, scope_t scope_, i_thread *listener_thread_,
+            int handler_thread_count_, i_thread **handler_threads_);
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
@@ -66,6 +65,10 @@ namespace zmq
             const char *local_object_, const char *engine_arguments_);
 
     private:
+
+        //  maps object names to object addresses.
+        typedef std::map <std::string, std::string> locations_t;
+        locations_t locations;
 
         //  Info about single object.
         struct object_info_t

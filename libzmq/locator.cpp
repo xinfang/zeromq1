@@ -54,11 +54,10 @@ zmq::locator_t::~locator_t ()
 void zmq::locator_t::create (i_thread *calling_thread_,
     unsigned char type_id_, const char *object_,
     i_thread *thread_, i_engine *engine_, scope_t scope_,
-    const char *interface_, i_thread *listener_thread_,
-    int handler_thread_count_, i_thread **handler_threads_)
+    i_thread *listener_thread_, int handler_thread_count_,
+    i_thread **handler_threads_)
 {
     assert (type_id_ < type_id_count);
-    assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
@@ -70,31 +69,16 @@ void zmq::locator_t::create (i_thread *calling_thread_,
     //  Add the object to the global locator.
     if (scope_ == scope_global) {
 
-        assert (global_locator);
-        assert (strlen (interface_) < 256);
+        //  Get object location.
+        locations_t::iterator itl = locations.find (object_);
+        assert (itl != locations.end ());
          
         //  Create a listener for the object.
         engine_factory_t::create_listener (
-            calling_thread_, listener_thread_, interface_,
+            calling_thread_, listener_thread_, itl->second.c_str (),
             handler_thread_count_, handler_threads_,
             type_id_ == exchange_type_id ? false : true,
             thread_, engine_, object_);
-                  
-        //  Send to 'create' command.
-        unsigned char cmd = create_id;
-        global_locator->write (&cmd, 1);
-        unsigned char type_id = type_id_;
-        global_locator->write (&type_id, 1);         
-        unsigned char size = (unsigned char) strlen (object_);
-        global_locator->write (&size, 1);
-        global_locator->write (object_, size);
-        size = (unsigned char) strlen (interface_);
-        global_locator->write (&size, 1);
-        global_locator->write (interface_, size);
-
-        //  Read the response.
-        global_locator->read (&cmd, 1);
-        assert (cmd == create_ok_id);
     }
 
     //  Leave critical section.
@@ -107,7 +91,6 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
     const char *engine_arguments_)
 {
     assert (type_id_ < type_id_count);
-    assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
@@ -124,34 +107,14 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
             return false;
         }
 
-        //  Send 'get' command.
-        unsigned char cmd = get_id;
-        global_locator->write (&cmd, 1);
-        unsigned char type_id = type_id_;
-        global_locator->write (&type_id, 1);
-        unsigned char size = (unsigned char) strlen (object_);
-        global_locator->write (&size, 1);
-        global_locator->write (object_, size);
-
-        //  Read the response.
-        global_locator->read (&cmd, 1);
-        if (cmd == fail_id) {
-
-            //  Leave critical section.
-            sync.unlock ();
-
-            return false;
-        }
-
-        assert (cmd == get_ok_id);
-        global_locator->read (&size, 1);
-        char iface [256];
-        global_locator->read (iface, size);
-        iface [size] = 0;
+        //  Get object location.
+        locations_t::iterator itl = locations.find (object_);
+        assert (itl != locations.end ());
 
         //  Create the proxy engine for the object.
         i_engine *engine = engine_factory_t::create_engine (calling_thread_,
-            handler_thread_, iface, local_object_, engine_arguments_);
+            handler_thread_, itl->second.c_str (), local_object_,
+            engine_arguments_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

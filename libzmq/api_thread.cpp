@@ -48,8 +48,7 @@ zmq::api_thread_t::~api_thread_t ()
 }
 
 int zmq::api_thread_t::create_exchange (const char *exchange_,
-    scope_t scope_, const char *interface_,
-    i_thread *listener_thread_, int handler_thread_count_,
+    scope_t scope_, i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_)
 {
     //  Insert the exchange to the local list of exchanges.
@@ -69,16 +68,14 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
 
     //  Register the exchange with the locator.
     locator->create (this, exchange_type_id, exchange_, this, engine,
-        scope_, interface_, listener_thread_,
-        handler_thread_count_, handler_threads_);
+        scope_, listener_thread_, handler_thread_count_, handler_threads_);
 
     return exchanges.size () - 1;
 }
 
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
-    const char *interface_, i_thread *listener_thread_,
-    int handler_thread_count_, i_thread **handler_threads_,
-    int64_t hwm_, int64_t lwm_)
+    i_thread *listener_thread_, int handler_thread_count_,
+    i_thread **handler_threads_, int64_t hwm_, int64_t lwm_)
 {
     //  Insert the queue to the local list of queues.
     //  If the queue is already present, return immediately.
@@ -97,8 +94,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
 
     //  Register the queue with the locator.
     locator->create (this, queue_type_id, queue_, this, engine, scope_,
-        interface_, listener_thread_, handler_thread_count_,
-        handler_threads_);
+        listener_thread_, handler_thread_count_, handler_threads_);
 
     return queues.size ();
 }
