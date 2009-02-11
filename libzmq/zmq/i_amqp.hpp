@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <map>
 #include <string>
+#include <cstring> 
 
 #include <zmq/stdint.hpp>
 

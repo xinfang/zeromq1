@@ -23,6 +23,8 @@
 
 #if defined ZMQ_HAVE_AMQP
 
+#include <stdlib.h>
+
 #include <zmq/amqp_marshaller.hpp>
 #include <zmq/wire.hpp>
 
