@@ -18,356 +18,40 @@
 */
 
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
-#include <map>
-#include <string>
-using namespace std;
+#include <fstream>
+#include <sstream>
 
-#include <zmq/platform.hpp>
-#ifdef ZMQ_HAVE_WINDOWS
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <poll.h>
-#endif
-
-#include <zmq.hpp>
-#include <zmq/fd.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/tcp_listener.hpp>
+#include <zmq/wire.hpp>
 
-using namespace zmq;
-
-//  Info about a single object.
-struct object_info_t
+int main ()
 {
-    string iface;
-    int fd;
-};
+    //  Start listening for incoming connections.
+    zmq::tcp_listener_t listener ("0.0.0.0:5682");
 
-//  Maps object name to object info.
-typedef map <string, object_info_t> objects_t;
-
-//  This function is used when there is socket disconnection. It cleans all
-//  the objects registered by the connection.
-void unregister (int s_, objects_t *objects_)
-{
-    for (int type_id = 0; type_id != type_id_count; type_id ++) {
-        objects_t::iterator it = objects_[type_id].begin();
-        while (it != objects_[type_id].end ()) {
-            if (it->second.fd == s_) {
-                objects_t::iterator tmp = it;
-                it ++;
-                objects_[type_id].erase (tmp);
-                continue;
-            }
-            it ++;
-        }
+    //  Get the configuration data to the memory.
+    std::ifstream file ("dir.xml");
+    assert (!file.fail ());
+    std::string data;
+    while (!file.eof ()) {
+        std::string line;
+        std::getline (file, line);
+        data += line;
     }
-}
 
-int main (int argc, char *argv [])
-{
-#ifdef ZMQ_HAVE_AMQP
-
-    //  Check command line parameters.
-    if ((argc != 1 && argc != 2 && argc != 3) || (argc == 2 &&
-          strcmp (argv [1], "--help") == 0)) {
-        printf ("Usage: zmq_server [port] [amqp-server]\n");
-        printf ("Default port is %d.\n", (int) default_locator_port);
-
-        return 1;
-    }
-    
-    //  Preconfigured AMQP broker.
-    object_info_t amqp_object_info = {"", -1};
-    
-    if (argc >= 3) {
-       char buff [256];
-       zmq_snprintf (buff, 256, "amqp://%s:5672", argv [2]);
-       amqp_object_info.iface = buff;
-    }
-    
-#else
-
-    //  Check command line parameters.
-    if ((argc != 1 && argc != 2) || (argc == 2 &&
-          strcmp (argv [1], "--help") == 0)) {
-        printf ("Usage: zmq_server [port]\n");
-        printf ("Default port is %d.\n", (int) default_locator_port);
-        
-        return 1;
-    }
-#endif
-
-#ifdef ZMQ_HAVE_WINDOWS
-    //  Initialise Windows socker layer.
-    WORD version_requested = MAKEWORD (2, 2);
-    WSADATA wsa_data;
-    int rc = WSAStartup (version_requested, &wsa_data);
-    errno_assert (rc == 0);
-    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
-#endif
-
-    //  Create a tcp_listener.
-    char iface [256];
-    int port = (argc >= 2 ? atoi (argv [1]) : default_locator_port);
-    zmq_snprintf (iface, sizeof (iface), "0.0.0.0:%d", port);
-    tcp_listener_t listening_socket (iface);
-     
-    //	Create list of descriptors.
-    typedef vector <tcp_socket_t *> socket_list_t;
-    socket_list_t socket_list;
-
-    //  Intitialise descriptors for select.
-    fd_set result_set_fds, source_set_fds, error_set_fds;
-    
-    FD_ZERO (&source_set_fds);
-    FD_ZERO (&result_set_fds);
-    FD_ZERO (&error_set_fds); 
-    fd_t fd_int = listening_socket.get_fd ();
-    
-    FD_SET (fd_int, &source_set_fds);
-    fd_t maxfdp1 = fd_int + 1;
-        
-    //  Object repository. Individual object maps are placed into slots
-    //  identified by the type ID of particular object.
-    objects_t objects [type_id_count];
-    
     while (true) {
-        
-       //  Select on the descriptors.
-       int rc = 0;
-       while (rc == 0) {
-           
-           memcpy (&result_set_fds, &source_set_fds, sizeof (source_set_fds));
-           memcpy (&error_set_fds, &source_set_fds, sizeof (source_set_fds));
-	            
-           rc = select (maxfdp1, &result_set_fds, NULL, &error_set_fds, NULL);
-#ifdef ZMQ_HAVE_WINDOWS
-           win_assert (rc != SOCKET_ERROR);
-#else
-           errno_assert (rc != -1);
-#endif
-       }    
-      
-       //  Traverse all the sockets.
-       for (socket_list_t::size_type pos = 0; pos < socket_list.size ();
-             pos ++) {
- 	   
-           //  Get the socket being currently being processed.
-           fd_t s = socket_list [pos]->get_fd ();
-           
-           if (FD_ISSET (s, &error_set_fds)) {
-               
-                //  Unregister all the symbols registered by this connection
-                //  and delete the descriptor from pollfds vector.
-                unregister (s, objects);
-                
-                //  Delete the tcp_socket from socket_list. 
-                delete socket_list [pos];
-                socket_list.erase (socket_list.begin () + pos);
-                
-                //  Erase the whole list of file descriptors selectfds and add
-                //  them back without the one erased from socket_list.
-                FD_ZERO (&source_set_fds);
-                FD_SET (fd_int , &source_set_fds);
-                for (socket_list_t::size_type i = 0; i < socket_list.size ();
-                     i ++) 
-                    FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-		        
-                 
-                continue;
-            }
-	    else if (FD_ISSET (s, &result_set_fds)) {
-           
-                //  Read command ID.
-                unsigned char cmd;
-                unsigned char reply;
-                int nbytes = socket_list [pos]->read (&cmd, 1);
-                                
-                //  Connection closed by peer.
-                if (nbytes == -1 || nbytes == 0) {
-           
-                    //  Unregister all the symbols registered by this connection
-                    //  and delete the descriptor from pollfds vector.
-                    unregister (s, objects);
-                    
-                    //  Delete the tcp_socket from socket_list. 
-                    delete socket_list [pos];
-                    socket_list.erase (socket_list.begin () + pos);
-	                
-	                //  Erase the whole list of filedescriptors selectfds
-                        //  and add them back without the one erased
-                        //  from socket_list.
-                        FD_ZERO (&source_set_fds);
-                        FD_SET (fd_int , &source_set_fds);
-                        for (socket_list_t::size_type i = 0;
-                              i < socket_list.size (); i ++)                            
-                        FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-			
-                
-                    continue;
-                }
-		
-                assert (nbytes == 1);
 
-                switch (cmd) {
-                case create_id:
-                    {
-                        
-                        //  Parse type ID.
-                        unsigned char type_id;
-                        nbytes = socket_list [pos]->read (&type_id, 1);
-                        assert (nbytes == 1);
+        //  Accept new connection.
+        zmq::tcp_socket_t socket (listener, true);
 
-                        //  Parse object name.
-                        unsigned char size;
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
-                        char name [256];
-                        nbytes = socket_list [pos]->read (&name, size);
-                        assert (nbytes == size);
-                        name [size] = 0;
-
-                        //  Parse iface.
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
-                        char iface [256];
-                        nbytes = socket_list [pos]->read (&iface, size);
-                        assert (nbytes == size);
-                        iface [size] = 0;
-
-                        //  Insert object to the repository.
-                        object_info_t info = {iface, s};
-                        if (!objects [type_id].insert (
-                              objects_t::value_type (name, info)).second) {
-
-                            //  Send an error if the exchange already exists.
-                            reply = fail_id;
-                            nbytes = socket_list [pos]->write(&reply, 1);
-                            assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                            printf ("Error when creating object: object %d:%s"
-                                " already exists.\n", (int) type_id, name);
-#endif
-                            break;
-                        }
-
-                        //  Send reply command.
-                        reply = create_ok_id;
-                        nbytes = socket_list [pos]->write (&reply, 1);
-                        assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                        printf ("Object %d:%s created (%s).\n", type_id, name,
-                            iface);
-#endif
-                        break;
-                    }
-                case get_id:
-                    {
-                        //  Parse type ID.
-                        unsigned char type_id;
-
-                        nbytes = socket_list [pos]->read (&type_id, 1);
-                        assert (nbytes ==1);
-
-                        //  Parse object name.
-                        unsigned char size;
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
-                        char name [256];
-                        nbytes = socket_list [pos]->read (&name, size);
-                        assert (nbytes == size);
-                        name [size] = 0;
-
-                        object_info_t *info;
-
-#ifdef ZMQ_HAVE_AMQP
-                        //  Special AMQP broker pre-configured entry.
-                        if (std::string ("AMQP") == name &&
-                              amqp_object_info.iface.size ())
-                            info = &amqp_object_info;
-                        else {
-#endif
-
-                            //  Find the exchange in the repository.
-                            objects_t::iterator it =
-                                objects [type_id].find (name);
-                            if (it == objects [type_id].end ()) {
-
-                                //  Send the error.
-                                reply = fail_id;
-
-                                nbytes = socket_list [pos]->write (&reply, 1);                             
-                                assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                                printf ("Error when looking for an object: "
-                                    "object %d:%s does not exist.\n",
-                                    (int) type_id, name);
-#endif
-                                break;
-                            }
-                            info = &(it->second);
-
-#ifdef ZMQ_HAVE_AMQP
-                        }
-#endif
-
-                        //  Send reply command.
-                        reply = get_ok_id;
-                        nbytes = socket_list [pos]->write (&reply, 1);
-                        assert (nbytes == 1);
-
-                        //  Send the interface.
-                        size = info->iface.size ();
-                        nbytes = socket_list [pos]->write (&size, 1);
-                        assert (nbytes == 1);
-                        nbytes = socket_list [pos]->write (
-                            info->iface.c_str (), size);
-                        assert (nbytes == size);
-
-#ifdef ZMQ_TRACE
-                        printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name, info->iface.c_str ());
-#endif
-                        break;
-                    }
-                default:
-                    assert (false);
-                }
-            }
-
-        }
-	
-        //  Accept incoming connection.
-        if (FD_ISSET (fd_int, &result_set_fds)) {    
-	        socket_list.push_back (
-                    new tcp_socket_t (listening_socket, true));           
-            fd_t s = socket_list.back ()->get_fd ();
-            FD_SET (s, &source_set_fds);
-            
-            if (maxfdp1 <= s)
-                maxfdp1 = s + 1;
-        }
-
+        //  Push the configuration data to the connection.
+        unsigned char buff [9];
+        buff [0] = 0xff;
+        zmq::put_uint64 (buff + 1, data.size ());
+        socket.write (buff, 9);
+        socket.write (data.c_str (), data.size ());
     }
 
-#ifdef ZMQ_HAVE_WINDOWS
-
-    //  Uninitialise Windows socket layer.
-    rc = WSACleanup ();
-    wsa_assert (rc != SOCKET_ERROR);
-#endif
-   
     return 0;
-
 }
-
