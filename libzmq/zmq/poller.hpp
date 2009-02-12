@@ -63,7 +63,60 @@ namespace zmq
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
 
-        //  Callback function called by event_monitor.
+        //  Callback function to handle incoming events.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         bool process_event (i_pollable *engine_, event_t event_);
 
     private:

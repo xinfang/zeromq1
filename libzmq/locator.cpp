@@ -24,31 +24,63 @@
 #include <zmq/locator.hpp>
 #include <zmq/engine_factory.hpp>
 #include <zmq/config.hpp>
-#include <zmq/formatting.hpp>
+#include <zmq/xmlParser.hpp>
+#include <zmq/tcp_socket.hpp>
+#include <zmq/wire.hpp>
 
-zmq::locator_t::locator_t (const char *hostname_)
+zmq::locator_t::locator_t (const char *directory_)
 {
-    if (hostname_) {
-
-        //  If port number is not explicitly specified, use the default one.
-        if (!strchr (hostname_, ':')) {
-            char buf [256];
-            zmq_snprintf (buf, 256, "%s:%d", hostname_,
-                (int) default_locator_port);
-            hostname_ = buf;
+#if defined ZMQ_HAVE_DIRECTORY_STRING
+    XMLNode root = XMLNode::parseString (directory_);
+    assert (!root.isEmpty ());
+#elif defined ZMQ_HAVE_DIRECTORY_FILE
+    XMLNode root = XMLNode::parseFile (directory_);
+    assert (!root.isEmpty ());
+#else
+    char *data;
+    {
+        tcp_socket_t socket (directory_, true);
+        uint64_t size;
+        unsigned char size_buff [8];
+        socket.read (size_buff, 1);
+        if (size_buff [0] != 0xff)
+            size = size_buff [0];
+        else {
+            socket.read (size_buff, 8);
+            size = get_uint64 (size_buff);
         }
-
-        //  Open connection to global locator.
-        global_locator = new tcp_socket_t (hostname_, true);
+        data = (char*) malloc (size + 1);
+        assert (data);
+        socket.read (data, size);
+        data [size] = 0;
     }
-    else
-        global_locator = NULL;
+    XMLNode root = XMLNode::parseString (data);
+    assert (!root.isEmpty ());
+    free (data);
+#endif
+
+    assert (strcmp (root.getName (), "root") == 0);
+
+    //  Iteratate through all the 'node' subnodes.
+    int n = 0;
+    while (true) {
+        XMLNode node = root.getChildNode ("node", n);
+        if (node.isEmpty ())
+            break;
+
+        //  Fill in new node into locations map.
+        const char *name = node.getAttribute ("name");
+        assert (name);
+        const char *location = node.getAttribute ("location");
+        assert (location);
+        locations.insert (std::make_pair (name, location));
+
+        n ++;
+    }
 }
 
 zmq::locator_t::~locator_t ()
 {
-    if (global_locator)
-        delete global_locator;
 }
 
 void zmq::locator_t::create (i_thread *calling_thread_,
@@ -100,12 +132,6 @@ bool zmq::locator_t::get (i_thread *calling_thread_, unsigned char type_id_,
 
     //  If the object is unknown, find it using global locator.
     if (it == objects [type_id_].end ()) {
-
-        //  If we are running without global locator, fail.
-        if (!global_locator) {
-            sync.unlock ();
-            return false;
-        }
 
         //  Get object location.
         locations_t::iterator itl = locations.find (object_);

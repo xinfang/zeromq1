@@ -52,7 +52,6 @@ pkginclude_HEADERS = \
     ./zmq/formatting.hpp \
     ./zmq/select_thread.hpp \
     ./zmq/export.hpp \
-    ./zmq/server_protocol.hpp \
     ./zmq/windows.hpp \
     ./zmq/fd.hpp \
     ./zmq/out_engine.hpp \
@@ -113,7 +112,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_decoder.cpp \
     amqp_marshaller.cpp \
     amqp_unmarshaller.cpp \
-    xmlParser.cppC
+    xmlParser.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@

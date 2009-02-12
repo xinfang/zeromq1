@@ -28,9 +28,7 @@
 #include <zmq/i_engine.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/mutex.hpp>
-#include <zmq/tcp_socket.hpp>
 #include <zmq/scope.hpp>
-#include <zmq/server_protocol.hpp>
 
 namespace zmq
 {
@@ -89,9 +87,6 @@ namespace zmq
         //  passed through the system). The blocking occurs only in the
         //  application threads as they are creating wiring.
         mutex_t sync;
-
-        //  Connection to the global locator.
-        tcp_socket_t *global_locator;
 
         locator_t (const locator_t&);
         void operator = (const locator_t&);

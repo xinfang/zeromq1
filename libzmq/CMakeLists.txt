@@ -65,7 +65,6 @@ set(libzmq_headers
   zmq/raw_message.hpp
   zmq/scope.hpp
   zmq/select_thread.hpp
-  zmq/server_protocol.hpp
   zmq/stdint.hpp
   zmq/tcp_listener.hpp
   zmq/tcp_socket.hpp
