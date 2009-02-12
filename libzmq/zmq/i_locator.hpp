@@ -23,10 +23,18 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/i_engine.hpp>
 #include <zmq/scope.hpp>
-#include <zmq/server_protocol.hpp>
 
 namespace zmq
 {
+
+    //  Enumerates object types sorted in the directory service.
+    //  'type_id_count' holds number of exisitng type IDs.
+    enum
+    {
+        exchange_type_id = 0,
+        queue_type_id = 1,
+        type_id_count = 2
+    };
 
     struct i_locator
     {
