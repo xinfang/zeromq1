@@ -53,11 +53,10 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
     i_thread **handler_threads_)
 {
     //  Insert the exchange to the local list of exchanges.
-    //  If the exchange is already present, return immediately.
+    //  Make sure that the exchange doesn't already exist.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
-        if (it->first == exchange_)
-            return it - exchanges.begin ();
+        assert (it->first != exchange_);
 
     out_engine_t *engine = out_engine_t::create ();
     exchanges.push_back (exchanges_t::value_type (exchange_, engine));
@@ -81,11 +80,10 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     int64_t hwm_, int64_t lwm_, int64_t)
 {
     //  Insert the queue to the local list of queues.
-    //  If the queue is already present, return immediately.
+    //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
-        if (it->first == queue_)
-            return it - queues.begin ();
+        assert (it->first != queue_);
 
     in_engine_t *engine = in_engine_t::create (hwm_, lwm_);
     queues.push_back (queues_t::value_type (queue_, engine));
