@@ -7,6 +7,9 @@
 /* Have Solaris OS */
 #undef ZMQ_HAVE_SOLARIS
 
+/* Have OpenVMS OS */
+#undef ZMQ_HAVE_OPENVMS
+
 /* Have FreeBSD OS */
 #undef ZMQ_HAVE_FREEBSD
 
@@ -45,6 +48,11 @@
 
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
+#endif
+
+#ifdef ZMQ_HAVE_OPENVMS
+#define socklen_t unsigned
+typedef long long int64_t;
 #endif
 
 /* WindowsXP and above */

@@ -26,7 +26,7 @@
 #include <zmq/i_signaler.hpp>
 #include <zmq/err.hpp>
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_OPENVMS)
 #include <pthread.h>
 #elif defined ZMQ_HAVE_WINDOWS
 #include <zmq/windows.hpp>
@@ -50,7 +50,7 @@ namespace zmq
     //  - On Windows platform simple semaphore is implemented using
     //    event object.
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_OPENVMS)
 
     class ysemaphore_t : public i_signaler
     { 

@@ -27,6 +27,9 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#elif defined ZMQ_HAVE_OPENVMS
+#include <sys/types.h>
+#include <sys/time.h>
 #else
 #include <sys/select.h>
 #endif

@@ -31,6 +31,13 @@ using namespace std;
 #else
 #include <unistd.h>
 #include <sys/socket.h>
+#ifdef ZMQ_HAVE_OPENVMS
+#include <sys/types.h>
+#include <sys/time.h>
+#else
+#include <sys/select.h>
+#endif
+
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>

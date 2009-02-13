@@ -20,7 +20,7 @@
 #include <zmq/ysemaphore.hpp>
 #include <zmq/platform.hpp>
 
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX)
+#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_OPENVMS)
 
 void zmq::ysemaphore_t::signal (int signal_)
 {

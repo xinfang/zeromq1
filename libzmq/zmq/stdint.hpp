@@ -39,6 +39,8 @@ typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #endif
 
+#elif defined ZMQ_HAVE_OPENVMS
+#include <types.h>
 #else
 #include <stdint.h>
 #endif
