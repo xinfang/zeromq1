@@ -34,8 +34,16 @@ using namespace exchange;
 #define _CRT_RAND_S
 #endif
 
-//  Sender half of the gateway application
-//  i.e. Automated order feeder sending orders to the matching engine
+bool error_handler (const char*)
+{
+    //  Crash the exchange if a connection breaks.
+    //  The results of the test would be irrelevent with network outages
+    //  happening during the test anyway.
+    return false;
+}
+
+//  Sender half of the gateway application.
+//  i.e. Automated order feeder sending orders to the matching engine.
 
 class sender_t
 {
@@ -44,11 +52,11 @@ public:
     inline sender_t (zmq::dispatcher_t *dispatcher_, zmq::locator_t *locator_) :
         meter (500000, 1)
     {
-        //  Initialise 0MQ infrastructure
+        //  Initialise 0MQ infrastructure.
         api = zmq::api_thread_t::create (dispatcher_, locator_);
         pt = zmq::io_thread_t::create (dispatcher_);
 
-        //  Initialise the wiring
+        //  Initialise the wiring.
         oe_id = api->create_exchange ("OE");
         api->bind ("OE", "OQ", pt, pt);
         se_id = api->create_exchange ("SE");
@@ -64,16 +72,16 @@ public:
 
     void run (uint64_t frequency_)
     {
-        //  Initialise the ticker
+        //  Initialise the ticker.
         ticker_t ticker (frequency_);
 
         order_id_t order_id = 0;
         while (true) {
 
-            //  Delay a bit to get stream of orders with stable throughput
+            //  Delay a bit to get stream of orders with stable throughput.
             ticker.wait_for_tick ();
 
-            //  Create random order
+            //  Create random order.
             order_id ++;
 #ifdef ZMQ_HAVE_WINDOWS
             order_type_t type = (rand () % 2) ? ask : bid;
@@ -84,14 +92,14 @@ public:
             price_t price = random () % 100 + 450;
             volume_t volume = random () % 100 + 1;
 #endif
-            //  Send a timestamp to the stat component
+            //  Send a timestamp to the stat component.
             if (order_id % 500000 == 0) {
                 zmq::message_t msg;
                 make_timestamp (5, order_id, perf::now () / 1000, &msg);
                 api->send (se_id, msg);
             }
 
-            //  Send the order to the matching engine
+            //  Send the order to the matching engine.
             zmq::message_t msg;
             make_order (order_id, type, price, volume, &msg);
             api->send (oe_id, msg);
@@ -111,7 +119,7 @@ public:
 
     inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
-        //  Send the throughput figure to the stat component
+        //  Send the throughput figure to the stat component.
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
         api->send (se_id, msg);
@@ -119,19 +127,19 @@ public:
 
 private:
 
-    //  0MQ infrastructure
+    //  0MQ infrastructure.
     zmq::api_thread_t *api;
     zmq::i_thread *pt;
 
-    //  Exchange IDs
+    //  Exchange IDs.
     int oe_id;
     int se_id;
 
-    //  Measuring the rate of outgoing messages (orders)
+    //  Measuring the rate of outgoing messages (orders).
     frequency_meter_t meter;
 };
 
-//  Receiver half of the gateway application
+//  Receiver half of the gateway application.
 
 class receiver_t
 {
@@ -141,11 +149,11 @@ public:
         meter (500000, 4),
         last_timestamp (0)
     {
-        //  Initialise 0MQ infrastructure
+        //  Initialise 0MQ infrastructure.
         api = zmq::api_thread_t::create (dispatcher_, locator_);
         pt = zmq::io_thread_t::create (dispatcher_);
 
-        //  Initialise the wiring
+        //  Initialise the wiring.
         api->create_queue ("TQ");
         api->bind ("TE", "TQ", pt, pt);
         se_id = api->create_exchange ("SE");
@@ -161,7 +169,7 @@ public:
 
     void run ()
     {
-        //  Main message dispatch loop
+        //  Main message dispatch loop.
         while (true) {
             zmq::message_t msg;
             api->receive (&msg);
@@ -177,10 +185,10 @@ public:
 
     inline void order_confirmation (order_id_t order_id_)
     {
-        //  Measuring throughput
+        //  Measuring throughput.
         meter.event (this);
 
-        //  Taking timestamps
+        //  Taking timestamps.
         if (order_id_ % 500000 == 0 && order_id_ > last_timestamp) {
             zmq::message_t msg;
             make_timestamp (6, order_id_, perf::now () / 1000, &msg);
@@ -198,7 +206,7 @@ public:
 
     inline void quote (price_t bid_, price_t ask_)
     {
-        //  Measuring throughput
+        //  Measuring throughput.
         meter.event (this);
     }
 
@@ -215,7 +223,7 @@ public:
 
     inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
-        //  Send the throughput figure to the stat component
+        //  Send the throughput figure to the stat component.
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
         api->send (se_id, msg);
@@ -223,21 +231,21 @@ public:
 
 private:
 
-    //  0MQ infrastructure
+    //  0MQ infrastructure.
     zmq::api_thread_t *api;
     zmq::i_thread *pt;
 
-    //  Exchange IDs
+    //  Exchange IDs.
     int se_id;
 
-    //  Measuring the rate of incoming messages (trades & order confirmations)
+    //  Measuring the rate of incoming messages (trades & order confirmations).
     frequency_meter_t meter;
 
-    //  Order ID for which last timestamp was taken
+    //  Order ID for which last timestamp was taken.
     order_id_t last_timestamp;
 };
 
-//  Arguments to be passed to the sender_routine
+//  Arguments to be passed to the sender_routine.
 struct sender_routine_args_t
 {
     zmq::dispatcher_t *dispatcher;
@@ -245,10 +253,10 @@ struct sender_routine_args_t
     int order_rate;
 };
 
-//  Main routine for the sender thread
+//  Main routine for the sender thread.
 void *sender_routine (void *arg_)
 {
-    //  Start the sender with the rate of X orders per second
+    //  Start the sender with the rate of X orders per second.
     sender_routine_args_t *args = (sender_routine_args_t*) arg_;
     sender_t sender (args->dispatcher, args->locator);
     sender.run (args->order_rate);
@@ -262,18 +270,19 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    //  Create the shared message dispatcher
+    //  Create the shared message dispatcher.
     zmq::dispatcher_t dispatcher (4);
+    zmq::set_error_handler (error_handler);
 
-    //  Create a resource locator
+    //  Create a resource locator.
     zmq::locator_t locator (argv [1]);
 
-    //  Run the sender thread
+    //  Run the sender thread.
     zmq::thread_t sender_thread;
     sender_routine_args_t args = {&dispatcher, &locator, atoi (argv [2])};
     sender_thread.start ((zmq::thread_fn *) sender_routine, &args);
     
-    //  Run the receiving loop
+    //  Run the receiving loop.
     receiver_t receiver (&dispatcher, &locator);
     receiver.run ();
     

@@ -25,6 +25,14 @@
 #include "matching_engine.hpp"
 using namespace exchange;
 
+bool error_handler (const char*)
+{
+    //  Crash the exchange if a connection breaks.
+    //  The results of the test would be irrelevent with network outages
+    //  happening during the test anyway.
+    return false;
+}
+
 //  Matching engine application
 
 class me_t
@@ -38,12 +46,15 @@ public:
 	in_meter (500000, 2),
 	out_meter (500000, 3)
     {
-        //  Initialise 0MQ infrastructure
+        //  Cause application to crash in case of network problems.
+        zmq::set_error_handler (error_handler);
+
+        //  Initialise 0MQ infrastructure.
         api = zmq::api_thread_t::create (&dispatcher, &locator);
         pt_in = zmq::io_thread_t::create (&dispatcher);
         pt_out = zmq::io_thread_t::create (&dispatcher);
 
-        //  Initialise the wiring
+        //  Initialise the wiring.
         te_id = api->create_exchange ("TE", zmq::scope_global,
             out_interface_, pt_out, 1, &pt_out);
         api->create_queue ("OQ", zmq::scope_global,
@@ -54,7 +65,7 @@ public:
 
     void run ()
     {
-        //  Message dispatch loop
+        //  Message dispatch loop.
         while (true) {
             zmq::message_t msg;
             api->receive (&msg);
@@ -67,14 +78,14 @@ public:
     {
         in_meter.event (this);
 
-        //  Pass the order to matching engine
+        //  Pass the order to matching engine.
 	bool trades_sent;
         if (type_ == ask)
             trades_sent = me.ask (this, order_id_, price_, volume_);
         else
             trades_sent = me.bid (this, order_id_, price_, volume_);
 
-	//  If no trade was executed, send order confirmation
+	//  If no trade was executed, send order confirmation.
 	if (!trades_sent) {
             zmq::message_t msg;
 	    make_order_confirmation (order_id_, &msg);
@@ -82,7 +93,7 @@ public:
 	    out_meter.event (this);
 	}
 
-	//  Flush the outgoing messages
+	//  Flush the outgoing messages.
         api->flush ();
     }
 
@@ -114,7 +125,7 @@ public:
 
     inline void traded (order_id_t order_id_, price_t price_, volume_t volume_)
     {
-        //  Send trade back to the gateway
+        //  Send trade back to the gateway.
         zmq::message_t msg;
         make_trade (order_id_, price_, volume_, &msg);
         api->presend (te_id, msg);
@@ -123,7 +134,7 @@ public:
 
     inline void quoted (price_t bid_, price_t ask_)
     {
-        //  Send quote back to the gateway
+        //  Send quote back to the gateway.
         zmq::message_t msg;
         make_quote (ask_, bid_, &msg);
         api->presend (te_id, msg);
@@ -132,7 +143,7 @@ public:
 
     inline void frequency (uint8_t meter_id_, uint64_t frequency_)
     {
-        //  Send the throughput figure to the stat component
+        //  Send the throughput figure to the stat component.
         zmq::message_t msg;
         make_throughput (meter_id_, frequency_, &msg);
         api->presend (se_id, msg);
@@ -159,7 +170,7 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    //  Run the matching engine
+    //  Run the matching engine.
     me_t me (argv [1], argv [2], argv [3]);
     me.run (); 
     return 0;

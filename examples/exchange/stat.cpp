@@ -25,7 +25,15 @@
 #include "messages.hpp"
 using namespace exchange;
 
-//  Class to handle incoming statistics
+bool error_handler (const char*)
+{
+    //  Crash the exchange if a connection breaks.
+    //  The results of the test would be irrelevent with network outages
+    //  happening during the test anyway.
+    return false;
+}
+
+//  Class to handle incoming statistics.
 class handler_t
 {
 public:
@@ -103,19 +111,20 @@ int main (int argc, char *argv [])
         return 1;
     }
 
-    //  Initialise 0MQ infrastructure
+    //  Initialise 0MQ infrastructure.
     zmq::dispatcher_t dispatcher (2);
+    zmq::set_error_handler (error_handler);
     zmq::locator_t locator (argv [1]);
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
     zmq::i_thread *pt = zmq::io_thread_t::create (&dispatcher);
 
-    //  Initialise the wiring
+    //  Initialise the wiring.
     api->create_queue ("SQ", zmq::scope_global, argv [2], pt, 1, &pt);
 
-    //  Handler object
+    //  Handler object.
     handler_t handler;
 
-    //  Message dispatch loop
+    //  Message dispatch loop.
     while (true) {
         zmq::message_t msg;
         api->receive (&msg);
