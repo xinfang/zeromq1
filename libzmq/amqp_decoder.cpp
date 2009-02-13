@@ -66,7 +66,7 @@ bool zmq::amqp_decoder_t::method_payload_ready ()
     uint16_t method_id = get_uint16 (framebuf + 2);
 
     //  Check the frame-end octet.
-    assert (framebuf [bytes_read] = i_amqp::frame_end);
+    assert (framebuf [bytes_read] == i_amqp::frame_end);
 
     //  Determine whether frame is a command or beggining of a message
     //  If the former, forward it to the protocol state machine

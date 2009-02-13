@@ -267,7 +267,7 @@ void zmq::amqp_client_t::connection_start (
     const i_amqp::longstr_t /* locales_ */)
 {
     assert (channel_ == 0);
-    assert (state = state_waiting_for_connection_start);
+    assert (state == state_waiting_for_connection_start);
 
     //  Check the version info.
     assert (version_major_ == 0);
