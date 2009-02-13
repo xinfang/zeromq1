@@ -22,8 +22,12 @@
 
 #include <zmq/platform.hpp>
 
-#ifdef ZMQ_HAVE_WINDOWS
+#ifdef ZMQ_HAVE_WINDOWS 
+#ifdef ZMQ_BUILDING_LIBZMQ
 #define ZMQ_EXPORT __declspec(dllexport)
+#else
+#define ZMQ_EXPORT
+#endif
 #else 
 #define ZMQ_EXPORT
 #endif
