@@ -31,12 +31,6 @@
 #define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+\
     (((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
 
-bool error_handler (const char*)
-{
-    //  We don't want sender to fail when receiver disconnects
-    return true;
-}
-
 int main (int argc, char *argv [])
 {
     unicap_handle_t handle;
@@ -55,23 +49,20 @@ int main (int argc, char *argv [])
 
     //  Initialise 0MQ infrastructure
 
-    //  1. Set error handler function (to ignore disconnected receivers)
-    zmq::set_error_handler (error_handler);
-
-    //  2. Initialise basic infrastructure for 2 threads
+    //  1. Initialise basic infrastructure for 2 threads
     zmq::dispatcher_t dispatcher (2);
 
-    //  3. Initialise local locator (to connect to global locator)
+    //  2. Initialise local locator (to connect to global locator)
     zmq::locator_t locator (argv [1]);
 
-    //  4. Start one working thread (to send data to receivers)
+    //  3. Start one working thread (to send data to receivers)
     zmq::i_thread *pt = zmq::io_thread_t::create (&dispatcher);
 
-    //  5. Register one API thread (the application thread - the one that
+    //  4. Register one API thread (the application thread - the one that
     //     is being executed at the moment)
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
 
-    //  6.  Define an entry point for the messages. The name of the entry point
+    //  5.  Define an entry point for the messages. The name of the entry point
     //      is user-defined ("camera name"). Specify that working thread "pt"
     //      will be used to listen to new connections being created as well as
     //      to send frames to existing connections.
