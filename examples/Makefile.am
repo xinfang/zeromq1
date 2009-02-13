@@ -10,5 +10,9 @@ if BUILD_CHAT
 DIR_CHAT = chat
 endif
 
-SUBDIRS = $(DIR_EXCHANGE) $(DIR_CAMERA) $(DIR_CHAT)
-DIST_SUBDIRS = exchange camera chat
+if BUILD_BUTTERFLY
+DIR_BUTTERFLY = butterfly
+endif
+
+SUBDIRS = $(DIR_EXCHANGE) $(DIR_CAMERA) $(DIR_CHAT) $(DIR_BUTTERFLY)
+DIST_SUBDIRS = exchange camera chat butterfly

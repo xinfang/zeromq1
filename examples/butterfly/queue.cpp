@@ -38,10 +38,9 @@ int main (int argc, char *argv [])
 {
     const char *host_src;
     const char *host_dest;
-    int duration;
     int counter;
     int roundtrip_count;
-    int message_size = sizeof (uint64_t);
+    size_t message_size = sizeof (uint64_t);
 
     //  Parse command line arguments.  
     if (argc != 4) {
@@ -54,7 +53,7 @@ int main (int argc, char *argv [])
     roundtrip_count = atoi (argv [3]);
         
     //  Print out the test parameters.  
-    printf ("message size: %d [B]\n", message_size);
+    printf ("message size: %d [B]\n", (int) message_size);
     printf ("roundtrip count: %d \n", roundtrip_count);
 
     //  Create the scope.

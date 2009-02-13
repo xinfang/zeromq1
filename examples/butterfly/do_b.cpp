@@ -40,7 +40,7 @@ void do_b (int sleep_time_)
 #ifdef ZMQ_HAVE_WINDOWS
     Sleep (sleep_time_);
 #else
-    sleep (sleep_time_ / 1000)
+    sleep (sleep_time_ / 1000);
 #endif
 }
 
@@ -49,7 +49,7 @@ int main (int argc, char *argv [])
     const char *host_src;
     const char *host_dest;
     int duration;
-    int message_size = sizeof (uint64_t);
+    size_t message_size = sizeof (uint64_t);
     
     //  Parse command line arguments.  
     if (argc != 4) {
@@ -62,7 +62,7 @@ int main (int argc, char *argv [])
     duration = atoi (argv [3]);
         
     //  Print out the test parameters.  
-    printf ("message size: %d [B]\n", message_size);
+    printf ("message size: %d [B]\n", (int) message_size);
     printf ("sleep time: %d [ms]\n", duration);
 
     //  Create the scope.
