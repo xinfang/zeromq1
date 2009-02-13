@@ -19,6 +19,7 @@
 #include <zmq/platform.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq.hpp>
+using namespace zmq;
 
 #include <stddef.h>
 #include <assert.h>
@@ -39,7 +40,7 @@
 __inline uint64_t now ()
 {    
     SYSTEMTIME system_time;
-    GetSystemTime (&system_time );
+    GetSystemTime (&system_time);
 
     FILETIME file_time;
     SystemTimeToFileTime (&system_time, &file_time);
@@ -48,11 +49,12 @@ __inline uint64_t now ()
     uli.LowPart = file_time.dwLowDateTime;
     uli.HighPart = file_time.dwHighDateTime;
 
-    uint64_t system_time_in_ms( uli.QuadPart/10000 );
+    uint64_t system_time_in_ms (uli.QuadPart / 10000);
     return system_time_in_ms;
 }
 
 #else
+
 inline uint64_t now ()
 {
     struct timeval tv;
@@ -62,83 +64,53 @@ inline uint64_t now ()
     assert (rc == 0);
     return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
 }
-#endif
 
-void free_fn (void *data) 
-{
-    free (data);
-}
+#endif
 
 int main (int argc, char *argv [])
 {
-    const char *host;
-    int roundtrip_count;
-    uint64_t start;
-    uint64_t end; 
-    double latency;
-    int counter;
-    int message_size = sizeof (uint64_t);
-
     //  Parse command line arguments.  
-    if (argc != 3) {
-        printf ("usage: receiver <hostname> <roundtrip-count>\n");
+    if (argc != 4) {
+        printf ("usage: receive_replies <hostname> <in-interface> "
+            "<reply-count>\n");
         return 1;
     }
-    host = argv [1];
-    roundtrip_count = atoi (argv [2]);
-    
-    //  Print out the test parameters.  
-    printf ("message size: %d [B]\n", message_size);
-    printf ("roundtrip count: %d\n", roundtrip_count);
-
-    //  Create the scope.
-    zmq::scope_t scope = zmq::scope_global;
+    const char *host = argv [1];
+    const char *in_interface = argv [2];
+    int reply_count = atoi (argv [3]);
+    assert (reply_count >= 1);
 
     //  Create the context for source.
-    zmq::dispatcher_t *dispatcher = new zmq::dispatcher_t (2);
-    assert (dispatcher);
-    zmq::locator_t *locator = new zmq::locator_t (host);
-    assert (locator);    
-    zmq::i_thread *io_thread = zmq::io_thread_t::create (dispatcher);
-    assert (io_thread);
-    zmq::api_thread_t *api_thread = zmq::api_thread_t::create (dispatcher,
-        locator);
-    assert (api_thread);
+    dispatcher_t dispatcher (2);
+    locator_t locator (host);
+    i_thread *io = io_thread_t::create (&dispatcher);
+    api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
       
-    //  Create queue.
-    api_thread->create_queue ("Q_TO_RECEIVER", scope, host,
-        io_thread, 1, &io_thread, -1, -1, 0);
-
-    //  Wait till both connection are accepted by the peer.  
-#ifdef ZMQ_HAVE_WINDOWS
-    Sleep (1000);
-#else
-    sleep (1);
-#endif
-    
-    zmq::message_t msg;
-
-    //  Receive the first message and extract start time.
-    api_thread->receive (&msg);
-    start = zmq::get_uint64 ((unsigned char *) msg.data());
+    //  Set up the wiring.
+    api->create_queue ("Q_TO_RECEIVER", scope_global, in_interface, io, 1, &io);
     
     //  Start receiving data.
-    for (counter = 0; counter != roundtrip_count; counter ++) {
+    uint64_t start = 0;
+    for (int counter = 0; counter != reply_count; counter ++) {
         
-        //  Receive data.
-        api_thread->receive (&msg);
+        //  Receive the message.
+        zmq::message_t msg;
+        api->receive (&msg);
+
+        //  If it happens to contain non-zero value, it's the initial timestamp.
+        if (!start)
+            start = get_uint64 ((unsigned char*) msg.data ());
     }
 
-    //  Get final timestamp.  
-    end = now ();
-  
-    //  Compute and print out the latency.  
-    latency = (double) (end - start) / roundtrip_count / 2;
-    printf ("Your average latency is %.2f [ms]\n", latency);
+    //  Check whether we've actually got the initial timestamp.
+    assert (start != 0);
 
-    //  Destroy 0MQ transport.  
-    delete locator;
-    delete dispatcher;
+    //  Get final timestamp.  
+    uint64_t end = now ();
   
+    //  Print the overall processing time.
+    printf ("Overall time to process %d requests was %.2f seconds\n",
+        reply_count, ((double) (end - start)) / (double) 1000000);
+
     return 0;
 }
