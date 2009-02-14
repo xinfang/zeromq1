@@ -83,6 +83,9 @@ namespace zmq
         //  Buffer to read the frames in (excluding actual message content).
         unsigned char framebuf [i_amqp::frame_min_size];
         enum {framebuf_size = i_amqp::frame_min_size};
+
+        amqp_decoder_t (const amqp_decoder_t&);
+        void operator = (const amqp_decoder_t&);
     };
 
 }

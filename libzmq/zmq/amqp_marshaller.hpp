@@ -353,7 +353,11 @@ namespace zmq
         void put_field_table (unsigned char *args, size_t args_size,
             size_t &offset,const i_amqp::field_table_t &table_);
 
+        //  Queue to store marshalled commands.
         std::queue <command_t> command_queue;
+
+        amqp_marshaller_t (const amqp_marshaller_t&);
+        void operator = (const amqp_marshaller_t&);
     };
 
 }

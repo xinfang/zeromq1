@@ -62,6 +62,9 @@ namespace zmq
 
         //  Object who's method is to be called when AMQP command is decoded.
         i_amqp *callback;
+
+        amqp_unmarshaller_t (const amqp_unmarshaller_t&);
+        void operator = (const amqp_unmarshaller_t&);
     };
 
 }

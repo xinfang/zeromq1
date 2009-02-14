@@ -84,6 +84,9 @@ namespace zmq
         //  message payload).
         unsigned char framebuf [i_amqp::frame_min_size];
         enum {framebuf_size = i_amqp::frame_min_size};
+
+        amqp_encoder_t (const amqp_encoder_t&);
+        void operator = (const amqp_encoder_t&);
     };
 
 }

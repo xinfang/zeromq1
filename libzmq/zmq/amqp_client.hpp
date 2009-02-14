@@ -163,7 +163,11 @@ namespace zmq
 
         std::string local_object;
 
+        //  Arguments to use to initialise AMQP environment.
         std::string arguments;
+
+        amqp_client_t (const amqp_client_t&);
+        void operator = (const amqp_client_t&);
     };
 
 }
