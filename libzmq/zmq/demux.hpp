@@ -72,7 +72,8 @@ namespace zmq
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
 
-        //  TODO: disable copying
+        demux_t (const demux_t&);
+        void operator = (const demux_t&);
     };
 
 }

@@ -63,7 +63,8 @@ namespace zmq
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
 
-        //  TODO: disable copying
+        mux_t (const mux_t&);
+        void operator = (const mux_t&);
     };
 
 }
