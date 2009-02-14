@@ -97,13 +97,8 @@ void zmq::bp_tcp_engine_t::error ()
 {
     if (state == engine_connected) {
 
-        //  Push a gap notification to the pipe.
-        //  TODO: Handle the case where the pipe is full.
-        raw_message_t msg;
-        raw_message_init_notification (&msg, raw_message_t::gap_tag);
-        if (!demux.write ((message_t&) msg))
-            assert (false);
-        demux.flush ();
+        //  Push a gap notification to the pipes.
+        demux.gap ();
 
         //  Clean half-processed inbound and outbound data.
         encoder.reset ();

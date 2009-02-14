@@ -52,6 +52,13 @@ namespace zmq
         //  Write a message to the pipe.
         void write (raw_message_t *msg_);
 
+        //  Write gap notification to the pipe. This call cannot fail. If the
+        //  pipe is full, the notification is delayed and placed ot the queue
+        //  once it becomes available for writing. Several subsequent delayed
+        //  gap notifications are merged into a single one. If written to the
+        //  pipe notification is flushed instantly.
+        void gap ();
+
         //  Flush all the written messages to be accessible for reading.
         void flush ();
 
@@ -112,6 +119,10 @@ namespace zmq
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
         int64_t last_head;
+
+        //  If true, there's a gap notification delayed because the pipe
+        //  was full.
+        bool delayed_gap;
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.

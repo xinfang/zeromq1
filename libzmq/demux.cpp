@@ -109,6 +109,12 @@ void zmq::demux_t::flush ()
         (*it)->flush ();
 }
 
+void zmq::demux_t::gap ()
+{
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        (*it)->gap ();
+}
+
 bool zmq::demux_t::empty ()
 {
     return pipes.empty ();

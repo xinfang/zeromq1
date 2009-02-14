@@ -33,6 +33,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     head (0),
     tail (0),
     last_head (0),
+    delayed_gap (false),
     writer_terminating (false),
     reader_terminating (false)
 {
@@ -83,11 +84,27 @@ bool zmq::pipe_t::check_write ()
 
 void zmq::pipe_t::write (raw_message_t *msg_)
 {
+    //  If we are allowed to write to the pipe, delayed gap notification must
+    //  have been written beforehand.
+    assert (!delayed_gap);
+
     //  Physically write the message to the pipe.
     pipe.write (*msg_);
 
     //  Move the tail.
     tail ++;
+}
+
+void zmq::pipe_t::gap ()
+{
+    if (!check_write ()) {
+        delayed_gap = true;
+        return;
+    }
+    raw_message_t msg;
+    raw_message_init_notification (&msg, raw_message_t::gap_tag);
+    write (&msg);
+    flush ();
 }
 
 void zmq::pipe_t::revive ()
@@ -100,6 +117,14 @@ void zmq::pipe_t::set_head (int64_t position_)
 {
     //  This may cause the next write to succeed.
     last_head = position_;
+
+    //  If there's a gap notification waiting, push it into the queue.
+    if (delayed_gap && check_write ()) {
+        raw_message_t msg;
+        raw_message_init_notification (&msg, raw_message_t::gap_tag);
+        write (&msg);
+        delayed_gap = false;
+    }
 }
 
 void zmq::pipe_t::flush ()

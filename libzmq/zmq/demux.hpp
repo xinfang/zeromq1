@@ -51,6 +51,9 @@ namespace zmq
         //  Flush the messages.
         void flush ();
 
+        //  Writes gap notification to all the pipes.
+        void gap ();
+
         //  Returns true if there are no pipes attached.
         bool empty ();
 
