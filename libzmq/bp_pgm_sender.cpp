@@ -60,14 +60,14 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     delim++;
 
-    //  If we are using UDP encapsulation "bp/pgm://udp:mcast_address:port" is
+    //  If we are using UDP encapsulation "zmq.pgm://udp:mcast_address:port" is
     //  registered into zmq_server.
     if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
           interface_ [1] == 'd' && interface_ [2] == 'p' && 
           interface_ [3] == ':') {
-        sprintf (arguments, "bp/pgm://udp:%s", delim);
+        sprintf (arguments, "zmq.pgm://udp:%s", delim);
     } else {
-        sprintf (arguments, "bp/pgm://%s", delim);
+        sprintf (arguments, "zmq.pgm://%s", delim);
     }
 
     // Get max tsdu size from transmit window, 

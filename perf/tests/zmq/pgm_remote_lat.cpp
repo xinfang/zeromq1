@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <iostream>
 #include <zmq.hpp>
 
@@ -43,7 +42,7 @@ int main (int argc, char *argv [])
     const char *ex_remote_name = "EX_DOWN";
 
     char network [256];
-    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [3]);
+    zmq_snprintf (network, sizeof (network), "zmq.pgm://%s", argv [3]);
     network [sizeof (network) - 1] = '\0';
 
     size_t msg_size = atoi (argv [4]);

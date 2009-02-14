@@ -16,9 +16,9 @@ methods).
 .RS
 .TP 10
 .I Format:
-bp/tcp://network-interface:port
+zmq.tcp://network-interface:port
 .TP 
-Examples: bp/tcp://eth0:5555 or bp/tcp://192.168.1.1:5555
+Examples: zmq.tcp://eth0:5555 or zmq.tcp://192.168.1.1:5555
 .RE
 .IP "\fBSCTP protocol\fP"
 .RS
@@ -40,13 +40,13 @@ Example:  amqp://192.168.1.3:5672 or amqp://server001:5672
 .RS
 .TP 10
 .I Format:
-bp/pgm://network-interface;multicast-group:port
+zmq.pgm://network-interface;multicast-group:port
 .BR
-bp/pgm://udp:network-interface;multicast-group:port
+zmq.pgm://udp:network-interface;multicast-group:port
 .TP
 The latter version causes PGM packets to be encapsulated in UDP packets.
 .TP
-Example:  bp/pgm://eth0;226.0.0.1:7501
+Example:  zmq.pgm://eth0;226.0.0.1:7501
 .RE
 .SH WEB PAGE
 Documentation related to 0MQ project can be found on \fBwww.zeromq.org\fP.

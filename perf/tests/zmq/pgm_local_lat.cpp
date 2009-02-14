@@ -44,7 +44,7 @@ int main (int argc, char *argv [])
     const char *ex_local_name = "EX_UP";
 
     char network [256];
-    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [2]);
+    zmq_snprintf (network, sizeof (network), "zmq.pgm://%s", argv [2]);
     network [sizeof (network) - 1] = '\0';
 
     //  Exchange name created by pgm_remote_lat.

@@ -147,7 +147,7 @@ void zmq::bp_tcp_listener_t::unregister_event ()
 
 const char *zmq::bp_tcp_listener_t::get_arguments ()
 {
-    zmq_snprintf (arguments, sizeof (arguments), "bp/tcp://%s",
+    zmq_snprintf (arguments, sizeof (arguments), "zmq.tcp://%s",
         listener.get_interface ());
     return arguments;
 }

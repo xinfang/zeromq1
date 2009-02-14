@@ -41,7 +41,7 @@ int main (int argc, char *argv [])
     const char *ex_name = argv [2];
 
     char network [256];
-    zmq_snprintf (network, sizeof (network), "bp/pgm://%s", argv [3]);
+    zmq_snprintf (network, sizeof (network), "zmq.pgm://%s", argv [3]);
     network [sizeof (network) - 1] = '\0';
 
     size_t msg_size = atoi (argv [4]);
