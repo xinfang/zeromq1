@@ -167,6 +167,12 @@ void zmq::bp_pgm_receiver_t::out_event ()
     assert (false);
 }
 
+void zmq::bp_pgm_receiver_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
 void zmq::bp_pgm_receiver_t::unregister_event ()
 {
     assert (false);

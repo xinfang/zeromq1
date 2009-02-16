@@ -175,6 +175,12 @@ void zmq::sctp_engine_t::out_event ()
     assert (nbytes == (ssize_t) msg.size ());
 }
 
+void zmq::sctp_engine_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
 void zmq::sctp_engine_t::unregister_event ()
 {
     //  TODO: Implement this.

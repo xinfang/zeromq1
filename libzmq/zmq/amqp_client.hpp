@@ -60,6 +60,7 @@ namespace zmq
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
+        void timer_event ();
         void unregister_event ();
 
     private:

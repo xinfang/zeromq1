@@ -191,6 +191,12 @@ void zmq::sctp_listener_t::out_event ()
     assert (false);
 }
 
+void zmq::sctp_listener_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
 void zmq::sctp_listener_t::unregister_event ()
 {
     //  TODO: implement this

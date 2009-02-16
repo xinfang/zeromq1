@@ -253,6 +253,12 @@ void zmq::amqp_client_t::out_event ()
     }
 }
 
+void zmq::amqp_client_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
 void zmq::amqp_client_t::unregister_event ()
 {
     assert (false);
