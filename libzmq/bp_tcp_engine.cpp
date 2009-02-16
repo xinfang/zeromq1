@@ -122,16 +122,31 @@ void zmq::bp_tcp_engine_t::error ()
 
 void zmq::bp_tcp_engine_t::reconnect ()
 {
-    //  Stop polling the socket.
-    poller->rm_fd (handle);
+    if (state == engine_connected || state == engine_connecting) {
 
-    //  Clear data buffers.
-    read_pos = read_size;
-    write_pos = write_size;
+        //  Stop polling the socket.
+        poller->rm_fd (handle);
 
-    //  Destroy the existing socket and create a new one. This
-    //  initiates the TCP connection establishment.
-    delete socket;
+        //  Clear data buffers.
+        read_pos = read_size;
+        write_pos = write_size;
+
+        //  Destroy the existing socket.
+        delete socket;
+        socket = NULL;
+    }
+
+    //  This is the case when we've tried to reconnect but the attmpt have
+    //  failed. We are going to wait a while before trying to reconnect anew
+    //  to prevent reconnect consuming 100% of the processor time.
+    if (state == engine_connecting) {
+        poller->add_timer (this);
+        state = engine_waiting_for_reconnect;
+        return;
+    }
+
+    //  Create new socket. This initiates the TCP connection establishment.
+    assert (!socket);
     socket = new tcp_socket_t (hostname.c_str ());
     assert (socket);
 
@@ -148,7 +163,7 @@ void zmq::bp_tcp_engine_t::shutdown ()
     //  Remove the file descriptor from the pollset.
     poller->rm_fd (handle);
 
-    //  Ask all inbound & outound pipes to shut down.
+    //  Ask all inbound & outbound pipes to shut down.
     demux.initialise_shutdown ();
     mux.initialise_shutdown ();
 
@@ -275,6 +290,12 @@ void zmq::bp_tcp_engine_t::out_event ()
 
         write_pos += nbytes;
     }
+}
+
+void zmq::bp_tcp_engine_t::timer_event ()
+{
+    assert (state == engine_waiting_for_reconnect);
+    reconnect ();
 }
 
 void zmq::bp_tcp_engine_t::unregister_event ()

@@ -57,6 +57,14 @@ namespace zmq
 
         //  Stop polling for availability of the socket for writing.
         virtual void reset_pollout (handle_t handle_) = 0;
+
+        //  Ask to be notified after some time. Actual interval varies between
+        //  0 and max_timer_period ms. Timer is destroyed once it expires or,
+        //  optionally, when cancel_timer is called.
+        virtual void add_timer (struct i_pollable *engine_) = 0;
+
+        //  Cancel the timer set by add_timer method.
+        virtual void cancel_timer (struct i_pollable *engine_) = 0;
     };
 
 }

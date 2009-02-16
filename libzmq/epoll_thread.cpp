@@ -100,13 +100,20 @@ void zmq::epoll_t::reset_pollout (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
+bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
 {
     epoll_event ev_buf [max_io_events];
 
     //  Wait for events.
-    int n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events, -1);
+    int n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
+        timers_ ? max_timer_period : -1);
     errno_assert (n != -1);
+
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
 
     for (int i = 0; i < n; i ++) {
         poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);

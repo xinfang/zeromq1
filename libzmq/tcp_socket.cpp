@@ -64,7 +64,8 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
         wsa_assert (rc != SOCKET_ERROR);
 
     //  We'll ignore the error in the case of non-blocking socket. We'll get
-    //  the error later on in asynchronous manner.
+    //  the error later on in asynchronous manner - error is available
+    //  at this point in the case we are using loopback interface.
 
     //  Disable Nagle's algorithm.
     int flag = 1;

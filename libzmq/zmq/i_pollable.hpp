@@ -41,6 +41,9 @@ namespace zmq
         //  Called by I/O thread when file descriptor is ready for writing.
         virtual void out_event () = 0;
 
+        //  Called when timer expires.
+        virtual void timer_event () = 0;
+
         //  Called by poll thread when unregistering the engine.
         virtual void unregister_event () = 0;
 

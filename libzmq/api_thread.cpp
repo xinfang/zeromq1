@@ -35,7 +35,7 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     current_queue (0),
     message_mask (message_data)
 {
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+#if deifned ZMQ_HAVE_RTDSC_IN_API_THREAD
     last_command_time = 0;
 #endif
 
@@ -412,7 +412,7 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
 
 void zmq::api_thread_t::process_commands ()
 {
-#if (defined (__GNUC__) && (defined (__i386__) || defined (__x86_64__)))
+#if defined ZMQ_HAVE_RTDSC_IN_API_THREAD
 
     //  Optimised version of send doesn't have to check for incoming commands
     //  each time send is called. It does so onlt if certain time elapsed since

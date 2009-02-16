@@ -39,7 +39,7 @@ namespace zmq
         //  Maximum transport data unit size for PGM (TPDU).
         pgm_max_tpdu = 1500,
 
-        //  PGM engine buffer (receiver)
+        //  PGM engine buffer (receiver).
         pgm_in_batch_size = 1000,
 
         //  The OpenPGM transmit/receive window size can be set by count of 
@@ -64,11 +64,11 @@ namespace zmq
         //  unnecessary network stack traversals.
         bp_out_batch_size = 8192,
 
-        //  Number of new messages in message pipe which triggers new memory
+        //  Number of new messages in message pipe needed to trigger new memory
         //  allocation.
         message_pipe_granularity = 256,
 
-        //  Number of new commands in command pipe which triggers new memory
+        //  Number of new commands in command pipe needed to trigger new memory
         //  allocation.
         command_pipe_granularity = 16,
 
@@ -89,7 +89,7 @@ namespace zmq
         api_thread_max_command_delay = 3000000,
 
         //  Maximum number of events the wait() method of I/O thread
-        //  (poll_thread_t, select_thread_t ...) can return.
+        //  can process in one go.
         max_io_events = 256,
 
         //  High and low watermark for backend protocol engines.
@@ -100,7 +100,10 @@ namespace zmq
         //  implementation of SCTP we are not able to send SCTP messages
         //  larger than SCTP tx buffer. This setting allows to set the upper
         //  limit for SCTP message size.
-        max_sctp_message_size = 4096
+        max_sctp_message_size = 4096,
+
+        //  Maximal wait time when engine sets timer (milliseconds).
+        max_timer_period = 100
     };
 
 }

@@ -65,6 +65,7 @@ namespace zmq
         void register_event (i_poller *poller_);
         void in_event ();
         void out_event ();
+        void timer_event ();
         void unregister_event ();
 
     private:
@@ -77,6 +78,9 @@ namespace zmq
 
             //  Engine is fully operational.
             engine_connected,
+
+            //  Waiting a while before attempting to reconnect.
+            engine_waiting_for_reconnect,
 
             //  Engine is already shutting down, waiting for confirmation
             //  from other threads.

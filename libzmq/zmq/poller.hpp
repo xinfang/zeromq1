@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <cstdlib>
+#include <algorithm>
 
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
@@ -35,13 +36,8 @@ namespace zmq
 
     enum event_t
     {
-        //  The file contains some data.
         event_in,
-
-        //  The file can accept some more data.
         event_out,
-
-        //  There was an error on file descriptor.
         event_err
     };
 
@@ -62,9 +58,12 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
+        void add_timer (i_pollable *engine_);
+        void cancel_timer (i_pollable *engine_);
 
-        //  Callback function called by event_monitor.
+        //  Callback functions called by event_monitor.
         bool process_event (i_pollable *engine_, event_t event_);
+        void timer_event ();
 
     private:
 
@@ -99,6 +98,9 @@ namespace zmq
 
         //  We perform I/O multiplexing using event monitor.
         T event_monitor;
+
+        typedef std::vector <i_pollable*> timers_t;
+        timers_t timers;
     };
 
 }
@@ -208,6 +210,21 @@ void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 }
 
 template <class T>
+void zmq::poller_t <T>::add_timer (i_pollable *engine_)
+{
+     timers.push_back (engine_);
+}
+
+template <class T>
+void zmq::poller_t <T>::cancel_timer (i_pollable *engine_)
+{
+    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
+    if (it == timers.end ())
+        return;
+    timers.erase (it);
+}
+
+template <class T>
 void zmq::poller_t <T>::worker_routine (void *arg_)
 {
     poller_t <T> *self = (poller_t <T>*) arg_;
@@ -218,7 +235,7 @@ template <class T>
 void zmq::poller_t <T>::loop ()
 {
     while (true) {
-        if (event_monitor.process_events (this))
+        if (event_monitor.process_events (this, !timers.empty ()))
            break;
     }
 }
@@ -330,6 +347,14 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
     if (command_.type == command_t::stop)
         return false;
     return true;
+}
+
+template <class T>
+void zmq::poller_t <T>::timer_event ()
+{
+    for (timers_t::iterator it = timers.begin (); it != timers.end (); it ++)
+        (*it)->timer_event ();
+    timers.clear (); 
 }
 
 #endif

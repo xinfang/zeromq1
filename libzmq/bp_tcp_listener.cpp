@@ -139,6 +139,12 @@ void zmq::bp_tcp_listener_t::out_event ()
     assert (false);
 }
 
+void zmq::bp_tcp_listener_t::timer_event ()
+{
+    //  This class doesn't use timers.
+    assert (false);
+}
+
 void zmq::bp_tcp_listener_t::unregister_event ()
 {
     //  TODO: implement this
