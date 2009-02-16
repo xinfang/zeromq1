@@ -117,14 +117,24 @@ void zmq::kqueue_t::reset_pollout (handle_t handle_)
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
 
-bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
+bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
 {
     struct kevent ev_buf [max_io_events];
 
+    //  Compute time interval to wait.
+    timespec timeout = {max_timer_period / 1000, 
+        (max_timer_period % 1000) * 1000000};
+
     //  Wait for events.
     int n = kevent (kqueue_fd, NULL, 0,
-        &ev_buf [0], max_io_events, NULL);
+        &ev_buf [0], max_io_events, timers_ ? &timeout : NULL);
     errno_assert (n != -1);
+
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
 
     for (int i = 0; i < n; i ++) {
         poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
