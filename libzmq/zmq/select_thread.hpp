@@ -57,7 +57,8 @@ namespace zmq
         ZMQ_EXPORT void reset_pollin (handle_t handle_);
         ZMQ_EXPORT void set_pollout (handle_t handle_);
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
-        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_);
+        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_,
+            bool timers_);
 
     private:
 

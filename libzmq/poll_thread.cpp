@@ -96,11 +96,18 @@ void zmq::poll_t::reset_pollout (handle_t handle_)
     pollset [index].events &= ~((short) POLLOUT);
 }
 
-bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
+bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
 {
     //  Wait for events.
-    int rc = poll (&pollset [0], pollset.size (), -1);
+    int rc = poll (&pollset [0], pollset.size (),
+        timers_ ? max_timer_period : -1);
     errno_assert (rc != -1);
+
+    //  Handle timer.
+    if (!rc) {
+        poller_->timer_event ();
+        return false;
+    }
 
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
         assert (!(pollset [i].revents & POLLNVAL));

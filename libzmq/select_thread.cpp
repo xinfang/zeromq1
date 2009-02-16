@@ -120,20 +120,38 @@ void zmq::select_t::reset_pollout (handle_t handle_)
     FD_CLR (handle_.fd, &source_set_out);
 }
 
-bool zmq::select_t::process_events (poller_t <select_t> *poller_)
+bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
 {
     //  Intialise the pollsets.
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
     memcpy (&writefds, &source_set_out, sizeof source_set_out);
     memcpy (&exceptfds, &source_set_err, sizeof source_set_err);
 
+    //  Wait for events.
     while (true) {
-        int rc = select (maxfd + 1, &readfds, &writefds, &exceptfds, NULL);
+
+        //  Compute the timout interval. Select is free to overwrite the
+        //  value so have to compute it each time anew.
+        timeval timeout = {max_timer_period / 1000,
+            (max_timer_period % 1000) * 1000};
+
+        //  Wait for events.
+        int rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
+            timers_ ? &timeout : NULL);
 #ifdef ZMQ_HAVE_WINDOWS
         wsa_assert (rc != SOCKET_ERROR);
 #else
         errno_assert (rc != -1);
 #endif
+
+        //  Handle timer.
+        if (timers_ && !rc) {
+            poller_->timer_event ();
+            return false;
+        }
+
+        //  TODO: Select sometimes returns 0 even though no event have occured
+        //  and no timeout was set. Document this situation in detail...
         if (rc > 0)
             break;
     }
