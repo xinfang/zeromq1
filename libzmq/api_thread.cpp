@@ -35,7 +35,7 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     current_queue (0),
     message_mask (message_data)
 {
-#if deifned ZMQ_HAVE_RTDSC_IN_API_THREAD
+#if defined ZMQ_HAVE_RTDSC_IN_API_THREAD
     last_command_time = 0;
 #endif
 
