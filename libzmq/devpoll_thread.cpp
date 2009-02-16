@@ -121,7 +121,7 @@ void zmq::devpoll_t::reset_pollout (handle_t handle_)
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
+bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_, bool timers_)
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
@@ -138,11 +138,17 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
 
     poll_req.dp_fds = &ev_buf [0];
     poll_req.dp_nfds = nfds;
-    poll_req.dp_timeout = -1;
+    poll_req.dp_timeout = timers_ ? max_timer_period : -1;
 
     //  Wait for events.
     int n = ioctl (devpoll_fd, DP_POLL, &poll_req);
     errno_assert (n != -1);
+
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
 
     for (int i = 0; i < n; i ++) {
         fd_t fd = ev_buf [i].fd;

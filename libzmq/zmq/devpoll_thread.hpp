@@ -49,7 +49,7 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        bool process_events (poller_t <devpoll_t> *poller_);
+        bool process_events (poller_t <devpoll_t> *poller_, bool timers_);
 
     private:
 
