@@ -21,7 +21,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
-			ManagedExtensions="4"
+			ManagedExtensions="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -92,7 +92,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
-			ManagedExtensions="4"
+			ManagedExtensions="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
