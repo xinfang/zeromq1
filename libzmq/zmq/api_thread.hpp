@@ -36,12 +36,12 @@
 #include <zmq/in_engine.hpp>
 #include <zmq/out_engine.hpp>
 
-//  If the RTDSC is available we use it to prevent excessive
+//  If the RDTSC is available we use it to prevent excessive
 //  polling for commands. The nice thing here is that it will work on any
-//  system with gcc compiler and x86 architecture.
-//  TODO: The same thing should be done for MSVC compiler.
-#if defined __GNUC__ && (defined __i386__ || defined __x86_64__)
-#define ZMQ_HAVE_RTDSC_IN_API_THREAD
+//  system with x86 architecture and gcc or MSVC compiler.
+#if (defined __GNUC__ && (defined __i386__ || defined __x86_64__)) ||\
+    (defined _MSC_VER && (defined _M_IX86 || defined _M_X64))
+#define ZMQ_HAVE_RDTSC_IN_API_THREAD
 #endif
 
 namespace zmq
@@ -165,11 +165,11 @@ namespace zmq
         //  Oher message types are dropped silently.
         uint32_t message_mask;
 
-#if defined ZMQ_HAVE_RTDSC_IN_API_THREAD
+#if defined ZMQ_HAVE_RDTSC_IN_API_THREAD
         //  Time when last command processing was performed (in ticks).
         //  This optimisation requires RDTSC instruction and is thus
         //  available only on x86 platforms.
-        uint64_t last_command_time;   
+        uint64_t last_command_time; 
 #endif
 
         api_thread_t (const api_thread_t&);

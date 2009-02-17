@@ -35,7 +35,7 @@ zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
     current_queue (0),
     message_mask (message_data)
 {
-#if defined ZMQ_HAVE_RTDSC_IN_API_THREAD
+#if defined ZMQ_HAVE_RDTSC_IN_API_THREAD
     last_command_time = 0;
 #endif
 
@@ -412,22 +412,32 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
 
 void zmq::api_thread_t::process_commands ()
 {
-#if defined ZMQ_HAVE_RTDSC_IN_API_THREAD
+#if defined ZMQ_HAVE_RDTSC_IN_API_THREAD
 
     //  Optimised version of send doesn't have to check for incoming commands
     //  each time send is called. It does so onlt if certain time elapsed since
     //  last command processing. Command delay varies depending on CPU speed:
     //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
+
+	//  Get timestamp counter.
+#if defined __GNUC__
     uint32_t low;
     uint32_t high;
     __asm__ volatile ("rdtsc"
         : "=a" (low), "=d" (high));
     uint64_t current_time = (uint64_t) high << 32 | low;
+#elif defined _MSC_VER
+    uint64_t current_time = __rdtsc ();
+#elif
+#error
+#endif
 
+	//  Check whether certain time have elapsed since last command processing.
     if (current_time - last_command_time <= api_thread_max_command_delay)
         return;
     last_command_time = current_time;
 #endif
+
     ypollset_t::integer_t signals = pollset.check ();
     if (signals)
         process_commands (signals);
