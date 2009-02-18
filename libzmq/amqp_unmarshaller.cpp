@@ -23,6 +23,10 @@
 
 #if defined ZMQ_HAVE_AMQP
 
+#ifdef ZMQ_HAVE_OPENVMS
+#include <stdio.h>
+#endif
+
 #include <zmq/amqp_unmarshaller.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/wire.hpp>
