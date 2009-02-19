@@ -31,7 +31,7 @@ namespace zmq
 {
 
 #if defined (ZMQ_HAVE_LINUX)
-    typedef epoll_thread_t io_thread_t;
+    typedef select_thread_t io_thread_t;
 
 #elif defined (ZMQ_HAVE_WINDOWS)
     typedef select_thread_t io_thread_t;

@@ -99,9 +99,15 @@ void zmq::poll_t::reset_pollout (handle_t handle_)
 bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
 {
     //  Wait for events.
-    int rc = poll (&pollset [0], pollset.size (),
-        timers_ ? max_timer_period : -1);
-    errno_assert (rc != -1);
+    int rc;
+    while (true) {
+        rc = poll (&pollset [0], pollset.size (),
+            timers_ ? max_timer_period : -1);
+        if (!(rc == -1 && errno == EINTR)) {
+            errno_assert (rc != -1);
+            break;
+        }
+    }
 
     //  Handle timer.
     if (!rc) {

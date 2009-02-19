@@ -136,13 +136,21 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
             (max_timer_period % 1000) * 1000};
 
         //  Wait for events.
-        int rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
-            timers_ ? &timeout : NULL);
+        int rc;
+        while (true) {
+            rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
+                timers_ ? &timeout : NULL);
+
 #ifdef ZMQ_HAVE_WINDOWS
-        wsa_assert (rc != SOCKET_ERROR);
+            wsa_assert (rc != SOCKET_ERROR);
+            break;
 #else
-        errno_assert (rc != -1);
+            if (!(rc == -1 && errno == EINTR)) {
+                errno_assert (rc != -1);
+                break;
+            }
 #endif
+        }
 
         //  Handle timer.
         if (timers_ && !rc) {
