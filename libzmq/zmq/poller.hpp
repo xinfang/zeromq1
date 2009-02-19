@@ -23,6 +23,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#include <signal.h>
 
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
@@ -234,6 +235,18 @@ void zmq::poller_t <T>::worker_routine (void *arg_)
 template <class T>
 void zmq::poller_t <T>::loop ()
 {
+
+    //  TODO: Following code will guarantee more predictable latecnies as it'll
+    //        disallow any signal handling in the I/O thread. Check it out
+    //        on different platforms.
+    //
+    //  sigset_t signal_set;
+    //  int rc = sigfillset (&signal_set);
+    //  errno_assert (rc == 0);
+    //  rc = pthread_sigmask (SIG_BLOCK, &signal_set, NULL);
+    //  errno_assert (rc == 0);
+
+    //  Main event loop.
     while (true) {
         if (event_monitor.process_events (this, !timers.empty ()))
            break;

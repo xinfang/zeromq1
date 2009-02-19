@@ -105,9 +105,15 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
     epoll_event ev_buf [max_io_events];
 
     //  Wait for events.
-    int n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
-        timers_ ? max_timer_period : -1);
-    errno_assert (n != -1);
+    int n;
+    while (true) {
+        n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
+            timers_ ? max_timer_period : -1);
+        if (!(n == -1 && errno == EINTR)) {
+           errno_assert (n != -1);
+           break;
+        }
+    }
 
     //  Handle timer.
     if (!n) {
