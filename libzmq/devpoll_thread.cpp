@@ -141,8 +141,14 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_, bool timers_
     poll_req.dp_timeout = timers_ ? max_timer_period : -1;
 
     //  Wait for events.
-    int n = ioctl (devpoll_fd, DP_POLL, &poll_req);
-    errno_assert (n != -1);
+    int n;
+    while (true) {
+        n = ioctl (devpoll_fd, DP_POLL, &poll_req);
+        if (!(n == -1 && errno == EINTR)) {
+            errno_assert (n != -1);
+            break;
+        }
+    }
 
     //  Handle timer.
     if (!n) {
