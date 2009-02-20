@@ -36,7 +36,6 @@ set(libzmq_headers
   zmq/encoder.hpp
   zmq/engine_base.hpp
   zmq/engine_factory.hpp
-  zmq/epgm_socket.hpp
   zmq/epoll_thread.hpp
   zmq/err.hpp
   zmq/export.hpp
@@ -102,7 +101,6 @@ set(libzmq_sources
   devpoll_thread.cpp
   dispatcher.cpp
   engine_factory.cpp
-  epgm_socket.cpp
   epoll_thread.cpp
   err.cpp
   in_engine.cpp
