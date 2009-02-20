@@ -21,6 +21,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include "../../helpers/time.hpp"
+#include <zmq/wire.hpp>
 
 using namespace std;
 
@@ -42,7 +43,7 @@ int main (int argc, char *argv [])
     const char *to_local_interface = argv [2];
 
     size_t msg_size = atoi (argv [3]);
-    int msg_count = atoi (argv [4]);
+    unsigned int msg_count = atoi (argv [4]);
 
     //  Local queue name.
     char q_name [] = "L_QUEUE";
@@ -73,7 +74,7 @@ int main (int argc, char *argv [])
 
     perf::time_instant_t start_time = 0;
 
-    for (int i = 0; i < msg_count; i++) {
+    for (unsigned int i = 0; i < msg_count; i++) {
         api->receive (&message);
         if (i == 0) {
             //  Capture timestamp after first message receiving.
@@ -81,6 +82,16 @@ int main (int argc, char *argv [])
         }
 
         assert (message.size () == msg_size);
+
+        if (msg_size >= sizeof (uint32_t)) {
+            if (i != zmq::get_uint32 ((unsigned char*)message.data ())) {
+                cout << "wrong message seq received " << endl << flush;
+                assert (false);
+            }
+        }
+
+        if (i % 1000 == 0 && i > 0)
+            cout << i << " " << flush;
     }
 
     //  Capture the end timestamp of the test.

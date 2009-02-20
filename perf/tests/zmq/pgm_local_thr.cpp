@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cstdio>
 #include <zmq.hpp>
+#include <zmq/wire.hpp>
 
 using namespace std;
 
@@ -73,8 +74,12 @@ int main (int argc, char *argv [])
             "pres enter to continue." << endl;
     getchar ();
 
+
     for (int i = 0; i < msg_count; i++) {
         zmq::message_t message (msg_size);
+        if (msg_size >= sizeof (uint32_t)) {
+            zmq::put_uint32 ((unsigned char*)message.data (), i);          
+        }
         api->send (ex_id, message);
     }
 
