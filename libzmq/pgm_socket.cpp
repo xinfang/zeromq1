@@ -408,14 +408,25 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
     //  from the transport.
     ssize_t nbytes = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
         pgm_msgv_len, MSG_DONTWAIT);
-   
+    
     //  In a case when not ODATA/RDATA fired POLLIN event (SPM...)
     //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
+    if (nbytes == -1 && errno == EAGAIN) {
+        
+        //  In a case if no RDATA/ODATA caused POLLIN 0 is 
+        //  returned.
+        return 0;
+    }
+
     //  For data loss nbytes == -1 errno == ECONNRESET.
-    if (nbytes == -1 && errno != EAGAIN) {
-        sleep (5);
+    if (nbytes == -1 && errno == ECONNRESET) {
+        zmq_log (1, "Data loss");
+        sleep (1);
         errno_assert (false); 
     }
+
+    //  Catch the rest of the errors.
+    errno_assert (nbytes != -1);
 
     //  Tanslate from pgm_msgv_t into iovec structures. Note that pgm_msgv_t 
     //  and therefore iov buffers are directly from the receive window. Memory 
@@ -447,10 +458,6 @@ size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
         iov++;
     }
 
-    //  In a case if no RDATA/ODATA and no data loss caused POLLIN 0 is 
-    //  returned.
-    nbytes = nbytes == -1 ? 0 : nbytes;
-    
     if (nbytes)
         zmq_log (4, "received %i bytes, ", (int)nbytes);
 
