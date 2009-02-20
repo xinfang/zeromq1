@@ -126,9 +126,15 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
         (max_timer_period % 1000) * 1000000};
 
     //  Wait for events.
-    int n = kevent (kqueue_fd, NULL, 0,
-        &ev_buf [0], max_io_events, timers_ ? &timeout : NULL);
-    errno_assert (n != -1);
+    int n;
+    while (true) {
+        n = kevent (kqueue_fd, NULL, 0,
+             &ev_buf [0], max_io_events, timers_ ? &timeout : NULL);
+        if (!(n == -1 && errno == EINTR)) {
+            errno_assert (n != -1);
+            break;
+        }
+    }
 
     //  Handle timer.
     if (!n) {
