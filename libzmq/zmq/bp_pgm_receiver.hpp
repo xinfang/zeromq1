@@ -71,7 +71,7 @@ namespace zmq
         //  of bytes received. Note that if we did not join message stream 
         //  before and there is not message beginning in the APDUs being 
         //  received iov_len for such a APDUs will be 0.
-        size_t read_pkt_with_offset (iovec *iov_, size_t iov_len_);
+        size_t receive_with_offset (void **data_);
 
         // If receiver joined the messages stream.
         bool joined;
@@ -88,10 +88,6 @@ namespace zmq
        
         //  PGM socket.
         pgm_socket_t *pgm_socket;
-
-        //  Stuctures to receive data from underlying pgm_socket.
-        iovec *iov;
-        size_t iov_len;
 
         //  Poll handle associated with PGM socket.
         handle_t socket_handle;

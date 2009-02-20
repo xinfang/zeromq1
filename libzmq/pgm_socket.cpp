@@ -26,11 +26,12 @@
 #include <string>
 #include <assert.h>
 #include <zmq/config.hpp>
+#include <iostream>
 
 #include <zmq/pgm_socket.hpp>
 
 //#define PGM_SOCKET_DEBUG
-//#define PGM_SOCKET_DEBUG_LEVEL 2
+//#define PGM_SOCKET_DEBUG_LEVEL 4
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -46,8 +47,11 @@
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_, 
       size_t readbuf_size_) : 
     g_transport (NULL), 
-    pgm_msgv (NULL), 
-    pgm_msgv_len (-1)
+    pgm_msgv (NULL),
+    nbytes (0),
+    nbytes_processed (0),
+    pgm_msgv_processed (0),
+    pgm_msgv_len (0)
 {
 
     zmq_log (1, "interface_  %s, %s(%i)\n", interface_, __FILE__, __LINE__);
@@ -395,75 +399,74 @@ void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_)
     pgm_packetv_free1 (g_transport, data_, false);
 }
 
-//  Receive a vector of Application Protocol Domain Unit's (APDUs) from the 
-//  transport. Note that iov_len has to be equal to the pgm_msgv_len it means
-//  that entire pgm_msgv structure returned by pgm_transport_recvmsgv will be 
-//  returned in one read_pkt call.
-size_t zmq::pgm_socket_t::read_pkt (iovec *iov_, size_t iov_len_)
+//  pgm_transport_recvmsgv is called to fill the pgm_msgv array up to 
+//  pgm_msgv_len. In subsequent calls data from pgm_msgv structure are 
+//  returned.
+size_t zmq::pgm_socket_t::receive (void **raw_data_)
 {
+ 
+    //  We just sent all data from pgm_transport_recvmsgv up 
+    //  and have to return 0 that another engine in this thread is scheduled.
+    if (nbytes == nbytes_processed && nbytes > 0) {
 
-    assert (iov_len_ == pgm_msgv_len);
-    
-    //  Receive a vector of Application Protocol Domain Unit's (APDUs) 
-    //  from the transport.
-    ssize_t nbytes = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
-        pgm_msgv_len, MSG_DONTWAIT);
-    
-    //  In a case when not ODATA/RDATA fired POLLIN event (SPM...)
-    //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
-    if (nbytes == -1 && errno == EAGAIN) {
-        
-        //  In a case if no RDATA/ODATA caused POLLIN 0 is 
-        //  returned.
+        //  Reset all the counters.
+        nbytes = 0;
+        nbytes_processed = 0;
+        pgm_msgv_processed = 0;
+
         return 0;
     }
 
-    //  For data loss nbytes == -1 errno == ECONNRESET.
-    if (nbytes == -1 && errno == ECONNRESET) {
-        zmq_log (1, "Data loss");
-        sleep (1);
-        errno_assert (false); 
+    //  If we have are going first time or if we have processed all pgm_msgv_t
+    //  structure previaously read from the pgm socket.
+    if (nbytes == nbytes_processed) {
+
+        //  Check program flow.
+        assert (pgm_msgv_processed == 0);
+        assert (nbytes_processed == 0);
+        assert (nbytes == 0);
+
+        //  Receive a vector of Application Protocol Domain Unit's (APDUs) 
+        //  from the transport.
+        nbytes = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
+            pgm_msgv_len, MSG_DONTWAIT);
+  
+        //  In a case when not ODATA/RDATA fired POLLIN event (SPM...)
+        //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
+        if (nbytes == -1 && errno == EAGAIN) {
+        
+            //  In a case if no RDATA/ODATA caused POLLIN 0 is 
+            //  returned.
+            return 0;
+        }
+
+        //  For data loss nbytes == -1 errno == ECONNRESET.
+        if (nbytes == -1 && errno == ECONNRESET) {
+            zmq_log (1, "Data loss");
+            sleep (1);
+            errno_assert (false); 
+        }
+
+        //  Catch the rest of the errors.
+        errno_assert (nbytes != -1 && nbytes > 0);
+   
+        zmq_log (4, "received %i bytes\n", (int)nbytes);
     }
 
-    //  Catch the rest of the errors.
-    errno_assert (nbytes != -1);
+    // Only one APDU per pgm_msgv_t structure is allowed. 
+    assert (pgm_msgv[pgm_msgv_processed].msgv_iovlen == 1);
 
-    //  Tanslate from pgm_msgv_t into iovec structures. Note that pgm_msgv_t 
-    //  and therefore iov buffers are directly from the receive window. Memory 
-    //  is returned on the next call or transport destruction.
-    
-    //  How mant bytes we already translated.
-    int translated = 0;
+    //  Take pointers from pgm_msgv_t structure.
+    *raw_data_ = pgm_msgv[pgm_msgv_processed].msgv_iov->iov_base;
+    size_t raw_data_len = pgm_msgv[pgm_msgv_processed].msgv_iov->iov_len;
+      
+    //  Move the the next pgm_msgv_t structure.
+    pgm_msgv_processed++;
+    nbytes_processed +=raw_data_len;
 
-    //  Pointer to received pgm_msgv_t structure.
-    pgm_msgv_t *msgv = pgm_msgv;
+    zmq_log (4, "sendig up %i bytes\n", (int)raw_data_len);
 
-    //  Pointer to destination iovec structures.
-    iovec *iov = iov_;
-    iovec *iov_last = iov + iov_len_;
-
-    while (translated < (int) nbytes) {
-
-        assert (iov <= iov_last);
-
-        iov->iov_base = (msgv->msgv_iov)->iov_base;
-        iov->iov_len = (msgv->msgv_iov)->iov_len;
-        
-        // Only one APDU per pgm_msgv_t structure is allowed. 
-        assert (msgv->msgv_iovlen == 1);
-        
-        translated += iov->iov_len;
-
-        msgv++;
-        iov++;
-    }
-
-    if (nbytes)
-        zmq_log (4, "received %i bytes, ", (int)nbytes);
-
-    assert (nbytes == translated);
-
-    return (size_t) nbytes;
+    return raw_data_len;
 }
 
 void zmq::pgm_socket_t::process_NAK (void)

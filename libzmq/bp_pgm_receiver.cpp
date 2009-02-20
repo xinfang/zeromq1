@@ -45,8 +45,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     joined (false),
     shutting_down (false),
     decoder (&demux),
-    pgm_socket (NULL),
-    iov (NULL), iov_len (0)
+    pgm_socket (NULL)
 {
     //  If UDP encapsulation is used network_ parameter contain 
     //  "udp:mcast_address:port". Interface name is comming from bind api
@@ -78,11 +77,6 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     //  Create epgm_socket object
     pgm_socket = new pgm_socket_t (true, network.c_str (), readbuf_size_);
 
-    //  Calculate number of iovecs to fill the entire buffer.
-    //  One iovec represents one apdu.
-    iov_len = pgm_socket->get_max_apdu_at_once (readbuf_size_);
-    iov = new iovec [iov_len];
-
     //  Register PGM engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
@@ -93,10 +87,6 @@ zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
     //  Cleanup.
     delete pgm_socket;
-
-    if (iov) {
-        delete [] iov;
-    }
 }
 
 zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
@@ -133,31 +123,18 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
     poller->set_pollin (socket_handle);
 }
 
+//  POLLIN event from socket or waiting_pipe.
 void zmq::bp_pgm_receiver_t::in_event ()
 {
-    //  POLLIN event from socket or waiting_pipe.
-    size_t nbytes = read_pkt_with_offset (iov, iov_len);
 
-    //  No ODATA/RDATA received.
-    if (!nbytes) {
-        return;
-    }
+    void *data_with_offset;
+    size_t nbytes = 0;
 
-    iovec *iov_to_write = iov;
-    iovec *iov_to_write_end = iov_to_write + iov_len;
+    //  Read all data from pgm socket.
+    while ((nbytes = receive_with_offset (&data_with_offset)) > 0) {
 
-    //  Push all the data to the decoder.
-    while (nbytes) {
-
-        assert (nbytes > 0);
-        assert (iov_to_write <= iov_to_write_end);
-
-        decoder.write ((unsigned char*)iov_to_write->iov_base, 
-            iov_to_write->iov_len);
-
-        nbytes -= iov_to_write->iov_len;
-        iov_to_write++;
-
+        //  Push all the data to the decoder.
+        decoder.write ((unsigned char*)data_with_offset, nbytes);
     }
 
     //  Flush any messages decoder may have produced to the dispatcher.
@@ -194,75 +171,48 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
     engine_base_t <true, false>::send_to (pipe_);
 }
 
-size_t zmq::bp_pgm_receiver_t::read_pkt_with_offset 
-    (iovec *iov_, size_t iov_len_)
+size_t zmq::bp_pgm_receiver_t::receive_with_offset 
+    (void **data_)
 {
 
+    //  Data from PGM socket.
+    unsigned char *raw_data = NULL;
+
     // Read data from underlying pgm_socket.
-    size_t nbytes = pgm_socket->read_pkt (iov_, iov_len_);
+    size_t nbytes = pgm_socket->receive ((void**)&raw_data);
 
-    iovec *iov = iov_;
-    iovec *iov_last = iov + iov_len_;
+    //  No ODATA or RDATA.
+    if (!nbytes)
+        return 0;
 
-    unsigned int translated = 0;
+    // Read offset of the fist message in current APDU.
+    uint16_t apdu_offset = get_uint16 (raw_data);
 
-    while (translated < nbytes) {
-        
-        assert (iov <= iov_last);
+    // Shift raw_data & decrease nbytes by the first message offset 
+    // information (sizeof uint16_t).
+    *data_ = raw_data +  sizeof (uint16_t);
+    nbytes -= sizeof (uint16_t);
 
-        // Read offset of the fist message in current APDU.
-        uint16_t apdu_offset = get_uint16 ((unsigned char*)iov->iov_base);
-
-        // Shift iov_base & decrease iov_len of the iovec by sizeof (uint16_t)
-        iov->iov_base = (unsigned char*)iov->iov_base + sizeof (uint16_t);
-        iov->iov_len -= sizeof (uint16_t);
-        nbytes -= sizeof (uint16_t);
-
-        zmq_log (2, "read apdu_offset %i, %s(%i)\n", apdu_offset,
-            __FILE__, __LINE__);
-
-        //  There is not beginning of the message in current APDU.
-        if (apdu_offset == 0xFFFF) {
-
-            //  If we already joined message stream send all data up.
-            if (joined) {
-                translated += iov->iov_len;
-            } else {
-                //  Throwing currnet APDU by setting iov_len to 0 that 
-                //  iov_base is not pushed into encoder.
-                nbytes -= iov->iov_len;
-                iov->iov_len = 0;
-            }
-            iov++;
-            continue;
-        }
-
-        assert (iov->iov_len > apdu_offset);
-
-        //  Now is the possibility to join the stream.
-        if (!joined) {
-            
-            //  If offset is no zero have to move iov_base and 
-            //  decrease iov_len. 
-            if (apdu_offset) {
-                iov->iov_base = (unsigned char*)iov->iov_base + apdu_offset;
-                iov->iov_len -= apdu_offset;
-                
-                nbytes -= apdu_offset;
-            }
-
-            // Joined the stream.
-            joined = true;
-
-            zmq_log (2, "joined into the stream, %s(%i)\n", 
-                __FILE__, __LINE__);
-        }
-
-        translated += iov->iov_len;
-        iov++;
+    //  There is not beginning of the message in current APDU and we
+    //  are not joined jet -> throwing data.
+    if (apdu_offset == 0xFFFF && !joined) {
+        *data_ = NULL;
+        return 0;
     }
 
-    assert (nbytes == translated);
+    //  Now is the possibility to join the stream.
+    if (!joined) {
+           
+        //  We have to move data to the begining of the first message.
+        *data_ = (unsigned char *)*data_ + apdu_offset;
+        nbytes -= apdu_offset;
+
+        // Joined the stream.
+        joined = true;
+
+        zmq_log (2, "joined into the stream, %s(%i)\n", 
+            __FILE__, __LINE__);
+    }
 
     return nbytes;
 }

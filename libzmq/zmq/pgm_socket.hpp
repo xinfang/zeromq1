@@ -66,8 +66,8 @@ namespace zmq
         //  Returns maximum count of apdus which fills readbuf_size_
         size_t get_max_apdu_at_once (size_t readbuf_size_);
 
-        //  Receive exactly iov_len count APDUs.
-        size_t read_pkt (iovec *iov_, size_t iov_len_);
+        //  Receive data from pgm socket.
+        size_t receive (void **data_);
 
         //  POLLIN on sender side should mean NAK receiving. process_NAK 
         //  function is used to handle such a situation.
@@ -84,8 +84,17 @@ namespace zmq
         //  from the socket (pgm_transport_recvmsgv).
         pgm_msgv_t *pgm_msgv;
 
+        // How many bytes were read from pgm socket.
+        ssize_t nbytes;
+
+        //  How many bytes were processed from last pgm socket read.
+        ssize_t nbytes_processed;
+        
+        //  How many messages from pgm_msgv were already sent up.
+        ssize_t pgm_msgv_processed;
+
         //  Size of pgm_msgv array.
-        size_t pgm_msgv_len;
+        ssize_t pgm_msgv_len;
 
         //  Sender transport uses 2 fd.
         enum {pgm_sender_fd_count = 2};
