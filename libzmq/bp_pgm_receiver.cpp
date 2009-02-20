@@ -22,6 +22,7 @@
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
 #include <zmq/bp_pgm_receiver.hpp>
+#include <zmq/wire.hpp>
 #include <string>
 
 //#define PGM_RECEIVER_DEBUG
@@ -41,9 +42,10 @@
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
       i_thread *thread_, const char *network_, size_t readbuf_size_, 
       const char *arguments_) :
+    joined (false),
     shutting_down (false),
     decoder (&demux),
-    epgm_socket (NULL),
+    pgm_socket (NULL),
     iov (NULL), iov_len (0)
 {
     //  If UDP encapsulation is used network_ parameter contain 
@@ -74,11 +76,11 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
     }
 
     //  Create epgm_socket object
-    epgm_socket = new epgm_socket_t (true, network.c_str (), readbuf_size_);
+    pgm_socket = new pgm_socket_t (true, network.c_str (), readbuf_size_);
 
     //  Calculate number of iovecs to fill the entire buffer.
     //  One iovec represents one apdu.
-    iov_len = epgm_socket->get_max_apdu_at_once (readbuf_size_);
+    iov_len = pgm_socket->get_max_apdu_at_once (readbuf_size_);
     iov = new iovec [iov_len];
 
     //  Register PGM engine with the I/O thread.
@@ -90,7 +92,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
 zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
     //  Cleanup.
-    delete epgm_socket;
+    delete pgm_socket;
 
     if (iov) {
         delete [] iov;
@@ -118,7 +120,7 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
     int waiting_pipe_fd;
 
     //  Fill socket_fd and waiting_pipe_fd from PGM transport
-    epgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
+    pgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
 
     //  Add socket_fd into poller.
     socket_handle = poller->add_fd (socket_fd, this);
@@ -134,7 +136,7 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
 void zmq::bp_pgm_receiver_t::in_event ()
 {
     //  POLLIN event from socket or waiting_pipe.
-    size_t nbytes = epgm_socket->read_pkt_with_offset (iov, iov_len);
+    size_t nbytes = read_pkt_with_offset (iov, iov_len);
 
     //  No ODATA/RDATA received.
     if (!nbytes) {
@@ -190,6 +192,79 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
 
     //  Start sending messages to a pipe.
     engine_base_t <true, false>::send_to (pipe_);
+}
+
+size_t zmq::bp_pgm_receiver_t::read_pkt_with_offset 
+    (iovec *iov_, size_t iov_len_)
+{
+
+    // Read data from underlying pgm_socket.
+    size_t nbytes = pgm_socket->read_pkt (iov_, iov_len_);
+
+    iovec *iov = iov_;
+    iovec *iov_last = iov + iov_len_;
+
+    unsigned int translated = 0;
+
+    while (translated < nbytes) {
+        
+        assert (iov <= iov_last);
+
+        // Read offset of the fist message in current APDU.
+        uint16_t apdu_offset = get_uint16 ((unsigned char*)iov->iov_base);
+
+        // Shift iov_base & decrease iov_len of the iovec by sizeof (uint16_t)
+        iov->iov_base = (unsigned char*)iov->iov_base + sizeof (uint16_t);
+        iov->iov_len -= sizeof (uint16_t);
+        nbytes -= sizeof (uint16_t);
+
+        zmq_log (2, "read apdu_offset %i, %s(%i)\n", apdu_offset,
+            __FILE__, __LINE__);
+
+        //  There is not beginning of the message in current APDU.
+        if (apdu_offset == 0xFFFF) {
+
+            //  If we already joined message stream send all data up.
+            if (joined) {
+                translated += iov->iov_len;
+            } else {
+                //  Throwing currnet APDU by setting iov_len to 0 that 
+                //  iov_base is not pushed into encoder.
+                nbytes -= iov->iov_len;
+                iov->iov_len = 0;
+            }
+            iov++;
+            continue;
+        }
+
+        assert (iov->iov_len > apdu_offset);
+
+        //  Now is the possibility to join the stream.
+        if (!joined) {
+            
+            //  If offset is no zero have to move iov_base and 
+            //  decrease iov_len. 
+            if (apdu_offset) {
+                iov->iov_base = (unsigned char*)iov->iov_base + apdu_offset;
+                iov->iov_len -= apdu_offset;
+                
+                nbytes -= apdu_offset;
+            }
+
+            // Joined the stream.
+            joined = true;
+
+            zmq_log (2, "joined into the stream, %s(%i)\n", 
+                __FILE__, __LINE__);
+        }
+
+        translated += iov->iov_len;
+        iov++;
+    }
+
+    assert (nbytes == translated);
+
+    return nbytes;
 }
 
 #endif

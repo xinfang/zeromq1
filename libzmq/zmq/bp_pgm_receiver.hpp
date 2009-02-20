@@ -26,7 +26,7 @@
 
 #include <zmq/i_pollable.hpp>
 #include <zmq/bp_decoder.hpp>
-#include <zmq/epgm_socket.hpp>
+#include <zmq/pgm_socket.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
 #include <zmq/engine_base.hpp>
@@ -67,6 +67,15 @@ namespace zmq
 
         ~bp_pgm_receiver_t ();
 
+        //  Read exactly iov_len_ count APDUs, function returns number
+        //  of bytes received. Note that if we did not join message stream 
+        //  before and there is not message beginning in the APDUs being 
+        //  received iov_len for such a APDUs will be 0.
+        size_t read_pkt_with_offset (iovec *iov_, size_t iov_len_);
+
+        // If receiver joined the messages stream.
+        bool joined;
+
         //  Callback to poller.
         i_poller *poller;
 
@@ -78,7 +87,7 @@ namespace zmq
         bp_decoder_t decoder;
        
         //  PGM socket.
-        epgm_socket_t *epgm_socket;
+        pgm_socket_t *pgm_socket;
 
         //  Stuctures to receive data from underlying pgm_socket.
         iovec *iov;

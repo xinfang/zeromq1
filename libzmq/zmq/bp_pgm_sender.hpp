@@ -29,7 +29,7 @@
 #include <zmq/export.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
-#include <zmq/epgm_socket.hpp>
+#include <zmq/pgm_socket.hpp>
 #include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 
@@ -65,7 +65,14 @@ namespace zmq
         bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, i_thread *peer_thread_, 
             i_engine *peer_engine_);
+    
         ~bp_pgm_sender_t ();
+
+        //  Send one APDU with first message offset information. 
+        //  Note that first 2 bytes in data_ are used to store the offset_
+        //  and thus user data has to start at data_ + sizeof (uint16_t).
+        size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_,
+            uint16_t offset_);
 
         //  Arguments string for this listener.
         char arguments [256];
@@ -81,7 +88,7 @@ namespace zmq
         i_poller *poller;
 
         //  PGM socket.
-        epgm_socket_t epgm_socket;
+        pgm_socket_t pgm_socket;
 
         //  Poll handle associated with PGM socket.
         handle_t handle;

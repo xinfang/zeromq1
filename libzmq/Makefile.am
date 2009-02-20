@@ -61,7 +61,6 @@ pkginclude_HEADERS = \
     ./zmq/sctp_listener.hpp \
     ./zmq/sctp_engine.hpp \
     ./zmq/pgm_socket.hpp \
-    ./zmq/epgm_socket.hpp \
     ./zmq/bp_pgm_sender.hpp \
     ./zmq/bp_pgm_receiver.hpp \
     ./zmq/amqp_client.hpp \
@@ -105,7 +104,6 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     sctp_listener.cpp \
     sctp_engine.cpp \
     pgm_socket.cpp \
-    epgm_socket.cpp \
     bp_pgm_sender.cpp \
     bp_pgm_receiver.cpp \
     amqp_client.cpp \
