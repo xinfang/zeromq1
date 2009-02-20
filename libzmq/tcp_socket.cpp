@@ -41,11 +41,58 @@
 #ifdef ZMQ_HAVE_WINDOWS
 
 zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
+    s (retired_fd),
+    hostname (hostname_),
     block (block_)
 {
+    reopen ();
+}
+
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
+    s (retired_fd),
+    hostname (""),
+    block (block_)
+{
+    //  Accept the socket.
+    s = listener.accept ();
+    wsa_assert (s != INVALID_SOCKET);
+ 
+    //  Set socket properties to non-blocking mode. 
+    if (! block) {
+        unsigned long argp = 1;
+        int rc = ioctlsocket (s, FIONBIO, &argp);
+        wsa_assert (rc != SOCKET_ERROR);
+    }
+
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
+        sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+}
+
+zmq::tcp_socket_t::~tcp_socket_t ()
+{
+	if (s != retired_fd)
+		close ();
+}
+
+void zmq::tcp_socket_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = closesocket (s);
+    wsa_assert (rc != SOCKET_ERROR);
+    s = retired_fd;
+}
+
+void zmq::tcp_socket_t::reopen ()
+{
+    assert (s == retired_fd);
+    assert (hostname != "");
+
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
-    resolve_ip_hostname (&ip_address, hostname_);
+    resolve_ip_hostname (&ip_address, hostname.c_str ());
 
     //  Create the socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -70,33 +117,6 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     //  Disable Nagle's algorithm.
     int flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-}
-
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
-    block (block_)
-{
-    //  Accept the socket.
-    s = listener.accept ();
-    wsa_assert (s != INVALID_SOCKET);
- 
-    //  Set socket properties to non-blocking mode. 
-    if (! block) {
-        unsigned long argp = 1;
-        int rc = ioctlsocket (s, FIONBIO, &argp);
-        wsa_assert (rc != SOCKET_ERROR);
-    }
-
-    //  Disable Nagle's algorithm.
-    int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
-        sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-}
-
-zmq::tcp_socket_t::~tcp_socket_t ()
-{
-    int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
 }
 
@@ -199,6 +219,7 @@ void zmq::tcp_socket_t::close ()
     assert (s != retired_fd);
     int rc = ::close (s);
     errno_assert (rc == 0);
+    s = retired_fd;
 }
 
 void zmq::tcp_socket_t::reopen ()
