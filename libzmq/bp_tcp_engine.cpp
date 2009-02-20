@@ -33,10 +33,10 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
+    socket (hostname_),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (true),
-    hostname (hostname_),
     state (engine_connecting)
 {
     //  Allocate read and write buffers.
@@ -44,10 +44,6 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
-
-    //  Open the underlying socket.
-    socket = new tcp_socket_t (hostname.c_str ());
-    assert (socket);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -65,6 +61,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
+    socket (listener_),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
@@ -76,10 +73,6 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
 
-    //  Open the underlying socket by accepting it from listener.
-    socket = new tcp_socket_t (listener_);
-    assert (socket);
-
     //  Register BP/TCP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
@@ -88,7 +81,6 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
 
 zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
 {
-    delete socket;
     free (readbuf);
     free (writebuf);
 }
@@ -127,13 +119,12 @@ void zmq::bp_tcp_engine_t::reconnect ()
         //  Stop polling the socket.
         poller->rm_fd (handle);
 
+        //  Close the socket.
+        socket.close ();
+
         //  Clear data buffers.
         read_pos = read_size;
         write_pos = write_size;
-
-        //  Destroy the existing socket.
-        delete socket;
-        socket = NULL;
     }
 
     //  This is the case when we've tried to reconnect but the attmpt have
@@ -145,14 +136,19 @@ void zmq::bp_tcp_engine_t::reconnect ()
         return;
     }
 
-    //  Create new socket. This initiates the TCP connection establishment.
-    assert (!socket);
-    socket = new tcp_socket_t (hostname.c_str ());
-    assert (socket);
+    //  Reopen the socket. This initiates the TCP connection establishment.
+    //  If the reconnection is unsuccessfull wait a while till attempting
+    //  it anew.
+    socket.reopen (); 
+    if (socket.get_fd () == retired_fd) {
+        poller->add_timer (this);
+        state = engine_waiting_for_reconnect;
+        return;
+    }
 
     //  The output event is used to signal that we can get
     //  the connection status. Register our interest in it.
-    handle = poller->add_fd (socket->get_fd (), this);
+    handle = poller->add_fd (socket.get_fd (), this);
     poller->set_pollout (handle);
 
     state = engine_connecting;
@@ -164,7 +160,7 @@ void zmq::bp_tcp_engine_t::shutdown ()
     poller->rm_fd (handle);
 
     //  We don't need the socket any more, so close it to allow OS to reuse it.
-    socket->close ();
+    socket.close ();
 
     //  Ask all inbound & outbound pipes to shut down.
     demux.initialise_shutdown ();
@@ -190,7 +186,7 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
     poller = poller_;
 
     //  Initialise the poll handle.
-    handle = poller->add_fd (socket->get_fd (), this);
+    handle = poller->add_fd (socket.get_fd (), this);
 
     if (state == engine_connecting)
         //  Wait for completion of connect() call.
@@ -210,7 +206,7 @@ void zmq::bp_tcp_engine_t::in_event ()
     if (read_pos == read_size) {
 
         //  Read as much data as possible to the read buffer.
-        read_size = socket->read (readbuf, readbuf_size);
+        read_size = socket.read (readbuf, readbuf_size);
         read_pos = 0;
 
         //  Check whether the peer has closed the connection.
@@ -256,7 +252,7 @@ void zmq::bp_tcp_engine_t::out_event ()
 {
     if (state == engine_connecting) {
 
-        if (socket->socket_error ()) {
+        if (socket.socket_error ()) {
             error ();
             return;
         }
@@ -282,7 +278,7 @@ void zmq::bp_tcp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        int nbytes = socket->write (writebuf + write_pos,
+        int nbytes = socket.write (writebuf + write_pos,
             write_size - write_pos);
 
         //  Handle problems with the connection.

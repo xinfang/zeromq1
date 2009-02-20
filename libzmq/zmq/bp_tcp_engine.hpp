@@ -126,7 +126,7 @@ namespace zmq
         bp_decoder_t decoder;
 
         //  Underlying TCP/IP socket.
-        tcp_socket_t *socket;
+        tcp_socket_t socket;
 
         //  Callback to poller.
         i_poller *poller;
@@ -141,10 +141,6 @@ namespace zmq
         //  connection failure or not. In general, listeners do not try to
         //  reconnect - they rely on connecters to reestablish connection.
         bool reconnect_flag;
-
-        //  The hostname the engine should reconnect to. Undefined when
-        //  reconnect_flag is false.
-        std::string hostname;
 
         //  Engine state.
         engine_state_t state;
