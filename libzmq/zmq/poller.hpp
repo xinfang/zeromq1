@@ -365,9 +365,13 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 template <class T>
 void zmq::poller_t <T>::timer_event ()
 {
-    for (timers_t::iterator it = timers.begin (); it != timers.end (); it ++)
-        (*it)->timer_event ();
-    timers.clear (); 
+    //  Use local copy of timers array as timer handlers may fill new timers
+    //  into the original array.
+    timers_t t = timers;
+    timers.clear ();
+
+    for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+         (*it)->timer_event ();
 }
 
 #endif
