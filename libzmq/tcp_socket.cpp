@@ -105,19 +105,19 @@ void zmq::tcp_socket_t::reopen ()
         wsa_assert (rc != SOCKET_ERROR);
     }
 
-    //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
-    if (block)
-        wsa_assert (rc != SOCKET_ERROR);
-
-    //  We'll ignore the error in the case of non-blocking socket. We'll get
-    //  the error later on in asynchronous manner - error is available
-    //  at this point in the case we are using loopback interface.
-
     //  Disable Nagle's algorithm.
     int flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
+
+    //  Connect to the remote peer.
+    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    if (block)
+        wsa_assert (rc != SOCKET_ERROR);
+    if (rc != 0) {
+        close ();
+        return;
+    }
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)
@@ -255,9 +255,8 @@ void zmq::tcp_socket_t::reopen ()
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         errno_assert (rc == 0);
-
-    //  We'll ignore the error in the case of non-blocking socket. We'll get
-    //  the error later on in asynchronous manner.
+    if (rc != 0)
+        close ();
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)
