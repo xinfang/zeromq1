@@ -48,7 +48,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
       size_t readbuf_size_) : 
     g_transport (NULL), 
     pgm_msgv (NULL),
-    nbytes (0),
+    nbytes_rec (0),
     nbytes_processed (0),
     pgm_msgv_processed (0),
     pgm_msgv_len (0)
@@ -407,10 +407,10 @@ size_t zmq::pgm_socket_t::receive (void **raw_data_)
  
     //  We just sent all data from pgm_transport_recvmsgv up 
     //  and have to return 0 that another engine in this thread is scheduled.
-    if (nbytes == nbytes_processed && nbytes > 0) {
+    if (nbytes_rec == nbytes_processed && nbytes_rec > 0) {
 
         //  Reset all the counters.
-        nbytes = 0;
+        nbytes_rec = 0;
         nbytes_processed = 0;
         pgm_msgv_processed = 0;
 
@@ -419,39 +419,43 @@ size_t zmq::pgm_socket_t::receive (void **raw_data_)
 
     //  If we have are going first time or if we have processed all pgm_msgv_t
     //  structure previaously read from the pgm socket.
-    if (nbytes == nbytes_processed) {
+    if (nbytes_rec == nbytes_processed) {
 
         //  Check program flow.
         assert (pgm_msgv_processed == 0);
         assert (nbytes_processed == 0);
-        assert (nbytes == 0);
+        assert (nbytes_rec == 0);
 
         //  Receive a vector of Application Protocol Domain Unit's (APDUs) 
         //  from the transport.
-        nbytes = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
+        nbytes_rec = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
             pgm_msgv_len, MSG_DONTWAIT);
   
         //  In a case when not ODATA/RDATA fired POLLIN event (SPM...)
         //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
-        if (nbytes == -1 && errno == EAGAIN) {
+        if (nbytes_rec == -1 && errno == EAGAIN) {
         
             //  In a case if no RDATA/ODATA caused POLLIN 0 is 
             //  returned.
+            nbytes_rec = 0;
             return 0;
         }
 
-        //  For data loss nbytes == -1 errno == ECONNRESET.
-        if (nbytes == -1 && errno == ECONNRESET) {
+        //  For data loss nbytes_rec == -1 errno == ECONNRESET.
+        if (nbytes_rec == -1 && errno == ECONNRESET) {
+            nbytes_rec = 0;
             zmq_log (1, "Data loss");
             sleep (1);
             errno_assert (false); 
         }
 
         //  Catch the rest of the errors.
-        errno_assert (nbytes != -1 && nbytes > 0);
+        errno_assert (nbytes_rec > 0);
    
-        zmq_log (4, "received %i bytes\n", (int)nbytes);
+        zmq_log (4, "received %i bytes\n", (int)nbytes_rec);
     }
+
+    assert (nbytes_rec > 0);
 
     // Only one APDU per pgm_msgv_t structure is allowed. 
     assert (pgm_msgv[pgm_msgv_processed].msgv_iovlen == 1);

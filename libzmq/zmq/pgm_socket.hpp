@@ -85,7 +85,7 @@ namespace zmq
         pgm_msgv_t *pgm_msgv;
 
         // How many bytes were read from pgm socket.
-        ssize_t nbytes;
+        ssize_t nbytes_rec;
 
         //  How many bytes were processed from last pgm socket read.
         ssize_t nbytes_processed;
