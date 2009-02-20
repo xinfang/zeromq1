@@ -101,7 +101,8 @@ void czmq_bind (void *obj_, const char *exchange_, const char *queue_,
 
     //  Forward the call to native 0MQ library.
     context->api_thread->bind (exchange_, queue_,
-        context->io_thread, context->io_thread, exchange_arguments_, queue_arguments_);
+        context->io_thread, context->io_thread,
+        exchange_arguments_, queue_arguments_);
 }
 
 void czmq_send (void *obj_, int eid_, void *data_, size_t size_,

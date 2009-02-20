@@ -21,6 +21,7 @@
 #define __ZMQ_TCP_SOCKET_HPP_INCLUDED__
 
 #include <stddef.h>
+#include <string>
 
 #include <zmq/export.hpp>
 #include <zmq/stdint.hpp>
@@ -38,7 +39,9 @@ namespace zmq
 
         //  Opens TCP socket. Hostname should be in form of <host>:<port>.
         //  By default it opens the socket in non-blocking mode. If block_ is
-        //  set to true, the socket will be opened in blocking mode.
+        //  set to true, the socket will be opened in blocking mode. If the
+        //  connect is unsuccessful, but recoverable, socket gets into closed
+        //  state.
         ZMQ_EXPORT tcp_socket_t (const char *hostname_,  bool block_ = false);
 
         //  Opens a socket by accepting a connection from TCP listener object
@@ -48,7 +51,17 @@ namespace zmq
         //  Closes the socket.
         ZMQ_EXPORT ~tcp_socket_t ();
 
-        //  Returns the underlying socket.
+        //  Closes the underlying socket without destroying the object.
+        ZMQ_EXPORT void close ();
+
+        //  Reopens the underlying socket. This function won't work on sockets
+        //  created from the listener object. If the connect is unsuccessful,
+        //  but recoverable, socket gets into closed state. Function fails on
+        //  a socket that is already open.
+        ZMQ_EXPORT void reopen ();
+
+        //  Returns the underlying socket. Returns retired_fd when the socket
+        //  is in the closed state.
         inline fd_t get_fd ()
         {
             return s;
@@ -73,6 +86,7 @@ namespace zmq
 
         //  Underlying socket
         fd_t s;
+        std::string hostname;
         bool block;
 
         //  Disable copy construction of tcp_socket.

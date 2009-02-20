@@ -73,7 +73,7 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     wsa_assert (rc != SOCKET_ERROR);
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
     block (block_)
 {
     //  Accept the socket.
@@ -157,41 +157,15 @@ bool zmq::tcp_socket_t::socket_error ()
 #else
 
 zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
+    s (retired_fd),
+    hostname (hostname_),
     block (block_)
 {
-    //  Convert the hostname into sockaddr_in structure.
-    sockaddr_in ip_address;
-    resolve_ip_hostname (&ip_address, hostname_);
-
-    //  Create the socket.
-    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    errno_assert (s != -1);
-      
-    if (! block) {
-
-        //  Set to non-blocking mode.
-        int flags = fcntl (s, F_GETFL, 0);
-        if (flags == -1)
-            flags = 0;
-        int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
-        errno_assert (rc != -1);        
-    }
-
-    //  Disable Nagle's algorithm.
-    int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    errno_assert (rc == 0);
-
-    //  Connect to the remote peer.
-    rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
-    if (block)
-        errno_assert (rc == 0);
-
-    //  We'll ignore the error in the case of non-blocking socket. We'll get
-    //  the error later on in asynchronous manner.
+    reopen ();
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
+    hostname (""),
     block (block_)
 {
     //  Accept the socket.
@@ -216,8 +190,53 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
 
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
-    int rc = close (s);
+    if (s != retired_fd)
+        close ();
+}
+
+void zmq::tcp_socket_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = ::close (s);
     errno_assert (rc == 0);
+}
+
+void zmq::tcp_socket_t::reopen ()
+{
+    assert (s == retired_fd);
+    assert (hostname != "");
+
+    //  Convert the hostname into sockaddr_in structure.
+    sockaddr_in ip_address;
+    resolve_ip_hostname (&ip_address, hostname.c_str ());
+
+    //  Create the socket.
+    s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    errno_assert (s != -1);
+      
+    if (! block) {
+
+        //  Set to non-blocking mode.
+        int flags = fcntl (s, F_GETFL, 0);
+        if (flags == -1)
+            flags = 0;
+        int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+        errno_assert (rc != -1);        
+    }
+
+    //  Disable Nagle's algorithm.
+    int flag = 1;
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
+        sizeof (int));
+    errno_assert (rc == 0);
+
+    //  Connect to the remote peer.
+    rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    if (block)
+        errno_assert (rc == 0);
+
+    //  We'll ignore the error in the case of non-blocking socket. We'll get
+    //  the error later on in asynchronous manner.
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)
