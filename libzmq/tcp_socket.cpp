@@ -107,16 +107,16 @@ void zmq::tcp_socket_t::reopen ()
 
     //  Disable Nagle's algorithm.
     int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 
     //  Connect to the remote peer.
-    int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         wsa_assert (rc != SOCKET_ERROR);
 
-    if (!(rc == 0 ||
-          (rc == -1 && (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK))))
+    if (!(rc == 0 || (rc == -1 &&
+          (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)))) {
         close ();
         return;
     }
