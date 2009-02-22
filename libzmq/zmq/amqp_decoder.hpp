@@ -45,6 +45,9 @@ namespace zmq
         //  Switch message flow on/off.
         void flow (bool flow_on_, uint16_t channel_);
 
+        //  Clean up any half-read commands/messages.
+        void reset ();
+
     private:
 
         bool method_frame_header_ready ();

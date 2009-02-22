@@ -281,8 +281,8 @@ bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
         case event_out:
             engine_->out_event ();
             break;
-        case event_in:
         case event_err:
+        case event_in:
             engine_->in_event ();
             break;
         }

@@ -146,6 +146,14 @@ void zmq::amqp_client_t::register_event (i_poller *poller_)
 
 void zmq::amqp_client_t::in_event ()
 {
+    //  Following code should be invoked when async connect causes POLLERR
+    //  rather than POLLOUT.
+    if (state == state_connecting) {
+        assert (socket.socket_error ());
+        error ();
+        return;
+    }
+
     //  This variable determines whether processing incoming messages is
     //  stuck because of exceeded pipe limits.
     bool stuck = read_pos < read_size;
@@ -159,27 +167,7 @@ void zmq::amqp_client_t::in_event ()
 
         //  The other party closed the connection.
         if (read_size == -1) {
-
-            //  Report connection failure to the client.
-            //  If there is no error handler, application crashes immediately.
-            //  If the error handler returns false, it crashes as well.
-            //  If error handler returns true, the error is ignored.       
-            error_handler_t *eh = get_error_handler ();
-            assert (eh);
-            if (!eh (local_object.c_str ()))
-                assert (false);
-
-            //  Remove the file descriptor from the pollset.
-            poller->rm_fd (handle);
-
-           //  We don't need the socket any more, so close it
-           //  to allow OS to reuse it.
-           socket.close (); 
-
-            //  Ask all inbound & outound pipes to shut down.
-            demux.initialise_shutdown ();
-            mux.initialise_shutdown ();
-            state = state_shutting_down;
+            error ();
             return;
         }
     }
@@ -219,15 +207,18 @@ void zmq::amqp_client_t::in_event ()
 
 void zmq::amqp_client_t::out_event ()
 {
+    //  Following code is a handler for async connect termination.
     if (state == state_connecting) {
 
-        int rc = socket.socket_error ();
-        assert (rc == 0);
-        state = state_waiting_for_connection_start;
+        if (socket.socket_error ()) {
+            error ();
+            return;
+        }
 
         //  Keep pollout set - there's AMQP protocol header to send.
         //  Start polling for incoming frames as well.
         poller->set_pollin (handle);
+        state = state_waiting_for_connection_start;
         return;
     }
 
@@ -250,8 +241,10 @@ void zmq::amqp_client_t::out_event ()
             write_size - write_pos);
 
         //  The other party closed the connection.
-        if (nbytes == -1)
+        if (nbytes == -1) {
+            error ();
             return;
+        }
 
         write_pos += nbytes;
     }
@@ -259,8 +252,8 @@ void zmq::amqp_client_t::out_event ()
 
 void zmq::amqp_client_t::timer_event ()
 {
-    //  We are setting no timers. We shouldn't get this event.
-    assert (false);
+    assert (state == state_waiting_for_reconnect);
+    reconnect ();
 }
 
 void zmq::amqp_client_t::unregister_event ()
@@ -396,7 +389,7 @@ void zmq::amqp_client_t::channel_close (
 {
     assert (channel_ == channel);
     printf ("AMQP error received: %s\n", reply_text_.data);
-    assert (false);
+    error ();
 }
 
 void zmq::amqp_client_t::connection_close (
@@ -408,7 +401,73 @@ void zmq::amqp_client_t::connection_close (
 {
     assert (channel_ == 0);
     printf ("AMQP error received: %s\n", reply_text_.data);
-    assert (false);
+    error ();
+}
+
+void zmq::amqp_client_t::error ()
+{
+    if (state != state_connecting && state != state_waiting_for_reconnect) {
+
+        //  Push a gap notification to the pipes.
+        demux.gap ();
+
+        //  Clean half-processed inbound and outbound data.
+        encoder->reset ();
+        decoder->reset ();
+    }
+
+    //  Report connection failure to the client.
+    //  If there is no error handler registered, continue quietly.
+    //  If error handler returns true, continue quietly.
+    //  If error handler returns false, crash the application.
+    error_handler_t *eh = get_error_handler ();
+    if (eh && !eh (local_object.c_str ()))
+        assert (false);
+
+    //  Reestablish the connection.
+    reconnect ();
+}
+
+void zmq::amqp_client_t::reconnect ()
+{
+    if (state != state_waiting_for_reconnect) {
+
+        //  Stop polling the socket.
+        poller->rm_fd (handle);
+
+        //  Close the socket.
+        socket.close ();
+
+        //  Clear data buffers.
+        read_pos = read_size;
+        write_pos = write_size;
+    }
+
+    //  This is the case when we've tried to reconnect but the attmpt have
+    //  failed. We are going to wait a while before trying to reconnect anew
+    //  to prevent reconnect consuming 100% of the processor time.
+    if (state == state_connecting) {
+        poller->add_timer (this);
+        state = state_waiting_for_reconnect;
+        return;
+    }
+
+    //  Reopen the socket. This initiates the TCP connection establishment.
+    //  If the reconnection is unsuccessfull wait a while till attempting
+    //  it anew.
+    socket.reopen (); 
+    if (socket.get_fd () == retired_fd) {
+        poller->add_timer (this);
+        state = state_waiting_for_reconnect;
+        return;
+    }
+
+    //  The output event is used to signal that we can get
+    //  the connection status. Register our interest in it.
+    handle = poller->add_fd (socket.get_fd (), this);
+    poller->set_pollout (handle);
+
+    state = state_connecting;
 }
 
 #endif

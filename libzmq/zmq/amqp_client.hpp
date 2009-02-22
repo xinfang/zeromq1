@@ -115,6 +115,9 @@ namespace zmq
             const i_amqp::shortstr_t reply_text_,
             uint16_t /* class_id_ */,
             uint16_t /* method_id_ */);
+
+        void error ();
+        void reconnect ();
         
         enum state_t
         {
@@ -126,6 +129,7 @@ namespace zmq
             state_waiting_for_queue_declare_ok,
             state_waiting_for_basic_consume_ok,
             state_active,
+            state_waiting_for_reconnect,
             state_shutting_down
         };
 
@@ -147,7 +151,7 @@ namespace zmq
         int write_size;
         int write_pos;
 
-        //  Buffer to read from undrlying socket.
+        //  Buffer to read from underlying socket.
         unsigned char *readbuf;
         int readbuf_size;
         int read_size;

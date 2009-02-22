@@ -198,6 +198,14 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
 
 void zmq::bp_tcp_engine_t::in_event ()
 {
+    //  Following code should be invoked when async connect causes POLLERR
+    //  rather than POLLOUT.
+    if (state == engine_connecting) {
+        assert (socket.socket_error ());
+        error ();
+        return;
+    }
+
     //  This variable determines whether processing incoming messages is
     //  stuck because of exceeded pipe limits.
     bool stuck = read_pos < read_size;

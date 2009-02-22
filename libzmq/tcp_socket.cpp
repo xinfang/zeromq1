@@ -257,6 +257,7 @@ void zmq::tcp_socket_t::reopen ()
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
     if (block)
         errno_assert (rc == 0);
+
     if (!(rc == 0 || (rc == -1 && errno == EINPROGRESS)))
         close ();
 }

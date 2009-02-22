@@ -45,6 +45,17 @@ void zmq::amqp_decoder_t::flow (bool flow_on_, uint16_t channel_)
     message_channel = channel_;
 }
 
+void zmq::amqp_decoder_t::reset ()
+{
+    //  Clean up the state.
+    flow_on = false;
+    message_channel = 0;
+    message.rebuild (0);
+
+    //  Wait for frame header to arrive.
+    next_step (framebuf, 7, &amqp_decoder_t::method_frame_header_ready);
+}
+
 bool zmq::amqp_decoder_t::method_frame_header_ready ()
 {
     //  Method frame header arrived - parse it read method payload.

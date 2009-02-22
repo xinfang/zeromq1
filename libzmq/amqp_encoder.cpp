@@ -35,7 +35,7 @@ zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *queue_) :
 {
     command.args = NULL;
 
-    //  Encode the protocol header (AMQP/0-9-1) and stat the normal workflow.
+    //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
     const char *protocol_header = "AMQP\x00\x00\x09\x01";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
@@ -51,6 +51,20 @@ void zmq::amqp_encoder_t::flow (bool flow_on_, uint16_t channel_)
 {
     flow_on = flow_on_;
     message_channel = channel_;
+}
+
+void zmq::amqp_encoder_t::reset ()
+{
+    //  Clean-up the state.
+    flow_on = false;
+    message_channel = 0;
+    if (command.args)
+        free (command.args);
+
+    //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
+    const char *protocol_header = "AMQP\x00\x00\x09\x01";
+    next_step ((void*) protocol_header, 8,
+        &amqp_encoder_t::message_ready, true);
 }
 
 bool zmq::amqp_encoder_t::message_ready ()
