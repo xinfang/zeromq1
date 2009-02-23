@@ -303,15 +303,15 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
 bool zmq::tcp_socket_t::socket_error ()
 {
-    int err;
-
+    //  Following code should handle both Berkeley-derived socket
+    //  implementations and Solaris.
+    int err = 0;
     socklen_t len = sizeof err;
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
-    errno_assert (rc != -1);
-
+    if (rc == -1)
+        err = errno;
     assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
         err == ECONNRESET || err == EADDRNOTAVAIL || err == EHOSTUNREACH);
-
     return err != 0;
 }
 
