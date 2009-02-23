@@ -61,6 +61,15 @@ void czmq_destroy (void *obj_)
     delete context;
 }
 
+void czmq_mask (void *obj_, uint32_t message_mask_)
+{
+    //  Get the context.
+    context_t *context = (context_t*) obj_;  
+
+    //  Forward the call.
+    context->api_thread->mask (message_mask_);
+}
+
 int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
     const char *nic_)
 {
@@ -116,7 +125,8 @@ void czmq_send (void *obj_, int eid_, void *data_, size_t size_,
     context->api_thread->send (eid_, msg);
 }
 
-void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_)
+void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
+    uint32_t *type_)
 {
     //  Get the context.
     context_t *context = (context_t*) obj_;
@@ -130,8 +140,9 @@ void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_)
     assert (buf);
     memcpy (buf, msg.data (), msg.size ());
 
-    //  Return the message.
     *data_ = buf;
     *size_ = msg.size ();
     *ffn_ = free;
+    if (type_)
+        *type_ = msg.type ();
 }

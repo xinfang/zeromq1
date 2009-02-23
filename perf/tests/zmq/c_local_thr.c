@@ -114,7 +114,7 @@ int main (int argc, char *argv [])
         -1, -1, 0);
 
     /*  Receive first message.  */
-    czmq_receive (handle, &buf, &size, &ffn);
+    czmq_receive (handle, &buf, &size, &ffn, NULL);
     assert (size == message_size);
     if (buf && ffn)
         ffn (buf);
@@ -123,7 +123,7 @@ int main (int argc, char *argv [])
     start = now ();
 
     for (counter = 0; counter != message_count; counter ++) {
-        czmq_receive (handle, &buf, &size, &ffn);
+        czmq_receive (handle, &buf, &size, &ffn, NULL);
         assert (size == message_size);
         if (buf && ffn)
             ffn (buf);

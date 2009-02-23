@@ -128,7 +128,7 @@ int main (int argc, char *argv [])
     
     for (counter = 0; counter != roundtrip_count; counter ++) {
         czmq_send (handle, eid, out_buf, message_size, NULL);
-        czmq_receive (handle, &in_buf, &in_size, &in_ffn);
+        czmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL);
         assert (in_size == message_size);
         if (in_ffn)
             in_ffn (in_buf);
