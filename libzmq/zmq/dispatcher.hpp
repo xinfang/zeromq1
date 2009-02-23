@@ -21,7 +21,11 @@
 #define __ZMQ_DISPATCHER_HPP_INCLUDED__
 
 #include <vector>
+#include <map>
+#include <string>
 
+#include <zmq/i_locator.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/export.hpp>
 #include <zmq/platform.hpp>
 #include <zmq/i_thread.hpp>
@@ -29,6 +33,7 @@
 #include <zmq/ypipe.hpp>
 #include <zmq/mutex.hpp>
 #include <zmq/config.hpp>
+#include <zmq/scope.hpp>
 
 namespace zmq
 {
@@ -86,6 +91,20 @@ namespace zmq
         ZMQ_EXPORT int allocate_thread_id (i_thread *thread_,
             i_signaler *signaler_);
 
+        //  Creates object.
+        void create (i_locator *locator_, i_thread *calling_thread_, 
+            unsigned char type_id_, const char *object_, i_thread *thread_, 
+            i_engine *engine_, scope_t scope_, const char *interface_,
+            i_thread *listener_thread_, int handler_thread_count_,
+            i_thread **handler_threads_);
+
+        //  Gets the engine that handles specified object.
+        //  Returns false if the object is unknown.
+        bool get (i_locator *locator_, i_thread *calling_thread_, 
+            unsigned char type_id_, const char *object_, i_thread **thread_, 
+            i_engine **engine_, i_thread *handler_thread_, 
+            const char *local_object_, const char *engine_arguments_);
+
     private:
 
         //  Pipe to hold the commands.
@@ -105,10 +124,28 @@ namespace zmq
         std::vector <i_thread*> threads;
 
         //  Vector specifying which thread IDs are used and which are not.
-        //  The access to the vector is synchronised using mutex - this is OK
-        //  as the performance of thread ID assignment is not critical for
-        //  the performance of the system as a whole.
+        //  The access to the vector is synchronised using mutex - see below.
         std::vector <bool> used;
+
+        //  Info about single object.
+        struct object_info_t
+        {
+            i_thread *thread;
+            i_engine *engine;
+        };
+
+        //  Maps object names to object infos.
+        typedef std::map <std::string, object_info_t> objects_t;
+
+        //  Array of object maps. Index to the array is the type ID of
+        //  the object.
+        objects_t objects [type_id_count];
+
+        //  Access to the dispatcher is synchronised using mutex. That should be
+        //  OK as dispatcher is not accessed on the critical path (message being
+        //  passed through the system). The blocking occurs only when threads
+        //  are created and in the application threads as they are creating
+        //  wiring.
         mutex_t sync;
 
         dispatcher_t (const dispatcher_t&);

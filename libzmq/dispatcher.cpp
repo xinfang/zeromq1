@@ -23,6 +23,7 @@
 #include <zmq/platform.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
+#include <zmq/engine_factory.hpp>
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
@@ -97,6 +98,83 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
 
     return thread_id;
 }
+
+void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
+    unsigned char type_id_, const char *object_, i_thread *thread_,
+    i_engine *engine_, scope_t scope_, const char *interface_,
+    i_thread *listener_thread_, int handler_thread_count_,
+    i_thread **handler_threads_)
+{
+    assert (type_id_ < type_id_count);
+    assert (strlen (object_) < 256);
+
+    //  Enter critical section.
+    sync.lock ();
+
+    //  Add the object to the list of known objects.
+    object_info_t info = {thread_, engine_};
+    objects [type_id_].insert (objects_t::value_type (object_, info));
+
+    //  Add the object to the global locator.
+    if (scope_ == scope_global) {
+
+        //  Create a listener for the object.
+        i_engine *listener = engine_factory_t::create_listener (
+            calling_thread_, listener_thread_, interface_,
+            handler_thread_count_, handler_threads_,
+            type_id_ == exchange_type_id ? false : true,
+            thread_, engine_, object_);
+
+        //  Regiter the object with the locator.
+        locator_->register_endpoint (type_id_, object_,
+            listener->get_arguments ());
+    }
+
+    //  Leave critical section.
+    sync.unlock ();
+}
+
+bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
+    unsigned char type_id_, const char *object_, i_thread **thread_,
+    i_engine **engine_, i_thread *handler_thread_, const char *local_object_,
+    const char *engine_arguments_)
+{
+    assert (type_id_ < type_id_count);
+    assert (strlen (object_) < 256);
+
+    //  Enter critical section.
+    sync.lock ();
+
+    //  Find the object.
+    objects_t::iterator it = objects [type_id_].find (object_);
+
+    //  If the object is unknown, find it using global locator.
+    if (it == objects [type_id_].end ()) {
+
+        //  Get the location of the object from the locator.
+        char location [256];
+        locator_->resolve_endpoint (type_id_, object_, location,
+            sizeof (location));
+
+        //  Create the proxy engine for the object.
+        i_engine *engine = engine_factory_t::create_engine (calling_thread_,
+            handler_thread_, location, local_object_, engine_arguments_);
+
+        //  Write it into object repository.
+        object_info_t info = {handler_thread_, engine};
+        it = objects [type_id_].insert (
+            objects_t::value_type (object_, info)).first;
+    }
+
+    *thread_ = it->second.thread;
+    *engine_ = it->second.engine;
+
+    //  Leave critical section.
+    sync.unlock ();
+
+    return true;
+}
+
 zmq::error_handler_t * volatile zmq::eh = NULL;
 
 zmq::error_handler_t *zmq::get_error_handler ()

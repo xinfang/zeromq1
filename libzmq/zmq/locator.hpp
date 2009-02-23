@@ -20,24 +20,14 @@
 #ifndef __ZMQ_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_LOCATOR_HPP_INCLUDED__
 
-#include <string>
-#include <map>
-
-#include <zmq/export.hpp>
 #include <zmq/i_locator.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/i_thread.hpp>
-#include <zmq/mutex.hpp>
+#include <zmq/export.hpp>
 #include <zmq/tcp_socket.hpp>
-#include <zmq/scope.hpp>
-#include <zmq/server_protocol.hpp>
 
 namespace zmq
 {
 
-    //  Locator class locates resources in the scope of the process.
-    //  If the resource cannot be found, it asks global locator service
-    //  (zmq_server) to find it on the network.
+    //  Locator uses zmq_server to store and retrieve global object location.
 
     class locator_t : public i_locator
     {
@@ -51,41 +41,12 @@ namespace zmq
         //  Destroys the locator.
         ZMQ_EXPORT ~locator_t ();
 
-        //  Creates object.
-        void create (i_thread *calling_thread_, 
-            unsigned char type_id_, const char *object_, i_thread *thread_, 
-            i_engine *engine_, scope_t scope_, const char *interface_,
-            i_thread *listener_thread_, int handler_thread_count_,
-            i_thread **handler_threads_);
-
-        //  Gets the engine that handles specified object.
-        //  Returns false if the object is unknown.
-        bool get (i_thread *calling_thread_, 
-            unsigned char type_id_, const char *object_, i_thread **thread_, 
-            i_engine **engine_, i_thread *handler_thread_, 
-            const char *local_object_, const char *engine_arguments_);
+        void register_endpoint (unsigned char type_id_, const char *name_,
+            const char *location_);
+        void resolve_endpoint (unsigned char type_id_, const char *name_,
+            char *location_, size_t location_size_);
 
     private:
-
-        //  Info about single object.
-        struct object_info_t
-        {
-            i_thread *thread;
-            i_engine *engine;
-        };
-
-        //  Maps object names to object infos.
-        typedef std::map <std::string, object_info_t> objects_t;
-
-        //  Array of object maps. Index to the array is the type ID of
-        //  the object.
-        objects_t objects [type_id_count];
-
-        //  Access to the locator is synchronised using mutex. That should be
-        //  OK as locator is not accessed on the critical path (message being
-        //  passed through the system). The blocking occurs only in the
-        //  application threads as they are creating wiring.
-        mutex_t sync;
 
         //  Connection to the global locator.
         tcp_socket_t *global_locator;

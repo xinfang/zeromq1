@@ -33,15 +33,6 @@ namespace zmq
         get_ok_id = 4,
         fail_id = 5
     };
-    
-    //  Enumerates object types sorted in the directory service.
-    //  'type_id_count' holds number of exisitng type IDs.
-    enum
-    {
-        exchange_type_id = 0,
-        queue_type_id = 1,
-        type_id_count = 2
-    };
 
 }
 

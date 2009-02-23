@@ -20,33 +20,28 @@
 #ifndef __ZMQ_I_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_I_LOCATOR_HPP_INCLUDED__
 
-#include <zmq/i_thread.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/scope.hpp>
-#include <zmq/server_protocol.hpp>
+#include <stddef.h>
 
 namespace zmq
 {
+
+    //  Enumerates object types stored in the directory service.
+    //  'type_id_count' holds number of exisitng type IDs.
+    enum
+    {
+        exchange_type_id = 0,
+        queue_type_id = 1,
+        type_id_count = 2
+    };
 
     struct i_locator
     {
         virtual ~i_locator () {};
 
-        //  Creates an object.
-        virtual void create (i_thread *calling_thread_,
-            unsigned char type_id_, const char *object_,
-            i_thread *thread_, i_engine *engine_, scope_t scope_,
-            const char *interface_,
-            i_thread *listener_thread_, int handler_thread_count_,
-            i_thread **handler_threads_) = 0;
-
-        //  Gets the engine that handles specified object.
-        //  Returns false if the object is not known.
-        virtual bool get (i_thread *calling_thread_,
-            unsigned char type_id_, const char *object_,
-            i_thread **thread_, i_engine **engine_,
-            struct i_thread *handler_thread_, const char *local_object_,
-            const char *engine_arguments_) = 0;
+        virtual void register_endpoint (unsigned char type_id_,
+            const char *name_, const char *location_) = 0;
+        virtual void resolve_endpoint (unsigned char type_id_,
+            const char *name_, char *location_, size_t location_size_) = 0;
     };
 
 }

@@ -49,7 +49,7 @@ using namespace std;
 #include <zmq/fd.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/tcp_listener.hpp>
-
+#include <zmq/server_protocol.hpp>
 using namespace zmq;
 
 //  Info about a single object.

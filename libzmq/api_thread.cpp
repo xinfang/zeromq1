@@ -67,7 +67,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    locator->create (this, exchange_type_id, exchange_, this, engine,
+    dispatcher->create (locator, this, exchange_type_id, exchange_, this, engine,
         scope_, interface_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -94,8 +94,8 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    locator->create (this, queue_type_id, queue_, this, engine, scope_,
-        interface_, listener_thread_, handler_thread_count_,
+    dispatcher->create (locator, this, queue_type_id, queue_, this, engine,
+        scope_, interface_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
     return queues.size ();
@@ -117,18 +117,9 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         exchange_engine = eit->second;
     }
     else {
-        if (!(locator->get (this, exchange_type_id, exchange_,
-              &exchange_thread, &exchange_engine, exchange_thread_, queue_,
-                exchange_arguments_))) {
-
-            //  If the exchange cannot be found, report connection error.
-            error_handler_t *eh = get_error_handler ();
-            assert (eh);
-            if (!eh (exchange_))
-                assert (false);
-
-            return;
-        }
+        dispatcher->get (locator, this, exchange_type_id, exchange_,
+            &exchange_thread, &exchange_engine, exchange_thread_, queue_,
+            exchange_arguments_);
     }
 
     //  Find the queue.
@@ -143,18 +134,9 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         queue_engine = qit->second;
     }
     else {
-        if (!(locator->get (this, queue_type_id, queue_,
-              &queue_thread, &queue_engine, queue_thread_, exchange_,
-                queue_arguments_))) {
-
-            //  If the queue cannot be found, report connection error.
-            error_handler_t *eh = get_error_handler ();
-            assert (eh);
-            if (!eh (exchange_))
-                assert (false);
-
-            return;
-        }
+        dispatcher->get (locator, this, queue_type_id, queue_,
+            &queue_thread, &queue_engine, queue_thread_, exchange_,
+            queue_arguments_);
     }
 
     //  Create the pipe.
