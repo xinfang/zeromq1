@@ -46,8 +46,8 @@ class Jzmq
 		int lwm, int swap_size);
 
      //  Bind the exchange to the queue.
-     public native void bind (String exchange, String name, String exchange_arguments,
-		String queue_arguments);
+     public native void bind (String exchange, String name,
+         String exchange_arguments, String queue_arguments);
 
      //  Send a binary message to the specified exchange.
      public native void send (int exchangeId, byte [] data);
