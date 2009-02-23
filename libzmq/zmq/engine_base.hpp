@@ -24,7 +24,9 @@
 
 #include <zmq/i_engine.hpp>
 #include <zmq/mux.hpp>
-#include <zmq/demux.hpp>
+#include <zmq/i_demux.hpp>
+#include <zmq/publisher.hpp>
+#include <zmq/load_balancer.hpp>
 
 namespace zmq
 {
@@ -32,6 +34,15 @@ namespace zmq
     template <bool HAS_IN, bool HAS_OUT> class engine_base_t : public i_engine
     {
     protected:
+
+        engine_base_t (bool load_balancing_ = false)
+        {
+            if (load_balancing_)
+                demux = new load_balancer_t ();
+            else
+                demux = new publisher_t ();
+            assert (demux);
+        }
 
         i_pollable *cast_to_pollable ()
         {
@@ -64,7 +75,7 @@ namespace zmq
         {
             //  Start sending messages to a pipe.
             assert (HAS_IN);
-            demux.send_to (pipe_);
+            demux->send_to (pipe_);
         }
 
         void receive_from (pipe_t *pipe_)
@@ -79,7 +90,7 @@ namespace zmq
             //  Forward the command to the pipe. Drop reference to the pipe.
             assert (HAS_IN);
             pipe_->writer_terminated ();
-            demux.release_pipe (pipe_);
+            demux->release_pipe (pipe_);
         }
 
         void terminate_pipe_ack (pipe_t *pipe_)
@@ -91,7 +102,7 @@ namespace zmq
         }
 
         mux_t mux;
-        demux_t demux;
+        i_demux *demux;
     };
 
 }

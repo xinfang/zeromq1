@@ -50,7 +50,7 @@ zmq::api_thread_t::~api_thread_t ()
 int zmq::api_thread_t::create_exchange (const char *exchange_,
     scope_t scope_, const char *interface_,
     i_thread *listener_thread_, int handler_thread_count_,
-    i_thread **handler_threads_)
+    i_thread **handler_threads_, bool load_balancing_)
 {
     //  Insert the exchange to the local list of exchanges.
     //  Make sure that the exchange doesn't already exist.
@@ -58,7 +58,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
           it != exchanges.end (); it ++)
         assert (it->first != exchange_);
 
-    out_engine_t *engine = out_engine_t::create ();
+    out_engine_t *engine = out_engine_t::create (load_balancing_);
     exchanges.push_back (exchanges_t::value_type (exchange_, engine));
 
     //  If the scope of the exchange is local, we won't register it

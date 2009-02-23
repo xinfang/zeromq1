@@ -19,14 +19,15 @@
 
 #include <zmq/out_engine.hpp>
 
-zmq::out_engine_t *zmq::out_engine_t::create ()
+zmq::out_engine_t *zmq::out_engine_t::create (bool load_balancing_)
 {
-    out_engine_t *instance = new out_engine_t ();
+    out_engine_t *instance = new out_engine_t (load_balancing_);
     assert (instance);
     return instance;
 }
 
-zmq::out_engine_t::out_engine_t ()
+zmq::out_engine_t::out_engine_t (bool load_balancing_) :
+    engine_base_t <true, false> (load_balancing_)
 {
 }
 
@@ -36,12 +37,12 @@ zmq::out_engine_t::~out_engine_t ()
 
 bool zmq::out_engine_t::write (message_t &msg_)
 {
-    return demux.write (msg_);
+    return demux->write (msg_);
 }
 
 void zmq::out_engine_t::flush ()
 {
-    demux.flush ();
+    demux->flush ();
 }
 
 void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)

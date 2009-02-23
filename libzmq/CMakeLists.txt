@@ -30,7 +30,9 @@ set(libzmq_headers
   zmq/command.hpp
   zmq/config.hpp
   zmq/decoder.hpp
-  zmq/demux.hpp
+  zmq/i_demux.hpp
+  zmq/publisher.hpp
+  zmq/load_balancer.hpp
   zmq/devpoll_thread.hpp
   zmq/dispatcher.hpp
   zmq/encoder.hpp
@@ -97,7 +99,8 @@ set(libzmq_sources
   bp_pgm_sender.cpp
   bp_tcp_engine.cpp
   bp_tcp_listener.cpp
-  demux.cpp
+  publisher.cpp
+  load_balancer.cpp
   devpoll_thread.cpp
   dispatcher.cpp
   engine_factory.cpp

@@ -90,7 +90,7 @@ int main (int argc, char *argv [])
 
     //  Set up the wiring.
     int eid_sender = api->create_exchange ("E_FROM_SENDER",
-        scope_global, out_interface, io, 1, &io);
+        scope_global, out_interface, io, 1, &io, true);
 
     //  Start after any key is hit.
     printf ("Hit ENTER to start!\n");

@@ -64,7 +64,8 @@ namespace zmq
         ZMQ_EXPORT int create_exchange (
             const char *exchange_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
-            int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL);
+            int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL,
+            bool load_balancing_ = false);
 
         //  Creates new queue, returns queue ID.
         ZMQ_EXPORT int create_queue (

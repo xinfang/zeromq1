@@ -17,57 +17,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_DEMUX_HPP_INCLUDED__
-#define __ZMQ_DEMUX_HPP_INCLUDED__
+#ifndef __ZMQ_PUBLISHER_HPP_INCLUDED__
+#define __ZMQ_PUBLISHER_HPP_INCLUDED__
 
-#include <assert.h>
 #include <vector>
-#include <algorithm>
 
-#include <zmq/message.hpp>
-#include <zmq/pipe.hpp>
+#include <zmq/i_demux.hpp>
 
 namespace zmq
 {
 
     //  Object to distribute messages to outbound pipes.
 
-    class demux_t
+    class publisher_t : public i_demux
     {
     public:
 
-        demux_t ();
-        ~demux_t ();
+        publisher_t ();
 
-        //  Start sending messages to the specified pipe.
+        //  i_demux interface implementation.
+        ~publisher_t ();
         void send_to (pipe_t *pipe_);
-
-        //  Send the message (actual send is delayed till next flush). Function
-        //  returns true if message is written to at least one pipe. The message
-        //  is cleared in that case. If it returns false, message wasn't written
-        //  to a pipe and it is left intact.
         bool write (message_t &msg_);
-
-        //  Flush the messages.
         void flush ();
-
-        //  Writes gap notification to all the pipes.
         void gap ();
-
-        //  Returns true if there are no pipes attached.
         bool empty ();
-
-        //  Drop references to the specified pipe.
         void release_pipe (pipe_t *pipe_);
-
-        //  Initiate shutdown of all associated pipes.
         void initialise_shutdown ();
-
-        //  Returns true if there are no pipes to send messages to.
-        inline bool no_pipes ()
-        {
-            return pipes.empty ();
-        }
 
     private:
 
@@ -75,8 +51,8 @@ namespace zmq
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
 
-        demux_t (const demux_t&);
-        void operator = (const demux_t&);
+        publisher_t (const publisher_t&);
+        void operator = (const publisher_t&);
     };
 
 }

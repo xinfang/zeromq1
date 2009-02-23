@@ -31,7 +31,9 @@ pkginclude_HEADERS = \
     ./zmq/i_pollable.hpp \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
-    ./zmq/demux.hpp \
+    ./zmq/i_demux.hpp \
+    ./zmq/publisher.hpp \
+    ./zmq/load_balancer.hpp \
     ./zmq/i_thread.hpp \
     ./zmq/pipe.hpp \
     ./zmq/bp_tcp_listener.hpp \
@@ -90,7 +92,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     kqueue_thread.cpp \
     bp_tcp_engine.cpp \
     mux.cpp \
-    demux.cpp \
+    publisher.cpp \
+    load_balancer.cpp \
     pipe.cpp \
     bp_tcp_listener.cpp \
     locator.cpp \

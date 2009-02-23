@@ -29,7 +29,7 @@ namespace zmq
     {
     public:
 
-        static out_engine_t *create ();
+        static out_engine_t *create (bool load_balancing_);
 
         bool write (message_t &msg_);
         void flush ();
@@ -39,7 +39,7 @@ namespace zmq
 
     private:
 
-        out_engine_t ();
+        out_engine_t (bool load_balancing_);
         ~out_engine_t ();
 
     };

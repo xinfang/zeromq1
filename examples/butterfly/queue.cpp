@@ -57,7 +57,7 @@ int main (int argc, char *argv [])
     api->create_queue ("Q_TO_QUEUE", scope_global,
         in_interface, io, 1, &io);
     int eid = api->create_exchange ("E_FROM_QUEUE", scope_global,
-        out_interface, io, 1, &io);
+        out_interface, io, 1, &io, true);
 
     //  Main event loop.
     while (true) {

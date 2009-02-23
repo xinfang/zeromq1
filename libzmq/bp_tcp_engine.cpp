@@ -32,7 +32,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_size (0),
     read_pos (0),
     encoder (&mux),
-    decoder (&demux),
+    decoder (demux),
     socket (hostname_),
     poller (NULL),
     local_object (local_object_),
@@ -60,7 +60,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_size (0),
     read_pos (0),
     encoder (&mux),
-    decoder (&demux),
+    decoder (demux),
     socket (listener_),
     poller (NULL),
     local_object (local_object_),
@@ -90,7 +90,7 @@ void zmq::bp_tcp_engine_t::error ()
     if (state == engine_connected) {
 
         //  Push a gap notification to the pipes.
-        demux.gap ();
+        demux->gap ();
 
         //  Clean half-processed inbound and outbound data.
         encoder.reset ();
@@ -163,7 +163,7 @@ void zmq::bp_tcp_engine_t::shutdown ()
     socket.close ();
 
     //  Ask all inbound & outbound pipes to shut down.
-    demux.initialise_shutdown ();
+    demux->initialise_shutdown ();
     mux.initialise_shutdown ();
 
     state = engine_shutting_down;
@@ -252,7 +252,7 @@ void zmq::bp_tcp_engine_t::in_event ()
         //  If at least one byte was processed, flush any messages decoder
         //  may have produced.
         if (nbytes > 0)
-            demux.flush ();
+            demux->flush ();
     }
 }
 
@@ -342,7 +342,7 @@ void zmq::bp_tcp_engine_t::send_to (pipe_t *pipe_)
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
-    if (state == engine_connected && demux.no_pipes ())
+    if (state == engine_connected && demux->no_pipes ())
         poller->set_pollin (handle);    
 
     engine_base_t <true,true>::send_to (pipe_);

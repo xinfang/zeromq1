@@ -27,7 +27,7 @@
 #include <zmq/i_amqp.hpp>
 #include <zmq/decoder.hpp>
 #include <zmq/amqp_unmarshaller.hpp>
-#include <zmq/demux.hpp>
+#include <zmq/i_demux.hpp>
 #include <zmq/message.hpp>
 
 namespace zmq
@@ -39,7 +39,7 @@ namespace zmq
     {
     public:
 
-        amqp_decoder_t (demux_t *demux_, i_amqp *callback_);
+        amqp_decoder_t (i_demux *demux_, i_amqp *callback_);
         ~amqp_decoder_t ();
 
         //  Switch message flow on/off.
@@ -59,7 +59,7 @@ namespace zmq
         bool content_body_frame_end_ready ();
 
         //  Object to push decoded messages to.
-        demux_t *demux;
+        i_demux *demux;
 
         //  This variable is used to inform next step of the state machine
         //  how much meaningful data was actually read.

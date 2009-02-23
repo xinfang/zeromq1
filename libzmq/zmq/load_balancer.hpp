@@ -17,38 +17,45 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef __ZMQ_LOAD_BALANCER_HPP_INCLUDED__
+#define __ZMQ_LOAD_BALANCER_HPP_INCLUDED__
 
-#ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
-#define __ZMQ_BP_DECODER_HPP_INCLUDED__
+#include <vector>
 
 #include <zmq/i_demux.hpp>
-#include <zmq/decoder.hpp>
 
 namespace zmq
 {
-    //  Decoder for 0MQ backend protocol. Converts data batches into messages.
 
-    class bp_decoder_t : public decoder_t <bp_decoder_t>
+    //  Object to distribute messages to outbound pipes.
+
+    class load_balancer_t : public i_demux
     {
     public:
 
-        bp_decoder_t (i_demux *demux_);
+        load_balancer_t ();
 
-        //  Clears any partially decoded messages.
-        void reset ();
+        //  i_demux interface implementation.
+        ~load_balancer_t ();
+        void send_to (pipe_t *pipe_);
+        bool write (message_t &msg_);
+        void flush ();
+        void gap ();
+        bool empty ();
+        void release_pipe (pipe_t *pipe_);
+        void initialise_shutdown ();
 
     private:
 
-        bool one_byte_size_ready ();
-        bool eight_byte_size_ready ();
-        bool message_ready ();
+        //  The list of outbound pipes.
+        typedef std::vector <pipe_t*> pipes_t;
+        pipes_t pipes;
 
-        i_demux *demux;
-        unsigned char tmpbuf [8];
-        message_t message;
+        //  Index of the pipe that will receive next message.
+        unsigned current;
 
-        bp_decoder_t (const bp_decoder_t&);
-        void operator = (const bp_decoder_t&);
+        load_balancer_t (const load_balancer_t&);
+        void operator = (const load_balancer_t&);
     };
 
 }

@@ -20,7 +20,7 @@
 #include <zmq/bp_decoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_) :
+zmq::bp_decoder_t::bp_decoder_t (i_demux *demux_) :
     demux (demux_)
 {
     //  At the beginning, read one byte and go to one_byte_size_ready state.

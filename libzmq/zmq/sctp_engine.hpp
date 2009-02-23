@@ -38,7 +38,6 @@
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/mux.hpp>
-#include <zmq/demux.hpp>
 #include <zmq/message.hpp>
 
 namespace zmq

@@ -25,7 +25,7 @@
 #include <zmq/i_amqp.hpp>
 #include <zmq/wire.hpp>
 
-zmq::amqp_decoder_t::amqp_decoder_t (demux_t *demux_, i_amqp *callback_) :
+zmq::amqp_decoder_t::amqp_decoder_t (i_demux *demux_, i_amqp *callback_) :
     amqp_unmarshaller_t (callback_),
     demux (demux_),
     flow_on (false),
