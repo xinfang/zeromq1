@@ -45,7 +45,7 @@ void ZMQ_EXPORT czmq_bind (void *obj_, const char *exchange_,
     const char *queue_arguments_);
 void ZMQ_EXPORT czmq_send (void *obj_, int eid_, void *data_, size_t size,
     czmq_free_fn *ffn_);
-void ZMQ_EXPORT czmq_receive (void *obj_, void **data_, size_t *size_,
+int ZMQ_EXPORT czmq_receive (void *obj_, void **data_, size_t *size_,
     czmq_free_fn **ffn_, uint32_t *type_);
 
 #ifdef __cplusplus

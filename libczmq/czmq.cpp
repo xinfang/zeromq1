@@ -125,7 +125,7 @@ void czmq_send (void *obj_, int eid_, void *data_, size_t size_,
     context->api_thread->send (eid_, msg);
 }
 
-void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
+int czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
     uint32_t *type_)
 {
     //  Get the context.
@@ -133,7 +133,7 @@ void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
 
     //  Forward the call to native 0MQ library.
     zmq::message_t msg;
-    context->api_thread->receive (&msg);
+    int qid = context->api_thread->receive (&msg);
 
     //  Create a buffer and copy the data into it.
     void *buf = malloc (msg.size ());
@@ -145,4 +145,6 @@ void czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
     *ffn_ = free;
     if (type_)
         *type_ = msg.type ();
+
+    return qid;
 }
