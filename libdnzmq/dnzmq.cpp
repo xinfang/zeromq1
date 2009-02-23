@@ -159,12 +159,12 @@ void Dnzmq::send (int eid_, array<Byte>^ data_)
 {
     //  Pin the data to the fixed memory location so that it doesn't
     //  get moved during the call to memcpy.
-    pin_ptr<byte> tmp_data = &data_ [0];
+    pin_ptr<Byte> tmp_data = &data_ [0];
 
     //  Copy data to the unmanaged buffer.
     void *data = malloc (data_->Length);
     assert (data);
-    memcpy (data, (byte*) tmp_data, data_->Length);
+    memcpy (data, (Byte*) tmp_data, data_->Length);
    
     //  Forward the call to native 0MQ library.
     zmq::message_t msg (data, data_->Length, free);
@@ -179,10 +179,10 @@ array<Byte>^ Dnzmq::receive ()
 
     //  Allocate a managed array and pin it down to the memory.
     array<Byte>^ data = gcnew array<Byte> (msg.size ());
-    pin_ptr<byte>  tmp_data = &data [0];
+    pin_ptr<Byte>  tmp_data = &data [0];
 
     //  Copy the message to the managed buffer.
-    memcpy ((byte*) tmp_data, msg.data (), msg.size ());
+    memcpy ((Byte*) tmp_data, msg.data (), msg.size ());
 
     return data;
 }
