@@ -149,13 +149,13 @@ void zmq::sctp_engine_t::in_event ()
         memcpy (msg.data (), buffer, nbytes);
 
         //  TODO: Implement queue-full handling.
-        bool ok = demux.write (msg);
+        bool ok = demux->write (msg);
         assert (ok);
     }
 
     //  Flash the messages to system, if there are any.
     if (msg_nbr > 0)
-        demux.flush ();
+        demux->flush ();
 }
 
 void zmq::sctp_engine_t::out_event ()
@@ -214,7 +214,7 @@ void zmq::sctp_engine_t::send_to (pipe_t *pipe_)
         //  If pipe limits are set, POLLIN may be turned off
         //  because there are no pipes to send messages to.
         //  So, if this is the first pipe in demux, start polling.
-        if (demux.no_pipes ())
+        if (demux->no_pipes ())
             poller->set_pollin (handle);
 
         //  Start sending messages to a pipe.
