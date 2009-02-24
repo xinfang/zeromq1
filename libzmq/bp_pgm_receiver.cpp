@@ -44,7 +44,7 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_,
       const char *arguments_) :
     joined (false),
     shutting_down (false),
-    decoder (&demux),
+    decoder (demux),
     pgm_socket (NULL)
 {
     //  If UDP encapsulation is used network_ parameter contain 
@@ -138,7 +138,7 @@ void zmq::bp_pgm_receiver_t::in_event ()
     }
 
     //  Flush any messages decoder may have produced to the dispatcher.
-    demux.flush ();
+    demux->flush ();
 }
 
 void zmq::bp_pgm_receiver_t::out_event ()
@@ -162,7 +162,7 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
-    if (!shutting_down && demux.no_pipes ()) {
+    if (!shutting_down && demux->no_pipes ()) {
         poller->set_pollin (socket_handle);
         poller->set_pollin (pipe_handle);      
     }
