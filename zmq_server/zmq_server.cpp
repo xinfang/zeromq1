@@ -195,19 +195,11 @@ int main (int argc, char *argv [])
                         location [size] = 0;
 
                         //  Insert object to the repository.
-                        if (!objects [type_id].insert (
-                              objects_t::value_type (name, location)).second) {
-
-                            //  Send an error if the exchange already exists.
-                            reply = fail_id;
-                            nbytes = socket_list [pos]->write(&reply, 1);
-                            assert (nbytes == 1);
-#ifdef ZMQ_TRACE
-                            printf ("Error when creating object: object %d:%s"
-                                " already exists.\n", (int) type_id, name);
-#endif
-                            break;
-                        }
+                        pair<objects_t::iterator, bool> res =
+                            objects [type_id].insert (
+                            objects_t::value_type (name, location));
+                        if (!res.second)
+                           res.first->second = location;
 
                         //  Send reply command.
                         reply = create_ok_id;
