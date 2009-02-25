@@ -48,7 +48,7 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
 
-    decoder = new amqp_decoder_t (&demux, this);
+    decoder = new amqp_decoder_t (demux, this);
     errno_assert (decoder);
     encoder = new amqp_encoder_t (&mux, arguments_);
     errno_assert (encoder);
@@ -111,7 +111,7 @@ void zmq::amqp_client_t::send_to (pipe_t *pipe_)
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
-    if (state != state_shutting_down && demux.no_pipes ())
+    if (state != state_shutting_down && demux->no_pipes ())
         poller->set_pollin (handle);
 
     //  Start sending messages to a pipe.
@@ -201,7 +201,7 @@ void zmq::amqp_client_t::in_event ()
         //  If at least one byte was processed, flush any messages decoder
         //  may have produced.
         if (nbytes > 0)
-            demux.flush ();
+            demux->flush ();
     }
 }
 
@@ -409,7 +409,7 @@ void zmq::amqp_client_t::error ()
     if (state != state_connecting && state != state_waiting_for_reconnect) {
 
         //  Push a gap notification to the pipes.
-        demux.gap ();
+        demux->gap ();
 
         //  Clean half-processed inbound and outbound data.
         encoder->reset ();
