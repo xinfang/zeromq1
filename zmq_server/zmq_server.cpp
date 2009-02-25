@@ -52,58 +52,11 @@ using namespace std;
 #include <zmq/server_protocol.hpp>
 using namespace zmq;
 
-//  Info about a single object.
-struct object_info_t
-{
-    string iface;
-    int fd;
-};
-
 //  Maps object name to object info.
-typedef map <string, object_info_t> objects_t;
-
-//  This function is used when there is socket disconnection. It cleans all
-//  the objects registered by the connection.
-void unregister (int s_, objects_t *objects_)
-{
-    for (int type_id = 0; type_id != type_id_count; type_id ++) {
-        objects_t::iterator it = objects_[type_id].begin();
-        while (it != objects_[type_id].end ()) {
-            if (it->second.fd == s_) {
-                objects_t::iterator tmp = it;
-                it ++;
-                objects_[type_id].erase (tmp);
-                continue;
-            }
-            it ++;
-        }
-    }
-}
+typedef map <string, string> objects_t;
 
 int main (int argc, char *argv [])
 {
-#ifdef ZMQ_HAVE_AMQP
-
-    //  Check command line parameters.
-    if ((argc != 1 && argc != 2 && argc != 3) || (argc == 2 &&
-          strcmp (argv [1], "--help") == 0)) {
-        printf ("Usage: zmq_server [port] [amqp-server]\n");
-        printf ("Default port is %d.\n", (int) default_locator_port);
-
-        return 1;
-    }
-    
-    //  Preconfigured AMQP broker.
-    object_info_t amqp_object_info = {"", -1};
-    
-    if (argc >= 3) {
-       char buff [256];
-       zmq_snprintf (buff, 256, "amqp://%s:5672", argv [2]);
-       amqp_object_info.iface = buff;
-    }
-    
-#else
-
     //  Check command line parameters.
     if ((argc != 1 && argc != 2) || (argc == 2 &&
           strcmp (argv [1], "--help") == 0)) {
@@ -112,7 +65,6 @@ int main (int argc, char *argv [])
         
         return 1;
     }
-#endif
 
 #ifdef ZMQ_HAVE_WINDOWS
     //  Initialise Windows socker layer.
@@ -124,10 +76,10 @@ int main (int argc, char *argv [])
 #endif
 
     //  Create a tcp_listener.
-    char iface [256];
+    char location [256];
     int port = (argc >= 2 ? atoi (argv [1]) : default_locator_port);
-    zmq_snprintf (iface, sizeof (iface), "0.0.0.0:%d", port);
-    tcp_listener_t listening_socket (iface);
+    zmq_snprintf (location, sizeof (location), "0.0.0.0:%d", port);
+    tcp_listener_t listening_socket (location);
      
     //	Create list of descriptors.
     typedef vector <tcp_socket_t *> socket_list_t;
@@ -173,10 +125,6 @@ int main (int argc, char *argv [])
            fd_t s = socket_list [pos]->get_fd ();
            
            if (FD_ISSET (s, &error_set_fds)) {
-               
-                //  Unregister all the symbols registered by this connection
-                //  and delete the descriptor from pollfds vector.
-                unregister (s, objects);
                 
                 //  Delete the tcp_socket from socket_list. 
                 delete socket_list [pos];
@@ -189,7 +137,6 @@ int main (int argc, char *argv [])
                 for (socket_list_t::size_type i = 0; i < socket_list.size ();
                      i ++) 
                     FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-		        
                  
                 continue;
             }
@@ -199,18 +146,14 @@ int main (int argc, char *argv [])
                 unsigned char cmd;
                 unsigned char reply;
                 int nbytes = socket_list [pos]->read (&cmd, 1);
-                                
+
                 //  Connection closed by peer.
                 if (nbytes == -1 || nbytes == 0) {
-           
-                    //  Unregister all the symbols registered by this connection
-                    //  and delete the descriptor from pollfds vector.
-                    unregister (s, objects);
-                    
+
                     //  Delete the tcp_socket from socket_list. 
                     delete socket_list [pos];
                     socket_list.erase (socket_list.begin () + pos);
-	                
+
 	                //  Erase the whole list of filedescriptors selectfds
                         //  and add them back without the one erased
                         //  from socket_list.
@@ -219,17 +162,16 @@ int main (int argc, char *argv [])
                         for (socket_list_t::size_type i = 0;
                               i < socket_list.size (); i ++)                            
                         FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-			
-                
+
                     continue;
                 }
-		
+
                 assert (nbytes == 1);
 
                 switch (cmd) {
                 case create_id:
                     {
-                        
+
                         //  Parse type ID.
                         unsigned char type_id;
                         nbytes = socket_list [pos]->read (&type_id, 1);
@@ -244,18 +186,17 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
                         name [size] = 0;
 
-                        //  Parse iface.
+                        //  Parse location.
                         nbytes = socket_list [pos]->read (&size, 1);
                         assert (nbytes == 1);
-                        char iface [256];
-                        nbytes = socket_list [pos]->read (&iface, size);
+                        char location [256];
+                        nbytes = socket_list [pos]->read (&location, size);
                         assert (nbytes == size);
-                        iface [size] = 0;
+                        location [size] = 0;
 
                         //  Insert object to the repository.
-                        object_info_t info = {iface, s};
                         if (!objects [type_id].insert (
-                              objects_t::value_type (name, info)).second) {
+                              objects_t::value_type (name, location)).second) {
 
                             //  Send an error if the exchange already exists.
                             reply = fail_id;
@@ -274,7 +215,7 @@ int main (int argc, char *argv [])
                         assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s created (%s).\n", type_id, name,
-                            iface);
+                            location);
 #endif
                         break;
                     }
@@ -295,55 +236,40 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
                         name [size] = 0;
 
-                        object_info_t *info;
+                        //  Find the exchange in the repository.
+                        objects_t::iterator it =
+                            objects [type_id].find (name);
+                        if (it == objects [type_id].end ()) {
 
-#ifdef ZMQ_HAVE_AMQP
-                        //  Special AMQP broker pre-configured entry.
-                        if (std::string ("AMQP") == name &&
-                              amqp_object_info.iface.size ())
-                            info = &amqp_object_info;
-                        else {
-#endif
+                            //  Send the error.
+                            reply = fail_id;
 
-                            //  Find the exchange in the repository.
-                            objects_t::iterator it =
-                                objects [type_id].find (name);
-                            if (it == objects [type_id].end ()) {
-
-                                //  Send the error.
-                                reply = fail_id;
-
-                                nbytes = socket_list [pos]->write (&reply, 1);                             
-                                assert (nbytes == 1);
+                            nbytes = socket_list [pos]->write (&reply, 1);                             
+                            assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                                printf ("Error when looking for an object: "
-                                    "object %d:%s does not exist.\n",
-                                    (int) type_id, name);
+                            printf ("Error when looking for an object: "
+                                "object %d:%s does not exist.\n",
+                                (int) type_id, name);
 #endif
-                                break;
-                            }
-                            info = &(it->second);
-
-#ifdef ZMQ_HAVE_AMQP
+                            break;
                         }
-#endif
 
                         //  Send reply command.
                         reply = get_ok_id;
                         nbytes = socket_list [pos]->write (&reply, 1);
                         assert (nbytes == 1);
 
-                        //  Send the interface.
-                        size = info->iface.size ();
+                        //  Send the location.
+                        size = it->second.size ();
                         nbytes = socket_list [pos]->write (&size, 1);
                         assert (nbytes == 1);
                         nbytes = socket_list [pos]->write (
-                            info->iface.c_str (), size);
+                            it->second.c_str (), size);
                         assert (nbytes == size);
 
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name, info->iface.c_str ());
+                            name, info->location.c_str ());
 #endif
                         break;
                     }
