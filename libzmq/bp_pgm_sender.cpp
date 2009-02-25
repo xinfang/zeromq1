@@ -48,8 +48,8 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     shutting_down (false),
     encoder (&mux),
     pgm_socket (false, interface_),
-    txw_slice (NULL),
-    max_tsdu_size (0),
+    out_buffer (NULL),
+    out_buffer_size (0),
     write_size (0),
     write_pos (0), 
     first_message_offset (-1)
@@ -70,10 +70,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     } else {
         sprintf (arguments, "zmq.pgm://%s", delim);
     }
-
-    // Get max tsdu size from transmit window, 
-    // will be used as max size for filling buffer by encoder.
-    max_tsdu_size = pgm_socket.get_max_tsdu_size ();
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -103,8 +99,8 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
 zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
 {
-    if (txw_slice) {
-        pgm_socket.free_one_pkt (txw_slice);
+    if (out_buffer) {
+        pgm_socket.free_buffer (out_buffer);
     }
 }
 
@@ -158,15 +154,18 @@ void zmq::bp_pgm_sender_t::out_event ()
     //  try to read new data from the encoder.
     if (write_pos == write_size) {
 
-        //  Get memory slice from tx window if we do not have already one.
-        if (!txw_slice) {
-            txw_slice = pgm_socket.alloc_one_pkt ();
+        //  Get buffer if we do not have already one.
+        if (!out_buffer) {
+            out_buffer = (unsigned char*) 
+                pgm_socket.get_buffer (&out_buffer_size);
         }
+
+        assert (out_buffer_size > 0);
 
         //  First two bytes /sizeof (uint16_t)/ are used to store message 
         //  offset in following steps.
-        write_size = encoder.read (txw_slice + sizeof (uint16_t), 
-            max_tsdu_size - sizeof (uint16_t), &first_message_offset);
+        write_size = encoder.read (out_buffer + sizeof (uint16_t), 
+            out_buffer_size - sizeof (uint16_t), &first_message_offset);
         write_pos = 0;
 
         //  If there are no data to write stop polling for output.
@@ -181,7 +180,7 @@ void zmq::bp_pgm_sender_t::out_event ()
     //  If there are any data to write, write them into the socket.
     //  Note that all data has to written in one write_one_pkt_with_offset call.
     if (write_pos < write_size) {
-        size_t nbytes = write_one_pkt_with_offset (txw_slice + write_pos, 
+        size_t nbytes = write_one_pkt_with_offset (out_buffer + write_pos, 
             write_size - write_pos, (uint16_t) first_message_offset);
 
         //  We can write all data or 0 which means rate limit reached.
@@ -198,7 +197,7 @@ void zmq::bp_pgm_sender_t::out_event ()
 
         //  After sending data slice is owned by tx window.
         if (nbytes) {
-            txw_slice = NULL;
+            out_buffer = NULL;
         }
 
         write_pos += nbytes;
@@ -259,7 +258,7 @@ size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_,
     put_uint16 (data_, offset_);
    
     //  Send data.
-    size_t nbytes = pgm_socket.write_one_pkt (data_, size_);
+    size_t nbytes = pgm_socket.send (data_, size_);
 
     return nbytes;
 }

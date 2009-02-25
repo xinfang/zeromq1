@@ -93,11 +93,11 @@ namespace zmq
         //  Poll handle associated with PGM socket.
         handle_t handle;
 
-        //  Buffer from transmit window.
-        unsigned char *txw_slice;
+        //  Output buffer from pgm_socket.
+        unsigned char *out_buffer;
 
-        //  Max. TSDU size, taken from transmit window.
-        size_t max_tsdu_size;
+        //  Output buffer size.
+        size_t out_buffer_size;
 
         size_t write_size;
         size_t write_pos;

@@ -51,20 +51,14 @@ namespace zmq
         //   memory. Receive fd is used to process NAKs from peers.
         int get_sender_fds (int *send_fd_, int *receive_fd_);
 
-        //  Send one APDU, transmit window owned memory.
-        size_t write_one_pkt (unsigned char *data_, size_t data_len_);
+        //  Send data as one APDU, transmit window owned memory.
+        size_t send (unsigned char *data_, size_t data_len_);
 
         //  Allocates one slice for packet in tx window.
-        unsigned char *alloc_one_pkt (void);
+        void *get_buffer (size_t *size_);
 
-        //  Fees one slice allocated with alloc_one_pkt.
-        void free_one_pkt (unsigned char *data_);
-
-        //  Returns max tsdu size without fragmentation.
-        size_t get_max_tsdu_size (void);
-
-        //  Returns maximum count of apdus which fills readbuf_size_
-        size_t get_max_apdu_at_once (size_t readbuf_size_);
+        //  Fees memory allocated by get_buffer.
+        void free_buffer (void *data_);
 
         //  Receive data from pgm socket.
         size_t receive (void **data_);
@@ -79,6 +73,12 @@ namespace zmq
         pgm_transport_t* g_transport;
 
     private:
+
+        //  Returns max tsdu size without fragmentation.
+        size_t get_max_tsdu_size (void);
+
+        //  Returns maximum count of apdus which fills readbuf_size_
+        size_t get_max_apdu_at_once (size_t readbuf_size_);
 
         //  Array of pgm_msgv_t structures to store received data 
         //  from the socket (pgm_transport_recvmsgv).

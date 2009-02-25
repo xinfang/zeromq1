@@ -331,7 +331,7 @@ int zmq::pgm_socket_t::get_sender_fds (int *send_fd_, int *receive_fd_)
 }
 
 //  Send one APDU, transmit window owned memory.
-size_t zmq::pgm_socket_t::write_one_pkt (unsigned char *data_, size_t data_len_)
+size_t zmq::pgm_socket_t::send (unsigned char *data_, size_t data_len_)
 {
     iovec iov = {data_,data_len_};
 
@@ -384,17 +384,21 @@ size_t zmq::pgm_socket_t::get_max_apdu_at_once (size_t readbuf_size_)
     return apdu_count;
 }
 
-//  Allocate a packet from the transmit window, The memory buffer is owned 
-//  by the transmit window and so must be returned to the window with content
-//  via pgm_transport_send() calls or unused with pgm_packetv_free1(). 
-unsigned char *zmq::pgm_socket_t::alloc_one_pkt (void)
+//  Allocate buffer for one packet from the transmit window, The memory buffer 
+//  is owned by the transmit window and so must be returned to the window with 
+//  content via pgm_transport_send() calls or unused with pgm_packetv_free1(). 
+void *zmq::pgm_socket_t::get_buffer (size_t *size_)
 {
-    return (unsigned char*) pgm_packetv_alloc (g_transport, false);
+    //  Store size.
+    *size_ = get_max_tsdu_size ();
+
+    //  Allocate one packet.
+    return pgm_packetv_alloc (g_transport, false);
 }
 
 //  Return an unused packet allocated from the transmit window 
 //  via pgm_packetv_alloc(). 
-void zmq::pgm_socket_t::free_one_pkt (unsigned char *data_)
+void zmq::pgm_socket_t::free_buffer (void *data_)
 {
     pgm_packetv_free1 (g_transport, data_, false);
 }
