@@ -44,6 +44,12 @@ namespace zmq
         //  Closes the transport.
         ~pgm_socket_t ();
 
+        //  Open PGM transport. Parameters are the same as in constructor.
+        void open_transport (void);
+
+        //  Close transport.
+        void close_transport (void);
+        
         //   Get receiver fds and store them into user allocated memory.
         int get_receiver_fds (int *recv_fd_, int *waiting_pipe_fd_);
 
@@ -61,7 +67,7 @@ namespace zmq
         void free_buffer (void *data_);
 
         //  Receive data from pgm socket.
-        size_t receive (void **data_);
+        ssize_t receive (void **data_);
 
         //  POLLIN on sender side should mean NAK receiving. process_NAK 
         //  function is used to handle such a situation.
@@ -79,6 +85,21 @@ namespace zmq
 
         //  Returns maximum count of apdus which fills readbuf_size_
         size_t get_max_apdu_at_once (size_t readbuf_size_);
+        
+        //  true when pgm_socket should create receiving side.
+        bool receiver;
+
+        //  TIBCO Rendezvous format network info.
+        char network [256];
+
+        //  PGM transport port number.
+        uint16_t port_number;
+
+        //  If we are using UDP encapsulation.
+        bool udp_encapsulation;
+
+        //  Size of the receiver buffer.
+        size_t readbuf_size;
 
         //  Array of pgm_msgv_t structures to store received data 
         //  from the socket (pgm_transport_recvmsgv).

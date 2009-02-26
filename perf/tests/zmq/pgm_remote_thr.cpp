@@ -64,6 +64,9 @@ int main (int argc, char *argv [])
     //  Create api thread.
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
 
+    //  We want to receive gap notiffications.
+    api->mask (zmq::message_gap);
+
     //  Create local queue.
     api->create_queue (q_name);
 
@@ -81,16 +84,20 @@ int main (int argc, char *argv [])
             start_time = perf::now ();
         }
 
-        assert (message.size () == msg_size);
-
+        if (message.type () == zmq::message_gap) {
+            cout << endl << endl << i << " " << "GAP" << endl << endl << endl; 
+        } else {
+            assert (message.size () == msg_size);
+        }
+/*
         if (msg_size >= sizeof (uint32_t)) {
             if (i != zmq::get_uint32 ((unsigned char*)message.data ())) {
                 cout << "wrong message seq received " << endl << flush;
                 assert (false);
             }
         }
-
-        if (i % 1000 == 0 && i > 0)
+*/
+        if (i % 100000 == 0 && i > 0)
             cout << i << " " << flush;
     }
 

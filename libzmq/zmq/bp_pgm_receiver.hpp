@@ -56,6 +56,7 @@ namespace zmq
         void out_event ();
         void timer_event ();
         void unregister_event ();
+        void reconnect ();
 
     private:
 
@@ -71,7 +72,7 @@ namespace zmq
         //  of bytes received. Note that if we did not join message stream 
         //  before and there is not message beginning in the APDUs being 
         //  received iov_len for such a APDUs will be 0.
-        size_t receive_with_offset (void **data_);
+        ssize_t receive_with_offset (void **data_);
 
         // If receiver joined the messages stream.
         bool joined;

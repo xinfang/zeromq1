@@ -123,12 +123,39 @@ void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
     poller->set_pollin (socket_handle);
 }
 
+void zmq::bp_pgm_receiver_t::reconnect (void)
+{
+    int socket_fd;
+    int waiting_pipe_fd;
+
+    //  Remove old fds from poller.
+    poller->rm_fd (socket_handle);
+    poller->rm_fd (pipe_handle);
+
+    //  Close / open PGM transport.
+    pgm_socket->close_transport ();
+    pgm_socket->open_transport ();
+
+    //  Fill socket_fd and waiting_pipe_fd from new PGM transport
+    pgm_socket->get_receiver_fds (&socket_fd, &waiting_pipe_fd);
+
+    //  Add socket_fd into poller.
+    socket_handle = poller->add_fd (socket_fd, this);
+
+    //  Add waiting_pipe_fd into poller.
+    pipe_handle = poller->add_fd (waiting_pipe_fd, this);
+
+    //  Set POLLIN for both handlers.
+    poller->set_pollin (pipe_handle);
+    poller->set_pollin (socket_handle);
+}
+
 //  POLLIN event from socket or waiting_pipe.
 void zmq::bp_pgm_receiver_t::in_event ()
 {
 
     void *data_with_offset;
-    size_t nbytes = 0;
+    ssize_t nbytes = 0;
 
     //  Read all data from pgm socket.
     while ((nbytes = receive_with_offset (&data_with_offset)) > 0) {
@@ -139,6 +166,22 @@ void zmq::bp_pgm_receiver_t::in_event ()
 
     //  Flush any messages decoder may have produced to the dispatcher.
     demux->flush ();
+
+    //  Data loss detected.
+    if (nbytes == -1) {
+
+        //  Throw message in progress from decoder
+        decoder.reset ();
+
+        //  Insert "gap" message into the pipes.
+        demux->gap ();
+
+        //  PGM receive is not joined anymore.
+        joined = false;
+        
+        //  Recreate PGM transport.
+        reconnect ();
+    }
 }
 
 void zmq::bp_pgm_receiver_t::out_event ()
@@ -171,7 +214,7 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
     engine_base_t <true, false>::send_to (pipe_);
 }
 
-size_t zmq::bp_pgm_receiver_t::receive_with_offset 
+ssize_t zmq::bp_pgm_receiver_t::receive_with_offset 
     (void **data_)
 {
 
@@ -179,11 +222,16 @@ size_t zmq::bp_pgm_receiver_t::receive_with_offset
     unsigned char *raw_data = NULL;
 
     // Read data from underlying pgm_socket.
-    size_t nbytes = pgm_socket->receive ((void**)&raw_data);
+    ssize_t nbytes = pgm_socket->receive ((void**)&raw_data);
 
     //  No ODATA or RDATA.
     if (!nbytes)
         return 0;
+
+    //  Data loss.
+    if (nbytes == -1) {
+        return -1;
+    }
 
     // Read offset of the fist message in current APDU.
     uint16_t apdu_offset = get_uint16 (raw_data);

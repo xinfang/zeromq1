@@ -30,8 +30,8 @@
 
 #include <zmq/pgm_socket.hpp>
 
-//#define PGM_SOCKET_DEBUG
-//#define PGM_SOCKET_DEBUG_LEVEL 4
+#define PGM_SOCKET_DEBUG
+#define PGM_SOCKET_DEBUG_LEVEL 1
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -47,6 +47,10 @@
 zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_, 
       size_t readbuf_size_) : 
     g_transport (NULL), 
+    receiver (receiver_),
+    port_number (0),
+    udp_encapsulation (false),
+    readbuf_size (readbuf_size_),
     pgm_msgv (NULL),
     nbytes_rec (0),
     nbytes_processed (0),
@@ -54,10 +58,62 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     pgm_msgv_len (0)
 {
 
-    zmq_log (1, "interface_  %s, %s(%i)\n", interface_, __FILE__, __LINE__);
+    //  Check if we are encapsulating into UDP, interface string has to 
+    //  start with udp:.
 
-    //  Whether or not we are using UDP encapsulation.
-    bool udp_encapsulation = false;
+    const char *interface_ptr = interface_;
+
+    if (strlen (interface_) > 4 && interface_ [0] == 'u' && interface_ [1] == 'd'
+        && interface_ [2] == 'p' && interface_ [3] == ':') {
+    
+        //  Shift interface_ptr after ':'.
+        interface_ptr += 4;
+
+        udp_encapsulation = true;
+    }
+ 
+    //  Parse port number.
+    char *port_delim = strchr (interface_ptr, ':');
+    assert (port_delim);
+
+    port_number = atoi (port_delim + 1);
+  
+    //  Store interface string.
+    assert (port_delim > interface_ptr);
+    assert (port_delim - interface_ptr < (int) sizeof (network) - 1);
+
+    memset (network, '\0', sizeof (network));
+    memcpy (network, interface_ptr, port_delim - interface_ptr);
+
+    zmq_log (1, "parsed: network  %s, port %i, udp encaps. %s, %s(%i)\n", 
+        network, port_number, udp_encapsulation ? "yes" : "no",
+        __FILE__, __LINE__);
+
+    //  Open PGM transport.
+    open_transport ();
+
+    //  For receiver transport preallocate pgm_msgv array.
+    if (receiver_) {
+        pgm_msgv_len = get_max_apdu_at_once (readbuf_size_);
+        pgm_msgv = new pgm_msgv_t [pgm_msgv_len];
+    }
+
+}
+
+void zmq::pgm_socket_t::open_transport (void)
+{
+
+    zmq_log (1, "Opening PGM: network  %s, port %i, udp encaps. %s, %s(%i)\n",
+        network, port_number, udp_encapsulation ? "yes" : "no", 
+        __FILE__, __LINE__);
+
+    //  Can not open transport before destroying old one. 
+    assert (g_transport == NULL);
+
+    //  Zero counter used in msgrecv.
+    nbytes_rec = 0;
+    nbytes_processed = 0;
+    pgm_msgv_processed = 0;
 
     //  Init PGM transport.
     //  Note that if you want to use gettimeofday and sleep for openPGM timing,
@@ -72,39 +128,8 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
 
     struct group_source_req recv_gsr, send_gsr;
     gsize recv_len = 1;
-
-    //  Check if we are encapsulating into UDP, interface string has to 
-    //  start with udp:.
-    if (strlen (interface_) > 4 && interface_ [0] == 'u' && interface_ [1] == 'd'
-        && interface_ [2] == 'p' && interface_ [3] == ':') {
-        
-        //  Shift interface_ pointer after ':'.
-        interface_ = interface_ + 4;
-
-        udp_encapsulation = true;
-    }
-
-    //  Parse port number from interface_ string.
-    char *port_delim = strchr (interface_, ':');
-    assert (port_delim);
-
-    port_delim++;
-
-    uint16_t port = atoi (port_delim);
-    
-    //  Strip port number from interface_ string.
-    std::string interface (interface_);
-    std::string::size_type pos = interface.find (":");
-
-    assert (pos != std::string::npos);
-
-    interface = interface.substr (0, pos);
- 
-    zmq_log (1, "parsed: interface  %s, port %i, udp encaps. %s, %s(%i)\n", 
-        interface.c_str (), port, udp_encapsulation ? "yes" : "no",
-        __FILE__, __LINE__);
   
-    rc = pgm_if_parse_transport (interface.c_str (), AF_INET, &recv_gsr, 
+    rc = pgm_if_parse_transport (network, AF_INET, &recv_gsr, 
         &recv_len, &send_gsr);
     assert (rc == 0);
     assert (recv_len == 1);
@@ -115,11 +140,11 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     if (udp_encapsulation) {
 
         //  Use the same port for UDP encapsulation.
-        ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = g_htons (port);
-	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = g_htons (port);
+        ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = g_htons (port_number);
+	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = g_htons (port_number);
     }
 
-    rc = pgm_transport_create (&g_transport, &gsi, 0, port, &recv_gsr, 1, 
+    rc = pgm_transport_create (&g_transport, &gsi, 0, port_number, &recv_gsr, 1, 
         &send_gsr);
     errno_assert (rc == 0);
 
@@ -134,7 +159,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     assert (rc == 0);
 
     //  Receiver transport.
-    if (receiver_) {
+    if (receiver) {
   
         //  Set transport->may_close_on_failure to true,
         //  after data los recvmsgv returns -1 errno set to ECONNRESET.
@@ -171,7 +196,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
         assert (rc == 0);
 
         //  Set expiration time of SPM Requests [us].
-        rc = pgm_transport_set_spmr_expiry (g_transport, 250*1000);
+        rc = pgm_transport_set_spmr_expiry (g_transport, 25*1000);
         assert (rc == 0);
 
         if (pgm_window_size > 0) {
@@ -253,11 +278,6 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     rc = pgm_transport_bind (g_transport);
     assert (rc == 0);
 
-    //  For receiver transport preallocate pgm_msgv array.
-    if (receiver_) {
-        pgm_msgv_len = get_max_apdu_at_once (readbuf_size_);
-        pgm_msgv = new pgm_msgv_t [pgm_msgv_len];
-    }
 
 }
 
@@ -268,7 +288,17 @@ zmq::pgm_socket_t::~pgm_socket_t ()
         delete [] pgm_msgv;
     }
 
+    close_transport ();
+}
+
+void zmq::pgm_socket_t::close_transport (void)
+{   
+    //  g_transport has to be valid.
+    assert (g_transport);
+
     pgm_transport_destroy (g_transport, TRUE);
+
+    g_transport = NULL;
 }
 
 //   Get receiver fds. recv_fd is from transport->recv_sock
@@ -406,7 +436,7 @@ void zmq::pgm_socket_t::free_buffer (void *data_)
 //  pgm_transport_recvmsgv is called to fill the pgm_msgv array up to 
 //  pgm_msgv_len. In subsequent calls data from pgm_msgv structure are 
 //  returned.
-size_t zmq::pgm_socket_t::receive (void **raw_data_)
+ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
 {
  
     //  We just sent all data from pgm_transport_recvmsgv up 
@@ -439,7 +469,7 @@ size_t zmq::pgm_socket_t::receive (void **raw_data_)
         //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
         if (nbytes_rec == -1 && errno == EAGAIN) {
         
-            //  In a case if no RDATA/ODATA caused POLLIN 0 is 
+            //  In case if no RDATA/ODATA caused POLLIN 0 is 
             //  returned.
             nbytes_rec = 0;
             return 0;
@@ -447,10 +477,11 @@ size_t zmq::pgm_socket_t::receive (void **raw_data_)
 
         //  For data loss nbytes_rec == -1 errno == ECONNRESET.
         if (nbytes_rec == -1 && errno == ECONNRESET) {
+            
+            //  In case of dala loss -1 is returned.
+            zmq_log (1, "Data loss detected, %s(%i)\n", __FILE__, __LINE__);
             nbytes_rec = 0;
-            zmq_log (1, "Data loss");
-            sleep (1);
-            errno_assert (false); 
+            return -1;
         }
 
         //  Catch the rest of the errors.
