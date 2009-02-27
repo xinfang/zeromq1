@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <zmq/Jzmq.h>
+#include "Jzmq.h"
 
 #include <stdio.h>
 #include <assert.h>

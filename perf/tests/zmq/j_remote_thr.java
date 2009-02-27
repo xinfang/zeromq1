@@ -37,8 +37,8 @@ class j_remote_thr
 
          //  Create the wiring.
          int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null);
-         obj.bind ("EL", "QG", null, null);
-
+         obj.bind ("EL", "QG", "", "");
+         
          //  Send the messages to LocalThr.
          for (int i = 0; i != messageCount; i ++) {
              byte data [] = new byte [messageSize];

@@ -42,8 +42,8 @@ class Jzmq
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
      //  Queue ID is returned.
-     public native int createQueue (String queue, int scope, String nic, int hwm, 
-		int lwm, int swap_size);
+     public native int createQueue (String queue, int scope, String nic, long hwm, 
+		long lwm, long swap_size);
 
      //  Bind the exchange to the queue.
      public native void bind (String exchange, String name,
