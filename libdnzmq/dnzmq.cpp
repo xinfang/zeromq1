@@ -39,6 +39,7 @@ public:
     Dnzmq (String^ host_);
     ~Dnzmq ();
 
+    void mask (int message_mask_);
     int create_exchange (String^ exchange_, int scope_, String^ nic_);
     int create_queue (String^ queue_, int scope_, String^ nic_, int64_t hwm_,
         int64_t lwm_, int64_t swap_size_);
@@ -49,6 +50,9 @@ public:
        
     static const int SCOPE_LOCAL = 0;
     static const int SCOPE_GLOBAL = 1;
+    
+    static const int MESSAGE_DATA = 1;
+    static const int MESSAGE_GAP = 2;
 
 private:
 
@@ -90,6 +94,12 @@ Dnzmq::~Dnzmq ()
     delete context->dispatcher;
     delete context->locator;
     delete context;
+}
+
+void Dnzmq::mask (int message_mask_)
+{
+    //  Set notifications for the transport.
+    context->api_thread->mask (message_mask_);
 }
 
 int Dnzmq::create_exchange (String^ exchange_, int scope_, String^ nic_)

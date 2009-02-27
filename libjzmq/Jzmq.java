@@ -24,13 +24,22 @@ class Jzmq
 
      //  Specifies that the object will be visible all over the network.
      public static final int SCOPE_GLOBAL = 1;
+     
+     //  Specifies data notifications to be received.
+     public static final int MESSAGE_DATA = 1;
+
+     //  Specifies gap notifications to be received.
+     public static final int MESSAGE_GAP = 2;
+
 
      //  Initalises Jzmq. Hostname is a name or an IP address of the box where
      //  zmq_server is running.
      public Jzmq (String hostname)
      {
-         construct (hostname);
      }
+     
+     //  Specifies which notifications should be received.
+     public native void mask (int message_mask);
 
      //  Create an exchange. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.

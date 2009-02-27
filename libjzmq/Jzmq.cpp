@@ -80,6 +80,18 @@ JNIEXPORT void JNICALL Java_Jzmq_finalize (JNIEnv *env, jobject obj)
     delete context;
 }
 
+JNIEXPORT void JNICALL Java_Jzmq_mask (JNIEnv *env, jobject obj,
+    int message_mask_)
+{
+    //  Get the context.
+    context_t *context = (context_t*) env->GetLongField (obj, context_fid);
+    assert (context);
+    
+    //  Forward the call.
+    context->api_thread->mask (message_mask_);
+
+}
+
 JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
     jstring exchange_, jint scope_, jstring nic_)
 {

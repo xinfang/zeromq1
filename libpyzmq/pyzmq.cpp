@@ -76,6 +76,22 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
     return 0;
 }
+ 
+PyObject *pyZMQ_mask (pyZMQ *self, PyObject *args, PyObject *kwdict)
+{
+    int message_mask;
+    static const char *kwlist [] = {"message_mask"};
+
+    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "i", (char**) kwlist,
+          &message_mask))
+        return NULL;
+        
+    self->api_thread->mask (message_mask);
+    
+    Py_INCREF (Py_None);
+    return Py_None;
+
+}
 
 PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
@@ -176,6 +192,15 @@ PyObject *pyZMQ_receive2 (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
 static PyMethodDef pyZMQ_methods [] =
 {
+    {
+        "mask",
+        (PyCFunction) pyZMQ_mask,
+        METH_VARARGS | METH_KEYWORDS, 
+        "mask (message_mask) -> None\n\n"
+        "Specifies which notifications should be received.\n\n" 
+        "'message_mask' could be either MESSAGE_DATA or"
+        "MESSAGE_GAP.\n"
+    },    
     {
         "create_exchange",
         (PyCFunction) pyZMQ_create_exchange,
@@ -338,4 +363,14 @@ PyMODINIT_FUNC initlibpyzmq (void)
     t = PyInt_FromLong (zmq::scope_global);
     PyDict_SetItemString (d, "SCOPE_GLOBAL", t);
     Py_DECREF (t);
+    
+    t = PyInt_FromLong (zmq::message_data);
+    PyDict_SetItemString (d, "MESSAGE_DATA", t);
+    Py_DECREF (t);
+    
+    t = PyInt_FromLong (zmq::message_gap);
+    PyDict_SetItemString (d, "MESSAGE_GAP", t);
+    Py_DECREF (t);
+
+    
 }
