@@ -119,7 +119,9 @@ int main (int argc, char *argv [])
         uint64_t end = now ();
 
         //  Print the results.
-        printf ("Test duration: %ld [ms].\n\n", (long) ((end - start) / 1000));
+        printf ("Throughput: %.3f transactions/second.\n\n", (double)
+            (double (transaction_count * 1000000) / (end - start)));
+
     }
 
     return 0;
