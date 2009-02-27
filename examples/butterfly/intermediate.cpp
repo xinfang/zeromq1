@@ -36,50 +36,37 @@ using namespace zmq;
 #include <unistd.h>
 #endif
 
-bool error_handler (const char*)
-{
-    //  We want this component to fail once the test is over and connections
-    //  are closed.
-    return false;
-}
-
 int main (int argc, char *argv [])
-{    
+{
     //  Parse command line arguments.  
-    if (argc != 3) {
-        printf ("usage: do_a <hostname> <processing-time>\n");
+    if (argc != 4) {
+        printf ("usage: intermediate <hostname> <in-interface> "
+            "<out-interface>\n");
         return 1;
     }
     const char *host = argv [1];
-    int processing_time = atoi (argv [2]);
-        
+    const char *in_interface = argv [2];
+    const char *out_interface = argv [3];
+   
     //  Create 0MQ infrastructure.
     dispatcher_t dispatcher (2);
     locator_t locator (host);
-    set_error_handler (error_handler);
     i_thread *io = io_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Set up the wiring.
-    api->create_queue ("Q_TO_A");
-    api->bind ("E_FROM_SENDER", "Q_TO_A", io, NULL);
-    int eid_dest = api->create_exchange ("E_FROM_A");
-    api->bind ("E_FROM_A", "Q_TO_QUEUE", NULL, io);
-    
+    api->create_queue ("INTERMEDIATE_IN", scope_global,
+        in_interface, io, 1, &io);
+    int eid = api->create_exchange ("INTERMEDIATE_OUT", scope_global,
+        out_interface, io, 1, &io, true);
+
     //  Main event loop.
     while (true) {
         message_t msg;
         api->receive (&msg);
-
-        //  Simulate processing, i.e. sleep for the specified time.
-#ifdef ZMQ_HAVE_WINDOWS
-        Sleep (processing_time * 1000);
-#else
-        usleep (processing_time);
-#endif
-
-        api->send (eid_dest, msg);
+        api->send (eid, msg);
     }
                 
     return 0;
 }
+

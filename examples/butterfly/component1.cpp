@@ -27,15 +27,6 @@ using namespace zmq;
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef ZMQ_HAVE_WINDOWS
-#include <sys/types.h>
-#include <sys/timeb.h>
-#include <Windows.h>
-#else
-#include <sys/time.h>
-#include <unistd.h>
-#endif
-
 bool error_handler (const char*)
 {
     //  We want this component to fail once the test is over and connections
@@ -47,7 +38,7 @@ int main (int argc, char *argv [])
 {    
     //  Parse command line arguments.  
     if (argc != 3) {
-        printf ("usage: do_b <hostname> <processing-time>\n");
+        printf ("usage: component1 <hostname> <processing-time [ms]>\n");
         return 1;
     }
     const char *host = argv [1];
@@ -61,10 +52,10 @@ int main (int argc, char *argv [])
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Set up the wiring.
-    api->create_queue ("Q_TO_B");
-    api->bind ("E_FROM_QUEUE", "Q_TO_B", io, NULL);
-    int eid_dest = api->create_exchange ("E_FROM_B");
-    api->bind ("E_FROM_B", "Q_TO_RECEIVER", NULL, io);
+    api->create_queue ("COMPONENT1_IN");
+    api->bind ("SEND_REQUESTS_OUT", "COMPONENT1_IN", io, NULL);
+    int eid_dest = api->create_exchange ("COMPONENT1_OUT");
+    api->bind ("COMPONENT1_OUT", "INTERMEDIATE_IN", NULL, io);
     
     //  Main event loop.
     while (true) {
@@ -73,9 +64,9 @@ int main (int argc, char *argv [])
 
         //  Simulate processing, i.e. sleep for the specified time.
 #ifdef ZMQ_HAVE_WINDOWS
-        Sleep (processing_time * 1000);
+        Sleep (processing_time);
 #else
-        usleep (processing_time);
+        usleep (processing_time * 1000);
 #endif
 
         api->send (eid_dest, msg);

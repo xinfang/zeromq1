@@ -27,45 +27,50 @@ using namespace zmq;
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef ZMQ_HAVE_WINDOWS
-#include <sys/types.h>
-#include <sys/timeb.h>
-#include <Windows.h>
-#else
-#include <sys/time.h>
-#include <unistd.h>
-#endif
+bool error_handler (const char*)
+{
+    //  We want this component to fail once the test is over and connections
+    //  are closed.
+    return false;
+}
 
 int main (int argc, char *argv [])
-{
+{    
     //  Parse command line arguments.  
-    if (argc != 4) {
-        printf ("usage: queue <host> <in-interface> <out-interface>\n");
+    if (argc != 3) {
+        printf ("usage: component2 <hostname> <processing-time [ms]>\n");
         return 1;
     }
     const char *host = argv [1];
-    const char *in_interface = argv [2];
-    const char *out_interface = argv [3];
-   
+    int processing_time = atoi (argv [2]);
+        
     //  Create 0MQ infrastructure.
     dispatcher_t dispatcher (2);
     locator_t locator (host);
+    set_error_handler (error_handler);
     i_thread *io = io_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Set up the wiring.
-    api->create_queue ("Q_TO_QUEUE", scope_global,
-        in_interface, io, 1, &io);
-    int eid = api->create_exchange ("E_FROM_QUEUE", scope_global,
-        out_interface, io, 1, &io, true);
-
+    api->create_queue ("COMPONENT2_IN");
+    api->bind ("INTERMEDIATE_OUT", "COMPONENT2_IN", io, NULL);
+    int eid_dest = api->create_exchange ("COMPONENT2_OUT");
+    api->bind ("COMPONENT2_OUT", "RECEIVE_REPLIES_IN", NULL, io);
+    
     //  Main event loop.
     while (true) {
         message_t msg;
         api->receive (&msg);
-        api->send (eid, msg);
+
+        //  Simulate processing, i.e. sleep for the specified time.
+#ifdef ZMQ_HAVE_WINDOWS
+        Sleep (processing_time);
+#else
+        usleep (processing_time * 1000);
+#endif
+
+        api->send (eid_dest, msg);
     }
                 
     return 0;
 }
-

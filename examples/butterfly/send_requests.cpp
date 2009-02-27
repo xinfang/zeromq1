@@ -72,15 +72,16 @@ inline uint64_t now ()
 int main (int argc, char *argv [])
 {
     //  Parse command line arguments.  
-    if (argc != 4) {
+    if (argc != 5) {
         printf ("usage: send_requests <hostname> <out-interface> "
-            "<request-count>\n");
+            "<sync-interface> <transaction-count>\n");
         return 1;
     }
     const char *host = argv [1];
     const char *out_interface = argv [2];
-    int request_count = atoi (argv [3]);
-    assert (request_count >= 1);
+    const char *sync_interface = argv [3];
+    int transaction_count = atoi (argv [4]);
+    assert (transaction_count >= 1);
 
     //  Create the 0MQ infrastructure.
     dispatcher_t dispatcher (2);
@@ -89,32 +90,37 @@ int main (int argc, char *argv [])
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Set up the wiring.
-    int eid_sender = api->create_exchange ("E_FROM_SENDER",
+    int eid = api->create_exchange ("SEND_REQUESTS_OUT",
         scope_global, out_interface, io, 1, &io, true);
+    api->create_queue ("SYNC_IN", scope_global, sync_interface, io, 1, &io);
+   
+    while (true) {
 
-    //  Start after any key is hit.
-    printf ("Hit ENTER to start!\n");
-    getchar ();
-    printf ("Starting!\n");
+        //  Start after any key is hit.
+        printf ("Hit ENTER to start!\n");
+        getchar ();
+        printf ("Running...\n");
 
-    //  Send first message with initial timestamp.
-    message_t first_msg (sizeof (uint64_t));
-    put_uint64 ((unsigned char*) first_msg.data (), now ());
-    api->send (eid_sender, first_msg);
+        //  Get initial timestamp.
+        uint64_t start = now ();
 
-    //  Send messages.
-    for (int counter = 1; counter != request_count; counter ++) {
-        message_t msg (sizeof (uint64_t));
-        memset ((unsigned char*) msg.data (), 0, sizeof (uint64_t));  
-        api->send (eid_sender, msg);
+        //  Send messages. We don't bother to fill any data in.
+        for (int counter = 0; counter != transaction_count; counter ++) {
+            message_t msg (100);
+            memset ((unsigned char*) msg.data (), 0, sizeof (uint64_t));  
+            api->send (eid, msg);
+        }
+
+        //  Wait for synchronisation message from 'receive_replies' application.
+        message_t sync;
+        api->receive (&sync);
+
+        //  Get final timestamp.
+        uint64_t end = now ();
+
+        //  Print the results.
+        printf ("Test duration: %ld [ms].\n\n", (long) ((end - start) / 1000));
     }
 
-    //  Sleep while all the messages are acually sent before exiting.
-#ifdef ZMQ_HAVE_WINDOWS
-    Sleep (10000);
-#else
-    sleep (10);
-#endif
- 
     return 0;
 }

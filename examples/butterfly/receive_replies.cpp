@@ -26,91 +26,43 @@ using namespace zmq;
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef ZMQ_HAVE_WINDOWS
-#include <sys/types.h>
-#include <sys/timeb.h>
-#include <Windows.h>
-#else
-#include <sys/time.h>
-#include <unistd.h>
-#endif
-
-#ifdef ZMQ_HAVE_WINDOWS
-
-__inline uint64_t now ()
-{    
-    SYSTEMTIME system_time;
-    GetSystemTime (&system_time);
-
-    FILETIME file_time;
-    SystemTimeToFileTime (&system_time, &file_time);
-
-    ULARGE_INTEGER uli;
-    uli.LowPart = file_time.dwLowDateTime;
-    uli.HighPart = file_time.dwHighDateTime;
-
-    uint64_t system_time_in_ms (uli.QuadPart / 10000);
-    return system_time_in_ms;
-}
-
-#else
-
-inline uint64_t now ()
-{
-    struct timeval tv;
-    int rc;
-
-    rc = gettimeofday (&tv, NULL);
-    assert (rc == 0);
-    return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
-}
-
-#endif
-
 int main (int argc, char *argv [])
 {
     //  Parse command line arguments.  
     if (argc != 4) {
         printf ("usage: receive_replies <hostname> <in-interface> "
-            "<reply-count>\n");
+            "<transaction-count>\n");
         return 1;
     }
     const char *host = argv [1];
     const char *in_interface = argv [2];
-    int reply_count = atoi (argv [3]);
-    assert (reply_count >= 1);
+    int transaction_count = atoi (argv [3]);
+    assert (transaction_count >= 1);
 
-    //  Create the context for source.
+    //  Create 0MQ infrastructure.
     dispatcher_t dispatcher (2);
     locator_t locator (host);
     i_thread *io = io_thread_t::create (&dispatcher);
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
       
     //  Set up the wiring.
-    api->create_queue ("Q_TO_RECEIVER", scope_global, in_interface, io, 1, &io);
+    api->create_queue ("RECEIVE_REPLIES_IN", scope_global, in_interface,
+        io, 1, &io);
+    int eid = api->create_exchange ("SYNC_OUT");
+    api->bind ("SYNC_OUT", "SYNC_IN", NULL, io);
     
-    //  Start receiving data.
-    uint64_t start = 0;
-    for (int counter = 0; counter != reply_count; counter ++) {
-        
-        //  Receive the message.
-        zmq::message_t msg;
-        api->receive (&msg);
+    while (true) {
 
-        //  If it happens to contain non-zero value, it's the initial timestamp.
-        if (!start)
-            start = get_uint64 ((unsigned char*) msg.data ());
+        //  Wait for all the replies.
+        for (int counter = 0; counter != transaction_count; counter ++) {
+            zmq::message_t msg;
+            api->receive (&msg);
+        }
+
+        //  Send the synchronisation messages to 'send_requests' application.
+        zmq::message_t sync (1);
+        api->send (eid, sync);
     }
-
-    //  Check whether we've actually got the initial timestamp.
-    assert (start != 0);
-
-    //  Get final timestamp.  
-    uint64_t end = now ();
-  
-    //  Print the overall processing time.
-    printf ("Overall time to process %d requests was %.2f seconds\n",
-        reply_count, ((double) (end - start)) / (double) 1000000);
 
     return 0;
 }
