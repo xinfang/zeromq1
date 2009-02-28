@@ -17,13 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Jzmq.h"
+#include <zmq/Jzmq.h>
 
 #include <stdio.h>
 #include <assert.h>
 
 #include <zmq.hpp>
-
 
 static jfieldID context_fid = NULL;
 
