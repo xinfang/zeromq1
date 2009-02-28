@@ -109,7 +109,8 @@ void zmq::load_balancer_t::release_pipe (pipe_t *pipe_)
     pipes.erase (it);
 
     //  Fix the 'current' variable if it points beyond the end of the list.
-    current %= pipes.size ();
+    if (current == pipes.size ())
+        current = 0;
 }
 
 void zmq::load_balancer_t::initialise_shutdown ()
