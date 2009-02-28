@@ -26,11 +26,6 @@
 
 namespace perf
 {
-    bool error_handler (const char*)
-    {
-        //  We don't want to fail when peer disconnects
-        return true;
-    }
 
     class zmq_t : public i_transport
     {
@@ -67,10 +62,8 @@ namespace perf
 
                 exchange_id = api->create_exchange (exchange_name_, 
                     zmq::scope_global, exchange_interface_, worker, 
-                    1, &worker);
+                    1, &worker, true);
             }
-            //  Set error handler function (to ignore disconnected receivers).
-            zmq::set_error_handler (error_handler);
           
         }
 
