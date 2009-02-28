@@ -91,7 +91,7 @@ int main (int argc, char *argv [])
 
     //  Set up the wiring.
     int eid = api->create_exchange ("SEND_REQUESTS_OUT",
-        scope_global, out_interface, io, 1, &io, true);
+        scope_global, out_interface, io, 1, &io, zmq::style_load_balancing);
     api->create_queue ("SYNC_IN", scope_global, sync_interface, io, 1, &io);
    
     while (true) {
