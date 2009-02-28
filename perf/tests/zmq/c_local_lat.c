@@ -107,17 +107,11 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "EL", CZMQ_SCOPE_LOCAL, NULL);
+    eid = czmq_create_exchange (handle, "EL", CZMQ_SCOPE_LOCAL, NULL,
+        CZMQ_STYLE_LOAD_BALANCING);
     czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL, -1, -1, 0);
     czmq_bind (handle, "EL", "QG", NULL, NULL);
     czmq_bind (handle, "EG", "QL", NULL, NULL);
-
-    /*  Wait till both connection are accepted by the peer.  */
-#ifdef ZMQ_HAVE_WINDOWS
-    Sleep (1000);
-#else
-    sleep (1);
-#endif
 
     /*  Create message data to send.  */
     out_buf = malloc (message_size);

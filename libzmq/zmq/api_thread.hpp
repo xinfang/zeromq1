@@ -47,6 +47,13 @@
 namespace zmq
 {
 
+    //  Different styles of routing the messages.
+    enum style_t
+    {
+        style_data_distribution = 1,
+        style_load_balancing = 2
+    };
+
     //  Thread object to be used as a proxy for client application thread.
     //  It is not thread-safe. In case you want to use 0MQ from several
     //  client threads create an api_thread for each of them.
@@ -65,7 +72,7 @@ namespace zmq
             const char *exchange_, scope_t scope_ = scope_local,
             const char *interface_ = NULL, i_thread *listener_thread_ = NULL,
             int handler_thread_count_ = 0, i_thread **handler_threads_ = NULL,
-            bool load_balancing_ = false);
+            style_t style_ = style_data_distribution);
 
         //  Creates new queue, returns queue ID.
         ZMQ_EXPORT int create_queue (

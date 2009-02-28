@@ -62,7 +62,8 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "EG", CZMQ_SCOPE_GLOBAL, out_interface);
+    eid = czmq_create_exchange (handle, "EG", CZMQ_SCOPE_GLOBAL, out_interface,
+        CZMQ_STYLE_LOAD_BALANCING);
     czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {

@@ -31,13 +31,16 @@ extern "C" {
 #define CZMQ_MESSAGE_DATA 1
 #define CZMQ_MESSAGE_GAP 2
 
+#define CZMQ_STYLE_DATA_DISTRIBUTION 1
+#define CZMQ_STYLE_LOAD_BALANCING 2
+
 typedef void (czmq_free_fn) (void *data_);
 
 void ZMQ_EXPORT *czmq_create (const char *host_);
 void ZMQ_EXPORT czmq_destroy (void *obj_);
 void ZMQ_EXPORT czmq_mask (void *obj_, uint32_t message_mask_);
 int ZMQ_EXPORT czmq_create_exchange (void *obj_, const char *exchange_, 
-    int scope_, const char *nic_);
+    int scope_, const char *nic_, int style_);
 int ZMQ_EXPORT czmq_create_queue (void *obj_, const char *queue_, int scope_,
     const char *nic_, int64_t hwm_, int64_t lwm_, int64_t swap_size_);
 void ZMQ_EXPORT czmq_bind (void *obj_, const char *exchange_, 

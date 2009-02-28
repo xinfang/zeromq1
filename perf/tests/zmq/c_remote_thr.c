@@ -54,7 +54,8 @@ int main (int argc, char *argv [])
     handle = czmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "E", CZMQ_SCOPE_LOCAL, NULL);
+    eid = czmq_create_exchange (handle, "E", CZMQ_SCOPE_LOCAL, NULL,
+        CZMQ_STYLE_LOAD_BALANCING);
     czmq_bind (handle, "E", "Q", NULL, NULL);
 
     /*  Create message data to send.  */

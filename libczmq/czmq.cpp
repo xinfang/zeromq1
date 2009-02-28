@@ -71,7 +71,7 @@ void czmq_mask (void *obj_, uint32_t message_mask_)
 }
 
 int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
-    const char *nic_)
+    const char *nic_, int style_)
 {
     //  Get the context.
     context_t *context = (context_t*) obj_;
@@ -81,9 +81,14 @@ int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
     if (scope_ == CZMQ_SCOPE_GLOBAL)
         scope = zmq::scope_global;
 
+    //  Get the style.
+    zmq::style_t style = zmq::style_data_distribution;
+    if (style_ == CZMQ_STYLE_LOAD_BALANCING)
+        style = zmq::style_load_balancing;
+
     //  Forward the call to native 0MQ library.
     return context->api_thread->create_exchange (exchange_, scope, nic_,
-        context->io_thread, 1, &context->io_thread);
+        context->io_thread, 1, &context->io_thread, style);
 }
 
 int czmq_create_queue (void *obj_, const char *queue_, int scope_,
