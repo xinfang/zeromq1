@@ -212,10 +212,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\demux.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\devpoll_thread.cpp"
 				>
 			</File>
@@ -248,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\load_balancer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\locator.cpp"
 				>
 			</File>
@@ -265,6 +265,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\poll_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\publisher.cpp"
 				>
 			</File>
 			<File
@@ -382,10 +386,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\demux.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\zmq\devpoll_thread.hpp"
 				>
 			</File>
@@ -466,6 +466,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\load_balancer.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\locator.hpp"
 				>
 			</File>
@@ -495,6 +499,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\poller.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\publisher.hpp"
 				>
 			</File>
 			<File
