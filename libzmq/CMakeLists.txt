@@ -81,6 +81,7 @@ set(libzmq_headers
   zmq/sctp_engine.hpp
   zmq/sctp_listener.hpp
   zmq/xmlParser.hpp
+  zmq/data_dam.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
@@ -125,6 +126,7 @@ set(libzmq_sources
   sctp_engine.cpp
   sctp_listener.cpp
   xmlParser.cpp
+  data_dam.cpp
 )
 
 set(libzmq_libraries

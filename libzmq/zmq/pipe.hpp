@@ -25,13 +25,15 @@
 #include <zmq/ypipe.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/config.hpp>
+#include <zmq/data_dam.hpp>
 
 namespace zmq
 {
 
     //  Pipe is a class to used for onw-way message transfer between two
     //  engines. Underlying transport mechanism is ypipe_t. Pipe itself
-    //  adds support for communication with 0MQ engines.
+    //  adds support for communication with 0MQ engines and storing
+    //  messages in file based message store.
 
     class pipe_t
     {
@@ -69,7 +71,7 @@ namespace zmq
         void revive ();
 
         //  Process the 'head' command from reader thread.
-        void set_head (int64_t position_);
+        void set_head (uint64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
@@ -110,19 +112,32 @@ namespace zmq
 
         //  Reader thread uses this variable to track the sequence number of
         //  the current message to read.
-        int64_t head;
-
-        //  Writer thread uses 'tail' variable to track the sequence number of
-        //  the current message to write.
-        int64_t tail;
+        uint64_t head;
 
         //  Writer thread keeps last head position reported by reader thread
         //  in this varaible.
-        int64_t last_head;
+        uint64_t last_head_position;
 
         //  If true, there's a gap notification delayed because the pipe
         //  was full.
         bool delayed_gap;
+
+        //  Number of messages kept in main memory.
+        size_t in_core_msg_cnt;
+
+#ifdef ZMQ_HAVE_DATA_DAM
+        //  Message store keeps messages when the memory buffer is full.
+        data_dam_t *data_dam;
+
+        //  Flag indicating whether the swapping has been activated or not.
+        bool swapping;
+
+        //  Number of messages kept in the data dam (swap file).
+        size_t in_swap_msg_cnt;
+
+        //  Refills the memory buffer from the swap file.
+        void swap_in ();
+#endif
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.
@@ -131,6 +146,7 @@ namespace zmq
 
         pipe_t (const pipe_t&);
         void operator = (const pipe_t&);
+
     }; 
 
 }

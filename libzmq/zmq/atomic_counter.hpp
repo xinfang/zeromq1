@@ -164,6 +164,45 @@ namespace zmq
 #endif
         }
 
+        //  Atomically increments the counter. Returns the old value.
+        inline bool inc (integer_t increment_)
+        {
+            integer_t old_value;
+
+#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
+            old_value = InterlockedExchangeAdd ((LONG*) &value, increment_);
+#elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
+            old_value = atomic_add_32_nv (&value, increment_) - increment_;
+#elif defined ZMQ_ATOMIC_COUNTER_X86
+            __asm__ volatile (
+                "lock; xadd %0, %1          \n\t"
+                : "=r" (old_value), "=m" (value)
+                : "0" (increment_), "m" (value)
+                : "cc", "memory");
+#elif defined ZMQ_ATOMIC_COUNTER_SPARC
+            integer_t tmp;
+            __asm__ volatile (
+                "ld [%4], %0                \n\t"
+                "1:                         \n\t"
+                "add %0, %3, %1             \n\t"
+                "cas [%4], %0, %1           \n\t"
+                "cmp %0, %1                 \n\t"
+                "bne,a,pn %%icc, 1b         \n\t"
+                "mov %1, %0                 \n\t"
+                : "=&r" (old_value), "=&r" (tmp), "=m" (value)
+                : "r" (increment_), "r" (&value)
+                : "cc", "memory");
+#elif defined ZMQ_ATOMIC_COUNTER_MUTEX
+            sync.lock ();
+            old_value = value;
+            value += increment_;
+            sync.unlock ();
+#else
+#error
+#endif
+            return old_value;
+        }
+
     private:
 
         volatile integer_t value;

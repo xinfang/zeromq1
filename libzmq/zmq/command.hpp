@@ -51,7 +51,7 @@ namespace zmq
             } revive;
             struct {
                 class pipe_t *pipe;
-                int64_t position;
+                uint64_t position;
             } head;
             struct {
                 class pipe_t *pipe;
@@ -140,7 +140,7 @@ namespace zmq
         }
 
         inline void init_engine_head (i_engine *engine_, pipe_t *pipe_,
-            int64_t position_)
+            uint64_t position_)
         {
             type = engine_command;
             args.engine_command.engine = engine_;

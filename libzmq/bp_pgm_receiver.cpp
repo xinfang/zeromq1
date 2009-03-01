@@ -100,6 +100,11 @@ void zmq::bp_pgm_receiver_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = bp_lwm;
 }
 
+uint64_t zmq::bp_pgm_receiver_t::get_swap_size ()
+{
+    return 0;
+}
+
 void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
 {
     //  Store the callback.

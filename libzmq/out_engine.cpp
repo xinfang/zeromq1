@@ -50,3 +50,8 @@ void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *hwm_ = 0;
     *lwm_ = 0;
 }
+
+uint64_t zmq::out_engine_t::get_swap_size ()
+{
+    return 0;
+}

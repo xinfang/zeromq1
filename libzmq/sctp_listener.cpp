@@ -117,6 +117,14 @@ void zmq::sctp_listener_t::get_watermarks (int64_t *, int64_t *)
     assert (false);
 }
 
+uint64_t zmq::sctp_listener_t::get_swap_size ()
+{
+    assert (false);
+
+    //  Some C++ compilers require this.
+    return 0;
+}
+
 void zmq::sctp_listener_t::register_event (i_poller *poller_)
 {
     handle_t handle = poller_->add_fd (s, this);

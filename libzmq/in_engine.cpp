@@ -19,16 +19,19 @@
 
 #include <zmq/in_engine.hpp>
 
-zmq::in_engine_t *zmq::in_engine_t::create (int64_t hwm_, int64_t lwm_)
+zmq::in_engine_t *zmq::in_engine_t::create (int64_t hwm_, int64_t lwm_,
+    uint64_t swap_size_)
 {
-    in_engine_t *instance = new in_engine_t (hwm_, lwm_);
+    in_engine_t *instance = new in_engine_t (hwm_, lwm_, swap_size_);
     assert (instance);
     return instance;
 }
 
-zmq::in_engine_t::in_engine_t (int64_t hwm_, int64_t lwm_) :
+zmq::in_engine_t::in_engine_t (int64_t hwm_, int64_t lwm_,
+      uint64_t swap_size_) :
     hwm (hwm_),
-    lwm (lwm_)
+    lwm (lwm_),
+    swap_size (swap_size_)
 {
 }
 
@@ -45,4 +48,9 @@ void zmq::in_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     *hwm_ = hwm;
     *lwm_ = lwm;
+}
+
+uint64_t zmq::in_engine_t::get_swap_size ()
+{
+    return swap_size;
 }

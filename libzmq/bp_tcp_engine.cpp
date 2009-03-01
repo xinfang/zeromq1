@@ -180,6 +180,11 @@ void zmq::bp_tcp_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = bp_lwm;
 }
 
+uint64_t zmq::bp_tcp_engine_t::get_swap_size ()
+{
+    return 0;
+}
+
 void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
 {
     //  Store the callback.

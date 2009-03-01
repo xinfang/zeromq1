@@ -78,7 +78,7 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
 int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     const char *interface_, i_thread *listener_thread_,
     int handler_thread_count_, i_thread **handler_threads_,
-    int64_t hwm_, int64_t lwm_, int64_t)
+    int64_t hwm_, int64_t lwm_, uint64_t swap_size_)
 {
     //  Insert the queue to the local list of queues.
     //  Make sure that the queue doesn't already exist.
@@ -86,7 +86,7 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
           it != queues.end (); it ++)
         assert (it->first != queue_);
 
-    in_engine_t *engine = in_engine_t::create (hwm_, lwm_);
+    in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_size_);
     queues.push_back (queues_t::value_type (queue_, engine));
 
     //  If the scope of the queue is local, we won't register it

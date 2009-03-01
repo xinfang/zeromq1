@@ -17,8 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <limits>
-
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
 
@@ -31,9 +29,14 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     destination_engine (destination_engine_),
     alive (true),
     head (0),
-    tail (0),
-    last_head (0),
+    last_head_position (0),
     delayed_gap (false),
+    in_core_msg_cnt (0),
+#ifdef ZMQ_HAVE_DATA_DAM
+    data_dam (NULL),
+    swapping (false),
+    in_swap_msg_cnt (0),
+#endif
     writer_terminating (false),
     reader_terminating (false)
 {
@@ -54,10 +57,26 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         hwm = shwm + dhwm;
         lwm = slwm + dlwm;
     }
+
+#ifdef ZMQ_HAVE_DATA_DAM
+    uint64_t swap_size = source_engine->get_swap_size () +
+        destination_engine->get_swap_size ();
+
+    //  Create a swap file if necessary.
+    if (swap_size > 0) {
+        data_dam = new data_dam_t (swap_size);
+        assert (data_dam);
+    }
+#endif
 }
 
 zmq::pipe_t::~pipe_t ()
 {
+#ifdef ZMQ_HAVE_DATA_DAM
+    if (data_dam)
+        delete data_dam;
+#endif
+
     //  Destroy the messages in the pipe itself.
     raw_message_t message;
     pipe.flush ();
@@ -67,19 +86,14 @@ zmq::pipe_t::~pipe_t ()
 
 bool zmq::pipe_t::check_write ()
 {
-    if (!hwm)
+#ifdef ZMQ_HAVE_DATA_DAM
+    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm || data_dam)
+#else
+    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm)
+#endif
         return true;
-
-    //  If pipe size have reached high watermark, reject the write.
-    //  The else branch will come into effect after 250,000 years of
-    //  passing 1,000,000 messages a second but still, it's implemented just
-    //  in case ...
-    //  TODO: Can size be possibly negative? If so, what then?
-    int64_t size = last_head <= tail ? tail - last_head :
-        std::numeric_limits <int64_t>::max () - last_head + tail + 1;
-    assert (size <= hwm);
-     
-    return size < hwm;
+    else
+        return false;
 }
 
 void zmq::pipe_t::write (raw_message_t *msg_)
@@ -88,11 +102,29 @@ void zmq::pipe_t::write (raw_message_t *msg_)
     //  have been written beforehand.
     assert (!delayed_gap);
 
-    //  Physically write the message to the pipe.
-    pipe.write (*msg_);
+#ifdef ZMQ_HAVE_DATA_DAM
+    //  If we have hit the queue limit, switch into swapping mode.
+    if (in_core_msg_cnt == (size_t) hwm && hwm != 0) {
+        assert (data_dam);
+        swapping = true;
+    }
 
-    //  Move the tail.
-    tail ++;
+    //  Write the message into main memory or swap file.
+    if (swapping) {
+        bool rc = data_dam->store (msg_);
+        assert (rc);
+        in_swap_msg_cnt ++;
+    }
+    else {
+        pipe.write (*msg_);
+        in_core_msg_cnt ++;
+    }
+#else
+    assert (hwm == 0 || in_core_msg_cnt < (size_t) hwm);
+
+    pipe.write (*msg_);
+    in_core_msg_cnt ++;
+#endif
 }
 
 void zmq::pipe_t::gap ()
@@ -113,10 +145,17 @@ void zmq::pipe_t::revive ()
     alive = true;
 }
 
-void zmq::pipe_t::set_head (int64_t position_)
+void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
-    last_head = position_;
+    in_core_msg_cnt -= position_ - last_head_position;
+    last_head_position = position_;
+
+#ifdef ZMQ_HAVE_DATA_DAM
+    //  Transfer messages from the data dam into the main memory.
+    if (swapping && in_core_msg_cnt < (size_t) lwm)
+        swap_in ();
+#endif
 
     //  If there's a gap notification waiting, push it into the queue.
     if (delayed_gap && check_write ()) {
@@ -143,8 +182,7 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         return false;
 
     //  Get next message, if it's not there, die.
-    if (!pipe.read (msg_))
-    {
+    if (!pipe.read (msg_)) {
         alive = false;
         return false;
     }
@@ -227,3 +265,24 @@ void zmq::pipe_t::reader_terminated ()
     destination_thread = NULL;
     destination_engine = NULL;
 }
+
+#ifdef ZMQ_HAVE_DATA_DAM
+void zmq::pipe_t::swap_in ()
+{
+    while (in_swap_msg_cnt > 0 && in_core_msg_cnt < (size_t) hwm) {
+        raw_message_t msg;
+        data_dam->fetch (&msg);
+        pipe.write (msg);
+        in_swap_msg_cnt --;
+        in_core_msg_cnt ++;
+    }
+
+    //  Flush all messages.
+    flush ();
+
+    if (in_swap_msg_cnt == 0) {
+        assert (data_dam->empty ());
+        swapping = false;
+    }
+}
+#endif
