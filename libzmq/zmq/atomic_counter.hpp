@@ -200,7 +200,7 @@ namespace zmq
 #else
 #error
 #endif
-            return old_value;
+            return old_value != 0;
         }
 
     private:

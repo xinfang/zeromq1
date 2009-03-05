@@ -123,7 +123,7 @@ namespace zmq
         bool delayed_gap;
 
         //  Number of messages kept in main memory.
-        size_t in_core_msg_cnt;
+        uint64_t in_core_msg_cnt;
 
 #ifdef ZMQ_HAVE_DATA_DAM
         //  Message store keeps messages when the memory buffer is full.
