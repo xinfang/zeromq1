@@ -165,7 +165,7 @@ namespace zmq
         }
 
         //  Atomically increments the counter. Returns the old value.
-        inline bool inc (integer_t increment_)
+        inline integer_t inc (integer_t increment_)
         {
             integer_t old_value;
 
@@ -200,7 +200,7 @@ namespace zmq
 #else
 #error
 #endif
-            return old_value != 0;
+            return old_value;
         }
 
     private:
