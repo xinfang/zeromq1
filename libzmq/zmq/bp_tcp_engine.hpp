@@ -126,9 +126,6 @@ namespace zmq
         //  Backend wire-level protocol decoder.
         bp_decoder_t decoder;
 
-        //  Underlying TCP/IP socket.
-        tcp_socket_t socket;
-
         //  Callback to poller.
         i_poller *poller;
 
@@ -145,6 +142,9 @@ namespace zmq
 
         //  Engine state.
         engine_state_t state;
+
+        //  Underlying TCP/IP socket.
+        tcp_socket_t socket;
 
         bp_tcp_engine_t (const bp_tcp_engine_t&);
         void operator = (const bp_tcp_engine_t&);

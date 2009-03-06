@@ -62,11 +62,11 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (demux),
-    socket (listener_),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
-    state (engine_connected)
+    state (engine_connected),
+    socket (listener_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
