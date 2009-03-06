@@ -59,12 +59,12 @@ int main (int argc, const char *argv [])
     api_thread_t *api = api_thread_t::create (&dispatcher, &locator);
 
     //  Create a queue to receive messages sent to the chatroom
-    char tmp [16];
-    zmq_snprintf (tmp, 16, "Q_%s", chatroom_name);
+    char tmp [256];
+    zmq_snprintf (tmp, sizeof (tmp), "Q_%s", chatroom_name);
     api->create_queue (tmp, scope_global, in_interface, pt, 1, &pt);
 
     //  Create an exchange to send messages from the chatroom
-    zmq_snprintf (tmp, 16, "E_%s", chatroom_name);
+    zmq_snprintf (tmp, sizeof (tmp), "E_%s", chatroom_name);
     int eid = api->create_exchange (tmp, scope_global, out_interface,
         pt, 1, &pt);
 

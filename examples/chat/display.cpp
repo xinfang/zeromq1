@@ -56,8 +56,8 @@ int main (int argc, const char *argv [])
 
     //  Bind the queue to globally accessible exchange exposed by chatroom.
     //  If the exchange is not available, assert.
-    char tmp [16];
-    zmq_snprintf (tmp, 16, "E_%s", chatroom_name);
+    char tmp [256];
+    zmq_snprintf (tmp, sizeof (tmp), "E_%s", chatroom_name);
     api->bind (tmp, "Q", pt, pt);
     
     while (true) {
