@@ -21,6 +21,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
+			ManagedExtensions="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,11 +43,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../libczmq;../../libzmq"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				PreprocessorDefinitions=" ZMQ_BUILDING_LIBZMQ"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
+				CallingConvention="0"
 				CompileAs="1"
 			/>
 			<Tool
@@ -63,6 +66,7 @@
 				AdditionalDependencies="Ws2_32.lib"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
+				AssemblyDebug="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -115,6 +119,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../libczmq;../../libzmq"
+				PreprocessorDefinitions=" ZMQ_BUILDING_LIBZMQ"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
