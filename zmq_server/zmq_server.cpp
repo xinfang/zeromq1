@@ -51,7 +51,6 @@ using namespace std;
 #include <zmq/tcp_listener.hpp>
 #include <zmq/server_protocol.hpp>
 using namespace zmq;
-
 //  Maps object name to object info.
 typedef map <string, string> objects_t;
 
@@ -261,7 +260,7 @@ int main (int argc, char *argv [])
 
 #ifdef ZMQ_TRACE
                         printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name, info->location.c_str ());
+                            name,  it->second.c_str ());
 #endif
                         break;
                     }
