@@ -116,7 +116,7 @@ void zmq::tcp_socket_t::reopen ()
         wsa_assert (rc != SOCKET_ERROR);
 
     if (!(rc == 0 || (rc == -1 &&
-          (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)))) {
+          (WSAGetLastError () == WSAEINPROGRESS || WSAGetLastError () == WSAEWOULDBLOCK)))) {
         close ();
         return;
     }
