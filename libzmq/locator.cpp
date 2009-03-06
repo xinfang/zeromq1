@@ -51,8 +51,8 @@ zmq::locator_t::~locator_t ()
         delete global_locator;
 }
 
-void zmq::locator_t::register_endpoint (unsigned char type_id_,
-    const char *name_, const char *location_)
+void zmq::locator_t::register_endpoint (const char *name_,
+    const char *location_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
     assert (global_locator);
@@ -62,8 +62,6 @@ void zmq::locator_t::register_endpoint (unsigned char type_id_,
     //  Send to 'create' command.
     unsigned char cmd = create_id;
     global_locator->write (&cmd, 1);
-    unsigned char type_id = type_id_;
-    global_locator->write (&type_id, 1);         
     unsigned char size = (unsigned char) strlen (name_);
     global_locator->write (&size, 1);
     global_locator->write (name_, size);
@@ -77,8 +75,8 @@ void zmq::locator_t::register_endpoint (unsigned char type_id_,
 
 }
 
-void zmq::locator_t::resolve_endpoint (unsigned char type_id_,
-    const char *name_, char *location_, size_t location_size_)
+void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
+    size_t location_size_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
     assert (global_locator);
@@ -86,8 +84,6 @@ void zmq::locator_t::resolve_endpoint (unsigned char type_id_,
     //  Send 'get' command.
     unsigned char cmd = get_id;
     global_locator->write (&cmd, 1);
-    unsigned char type_id = type_id_;
-    global_locator->write (&type_id, 1);
     unsigned char size = (unsigned char) strlen (name_);
     global_locator->write (&size, 1);
     global_locator->write (name_, size);

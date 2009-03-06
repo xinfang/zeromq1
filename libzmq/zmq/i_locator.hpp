@@ -25,23 +25,14 @@
 namespace zmq
 {
 
-    //  Enumerates object types stored in the directory service.
-    //  'type_id_count' holds number of exisitng type IDs.
-    enum
-    {
-        exchange_type_id = 0,
-        queue_type_id = 1,
-        type_id_count = 2
-    };
-
     struct i_locator
     {
         virtual ~i_locator () {};
 
-        virtual void register_endpoint (unsigned char type_id_,
-            const char *name_, const char *location_) = 0;
-        virtual void resolve_endpoint (unsigned char type_id_,
-            const char *name_, char *location_, size_t location_size_) = 0;
+        virtual void register_endpoint (const char *name_,
+            const char *location_) = 0;
+        virtual void resolve_endpoint (const char *name_,
+            char *location_, size_t location_size_) = 0;
     };
 
 }

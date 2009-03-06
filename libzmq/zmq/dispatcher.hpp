@@ -93,7 +93,7 @@ namespace zmq
 
         //  Creates object.
         void create (i_locator *locator_, i_thread *calling_thread_, 
-            unsigned char type_id_, const char *object_, i_thread *thread_, 
+            bool source_, const char *object_, i_thread *thread_, 
             i_engine *engine_, scope_t scope_, const char *interface_,
             i_thread *listener_thread_, int handler_thread_count_,
             i_thread **handler_threads_);
@@ -101,9 +101,9 @@ namespace zmq
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
         bool get (i_locator *locator_, i_thread *calling_thread_, 
-            unsigned char type_id_, const char *object_, i_thread **thread_, 
-            i_engine **engine_, i_thread *handler_thread_, 
-            const char *local_object_, const char *engine_arguments_);
+            const char *object_, i_thread **thread_, i_engine **engine_,
+            i_thread *handler_thread_, const char *local_object_,
+            const char *engine_arguments_);
 
     private:
 
@@ -136,10 +136,7 @@ namespace zmq
 
         //  Maps object names to object infos.
         typedef std::map <std::string, object_info_t> objects_t;
-
-        //  Array of object maps. Index to the array is the type ID of
-        //  the object.
-        objects_t objects [type_id_count];
+        objects_t objects;
 
         //  Access to the dispatcher is synchronised using mutex. That should be
         //  OK as dispatcher is not accessed on the critical path (message being

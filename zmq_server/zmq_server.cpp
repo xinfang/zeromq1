@@ -50,19 +50,34 @@ using namespace std;
 #include <zmq/tcp_socket.hpp>
 #include <zmq/tcp_listener.hpp>
 #include <zmq/server_protocol.hpp>
+#include <zmq/xmlParser.hpp>
 using namespace zmq;
 //  Maps object name to object info.
 typedef map <string, string> objects_t;
 
 int main (int argc, char *argv [])
 {
-    //  Check command line parameters.
-    if ((argc != 1 && argc != 2) || (argc == 2 &&
-          strcmp (argv [1], "--help") == 0)) {
-        printf ("Usage: zmq_server [port]\n");
-        printf ("Default port is %d.\n", (int) default_locator_port);
-        
-        return 1;
+    uint16_t port = default_locator_port;
+    string config_file = "";
+
+    //  Parse the command line.
+    int arg = 1;
+    while (arg != argc) {
+        if (string (argv [arg]) == "--help") {
+            printf ("usage: zmq_server [--help] [--port <port-number>] "
+                "[--config-file <filename>]\n");
+            return 1;
+        }
+        else if (string (argv [arg]) == "--port") {
+            assert (arg + 1 != argc);
+            port = atoi (argv [arg + 1]);
+            arg += 2;
+        }
+        else if (string (argv [arg]) == "--config-file") {
+            assert (arg + 1 != argc);
+            config_file = argv [arg + 1];
+            arg += 2;
+        }
     }
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -76,12 +91,11 @@ int main (int argc, char *argv [])
 
     //  Create a tcp_listener.
     char location [256];
-    int port = (argc >= 2 ? atoi (argv [1]) : default_locator_port);
     zmq_snprintf (location, sizeof (location), "0.0.0.0:%d", port);
     tcp_listener_t listening_socket (location);
      
     //	Create list of descriptors.
-    typedef vector <tcp_socket_t *> socket_list_t;
+    typedef vector <tcp_socket_t*> socket_list_t;
     socket_list_t socket_list;
 
     //  Intitialise descriptors for select.
@@ -95,12 +109,40 @@ int main (int argc, char *argv [])
     FD_SET (fd_int, &source_set_fds);
     fd_t maxfdp1 = fd_int + 1;
         
-    //  Object repository. Individual object maps are placed into slots
-    //  identified by the type ID of particular object.
-    objects_t objects [type_id_count];
+    //  Object repository.
+    objects_t objects;
+
+    if (!config_file.empty ()) {
+
+        //  Load the configuration from a file.
+        XMLNode root = XMLNode::parseFile (config_file.c_str ());
+        assert (!root.isEmpty ());
+        assert (strcmp (root.getName (), "root") == 0);
+
+        //  Iteratate through all the 'node' subnodes.
+        int n = 0;
+        while (true) {
+            XMLNode node = root.getChildNode ("node", n);
+            if (node.isEmpty ())
+                break;
+
+            //  Fill in new node into locations map.
+            const char *name = node.getAttribute ("name");
+            assert (name);
+            const char *location = node.getAttribute ("location");
+            assert (location);
+            objects.insert (std::make_pair (name, location));
+#ifdef ZMQ_TRACE
+            printf ("Object %s created (%s).\n", name, location);
+#endif
+
+            n ++;
+        }
+
+    }
     
     while (true) {
-        
+
        //  Select on the descriptors.
        int rc = 0;
        while (rc == 0) {
@@ -170,12 +212,6 @@ int main (int argc, char *argv [])
                 switch (cmd) {
                 case create_id:
                     {
-
-                        //  Parse type ID.
-                        unsigned char type_id;
-                        nbytes = socket_list [pos]->read (&type_id, 1);
-                        assert (nbytes == 1);
-
                         //  Parse object name.
                         unsigned char size;
                         nbytes = socket_list [pos]->read (&size, 1);
@@ -195,7 +231,7 @@ int main (int argc, char *argv [])
 
                         //  Insert object to the repository.
                         pair<objects_t::iterator, bool> res =
-                            objects [type_id].insert (
+                            objects.insert (
                             objects_t::value_type (name, location));
                         if (!res.second)
                            res.first->second = location;
@@ -205,19 +241,13 @@ int main (int argc, char *argv [])
                         nbytes = socket_list [pos]->write (&reply, 1);
                         assert (nbytes == 1);
 #ifdef ZMQ_TRACE
-                        printf ("Object %d:%s created (%s).\n", type_id, name,
+                        printf ("Object %s created (%s).\n", name,
                             location);
 #endif
                         break;
                     }
                 case get_id:
                     {
-                        //  Parse type ID.
-                        unsigned char type_id;
-
-                        nbytes = socket_list [pos]->read (&type_id, 1);
-                        assert (nbytes ==1);
-
                         //  Parse object name.
                         unsigned char size;
                         nbytes = socket_list [pos]->read (&size, 1);
@@ -228,9 +258,8 @@ int main (int argc, char *argv [])
                         name [size] = 0;
 
                         //  Find the exchange in the repository.
-                        objects_t::iterator it =
-                            objects [type_id].find (name);
-                        if (it == objects [type_id].end ()) {
+                        objects_t::iterator it = objects.find (name);
+                        if (it == objects.end ()) {
 
                             //  Send the error.
                             reply = fail_id;
@@ -239,8 +268,7 @@ int main (int argc, char *argv [])
                             assert (nbytes == 1);
 #ifdef ZMQ_TRACE
                             printf ("Error when looking for an object: "
-                                "object %d:%s does not exist.\n",
-                                (int) type_id, name);
+                                "object %s does not exist.\n", name);
 #endif
                             break;
                         }
@@ -259,8 +287,8 @@ int main (int argc, char *argv [])
                         assert (nbytes == size);
 
 #ifdef ZMQ_TRACE
-                        printf ("Object %d:%s retrieved (%s).\n", (int) type_id,
-                            name,  it->second.c_str ());
+                        printf ("Object %s retrieved (%s).\n",
+                            name, it->second.c_str ());
 #endif
                         break;
                     }

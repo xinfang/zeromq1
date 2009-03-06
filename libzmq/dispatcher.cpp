@@ -100,12 +100,11 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
 }
 
 void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
-    unsigned char type_id_, const char *object_, i_thread *thread_,
+    bool source_, const char *object_, i_thread *thread_,
     i_engine *engine_, scope_t scope_, const char *interface_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_)
 {
-    assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
 
     //  Enter critical section.
@@ -113,7 +112,7 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
 
     //  Add the object to the list of known objects.
     object_info_t info = {thread_, engine_};
-    objects [type_id_].insert (objects_t::value_type (object_, info));
+    objects.insert (objects_t::value_type (object_, info));
 
     //  Add the object to the global locator.
     if (scope_ == scope_global) {
@@ -122,12 +121,10 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
         i_engine *listener = engine_factory_t::create_listener (
             calling_thread_, listener_thread_, interface_,
             handler_thread_count_, handler_threads_,
-            type_id_ == exchange_type_id ? false : true,
-            thread_, engine_, object_);
+            source_, thread_, engine_, object_);
 
         //  Regiter the object with the locator.
-        locator_->register_endpoint (type_id_, object_,
-            listener->get_arguments ());
+        locator_->register_endpoint (object_, listener->get_arguments ());
     }
 
     //  Leave critical section.
@@ -135,26 +132,24 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
 }
 
 bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
-    unsigned char type_id_, const char *object_, i_thread **thread_,
-    i_engine **engine_, i_thread *handler_thread_, const char *local_object_,
+    const char *object_, i_thread **thread_, i_engine **engine_,
+    i_thread *handler_thread_, const char *local_object_,
     const char *engine_arguments_)
 {
-    assert (type_id_ < type_id_count);
     assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
 
     //  Find the object.
-    objects_t::iterator it = objects [type_id_].find (object_);
+    objects_t::iterator it = objects.find (object_);
 
     //  If the object is unknown, find it using global locator.
-    if (it == objects [type_id_].end ()) {
+    if (it == objects.end ()) {
 
         //  Get the location of the object from the locator.
         char location [256];
-        locator_->resolve_endpoint (type_id_, object_, location,
-            sizeof (location));
+        locator_->resolve_endpoint (object_, location, sizeof (location));
 
         //  Create the proxy engine for the object.
         i_engine *engine = engine_factory_t::create_engine (calling_thread_,
@@ -162,8 +157,7 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};
-        it = objects [type_id_].insert (
-            objects_t::value_type (object_, info)).first;
+        it = objects.insert (objects_t::value_type (object_, info)).first;
     }
 
     *thread_ = it->second.thread;
