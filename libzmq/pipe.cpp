@@ -96,6 +96,7 @@ bool zmq::pipe_t::check_write ()
         return false;
 }
 
+
 void zmq::pipe_t::write (raw_message_t *msg_)
 {
     //  If we are allowed to write to the pipe, delayed gap notification must

@@ -80,7 +80,7 @@ namespace zmq
         //  within the engine to serve as a peer to this engine.
         i_thread *peer_thread;
         i_engine *peer_engine;
-        char peer_name [16];
+        char peer_name [256];
 
         //  Arguments string for this listener.
         char arguments [256];

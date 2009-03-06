@@ -18,10 +18,14 @@
 */
 
 #ifdef ZMQ_HAVE_DATA_DAM
-
+#include <zmq/platform.hpp>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef ZMQ_HAVE_WINDOWS
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <string.h>
 
@@ -52,7 +56,11 @@ zmq::data_dam_t::data_dam_t (size_t filesize_, size_t block_size_) :
     read_buf = write_buf = buf1;
 
     //  Get process ID.
+#ifdef ZMQ_HAVE_WINDOWS
+    int pid = GetCurrentThreadId ();
+#else
     pid_t pid = getpid ();
+#endif
 
     //  Create unique file name.
     char buf [256];
@@ -61,7 +69,11 @@ zmq::data_dam_t::data_dam_t (size_t filesize_, size_t block_size_) :
     filename = buf;
 
     //  Open the backing file.
+#ifdef ZMQ_HAVE_WINDOWS
+    fd = _open (filename.c_str (), _O_RDWR | _O_CREAT, 0600);
+#else
     fd = open (filename.c_str (), O_RDWR | O_CREAT, 0600);
+#endif
     errno_assert (fd != -1);
 
 #ifdef ZMQ_HAVE_LINUX
@@ -76,10 +88,18 @@ zmq::data_dam_t::~data_dam_t ()
     delete [] buf1;
     delete [] buf2;
 
+#ifdef ZMQ_HAVE_WINDOWS
+    int rc = _close (fd);
+#else
     int rc = close (fd);
+#endif
     errno_assert (rc == 0);
 
+#ifdef ZMQ_HAVE_WINDOWS
+    rc = _unlink (filename.c_str ());
+#else
     rc = unlink (filename.c_str ());
+#endif
     errno_assert (rc == 0);
 }
 
@@ -213,7 +233,11 @@ void zmq::data_dam_t::copy_to_file (const void *buf_, size_t count_)
 void zmq::data_dam_t::fill_read_buf ()
 {
     if (file_pos != read_pos) {
+#ifdef ZMQ_HAVE_WINDOWS
+        off_t offset = _lseek (fd, read_pos, SEEK_SET);
+#else
         off_t offset = lseek (fd, read_pos, SEEK_SET);
+#endif
         errno_assert (offset == read_pos);
         file_pos = read_pos;
     }
@@ -222,7 +246,11 @@ void zmq::data_dam_t::fill_read_buf ()
     size_t n = min2 (block_size, filesize - read_pos);
 
     while (i < n) {
+#ifdef ZMQ_HAVE_WINDOWS
+        int rc = _read (fd, &read_buf [i], n - i);
+#else
         ssize_t rc = read (fd, &read_buf [i], n - i);
+#endif
         errno_assert (rc > 0);
         i += rc;
     }
@@ -233,7 +261,11 @@ void zmq::data_dam_t::fill_read_buf ()
 void zmq::data_dam_t::save_write_buf ()
 {
     if (file_pos != write_buf_start_addr) {
+#ifdef ZMQ_HAVE_WINDOWS
+        off_t offset = _lseek (fd, write_buf_start_addr, SEEK_SET);
+#else
         off_t offset = lseek (fd, write_buf_start_addr, SEEK_SET);
+#endif
         errno_assert (offset == write_buf_start_addr);
         file_pos = write_buf_start_addr;
     }
@@ -242,7 +274,11 @@ void zmq::data_dam_t::save_write_buf ()
     size_t n = min2 (block_size, filesize - write_buf_start_addr);
 
     while (i < n) {
+#ifdef ZMQ_HAVE_WINDOWS
+        int rc = _write (fd, &write_buf [i], n - i);
+#else
         ssize_t rc = write (fd, &write_buf [i], n - i);
+#endif
         errno_assert (rc > 0);
         i += rc;
     }
