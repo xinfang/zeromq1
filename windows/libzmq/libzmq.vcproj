@@ -42,13 +42,14 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../libzmq"
-				PreprocessorDefinitions="ZMQ_HAVE_AMQP; ZMQ_BUILDING_LIBZMQ"
+				PreprocessorDefinitions="ZMQ_HAVE_AMQP;ZMQ_BUILDING_LIBZMQ;ZMQ_HAVE_DATA_DAM"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				CallingConvention="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -116,7 +117,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../libzmq"
-				PreprocessorDefinitions="ZMQ_HAVE_AMQP; ZMQ_BUILDING_LIBZMQ"
+				PreprocessorDefinitions="ZMQ_HAVE_AMQP;ZMQ_BUILDING_LIBZMQ;ZMQ_HAVE_DATA_DAM"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -204,11 +205,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\bp_pgm_receiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\bp_pgm_sender.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\bp_tcp_engine.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\libzmq\bp_tcp_listener.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\data_dam.cpp"
 				>
 			</File>
 			<File
@@ -257,6 +270,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\out_engine.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\pgm_socket.cpp"
 				>
 			</File>
 			<File
@@ -366,6 +383,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\bp_pgm_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\bp_pgm_sender.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\bp_tcp_engine.hpp"
 				>
 			</File>
@@ -379,6 +404,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\config.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\data_dam.hpp"
 				>
 			</File>
 			<File
@@ -423,6 +452,14 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\formatting.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\i_amqp.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\i_demux.hpp"
 				>
 			</File>
 			<File
@@ -490,7 +527,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\pgm_socket.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\pipe.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\platform.hpp"
 				>
 			</File>
 			<File
