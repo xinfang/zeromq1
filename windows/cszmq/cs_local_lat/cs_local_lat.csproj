@@ -41,9 +41,9 @@
   </Target>
   -->
   <ItemGroup>
-    <Reference Include="libdnzmq, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="cszmq, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Debug\libdnzmq.dll</HintPath>
+      <HintPath>..\cszmq\bin\Release\cszmq.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

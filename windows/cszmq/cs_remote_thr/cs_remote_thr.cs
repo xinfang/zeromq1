@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
+using zmq;
 
 class cs_remote_thr
 {
@@ -41,8 +42,7 @@ class cs_remote_thr
         Dnzmq w = new Dnzmq (host);
         
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("E", Dnzmq.SCOPE_LOCAL, "", 
-            Dnzmq.STYLE_LOAD_BALANCING);
+        int eid = w.create_exchange ("E", Dnzmq.SCOPE_LOCAL, "");
         w.bind ("E", "Q", null, null);
 
         //  Create a message to send.
@@ -51,8 +51,8 @@ class cs_remote_thr
         //  Start sending messages.
         for (int i = 0; i < msg_count; i++)
             w.send (eid, msg);
-
-        System.Threading.Thread.Sleep (5000);
+            
+        System.Threading.Thread.Sleep (100000);
 
         return 0;
     }

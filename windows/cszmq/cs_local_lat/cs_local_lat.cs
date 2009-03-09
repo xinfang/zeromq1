@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using zmq;
 
 class cs_local_lat
 {
@@ -47,8 +48,7 @@ class cs_local_lat
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "", 
-            Dnzmq.STYLE_DATA_DISTRIBUTION);
+        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "");
         int qid = w.create_queue ("QL", Dnzmq.SCOPE_LOCAL, "", -1, -1, 0);
         w.bind ("EL", "QG", null, null);
         w.bind ("EG", "QL", null, null);
@@ -61,11 +61,14 @@ class cs_local_lat
         watch = new Stopwatch ();
         watch.Start ();
 
+
+        byte[] in_msg;
+        int type;
         //  Start sending messages.
         for (int i = 0; i < roundtrip_count; i++)
         {
             w.send (eid, out_msg);
-            byte [] in_msg = w.receive ();
+            w.receive (out in_msg, out type);
             Debug.Assert (in_msg.Length == msg_size);
         }
 

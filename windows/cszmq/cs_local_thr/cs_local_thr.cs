@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using zmq;
 
 class cs_local_thr
 {
@@ -50,7 +51,9 @@ class cs_local_thr
         w.create_queue ("Q", Dnzmq.SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
         //  Receive the first message.
-        byte [] msg = w.receive ();
+        byte [] msg;
+        int type;
+        w.receive (out msg, out type);
         Debug.Assert (msg.Length == msg_size);
 
         //  Start measuring the time.
@@ -61,20 +64,21 @@ class cs_local_thr
         //  Start receiving messages
         for (int i = 0; i < msg_count - 1; i++)
         {
-            msg = w.receive ();
+            w.receive (out msg, out type);
             Debug.Assert (msg.Length == msg_size);
         }
 
         //  Stop measuring the time.
         watch.Stop ();
         Int64 elapsed_time = watch.ElapsedTicks;
-        double time = (double) elapsed_time / Stopwatch.Frequency;
+        double time = elapsed_time / Stopwatch.Frequency;
         
         //  Compute and print out the throughput.
         Int64 message_throughput;
         Int64 megabit_throughput;
 
-        message_throughput = (Int64) (msg_count / time);
+        //message_throughput = (Int64) (msg_count / time);
+        message_throughput = (Int64) (msg_count *Stopwatch.Frequency / elapsed_time);
         megabit_throughput = message_throughput * msg_size * 8 /
             1000000;
        

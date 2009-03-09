@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using zmq;
 
 class cs_remote_lat
 {
@@ -47,14 +48,16 @@ class cs_remote_lat
 
         //  Set up 0MQ wiring.
         int eid = w.create_exchange ("EG", Dnzmq.SCOPE_GLOBAL,
-            out_interface, Dnzmq.STYLE_LOAD_BALANCING);
+            out_interface);
         int qid = w.create_queue ("QG", Dnzmq.SCOPE_GLOBAL,
             in_interface, -1, -1, 0);
         
         //  Bounce the received messages.
         for (int i = 0; i < num_msg; i++)
         {
-            byte [] msg = w.receive ();
+            byte[] msg;
+            int type;
+            w.receive (out msg, out type);
             Debug.Assert (msg.Length == msg_size);                
             w.send (eid, msg);
         }
