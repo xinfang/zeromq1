@@ -54,7 +54,7 @@ zmq::msg_store_t::msg_store_t (const char *filename_,
 
     //  Enable more aggresive read-ahead optimization.
     int rc = posix_fadvise (fd, 0, filesize, POSIX_FADV_SEQUENTIAL);
-    errno_assert (rc == 0);
+    assert (rc == 0);
 }
 
 zmq::msg_store_t::~msg_store_t ()
