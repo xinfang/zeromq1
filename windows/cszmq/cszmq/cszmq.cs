@@ -16,6 +16,9 @@ namespace zmq
         public const int MESSAGE_DATA = 1;
         public const int MESSAGE_GAP = 2;
 
+        public const int STYLE_DATA_DISTRIBUTION = 1;
+        public const int STYLE_LOAD_BALANCING = 2;
+
         public Dnzmq ()
         {
             zmq_ = IntPtr.Zero;
@@ -44,11 +47,11 @@ namespace zmq
                 throw new NullReferenceException ("queue must be initialized");
             czmq_mask (zmq_, Convert.ToUInt32 (message_mask));
         }
-        public int create_exchange (string exchange, int scope, string nic)
+        public int create_exchange (string exchange, int scope, string nic, int style)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
-            return czmq_create_exchange (zmq_, exchange, scope, nic);
+            return czmq_create_exchange (zmq_, exchange, scope, nic, style);
         }
 
         public int create_queue (string queue, int scope, string nic, Int64 hwm, Int64 lwm, Int64 swapSize)
@@ -78,40 +81,6 @@ namespace zmq
             }
         };
 
-   /*     public void send (int eid, byte[] data)
-        {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-            if (data.Length < 131072)
-            {
-                IntPtr ptr = Marshal.AllocHGlobal (data.Length);
-                Marshal.Copy (data, 0, ptr, data.Length);
-                try
-                {
-                    czmq_send (zmq_, eid, ptr,
-                        Convert.ToUInt32 (data.Length), Free);
-                }
-                catch
-                {
-                    Free (ptr);
-                }
-            }
-            else
-            {
-                Pinner pin = new Pinner (
-                    GCHandle.Alloc (data, GCHandleType.Pinned));
-                try
-                {
-                    czmq_send (zmq_, eid, pin.handle.AddrOfPinnedObject (),
-                        Convert.ToUInt32 (data.Length), pin.Unpin);
-                }
-                catch
-                {
-                    pin.handle.Free ();
-                }
-            }
-        }
-*/
         public void send (int eid, byte[] data)
         {
             if (zmq_ == IntPtr.Zero)
@@ -201,7 +170,7 @@ namespace zmq
 
         [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
         static extern int czmq_create_exchange (IntPtr zmq, string exchange,
-            int scope, string nic);
+            int scope, string nic, int style);
 
         [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
         static extern int czmq_create_queue (IntPtr zmq, string queue, int scope,

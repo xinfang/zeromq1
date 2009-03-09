@@ -48,7 +48,7 @@ class cs_local_lat
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "");
+        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING);
         int qid = w.create_queue ("QL", Dnzmq.SCOPE_LOCAL, "", -1, -1, 0);
         w.bind ("EL", "QG", null, null);
         w.bind ("EG", "QL", null, null);
