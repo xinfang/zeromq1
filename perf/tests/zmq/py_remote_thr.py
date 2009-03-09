@@ -36,7 +36,8 @@ def main ():
 
     z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL)
+    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL, 
+			style = libpyzmq.STYLE_LOAD_BALANCING)
     z.bind ('EL', 'QG')
 
     msg = ''.join ([' ' for n in range (0, message_size)])

@@ -47,7 +47,7 @@ class cs_remote_lat
 
         //  Set up 0MQ wiring.
         int eid = w.create_exchange ("EG", Dnzmq.SCOPE_GLOBAL,
-            out_interface);
+            out_interface, Dnzmq.STYLE_LOAD_BALANCING);
         int qid = w.create_queue ("QG", Dnzmq.SCOPE_GLOBAL,
             in_interface, -1, -1, 0);
         

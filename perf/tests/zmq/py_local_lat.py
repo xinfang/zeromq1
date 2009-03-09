@@ -39,12 +39,11 @@ def main ():
 
     z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL)
+    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL, 
+		style = libpyzmq.STYLE_LOAD_BALANCING)
     qid = z.create_queue (queue_name = 'QL', scope = libpyzmq.SCOPE_LOCAL)
     z.bind ('EL', 'QG')
     z.bind ('EG', 'QL')
-
-    time.sleep (1)
 
     msg_out = ''.join ([' ' for n in range (0, message_size)])
     start = datetime.now ()

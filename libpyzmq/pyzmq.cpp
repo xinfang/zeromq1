@@ -98,17 +98,18 @@ PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
     char const *exchange_name = NULL;
     char const *iface = NULL;
     int scope = zmq::scope_local;
+    int style = zmq::style_load_balancing;
 
-    static const char *kwlist [] = {"exchange_name", "scope", "interface",
-        NULL};
+    static const char *kwlist [] = {"exchange_name", "scope", "interface", 
+        "style", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s|is", (char**) kwlist, 
-          &exchange_name, &scope, &iface))
+    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s|isi", (char**) kwlist, 
+        &exchange_name, &scope, &iface, &style))
         return NULL;
     
     int eid = self->api_thread->create_exchange (exchange_name, 
         (zmq::scope_t) scope, iface, self->io_thread, 1,
-        &self->io_thread);
+        &self->io_thread, (zmq::style_t) style);
 
     return PyInt_FromLong (eid);
 }
@@ -370,6 +371,14 @@ PyMODINIT_FUNC initlibpyzmq (void)
     
     t = PyInt_FromLong (zmq::message_gap);
     PyDict_SetItemString (d, "MESSAGE_GAP", t);
+    Py_DECREF (t);
+
+    t = PyInt_FromLong (zmq::style_data_distribution);
+    PyDict_SetItemString (d, "STYLE_DATA_DISTRIBUTION", t);
+    Py_DECREF (t);
+
+    t = PyInt_FromLong (zmq::style_load_balancing);
+    PyDict_SetItemString (d, "STYLE_LOAD_BALANCING", t);
     Py_DECREF (t);
 
     

@@ -31,6 +31,13 @@ class Jzmq
      //  Specifies gap notifications to be received.
      public static final int MESSAGE_GAP = 2;
 
+     //  Specifies data distribution style.
+     public static final int STYLE_DATA_DISTRIBUTION = 1;	
+
+     //  Specifies load balancing style.
+     public static final int STYLE_LOAD_BALANCING = 2;
+
+
 
      //  Initalises Jzmq. Hostname is a name or an IP address of the box where
      //  zmq_server is running.
@@ -45,7 +52,8 @@ class Jzmq
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
      //  Exchange ID is returned.
-     public native int createExchange (String exchange, int scope, String nic);
+     public native int createExchange (String exchange, int scope, String nic, 
+		int style);
 
      //  Create a queue. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.

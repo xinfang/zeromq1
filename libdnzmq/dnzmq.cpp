@@ -40,7 +40,8 @@ public:
     ~Dnzmq ();
 
     void mask (int message_mask_);
-    int create_exchange (String^ exchange_, int scope_, String^ nic_);
+    int create_exchange (String^ exchange_, int scope_, String^ nic_, 
+        int style_);
     int create_queue (String^ queue_, int scope_, String^ nic_, int64_t hwm_,
         int64_t lwm_, int64_t swap_size_);
     void bind (String^ exchange_, String^ queue_, 
@@ -53,6 +54,9 @@ public:
     
     static const int MESSAGE_DATA = 1;
     static const int MESSAGE_GAP = 2;
+
+    static const int STYLE_DATA_DISTRIBUTION = 1;
+    static const int STYLE_LOAD_BALANCING = 2;
 
 private:
 
@@ -102,7 +106,8 @@ void Dnzmq::mask (int message_mask_)
     context->api_thread->mask (message_mask_);
 }
 
-int Dnzmq::create_exchange (String^ exchange_, int scope_, String^ nic_)
+int Dnzmq::create_exchange (String^ exchange_, int scope_, String^ nic_,
+                            int style_)
 {   
     //  Convert input parameters to char*.
     char* exchange = (char*)(void*) Marshal::StringToHGlobalAnsi (exchange_);
@@ -112,6 +117,11 @@ int Dnzmq::create_exchange (String^ exchange_, int scope_, String^ nic_)
     zmq::scope_t scope = zmq::scope_local;
     if (scope_ == SCOPE_GLOBAL)
         scope = zmq::scope_global;
+    
+    //  Get the style.
+    zmq::style_t style = zmq::style_load_balancing;
+    if (style_ == STYLE_DATA_DISTRIBUTION)
+        style = zmq::style_data_distribution;
     
     //  Forward the call to native 0MQ library.
     int eid = context->api_thread->create_exchange (exchange, 

@@ -38,7 +38,7 @@ def main ():
     z = libpyzmq.ZMQ (hostname = sys.argv [1])
 
     eid = z.create_exchange (exchange_name = 'EG', scope = libpyzmq.SCOPE_GLOBAL,
-        interface = sys.argv [3])
+        interface = sys.argv [3], style = libpyzmq.STYLE_LOAD_BALANCING)
     qid = z.create_queue (queue_name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
         interface = sys.argv [2])
 
@@ -46,7 +46,8 @@ def main ():
         msg = z.receive ()
         z.send (eid, msg)
 
-    time.sleep (2)
+   time.sleep (2)
+
 
 if __name__ == "__main__":
     main ()

@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_Jzmq_mask (JNIEnv *env, jobject obj,
 }
 
 JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
-    jstring exchange_, jint scope_, jstring nic_)
+    jstring exchange_, jint scope_, jstring nic_, jint style_)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -113,8 +113,13 @@ JNIEXPORT jint JNICALL Java_Jzmq_createExchange (JNIEnv *env, jobject obj,
     if (scope_ == Jzmq_SCOPE_GLOBAL)
         scope = zmq::scope_global;
 
+    //  Get the style.
+    zmq::style_t style = zmq::style_load_balancing;
+    if (style_ == Jzmq_STYLE_DATA_DISTRIBUTION)
+        style = zmq::style_data_distribution;
+
     jint eid = context->api_thread->create_exchange (exchange, scope, nic,
-        context->io_thread, 1, &context->io_thread);
+        context->io_thread, 1, &context->io_thread, style);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (exchange_, exchange);

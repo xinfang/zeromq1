@@ -40,7 +40,8 @@ class j_local_lat
          Jzmq obj = new Jzmq (hostname);
          
          //  Create the wiring.
-         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null);
+         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null, 
+		Jzmq.STYLE_LOAD_BALANCING);
          obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null, -1, -1, 0);
          obj.bind ("EL", "QG", "", "");
          obj.bind ("EG", "QL", "", "");
