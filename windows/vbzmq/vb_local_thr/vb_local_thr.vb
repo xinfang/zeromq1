@@ -1,4 +1,6 @@
-﻿Module vb_local_thr
+﻿Imports zmq
+
+Module vb_local_thr
     Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
     Sub Main()
@@ -26,15 +28,19 @@
         Transport.create_queue("Q", Dnzmq.SCOPE_GLOBAL, InInterface, -1, -1, 0)
 
         '  Receive the first message.
-        Dim Msg() As Byte = Transport.receive()
-        Debug.Assert(Msg.Length = MsgSize)
+        Dim Msg() As Byte
+        Dim size As Int32
+        Msg = Nothing
+        
+        Transport.receive(Msg, size)
+        Debug.Assert(size = MsgSize)
 
         '  Get initial timestamp. 
         Dim StartTime As DateTime = DateTime.Now()
 
         '  Start receiving messages.
         For i As Integer = 0 To MsgCount
-            Msg = Transport.receive()
+            Transport.receive(Msg, size)
             Debug.Assert(Msg.Length = MsgSize)
         Next
 

@@ -1,6 +1,8 @@
-﻿Module vb_remote_lat
+﻿Imports zmq
+
+Module vb_remote_lat
     Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-   
+
     Sub Main()
 
         '  Parse the command line.
@@ -23,11 +25,15 @@
         Dim ExchangeId As Integer = Transport.create_exchange("EG", Dnzmq.SCOPE_GLOBAL, OutInterface, Dnzmq.STYLE_LOAD_BALANCING)
         Transport.create_queue("QG", Dnzmq.SCOPE_GLOBAL, InInterface, -1, -1, 0)
 
+        Dim Size As Int32
+
         '  Start sending messages.
         For i As Integer = 0 To RoundtripCount
-            Dim Msg() As Byte = Transport.receive()
+            Dim Msg() As Byte
+            Msg = Nothing
+            Transport.receive(Msg, size)
             Debug.Assert(Msg.Length = MsgSize)
-            Transport.send(ExchangeId, msg)
+            Transport.send(ExchangeId, Msg)
         Next
 
         Sleep(5000)

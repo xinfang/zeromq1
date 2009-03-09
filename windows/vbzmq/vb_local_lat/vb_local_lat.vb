@@ -1,6 +1,8 @@
-﻿Module vb_local_lat
+﻿Imports zmq
+
+Module vb_local_lat
     Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-    
+
     Sub Main()
 
         '  Parse the command line.
@@ -32,10 +34,12 @@
 
         '  Start sending messages.
         Dim Msg(MsgSize - 1) As Byte
+        Dim size As Int32
+
         For i As Integer = 0 To RoundtripCount
             Transport.send(ExchangeId, Msg)
-            Msg = Transport.receive()
-            Debug.Assert(Msg.Length = MsgSize)
+            Transport.receive(Msg, size)
+            Debug.Assert(size = MsgSize)
         Next
 
         '  Get final timestamp.  

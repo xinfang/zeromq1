@@ -1,4 +1,6 @@
-﻿Module vb_remote_thr
+﻿Imports zmq
+
+Module vb_remote_thr
     Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
     Sub Main()
