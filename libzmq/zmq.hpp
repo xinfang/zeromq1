@@ -21,6 +21,7 @@
 #define __ZMQ_HPP_INCLUDED__
 
 #include <zmq/locator.hpp>
+#include <zmq/dummy_locator.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/api_thread.hpp>
 #include <zmq/select_thread.hpp>

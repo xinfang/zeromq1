@@ -34,6 +34,7 @@
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/amqp_decoder.hpp>
+#include <zmq/xmlParser.hpp>
 
 namespace zmq
 {
@@ -93,16 +94,6 @@ namespace zmq
             uint16_t channel_,
             const i_amqp::longstr_t /* reserved_1_ */);
 
-        void queue_declare_ok (
-            uint16_t channel_,
-            const i_amqp::shortstr_t /* queue_ */,
-            uint32_t /* message_count_ */,
-            uint32_t /* consumer_count_ */);
-
-        void basic_consume_ok (
-            uint16_t channel_,
-            const i_amqp::shortstr_t /* consumer_tag_ */);
-
         void channel_close (
             uint16_t channel_,
             uint16_t /* reply_code_ */,
@@ -127,8 +118,6 @@ namespace zmq
             state_waiting_for_connection_tune,
             state_waiting_for_connection_open_ok,
             state_waiting_for_channel_open_ok,
-            state_waiting_for_queue_declare_ok,
-            state_waiting_for_basic_consume_ok,
             state_active,
             state_waiting_for_reconnect,
             state_shutting_down
@@ -169,8 +158,7 @@ namespace zmq
 
         std::string local_object;
 
-        //  Arguments to use to initialise AMQP environment.
-        std::string arguments;
+        XMLNode config;
 
         amqp_client_t (const amqp_client_t&);
         void operator = (const amqp_client_t&);

@@ -17,33 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
-#define __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
+#ifndef __ZMQ_DUMMY_LOCATOR_HPP_INCLUDED__
+#define __ZMQ_DUMMY_LOCATOR_HPP_INCLUDED__
 
-//  Include this file to define standard POSIX text formatting functions
-//  that are missing on Windows platform.
+#include <zmq/i_locator.hpp>
 
-#include <string.h>
+namespace zmq
+{
 
-#include <zmq/platform.hpp>
+    class dummy_locator_t : public i_locator
+    {
+    public:
+        dummy_locator_t ();
 
-#ifdef ZMQ_HAVE_WINDOWS
-#if (_MSC_VER >= 1400)
-#define zmq_sprintf sprintf_s
-#define zmq_snprintf _snprintf_s
-#define zmq_strcat strcat_s
-#define zmq_strncpy strncpy_s
-#else
-#define zmq_sprintf sprintf
-#define zmq_snprintf _snprintf
-#define zmq_strcat strcat
-#define zmq_strncpy strncpy
-#endif
-#else
-#define zmq_sprintf sprintf
-#define zmq_snprintf snprintf
-#define zmq_strcat strcat
-#define zmq_strncpy strncpy
-#endif
+        //  i_locator implementation.
+        void register_endpoint (const char *name_, const char *location_);
+        void resolve_endpoint (const char *name_, char *location_,
+            size_t location_size_);
+    };
+
+}
 
 #endif

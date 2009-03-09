@@ -17,33 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
-#define __ZMQ_ZMQ_FORMATTING_HPP_INCLUDED__
+#include <assert.h>
+#include <stdio.h>
 
-//  Include this file to define standard POSIX text formatting functions
-//  that are missing on Windows platform.
+#include <zmq/dummy_locator.hpp>
+#include <zmq/formatting.hpp>
 
-#include <string.h>
+zmq::dummy_locator_t::dummy_locator_t ()
+{
+}
 
-#include <zmq/platform.hpp>
-
-#ifdef ZMQ_HAVE_WINDOWS
-#if (_MSC_VER >= 1400)
-#define zmq_sprintf sprintf_s
-#define zmq_snprintf _snprintf_s
-#define zmq_strcat strcat_s
-#define zmq_strncpy strncpy_s
-#else
-#define zmq_sprintf sprintf
-#define zmq_snprintf _snprintf
-#define zmq_strcat strcat
-#define zmq_strncpy strncpy
-#endif
-#else
-#define zmq_sprintf sprintf
-#define zmq_snprintf snprintf
-#define zmq_strcat strcat
-#define zmq_strncpy strncpy
-#endif
-
-#endif
+void zmq::dummy_locator_t::register_endpoint (const char *name_,
+    const char *location_)
+{
+}
+ 
+void zmq::dummy_locator_t::resolve_endpoint (const char *name_,
+    char *location_, size_t location_size_)
+{
+printf ("resolving %s\n", name_);
+    assert (location_size_ >= 1);
+    zmq_strncpy (location_, name_, location_size_);
+    location_ [location_size_ - 1] = 0;
+}
