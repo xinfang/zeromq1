@@ -20,7 +20,7 @@
         Dim Transport As New Dnzmq(Host)
 
         '  Set up 0MQ wiring.
-        Dim ExchangeId As Integer = Transport.create_exchange("EG", Dnzmq.SCOPE_GLOBAL, OutInterface)
+        Dim ExchangeId As Integer = Transport.create_exchange("EG", Dnzmq.SCOPE_GLOBAL, OutInterface, Dnzmq.STYLE_LOAD_BALANCING)
         Transport.create_queue("QG", Dnzmq.SCOPE_GLOBAL, InInterface, -1, -1, 0)
 
         '  Start sending messages.

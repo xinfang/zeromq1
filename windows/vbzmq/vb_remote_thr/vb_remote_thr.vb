@@ -18,7 +18,7 @@
         Dim Transport As New Dnzmq(Host)
 
         '  Set up 0MQ wiring.
-        Dim ExchangeId As Integer = Transport.create_exchange("E", Dnzmq.SCOPE_LOCAL, "")
+        Dim ExchangeId As Integer = Transport.create_exchange("E", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING)
         Transport.bind("E", "Q", "", "")
 
         '  Create a message to send.
