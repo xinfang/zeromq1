@@ -73,49 +73,44 @@ namespace zmq
             value = value_;
         }
 
-        //  Atomic addition. Returns false if counter was zero
-        //  before the operation.
-        inline bool add (integer_t increment)
+        //  Atomic addition. Returns the old value.
+        inline integer_t add (integer_t increment_)
         {
+            integer_t old_value;
+
 #if defined ZMQ_ATOMIC_COUNTER_WINDOWS
-            integer_t old = InterlockedExchangeAdd ((LONG*) &value,
-                increment);
-            return old != 0;
+            old_value = InterlockedExchangeAdd ((LONG*) &value, increment_);
 #elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
-            integer_t nv = atomic_add_32_nv (&value, increment);
-            return nv != increment;             
+            integer_t new_value = atomic_add_32_nv (&value, increment_);
+            old_value = new_value - increment_;
 #elif defined ZMQ_ATOMIC_COUNTER_X86
-            volatile integer_t *val = &value;
-            __asm__ volatile ("lock; xaddl %0,%1"
-                : "=r" (increment), "=m" (*val)
-                : "0" (increment), "m" (*val)
-                : "cc");
-            return increment;
+            __asm__ volatile (
+                "lock; xadd %0, %1          \n\t"
+                : "=r" (old_value), "=m" (value)
+                : "0" (increment_), "m" (value)
+                : "cc", "memory");
 #elif defined ZMQ_ATOMIC_COUNTER_SPARC
-            volatile integer_t *val = &value;
             integer_t tmp;
-            integer_t result;
-            __asm__ volatile(
-                "ld [%4], %1\n\t"
-                "1:\n\t"
-                "add %1, %0, %2\n\t"
-                "cas [%4], %1, %2\n\t"
-                "cmp %1, %2\n\t"
-                "bne,a,pn %%icc, 1b\n\t"
-                "mov %2, %1\n\t"
-                : "+r" (increment), "=&r" (tmp), "=&r" (result), "+m" (*val)
-                : "r" (val)
-                : "cc");
-            return result; 
+            __asm__ volatile (
+                "ld [%4], %0                \n\t"
+                "1:                         \n\t"
+                "add %0, %3, %1             \n\t"
+                "cas [%4], %0, %1           \n\t"
+                "cmp %0, %1                 \n\t"
+                "bne,a,pn %%icc, 1b         \n\t"
+                "mov %1, %0                 \n\t"
+                : "=&r" (old_value), "=&r" (tmp), "=m" (value)
+                : "r" (increment_), "r" (&value)
+                : "cc", "memory");
 #elif defined ZMQ_ATOMIC_COUNTER_MUTEX
             sync.lock ();
-            bool result = value ? true : false;
-            value += increment;
+            old_value = value;
+            value += increment_;
             sync.unlock ();
-            return result;
 #else
 #error
 #endif
+            return old_value;
         }
 
         //  Atomic subtraction. Returns false if the counter drops to zero.
@@ -162,45 +157,6 @@ namespace zmq
 #else
 #error
 #endif
-        }
-
-        //  Atomically increments the counter. Returns the old value.
-        inline integer_t inc (integer_t increment_)
-        {
-            integer_t old_value;
-
-#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
-            old_value = InterlockedExchangeAdd ((LONG*) &value, increment_);
-#elif defined ZMQ_ATOMIC_COUNTER_SOLARIS
-            old_value = atomic_add_32_nv (&value, increment_) - increment_;
-#elif defined ZMQ_ATOMIC_COUNTER_X86
-            __asm__ volatile (
-                "lock; xadd %0, %1          \n\t"
-                : "=r" (old_value), "=m" (value)
-                : "0" (increment_), "m" (value)
-                : "cc", "memory");
-#elif defined ZMQ_ATOMIC_COUNTER_SPARC
-            integer_t tmp;
-            __asm__ volatile (
-                "ld [%4], %0                \n\t"
-                "1:                         \n\t"
-                "add %0, %3, %1             \n\t"
-                "cas [%4], %0, %1           \n\t"
-                "cmp %0, %1                 \n\t"
-                "bne,a,pn %%icc, 1b         \n\t"
-                "mov %1, %0                 \n\t"
-                : "=&r" (old_value), "=&r" (tmp), "=m" (value)
-                : "r" (increment_), "r" (&value)
-                : "cc", "memory");
-#elif defined ZMQ_ATOMIC_COUNTER_MUTEX
-            sync.lock ();
-            old_value = value;
-            value += increment_;
-            sync.unlock ();
-#else
-#error
-#endif
-            return old_value;
         }
 
     private:

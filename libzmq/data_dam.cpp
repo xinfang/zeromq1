@@ -65,7 +65,7 @@ zmq::data_dam_t::data_dam_t (size_t filesize_, size_t block_size_) :
     //  Create unique file name.
     char buf [256];
     zmq_snprintf (buf, sizeof buf, "zeromq_swp.%u.%u",
-        (unsigned) pid, counter.inc (1));
+        (unsigned) pid, counter.add (1));
     filename = buf;
 
     //  Open the backing file.
