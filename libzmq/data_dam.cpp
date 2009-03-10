@@ -79,7 +79,7 @@ zmq::data_dam_t::data_dam_t (size_t filesize_, size_t block_size_) :
 #ifdef ZMQ_HAVE_LINUX
     //  Enable more aggresive read-ahead optimization.
     int rc = posix_fadvise (fd, 0, filesize, POSIX_FADV_SEQUENTIAL);
-    errno_assert (rc == 0);
+    assert (rc == 0);
 #endif
 }
 
