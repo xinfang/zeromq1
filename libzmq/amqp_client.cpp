@@ -414,6 +414,22 @@ void zmq::amqp_client_t::channel_open_ok (
     poller->set_pollout (handle);
 }
 
+void zmq::amqp_client_t::channel_flow (
+    uint16_t channel_,
+    bool active_)
+{
+    assert (channel == channel_);
+
+    if (active_) {
+        encoder->flow (true, channel);
+        poller->set_pollout (handle);
+    }
+    else {
+        encoder->flow (false, channel);
+        poller->reset_pollout (handle);
+    }
+}
+
 void zmq::amqp_client_t::channel_close (
     uint16_t channel_,
     uint16_t /* reply_code_ */,

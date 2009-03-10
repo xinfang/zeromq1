@@ -76,9 +76,9 @@ namespace zmq
             uint16_t channel_,
             uint8_t version_major_,
             uint8_t version_minor_,
-            const i_amqp::field_table_t &/* server_properties_*/,
-            const i_amqp::longstr_t /* mechanisms_ */,
-            const i_amqp::longstr_t /* locales_ */);
+            const i_amqp::field_table_t &server_properties_,
+            const i_amqp::longstr_t mechanisms_,
+            const i_amqp::longstr_t locales_);
 
         void connection_tune (
             uint16_t channel_,
@@ -88,25 +88,29 @@ namespace zmq
 
         void connection_open_ok (
             uint16_t channel_,
-            const i_amqp::shortstr_t /* reserved_1_ */);
+            const i_amqp::shortstr_t reserved_1_);
 
         void channel_open_ok (
             uint16_t channel_,
-            const i_amqp::longstr_t /* reserved_1_ */);
+            const i_amqp::longstr_t reserved_1_);
+
+        void channel_flow (
+            uint16_t channel_,
+            bool active_);
 
         void channel_close (
             uint16_t channel_,
-            uint16_t /* reply_code_ */,
+            uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
-            uint16_t /* class_id_ */,
-            uint16_t /* method_id_ */);
+            uint16_t class_id_,
+            uint16_t method_id_);
 
         void connection_close (
             uint16_t channel_,
-            uint16_t /* reply_code_ */,
+            uint16_t reply_code_,
             const i_amqp::shortstr_t reply_text_,
-            uint16_t /* class_id_ */,
-            uint16_t /* method_id_ */);
+            uint16_t class_id_,
+            uint16_t method_id_);
 
         void error ();
         void reconnect ();
