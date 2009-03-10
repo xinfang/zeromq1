@@ -66,14 +66,14 @@ namespace zmq
 //  Provides convenient way to check for errno-style errors.
 #define errno_assert(x) do { if (!(x)) {\
     perror (NULL);\
-    printf ("%s (%s:%d)\n", #x, __FILE__, __LINE__);\
+    fprintf (stderr, "%s (%s:%d)\n", #x, __FILE__, __LINE__);\
     abort ();\
 }} while (false)
 
 // Provides convenient way to check for errors from getaddrinfo.
 #define gai_assert(x) do { if (x) {\
     const char *errstr = gai_strerror (x);\
-    printf ("%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+    fprintf (stderr, "%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
     abort ();\
 }} while (false)
 
