@@ -35,7 +35,6 @@ void zmq::dummy_locator_t::register_endpoint (const char *name_,
 void zmq::dummy_locator_t::resolve_endpoint (const char *name_,
     char *location_, size_t location_size_)
 {
-printf ("resolving %s\n", name_);
     assert (location_size_ >= 1);
     zmq_strncpy (location_, name_, location_size_);
     location_ [location_size_ - 1] = 0;

@@ -404,7 +404,6 @@ void zmq::amqp_client_t::channel_open_ok (
 
         n ++;
     }
-    config = XMLNode::emptyNode ();
 
     //  Start the message flow.
     encoder->flow (true, channel);
