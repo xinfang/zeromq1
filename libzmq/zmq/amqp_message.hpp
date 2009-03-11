@@ -17,22 +17,42 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_HPP_INCLUDED__
-#define __ZMQ_HPP_INCLUDED__
+#ifndef __ZMQ_AMQP_MESSAGE_HPP_INCLUDED__
+#define __ZMQ_AMQP_MESSAGE_HPP_INCLUDED__
 
-#include <zmq/locator.hpp>
-#include <zmq/dummy_locator.hpp>
-#include <zmq/dispatcher.hpp>
-#include <zmq/api_thread.hpp>
-#include <zmq/select_thread.hpp>
+#include <zmq/platform.hpp>
+
+#if defined ZMQ_HAVE_AMQP
+
 #include <zmq/message.hpp>
-#include <zmq/io_thread.hpp>
-#include <zmq/poll_thread.hpp>
-#include <zmq/epoll_thread.hpp>
-#include <zmq/devpoll_thread.hpp>
-#include <zmq/kqueue_thread.hpp>
-#include <zmq/wire.hpp>
-#include <zmq/amqp_message.hpp>
+
+namespace zmq
+{
+
+    class amqp_message_t : public message_t
+    {
+    public:
+        amqp_message_t (const char *exchange_, const char *routing_key_,
+            int property_count_, const char **property_names_,
+            const char **property_values_, size_t size_);
+
+        inline void *data ()
+        {
+            return body;
+        }
+
+        inline size_t size ()
+        {
+            return message_t::size () -
+                ((unsigned char*) body - (unsigned char*) message_t::data ());
+        }
+
+    private:
+        void *body;
+    };
+
+}
 
 #endif
 
+#endif

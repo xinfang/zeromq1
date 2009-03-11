@@ -110,6 +110,7 @@ bool zmq::amqp_encoder_t::message_ready ()
         return false;
 
     //  Encode method frame frame header.
+    unsigned char *data = (unsigned char*) message.data ();
     size_t offset = 0;
 
     //  Frame type: method.
@@ -145,18 +146,19 @@ bool zmq::amqp_encoder_t::message_ready ()
     put_uint16 (framebuf + offset, 0);
     offset += sizeof (uint16_t);
 
-    //  Default exchange.
-    assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, 0);
-    offset += sizeof (uint8_t);
+    //  Exchange.
+    size_t exchange_size = get_uint8 (data);
+    assert (offset + sizeof (uint8_t) + exchange_size <= framebuf_size);
+    memcpy (framebuf + offset, data, exchange_size + sizeof (uint8_t));
+    offset += sizeof (uint8_t) + exchange_size;
+    data += sizeof (uint8_t) + exchange_size;
 
     //  Routing key.
-    assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, (uint8_t) queue.size ());
-    offset += sizeof (uint8_t);
-    assert (offset + queue.size () <= framebuf_size);
-    memcpy (framebuf + offset, queue.c_str (), queue.size ());
-    offset += queue.size ();
+    size_t routing_key_size = get_uint8 (data);
+    assert (offset + sizeof (uint8_t) + routing_key_size <= framebuf_size);
+    memcpy (framebuf + offset, data, routing_key_size + sizeof (uint8_t));
+    offset += sizeof (uint8_t) + routing_key_size;
+    data += sizeof (uint8_t) + routing_key_size;
 
     //  Mandatory = false, immediate = false.
     assert (offset + sizeof (uint8_t) <= framebuf_size);
@@ -169,7 +171,10 @@ bool zmq::amqp_encoder_t::message_ready ()
     offset += sizeof (uint8_t);
 
     //  Now we know what the size of the frame is. Fill it in.
-    put_uint32 (framebuf + size_offset, offset - 8); 
+    put_uint32 (framebuf + size_offset, offset - 8);
+
+    //  Adjust the offset in the message.
+    message_offset = data - (unsigned char*) message.data ();
 
     next_step (framebuf, offset, &amqp_encoder_t::content_header, false);
     return true;
@@ -198,9 +203,9 @@ bool zmq::amqp_encoder_t::command_arguments ()
 
 bool zmq::amqp_encoder_t::content_header ()
 {
-    //  Encode minimal message header frame.
-    //  No special message properties are used.
+    //  Encode message header frame.
     size_t offset = 0;
+    unsigned char *data = (unsigned char*) message.data () + message_offset;
 
     //  Frame type: content header.
     assert (offset + sizeof (uint8_t) <= framebuf_size);
@@ -229,13 +234,17 @@ bool zmq::amqp_encoder_t::content_header ()
 
     //  Message size.
     assert (offset + sizeof (uint64_t) <= framebuf_size);
-    put_uint64 (framebuf + offset, message.size ());
+    memcpy (framebuf + offset, data, sizeof (uint64_t));
     offset += sizeof (uint64_t);
+    data += sizeof (uint64_t);
 
-    //  No properties.
-    assert (offset + sizeof (uint16_t) <= framebuf_size);
-    put_uint16 (framebuf + offset, 0);
-    offset += sizeof (uint16_t);
+    //  Properties.
+    size_t props_size = get_uint32 (data);
+    data += sizeof (uint32_t);
+    assert (offset + props_size <= framebuf_size);
+    memcpy (framebuf + offset, data, props_size);
+    offset += props_size;
+    data += props_size;
 
     //  Frame-end octet.
     assert (offset + sizeof (uint8_t) <= framebuf_size);
@@ -244,8 +253,10 @@ bool zmq::amqp_encoder_t::content_header ()
 
     //  Fill in the frame size.
     put_uint32 (framebuf + size_offset, offset - 8);
-    
-    message_offset = 0;
+
+    //  Adjust the offset in the message.
+    message_offset = data - (unsigned char*) message.data ();
+
     next_step (framebuf, offset, &amqp_encoder_t::content_body_frame_header,
         false);
     return true;

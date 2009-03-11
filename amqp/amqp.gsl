@@ -232,6 +232,11 @@ namespace zmq
 .   for method
             $(class.name:c)_$(method.name:c)_id = $(method.index),
 .   endfor
+.   field_pos = 32768
+.   for field
+            $(class.name:c)_property_$(field.name:c) = $(field_pos),
+.       field_pos = field_pos / 2
+.   endfor
 .endfor
             end_amqp_constants
         };

@@ -74,7 +74,8 @@ pkginclude_HEADERS = \
     ./zmq/engine_base.hpp \
     ./zmq/xmlParser.hpp \
     ./zmq/data_dam.hpp \
-    ./zmq/dummy_locator.hpp
+    ./zmq/dummy_locator.hpp \
+    ./zmq/amqp_message.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -118,7 +119,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_unmarshaller.cpp \
     xmlParser.cpp \
     data_dam.cpp \
-    dummy_locator.cpp
+    dummy_locator.cpp \
+    amqp_message.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@
