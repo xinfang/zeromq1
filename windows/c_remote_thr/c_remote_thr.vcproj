@@ -59,6 +59,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libczmq.lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)$(ConfigurationName)\&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -128,6 +130,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libczmq.lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)$(ConfigurationName)\&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
