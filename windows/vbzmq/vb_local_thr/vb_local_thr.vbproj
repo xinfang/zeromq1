@@ -37,10 +37,7 @@
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cszmq, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\cszmq\cszmq\bin\Release\cszmq.dll</HintPath>
-    </Reference>
+    <Reference Include="cszmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a6ac03f4afe7a9b0, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
