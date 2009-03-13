@@ -100,8 +100,13 @@ namespace zmq
         //  We perform I/O multiplexing using event monitor.
         T event_monitor;
 
+        //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
         timers_t timers;
+
+        //  List of all registered engines.
+        typedef std::vector <i_engine*> engines_t;
+        engines_t engines;
     };
 
 }
@@ -251,6 +256,10 @@ void zmq::poller_t <T>::loop ()
         if (event_monitor.process_events (this, !timers.empty ()))
            break;
     }
+
+    //  Unregister all the registered engines.
+    for (engines_t::iterator it = engines.begin (); it != engines.end (); it ++)
+        (*it)->cast_to_pollable ()->unregister_event ();
 }
 
 template <class T>
@@ -307,6 +316,7 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
         //  Ask engine to register itself.
         engine = command_.args.register_engine.engine;
         engine->cast_to_pollable ()->register_event (this);
+        engines.push_back (engine);
         break;
 
     //  Unregister the engine.

@@ -55,7 +55,10 @@ namespace zmq
         }
 
         //  Accept the new connection.
-        fd_t accept ();
+        ZMQ_EXPORT fd_t accept ();
+
+        //  Closes the underlying socket without destroying the object.
+        ZMQ_EXPORT void close ();
 
     private:
 

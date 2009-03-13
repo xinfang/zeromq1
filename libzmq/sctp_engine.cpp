@@ -188,8 +188,7 @@ void zmq::sctp_engine_t::timer_event ()
 
 void zmq::sctp_engine_t::unregister_event ()
 {
-    //  TODO: Implement this.
-    assert (false);
+    //  TODO: Implement this. For now we'll do nothing here.
 }
 
 void zmq::sctp_engine_t::revive (pipe_t *pipe_)
