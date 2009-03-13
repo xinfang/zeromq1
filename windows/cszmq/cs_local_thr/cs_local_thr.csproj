@@ -41,13 +41,17 @@
   </Target>
   -->
   <ItemGroup>
-    <Reference Include="cszmq, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\cszmq\bin\Release\cszmq.dll</HintPath>
-    </Reference>
+    <Reference Include="cszmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a6ac03f4afe7a9b0, processorArchitecture=MSIL" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="cs_local_thr.cs" />
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
 </Project>

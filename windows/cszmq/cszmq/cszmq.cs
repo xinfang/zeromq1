@@ -2,11 +2,14 @@
 using System.Runtime.InteropServices;
 
 
+
 namespace zmq
 {
 
     public class Dnzmq : IDisposable
     {
+
+        
         private bool isDisposed = false;
         private IntPtr zmq_;
 
