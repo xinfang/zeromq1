@@ -9,6 +9,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "vb_local_thr", "vb_local_th
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "vb_remote_thr", "vb_remote_thr\vb_remote_thr.vbproj", "{EA3EF2C0-668E-442E-8B7C-A19A24BDFB4C}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "pack", "pack\pack.vbproj", "{FFDDA6AA-AFC7-455E-B677-CCAD38684196}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{EA3EF2C0-668E-442E-8B7C-A19A24BDFB4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA3EF2C0-668E-442E-8B7C-A19A24BDFB4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA3EF2C0-668E-442E-8B7C-A19A24BDFB4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFDDA6AA-AFC7-455E-B677-CCAD38684196}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFDDA6AA-AFC7-455E-B677-CCAD38684196}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFDDA6AA-AFC7-455E-B677-CCAD38684196}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFDDA6AA-AFC7-455E-B677-CCAD38684196}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
