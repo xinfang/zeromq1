@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-
-
 namespace zmq
 {
 
     public class Dnzmq : IDisposable
     {
-
-        
         private bool isDisposed = false;
         private IntPtr zmq_;
 
@@ -44,7 +40,7 @@ namespace zmq
 
         public bool IsOpen { get { return zmq_ == IntPtr.Zero; } }
 
-        public void mask (int message_mask)
+        public void Mask (int message_mask)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
@@ -88,12 +84,41 @@ namespace zmq
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
+
+            //  TODO: Commented code pins the memory down instead of copying
+            //  the content. However, the performance result are undecisive.
+            //  Check this out in the future.
+            //
+            //if (data.Length < 131072)
+            //{
             IntPtr ptr = Marshal.AllocHGlobal (data.Length);
             Marshal.Copy (data, 0, ptr, data.Length);
-            czmq_send (zmq_, eid, ptr, Convert.ToUInt32 (data.Length), freeHGlobal);
+            try
+            {
+                czmq_send (zmq_, eid, ptr,
+                    Convert.ToUInt32 (data.Length), freeHGlobal);
+            }
+            catch
+            {
+                freeHGlobal (ptr);
+            }
+            //}
+            //else
+            //{
+            //    Pinner pin = new Pinner (
+            //        GCHandle.Alloc (data, GCHandleType.Pinned));
+            //    try
+            //    {
+            //        czmq_send (zmq_, eid, pin.handle.AddrOfPinnedObject (),
+            //            Convert.ToUInt32 (data.Length), pin.Unpin);
+            //    }
+            //    catch
+            //    {
+            //        pin.handle.Free ();
+            //    }
+            //}
         }
 
-        
         public int receive (out byte[] data, out int type)
         {
             if (zmq_ == IntPtr.Zero)
@@ -116,17 +141,13 @@ namespace zmq
             data = new byte[dataSize];
             Marshal.Copy (ptr, data, 0, data.Length);
             if (freeFunc != null)
-               freeFunc (ptr);
+                freeFunc (ptr);
             return qid;
         }
+
         [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
         private delegate void FreeMsgData (IntPtr ptr);
         private static FreeMsgData freeHGlobal = Marshal.FreeHGlobal;
-
-        public static void Free (IntPtr ptr)
-        {
-            Marshal.FreeHGlobal (ptr);
-        }
 
         public void Close ()
         {
@@ -162,36 +183,36 @@ namespace zmq
 
         #region C API
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
+        [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr czmq_create (string host);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq")]
+        [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern void czmq_destroy (IntPtr zmq);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq")]
+        [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern void czmq_mask (IntPtr zmq, UInt32 message_mask);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
+        [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         static extern int czmq_create_exchange (IntPtr zmq, string exchange,
             int scope, string nic, int style);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
+        [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         static extern int czmq_create_queue (IntPtr zmq, string queue, int scope,
             string nic, Int64 hwm, Int64 lwm, Int64 swapSize);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CharSet = CharSet.Ansi)]
+        [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         static extern void czmq_bind (IntPtr zmq, string exchange, string queue,
             string exchangeArgs, string queueArgs);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern void czmq_send (IntPtr zmq, int eid, IntPtr data_,
             UInt32 size, FreeMsgData ffn);
 
-        [DllImport ("..\\..\\..\\..\\Debug\\libczmq", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern int czmq_receive (IntPtr zmq, [Out] out IntPtr data,
              [Out] out UInt32 size, [Out] out FreeMsgData ffn,
              [Out] out UInt32 type);
-        
+
         #endregion
     }
 }
