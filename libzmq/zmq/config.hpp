@@ -85,7 +85,7 @@ namespace zmq
         api_thread_poll_rate = 100,
 
         //  Maximal delay to process command in API thread (in CPU tics).
-        //  This setting is used only on x86 platform with GCC compiler.
+        //  This setting is used only on x86 platform with GCC or MSVC compiler.
         api_thread_max_command_delay = 3000000,
 
         //  Maximum number of events the wait() method of I/O thread
