@@ -69,6 +69,13 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
 
 zmq::pipe_t::~pipe_t ()
 {
+    //  Adjust the queue size statistics.
+    if (size_monitoring) {
+        int delta = head % queue_size_granularity;
+        if (delta != 0)
+            source_context->adjust_queue_size (queue_name.c_str (), -delta);
+    }
+
     //  Destroy the swap file.
     if (swap)
         delete swap;
@@ -136,6 +143,13 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
 void zmq::pipe_t::write_delimiter ()
 {
+    //  This is the last write so adjust the queue size statistics.
+    if (size_monitoring) {
+        int delta = tail % queue_size_granularity;
+        if (delta != 0)
+            source_context->adjust_queue_size (queue_name.c_str (), delta);
+    }
+
     raw_message_t delimiter;
     raw_message_init_delimiter (&delimiter);
     pipe.write (delimiter);
