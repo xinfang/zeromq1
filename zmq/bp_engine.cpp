@@ -56,6 +56,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
+    pipe_cnt (0),
     socket (hostname_),
     poller (NULL),
     handle (0),
@@ -86,6 +87,7 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
     read_pos (0),
     encoder (&mux),
     decoder (&demux),
+    pipe_cnt (0),
     socket (listener_),
     poller (NULL),
     handle (0),
@@ -117,7 +119,6 @@ void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 
     //  Initialise the poll handle.
     poller->set_fd (handle, socket.get_fd ());
-    poller->set_pollin (handle);
 }
 
 bool zmq::bp_engine_t::in_event ()
@@ -270,12 +271,12 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         //  Start sending messages to a pipe.
         if (!socket_error) {
 
+            demux.send_to (command_.args.send_to.pipe);
+
             //  If pipe limits are set, POLLIN may be turned off
             //  because there are no pipes to send messages to.
-            if (demux.no_pipes ())
+            if (pipe_cnt ++ == 0)
                 poller->set_pollin (handle);
-
-            demux.send_to (command_.args.send_to.pipe);
         }
         break;
 
@@ -285,6 +286,9 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         if (!socket_error) {
             mux.receive_from (command_.args.receive_from.pipe);
             poller->set_pollout (handle);
+
+            if (pipe_cnt ++ == 0)
+                poller->set_pollin (handle);
         }
         break;
 

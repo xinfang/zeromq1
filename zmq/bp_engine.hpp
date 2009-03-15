@@ -103,6 +103,9 @@ namespace zmq
         //  Backend wire-level protocol decoder.
         bp_decoder_t decoder;
 
+        //  Number of attached pipes (both inboud and outbound).
+        int pipe_cnt;
+
         //  Underlying TCP/IP socket.
         tcp_socket_t socket;
 
