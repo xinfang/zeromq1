@@ -49,8 +49,10 @@ def main ():
     start = datetime.now ()
     for i in range (0, roundtrip_count):
         z.send (eid, msg_out)
-        msg_in = z.receive ()
-        assert len (msg_in) == message_size
+        list = z.receive ()
+        msg_in = list [1]
+        msg_size = list [2]
+        assert msg_size == message_size
     end = datetime.now ()
 
     delta = end - start

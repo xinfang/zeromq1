@@ -43,10 +43,11 @@ def main ():
         interface = sys.argv [2])
 
     for i in range (0, roundtrip_count):
-        msg = z.receive ()
+        list = z.receive ()
+        msg = list [1]
         z.send (eid, msg)
 
-   time.sleep (2)
+    time.sleep (2)
 
 
 if __name__ == "__main__":
