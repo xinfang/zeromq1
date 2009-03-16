@@ -67,8 +67,8 @@ class cs_local_lat
         //  Start sending messages.
         for (int i = 0; i < roundtrip_count; i++)
         {
-            w.send (eid, out_msg);
-            w.receive (out in_msg, out type);
+            w.send (eid, out_msg, Dnzmq.TRUE);
+            w.receive (out in_msg, out type, Dnzmq.TRUE);
             Debug.Assert (in_msg.Length == msg_size);
         }
 

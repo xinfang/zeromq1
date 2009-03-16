@@ -18,6 +18,9 @@ namespace zmq
         public const int STYLE_DATA_DISTRIBUTION = 1;
         public const int STYLE_LOAD_BALANCING = 2;
 
+        public const int FALSE = 0;
+        public const int TRUE = 1;        
+
         public Dnzmq ()
         {
             zmq_ = IntPtr.Zero;
@@ -80,7 +83,7 @@ namespace zmq
             }
         };
 
-        public void send (int eid, byte[] data)
+        public void send (int eid, byte[] data, int block)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
@@ -96,7 +99,7 @@ namespace zmq
             try
             {
                 czmq_send (zmq_, eid, ptr,
-                    Convert.ToUInt32 (data.Length), freeHGlobal);
+                    Convert.ToUInt32 (data.Length), freeHGlobal, block);
             }
             catch
             {
@@ -119,7 +122,7 @@ namespace zmq
             //}
         }
 
-        public int receive (out byte[] data, out int type)
+        public int receive (out byte[] data, out int type, int block)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
@@ -129,7 +132,7 @@ namespace zmq
             FreeMsgData freeFunc;
             UInt32 _type;
             int qid = czmq_receive (zmq_, out ptr, out dataSize, out freeFunc,
-                out _type);
+                out _type, block);
             type = (int) _type;
 
             if (ptr == IntPtr.Zero)
@@ -206,12 +209,12 @@ namespace zmq
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern void czmq_send (IntPtr zmq, int eid, IntPtr data_,
-            UInt32 size, FreeMsgData ffn);
+            UInt32 size, FreeMsgData ffn, int block);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern int czmq_receive (IntPtr zmq, [Out] out IntPtr data,
              [Out] out UInt32 size, [Out] out FreeMsgData ffn,
-             [Out] out UInt32 type);
+             [Out] out UInt32 type, int block);
 
         #endregion
     }

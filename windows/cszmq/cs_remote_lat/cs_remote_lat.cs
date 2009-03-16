@@ -57,9 +57,9 @@ class cs_remote_lat
         {
             byte[] msg;
             int type;
-            w.receive (out msg, out type);
-            Debug.Assert (msg.Length == msg_size);                
-            w.send (eid, msg);
+            w.receive (out msg, out type, Dnzmq.TRUE);
+            Debug.Assert (msg.Length == msg_size);
+            w.send (eid, msg, Dnzmq.TRUE);
         }
 
         System.Threading.Thread.Sleep (5000);

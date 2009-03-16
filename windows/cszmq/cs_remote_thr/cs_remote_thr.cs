@@ -50,7 +50,7 @@ class cs_remote_thr
 
         //  Start sending messages.
         for (int i = 0; i < msg_count; i++)
-            w.send (eid, msg);
+            w.send (eid, msg, Dnzmq.TRUE);
             
         System.Threading.Thread.Sleep (100000);
 

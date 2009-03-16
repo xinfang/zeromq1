@@ -53,7 +53,7 @@ class cs_local_thr
         //  Receive the first message.
         byte [] msg;
         int type;
-        w.receive (out msg, out type);
+        w.receive (out msg, out type, Dnzmq.TRUE);
         Debug.Assert (msg.Length == msg_size);
 
         //  Start measuring the time.
@@ -64,7 +64,7 @@ class cs_local_thr
         //  Start receiving messages
         for (int i = 0; i < msg_count - 1; i++)
         {
-            w.receive (out msg, out type);
+            w.receive (out msg, out type, Dnzmq.TRUE);
             Debug.Assert (msg.Length == msg_size);
         }
 
