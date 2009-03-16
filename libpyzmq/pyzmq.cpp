@@ -162,16 +162,17 @@ PyObject *pyZMQ_send (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     PyObject *py_msg = PyString_FromStringAndSize (NULL, 0);
     int exchange_id = 0;
+    bool block = true;
 
-    static const char *kwlist [] = {"exchange_id", "msg", NULL};
+    static const char *kwlist [] = {"exchange_id", "msg", "block", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwdict, "iS", (char**) kwlist,
-          &exchange_id, &py_msg))
+    if (!PyArg_ParseTupleAndKeywords(args, kwdict, "iSb", (char**) kwlist,
+          &exchange_id, &py_msg, &block))
         return NULL;
     
     zmq::message_t msg (PyString_Size (py_msg));
     memcpy (msg.data (), PyString_AsString (py_msg), msg.size ());
-    self->api_thread->send (exchange_id, msg);
+    self->api_thread->send (exchange_id, msg, block);
 
     Py_INCREF (Py_None);
     return Py_None;
@@ -180,7 +181,14 @@ PyObject *pyZMQ_send (pyZMQ *self, PyObject *args, PyObject *kwdict)
 PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     zmq::message_t msg;
-    int qid = self->api_thread->receive (&msg);
+    bool block;
+    static const char *kwlist [] = {"block", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwdict, "i", (char**) kwlist,
+          &block))
+        return NULL;
+
+    int qid = self->api_thread->receive (&msg, block);
     
     return Py_BuildValue ("is#i", qid, (char*) msg.data (), msg.size (), 
         msg.type ());
