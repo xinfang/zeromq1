@@ -34,6 +34,9 @@ extern "C" {
 #define CZMQ_STYLE_DATA_DISTRIBUTION 1
 #define CZMQ_STYLE_LOAD_BALANCING 2
 
+#define CZMQ_TRUE 1
+#define CZMQ_FALSE 0
+
 typedef void (czmq_free_fn) (void *data_);
 
 void ZMQ_EXPORT *czmq_create (const char *host_);
@@ -46,10 +49,10 @@ int ZMQ_EXPORT czmq_create_queue (void *obj_, const char *queue_, int scope_,
 void ZMQ_EXPORT czmq_bind (void *obj_, const char *exchange_, 
     const char *queue_, const char *exchange_arguments_, 
     const char *queue_arguments_);
-void ZMQ_EXPORT czmq_send (void *obj_, int eid_, void *data_, size_t size,
-    czmq_free_fn *ffn_);
+int ZMQ_EXPORT czmq_send (void *obj_, int eid_, void *data_, size_t size,
+    czmq_free_fn *ffn_, int block_);
 int ZMQ_EXPORT czmq_receive (void *obj_, void **data_, size_t *size_,
-    czmq_free_fn **ffn_, uint32_t *type_);
+    czmq_free_fn **ffn_, uint32_t *type_, int block_);
 
 #ifdef __cplusplus
 }
