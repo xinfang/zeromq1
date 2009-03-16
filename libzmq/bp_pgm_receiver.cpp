@@ -224,10 +224,12 @@ ssize_t zmq::bp_pgm_receiver_t::receive_with_offset
 {
 
     //  Data from PGM socket.
+    void *rd = NULL;
     unsigned char *raw_data = NULL;
 
     // Read data from underlying pgm_socket.
-    ssize_t nbytes = pgm_socket->receive ((void**)&raw_data);
+    ssize_t nbytes = pgm_socket->receive ((void**) &rd);
+    raw_data = (unsigned char*) rd;
 
     //  No ODATA or RDATA.
     if (!nbytes)
