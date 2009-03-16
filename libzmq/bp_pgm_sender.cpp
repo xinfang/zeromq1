@@ -146,10 +146,10 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     poller->set_pollin (uplink_handle);
 }
 
-//  In event on sender side means NAK receiving from some peer.
+//  In event on sender side means NAK or SPMR receiving from some peer.
 void zmq::bp_pgm_sender_t::in_event ()
 {
-    pgm_socket.process_NAK ();
+    pgm_socket.process_upstream ();
 }
 
 void zmq::bp_pgm_sender_t::out_event ()

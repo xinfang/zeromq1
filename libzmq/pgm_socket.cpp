@@ -30,8 +30,8 @@
 
 #include <zmq/pgm_socket.hpp>
 
-#define PGM_SOCKET_DEBUG
-#define PGM_SOCKET_DEBUG_LEVEL 1
+//#define PGM_SOCKET_DEBUG
+//#define PGM_SOCKET_DEBUG_LEVEL 1
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -465,7 +465,7 @@ ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
         nbytes_rec = pgm_transport_recvmsgv (g_transport, pgm_msgv, 
             pgm_msgv_len, MSG_DONTWAIT);
   
-        //  In a case when not ODATA/RDATA fired POLLIN event (SPM...)
+        //  In a case when no ODATA/RDATA fired POLLIN event (SPM...)
         //  pgm_transport_recvmsg returns -1 with errno == EAGAIN.
         if (nbytes_rec == -1 && errno == EAGAIN) {
         
@@ -485,7 +485,11 @@ ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
         }
 
         //  Catch the rest of the errors.
-        errno_assert (nbytes_rec > 0);
+        if (nbytes_rec <= 0) {
+            zmq_log (1, "received %i B, errno %i, %s(%i)", (int)nbytes_rec, errno,
+                __FILE__, __LINE__);
+            errno_assert (nbytes_rec > 0);
+        }
    
         zmq_log (4, "received %i bytes\n", (int)nbytes_rec);
     }
@@ -508,8 +512,9 @@ ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
     return raw_data_len;
 }
 
-void zmq::pgm_socket_t::process_NAK (void)
+void zmq::pgm_socket_t::process_upstream (void)
 {
+    zmq_log (1, "On upstream packet, %s(%i)\n", __FILE__, __LINE__);
     //  We acctually do not want to read any data here we are going to 
     //  process NAK.
     pgm_msgv_t dummy_msg;

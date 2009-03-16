@@ -77,6 +77,9 @@ int main (int argc, char *argv [])
 
     perf::time_instant_t start_time = 0;
 
+    // Packet sequence number.
+    uint32_t seq_num = 0;
+
     for (unsigned int i = 0; i < msg_count; i++) {
         api->receive (&message);
         if (i == 0) {
@@ -85,20 +88,41 @@ int main (int argc, char *argv [])
         }
 
         if (message.type () == zmq::message_gap) {
-            cout << endl << endl << i << " " << "GAP" << endl << endl << endl; 
+            cout << endl << "msg# "<< i << " GAP" << endl << endl;
+
+            //  Rather assert in a case of data loss to avoid misleading
+            //  throughput test results.
+            assert (false);
+
+            //  Out of data stream.
+            seq_num = 0;
+            continue;
+
         } else {
+
+            //  Check incomming message size.
             assert (message.size () == msg_size);
         }
-/*
-        if (msg_size >= sizeof (uint32_t)) {
-            if (i != zmq::get_uint32 ((unsigned char*)message.data ())) {
-                cout << "wrong message seq received " << endl << flush;
+
+        //  In the beg. of the test or after data loss get seq. number 
+        //  from packet.
+        if (message.size () > sizeof (uint32_t) && seq_num == 0) {
+            seq_num = zmq::get_uint32 ((unsigned char*) message.data ());
+        } else {
+            seq_num++;
+        }
+
+        //  Check seq numbers.
+        if (message.size () >  sizeof (uint32_t)) {
+            uint32_t current_seq = 
+                zmq::get_uint32 ((unsigned char*) message.data ());
+            if (seq_num != current_seq) {
+                cerr << "current seq #" << current_seq 
+                    << " should be #" << seq_num << endl;
                 assert (false);
             }
         }
-*/
-        if (i % 100000 == 0 && i > 0)
-            cout << i << " " << flush;
+
     }
 
     //  Capture the end timestamp of the test.
