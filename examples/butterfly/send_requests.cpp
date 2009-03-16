@@ -107,7 +107,6 @@ int main (int argc, char *argv [])
         //  Send messages. We don't bother to fill any data in.
         for (int counter = 0; counter != transaction_count; counter ++) {
             message_t msg (100);
-            memset ((unsigned char*) msg.data (), 0, sizeof (uint64_t));  
             api->send (eid, msg);
         }
 
