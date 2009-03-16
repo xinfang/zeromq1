@@ -37,7 +37,7 @@ class j_remote_lat
 
          //  Initialise 0MQ runtime.
          Jzmq obj = new Jzmq (hostname);
-
+         
          //  Create the wiring.
          int eid = obj.createExchange ("EG", Jzmq.SCOPE_GLOBAL, outInterface, 
 			Jzmq.STYLE_LOAD_BALANCING);

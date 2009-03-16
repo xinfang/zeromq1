@@ -43,6 +43,7 @@ class Jzmq
      //  zmq_server is running.
      public Jzmq (String hostname)
      {
+        construct (hostname);
      }
      
      //  Specifies which notifications should be received.
