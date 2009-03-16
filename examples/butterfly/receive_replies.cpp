@@ -55,12 +55,12 @@ int main (int argc, char *argv [])
 
         //  Wait for all the replies.
         for (int counter = 0; counter != transaction_count; counter ++) {
-            zmq::message_t msg;
+            message_t msg;
             api->receive (&msg);
         }
 
         //  Send the synchronisation messages to 'send_requests' application.
-        zmq::message_t sync (1);
+        message_t sync (1);
         api->send (eid, sync);
     }
 

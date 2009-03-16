@@ -58,7 +58,7 @@ int main (int argc, char *argv [])
     api->create_queue ("INTERMEDIATE_IN", scope_global,
         in_interface, io, 1, &io);
     int eid = api->create_exchange ("INTERMEDIATE_OUT", scope_global,
-        out_interface, io, 1, &io, zmq::style_load_balancing);
+        out_interface, io, 1, &io, style_load_balancing);
 
     //  Main event loop.
     while (true) {
