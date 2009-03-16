@@ -180,15 +180,10 @@ PyObject *pyZMQ_send (pyZMQ *self, PyObject *args, PyObject *kwdict)
 PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     zmq::message_t msg;
-    self->api_thread->receive (&msg);
-    return PyString_FromStringAndSize ((char*) msg.data (), msg.size ());
-}
-
-PyObject *pyZMQ_receive2 (pyZMQ *self, PyObject *args, PyObject *kwdict)
-{
-    zmq::message_t msg;
     int qid = self->api_thread->receive (&msg);
-    return Py_BuildValue ("is#", qid, (char*) msg.data (), msg.size ());
+    
+    return Py_BuildValue ("is#i", qid, (char*) msg.data (), msg.size (), 
+        msg.type ());
 }
 
 static PyMethodDef pyZMQ_methods [] =
@@ -246,15 +241,8 @@ static PyMethodDef pyZMQ_methods [] =
         "receive",
         (PyCFunction) pyZMQ_receive,
         METH_VARARGS | METH_KEYWORDS, 
-        "receive () -> message\n\n"
+        "receive () -> (queue-id, message, type)\n\n"
         "Receive a message."
-    },
-    {
-        "receive2",
-        (PyCFunction) pyZMQ_receive2,
-        METH_VARARGS | METH_KEYWORDS, 
-        "receive2 () -> (queue-id, message)\n\n"
-        "Receive a message. Get ID of the queue it was received from."
     },
     {
         NULL
