@@ -42,7 +42,7 @@ def main ():
 
     msg = ''.join ([' ' for n in range (0, message_size)])
     for i in range (0, message_count):
-        z.send (eid, msg)
+        z.send (eid, msg, True)
 
     time.sleep (2)
 

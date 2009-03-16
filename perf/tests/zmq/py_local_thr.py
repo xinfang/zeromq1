@@ -42,12 +42,12 @@ def main ():
     z.create_queue (queue_name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
         interface = sys.argv [2])
 
-    list = z.receive ()
+    list = z.receive (True)
     msg_size = list [2]
     assert msg_size == message_size
     start = datetime.now ()
     for i in range (1, message_count):
-        list = z.receive ()
+        list = z.receive (True)
         msg = list [1]
         msg_size = list [2]
         assert msg_size == message_size

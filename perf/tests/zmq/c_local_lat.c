@@ -88,7 +88,7 @@ int main (int argc, char *argv [])
     uint64_t start;
     uint64_t end; 
     double latency;
-    
+        
     /*  Parse command line arguments.  */
     if (argc != 4) {
         printf ("usage: c_local_lat <hostname> <message-size> "
@@ -121,8 +121,8 @@ int main (int argc, char *argv [])
     start = now ();
     
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        czmq_send (handle, eid, out_buf, message_size, NULL);
-        czmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL);
+        czmq_send (handle, eid, out_buf, message_size, NULL, CZMQ_TRUE);
+        czmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL, CZMQ_TRUE);
         assert (in_size == message_size);
         if (in_ffn)
             in_ffn (in_buf);

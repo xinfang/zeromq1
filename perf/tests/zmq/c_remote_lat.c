@@ -67,9 +67,9 @@ int main (int argc, char *argv [])
     czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        czmq_receive (handle, &buf, &size, &ffn, NULL);
+        czmq_receive (handle, &buf, &size, &ffn, NULL, CZMQ_TRUE);
         assert (size == message_size);
-        czmq_send (handle, eid, buf, size, ffn);
+        czmq_send (handle, eid, buf, size, ffn, CZMQ_TRUE);
     }
 #ifdef ZMQ_HAVE_WINDOWS
     Sleep (2000);

@@ -48,8 +48,8 @@ def main ():
     msg_out = ''.join ([' ' for n in range (0, message_size)])
     start = datetime.now ()
     for i in range (0, roundtrip_count):
-        z.send (eid, msg_out)
-        list = z.receive ()
+        z.send (eid, msg_out, True)
+        list = z.receive (True)
         msg_in = list [1]
         msg_size = list [2]
         assert msg_size == message_size

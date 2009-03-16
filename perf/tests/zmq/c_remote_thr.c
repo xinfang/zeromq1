@@ -63,7 +63,7 @@ int main (int argc, char *argv [])
     assert (out_buf);
 
     for (counter = 0; counter != message_count + 1; counter ++)
-        czmq_send (handle, eid, out_buf, message_size, NULL);
+        czmq_send (handle, eid, out_buf, message_size, NULL, CZMQ_TRUE);
 
     /*  Wait till all messages are sent.  */
 #ifdef ZMQ_HAVE_WINDOWS

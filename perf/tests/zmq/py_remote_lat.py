@@ -43,9 +43,9 @@ def main ():
         interface = sys.argv [2])
 
     for i in range (0, roundtrip_count):
-        list = z.receive ()
+        list = z.receive (True)
         msg = list [1]
-        z.send (eid, msg)
+        z.send (eid, msg, True)
 
     time.sleep (2)
 
