@@ -36,9 +36,16 @@ int main (int argc, char *argv [])
     int quit = 0;
     bool sdl_initialised = false;
 
-    if (argc != 3) {
-        fprintf (stderr, "Usage: receiver <hostname> <camera name>\n");
+    if (argc != 3 && argc != 4) {
+        fprintf (stderr, "Usage: receiver <hostname> <camera name> [bind option]\n");
         exit (1);
+    }
+
+    //  If supplied read bind option.
+    //  For PGM bind option should be interface to the sender.
+    const char *bind_option = NULL;
+    if (argc == 4) {
+        bind_option = argv [3];
     }
 
     //  Initialise 0MQ infrastructure
@@ -64,7 +71,7 @@ int main (int argc, char *argv [])
     //  7. Bind our local exit point (queue) to a globally visible message entry
     //     point (exchange identified by "camera name"). Specify that the
     //     connection created should be handled by worker thread "pt".
-    api->bind (argv [2], "Q", pt, pt);
+    api->bind (argv [2], "Q", pt, pt, bind_option);
 
     //  Display video until user asks to quit
     while (!quit) {
