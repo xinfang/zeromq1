@@ -307,6 +307,9 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                             engines.begin (), engines.end (),
                             command.args.engine_command.engine);
 
+                        engine_command_t *engine_command =
+                            &command.args.engine_command.command;
+
                         //  Forward the command to the engine.
                         //  TODO: If the engine doesn't exist drop the command.
                         //        However, imagine there's another engine
@@ -314,6 +317,14 @@ bool zmq::poll_thread_t::process_commands (uint32_t signals_)
                         if (it != engines.end ())
                             command.args.engine_command.engine->process_command(
                                 command.args.engine_command.command);
+
+                        //  If we get command for non-registered engine,
+                        //  check whether it is head command. If so, call
+                        //  set_head method so that swapped messages will
+                        //  get transfered into the memory buffer.
+                        else if (engine_command->type == engine_command_t::head)
+                            engine_command->args.head.pipe->
+                                set_head (engine_command->args.head.position);
                     }
                     break;
 
