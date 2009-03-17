@@ -156,77 +156,65 @@ int main (int argc, char *argv [])
 #else
            errno_assert (rc != -1);
 #endif
-       }    
+       }
+
+        //  Accept incoming connection.
+        if (FD_ISSET (fd_int, &result_set_fds)) {
+#ifdef ZMQ_TRACE
+            printf ("Opening connection.\n");
+#endif
+	    socket_list.push_back (new tcp_socket_t (listening_socket, true));           
+            fd_t s = socket_list.back ()->get_fd ();
+            FD_SET (s, &source_set_fds);
+            
+            if (maxfdp1 <= s)
+                maxfdp1 = s + 1;
+
+            continue;
+        }
       
-       //  Traverse all the sockets.
-       for (socket_list_t::size_type pos = 0; pos < socket_list.size ();
-             pos ++) {
+        //  Traverse all the sockets.
+        for (socket_list_t::size_type pos = 0; pos < socket_list.size ();
+              pos ++) {
  	   
-           //  Get the socket being currently being processed.
-           fd_t s = socket_list [pos]->get_fd ();
-           
-           if (FD_ISSET (s, &error_set_fds)) {
-                
-                //  Delete the tcp_socket from socket_list. 
-                delete socket_list [pos];
-                socket_list.erase (socket_list.begin () + pos);
-                
-                //  Erase the whole list of file descriptors selectfds and add
-                //  them back without the one erased from socket_list.
-                FD_ZERO (&source_set_fds);
-                FD_SET (fd_int , &source_set_fds);
-                for (socket_list_t::size_type i = 0; i < socket_list.size ();
-                     i ++) 
-                    FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-                 
-                continue;
-            }
-	    else if (FD_ISSET (s, &result_set_fds)) {
+            //  Get the socket being currently being processed.
+            fd_t s = socket_list [pos]->get_fd ();
+
+            //  If select signalises error, close the connection.
+            if (FD_ISSET (s, &error_set_fds))
+                goto error;
+
+	    if (FD_ISSET (s, &result_set_fds)) {
            
                 //  Read command ID.
                 unsigned char cmd;
                 unsigned char reply;
                 int nbytes = socket_list [pos]->read (&cmd, 1);
+                if (nbytes != 1)
+                    goto error;
 
-                //  Connection closed by peer.
-                if (nbytes == -1 || nbytes == 0) {
-
-                    //  Delete the tcp_socket from socket_list. 
-                    delete socket_list [pos];
-                    socket_list.erase (socket_list.begin () + pos);
-
-	                //  Erase the whole list of filedescriptors selectfds
-                        //  and add them back without the one erased
-                        //  from socket_list.
-                        FD_ZERO (&source_set_fds);
-                        FD_SET (fd_int , &source_set_fds);
-                        for (socket_list_t::size_type i = 0;
-                              i < socket_list.size (); i ++)                            
-                        FD_SET (socket_list [i]->get_fd (), &source_set_fds);
-
-                    continue;
-                }
-
-                assert (nbytes == 1);
-
+                //  Process individual commands.
                 switch (cmd) {
                 case create_id:
                     {
                         //  Parse object name.
                         unsigned char size;
                         nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
                         char name [256];
                         nbytes = socket_list [pos]->read (&name, size);
-                        assert (nbytes == size);
+                        if (nbytes != size);
                         name [size] = 0;
 
                         //  Parse location.
                         nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
                         char location [256];
                         nbytes = socket_list [pos]->read (&location, size);
-                        assert (nbytes == size);
+                        if (nbytes != size)
+                            goto error;
                         location [size] = 0;
 
                         //  Insert object to the repository.
@@ -239,7 +227,8 @@ int main (int argc, char *argv [])
                         //  Send reply command.
                         reply = create_ok_id;
                         nbytes = socket_list [pos]->write (&reply, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
 #ifdef ZMQ_TRACE
                         printf ("Object %s created (%s).\n", name,
                             location);
@@ -251,10 +240,12 @@ int main (int argc, char *argv [])
                         //  Parse object name.
                         unsigned char size;
                         nbytes = socket_list [pos]->read (&size, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
                         char name [256];
                         nbytes = socket_list [pos]->read (&name, size);
-                        assert (nbytes == size);
+                        if (nbytes != size)
+                            goto error;
                         name [size] = 0;
 
                         //  Find the exchange in the repository.
@@ -265,7 +256,8 @@ int main (int argc, char *argv [])
                             reply = fail_id;
 
                             nbytes = socket_list [pos]->write (&reply, 1);                             
-                            assert (nbytes == 1);
+                            if (nbytes != 1)
+                                goto error;
 #ifdef ZMQ_TRACE
                             printf ("Error when looking for an object: "
                                 "object %s does not exist.\n", name);
@@ -276,16 +268,18 @@ int main (int argc, char *argv [])
                         //  Send reply command.
                         reply = get_ok_id;
                         nbytes = socket_list [pos]->write (&reply, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
 
                         //  Send the location.
                         size = it->second.size ();
                         nbytes = socket_list [pos]->write (&size, 1);
-                        assert (nbytes == 1);
+                        if (nbytes != 1)
+                            goto error;
                         nbytes = socket_list [pos]->write (
                             it->second.c_str (), size);
-                        assert (nbytes == size);
-
+                        if (nbytes != size)
+                            goto error;
 #ifdef ZMQ_TRACE
                         printf ("Object %s retrieved (%s).\n",
                             name, it->second.c_str ());
@@ -293,23 +287,28 @@ int main (int argc, char *argv [])
                         break;
                     }
                 default:
-                    assert (false);
+                    goto error;
                 }
             }
 
-        }
-	
-        //  Accept incoming connection.
-        if (FD_ISSET (fd_int, &result_set_fds)) {    
-	        socket_list.push_back (
-                    new tcp_socket_t (listening_socket, true));           
-            fd_t s = socket_list.back ()->get_fd ();
-            FD_SET (s, &source_set_fds);
-            
-            if (maxfdp1 <= s)
-                maxfdp1 = s + 1;
-        }
+            //  Everything is OK. Move to next socket.
+            continue;
 
+error:
+#ifdef ZMQ_TRACE
+            printf ("Closing connection.\n");
+#endif
+            //  Delete the tcp_socket from list of active connections. 
+            delete socket_list [pos];
+            socket_list.erase (socket_list.begin () + pos);
+
+	    //  Erase the whole list of filedescriptors selectfds and add them
+            //  back without the one erased from socket_list.
+            FD_ZERO (&source_set_fds);
+            FD_SET (fd_int , &source_set_fds);
+            for (socket_list_t::size_type i = 0; i < socket_list.size (); i ++)                            
+                FD_SET (socket_list [i]->get_fd (), &source_set_fds);
+        }
     }
 
 #ifdef ZMQ_HAVE_WINDOWS
