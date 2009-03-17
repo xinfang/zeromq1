@@ -15,37 +15,51 @@ namespace zmq
         scope_global
     };
 
+    enum style_t
+    {
+        style_data_distribution,
+        style_load_balancing
+    };
+
+    enum
+    {
+        no_limit,
+        no_swap
+    };
+
     class api_thread_t
     {
         static api_thread_t *create (dispatcher_t *dispatcher, i_locator *locator);
+        void mask (uint32_t notifications);
         int create_exchange (
-            const char *exchange,
+            const char *name,
             scope_t scope = scope_local,
-            const char *interface = NULL,
-            poll_thread_t *listener_thread = NULL,
-            int handler_thread_count = 0,
-            poll_thread_t **handler_threads = NULL);
-        int create_queue (
-            const char *queue,
-            scope_t scope_ = scope_local,
-            const char *interface = NULL,
+            const char *location = NULL,
             poll_thread_t *listener_thread = NULL,
             int handler_thread_count = 0,
             poll_thread_t **handler_threads = NULL,
-            int64_t hwm = -1,
-            int64_t lwm = -1);
+            style_t style = style_data_distribution);
+        int create_queue (
+            const char *name,
+            scope_t scope_ = scope_local,
+            const char *location = NULL,
+            poll_thread_t *listener_thread = NULL,
+            int handler_thread_count = 0,
+            poll_thread_t **handler_threads = NULL,
+            int64_t hwm = no_limit,
+            int64_t lwm = no_limit,
+            int64_t swap = no_swap);
         void bind (
-            const char *exchange,
-            const char *queue,
+            const char *exchange_name,
+            const char *queue_name,
             poll_thread_t *exchange_thread,
             poll_thread_t *queue_thread,
-            const char *exchange_arguments = NULL,
-            const char *queue_arguments = NULL);
-        void mask (uint32_t message_mask);
-        void send (int exchange_id, message_t &msg);
-        void presend (int exchange_id, message_t &msg);
+            const char *exchange_options = NULL,
+            const char *queue_options = NULL);
+        void send (int exchange, message_t &message);
+        void presend (int exchange, message_t &message);
         void flush ();
-        int receive (message_t *msg, bool block = true);
+        int receive (message_t *message, bool block = true);
     };
 }
 .fi
@@ -76,23 +90,32 @@ it is attached to is destroyed.  The
 .IR locator
 argument specifies the locator object to use when registering and looking
 for objects (exchanges and queues).
-.IP "\fBint create_exchange (const char *exchange, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL)\fP
+.IP "\fBvoid mask (uint32_t notifications)\fP
+This function allows you to specify what messages are to be received.
+By default only standard data messages are received. Check
+.IR message_t
+manpage for different types of messages. Combine individual message types
+you want to receive using binary OR operator to get
+.IR notifications
+argument. Receiving data messages cannot be switched off.
+.IP "\fBint create_exchange (const char *name, scope_t scope = scope_local, const char *location = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, style_t style = style_data_distribution)\fP
 Creates an exchange. The name of the exchange to create is specified by the
-.IR exchange
+.IR name
 parameter.  The
 .IR scope
 parameter specifies visibility of the exchange (see
 .IR scope_t
 enumeration above). If the exchange is being created with local or process
-scope, subsequent parameters do not need to be specified. If it is created with
+scope, subsequent parameters except of
+.IR style
+do not need to be specified. If it is created with
 global scope they are mandatory.  The
-.IR interface
-parameter specifies the network interface card used to pass outgoing traffic
-from this exchange.  It is either the IP address of the NIC or its symbolic
-name. '*' stands for 'all interfaces'. In this case, interface to use
-will be chosen by the operating system. Optionally, the port can be specified
-this way: 'eth0:5555'. If the port is not specified, an unused port will
-automatically be used.  The
+.IR location
+parameter specifies the netowrk location of this exchange.  It is either
+the IP address of the NIC or its symbolic name. '*' stands for 'all interfaces'.
+In this case, interface to use will be chosen by the operating system.
+Optionally, the port can be specified this way: 'eth0:5555'. If the port is not
+specified, an unused port will automatically be used.  The
 .IR listener_thread
 parameter specifies which I/O thread should process connection requests
 (when other parties are binding to this exchange). Once the connection
@@ -103,23 +126,36 @@ array.  The size of the array is specified by the
 .IR handler_thread_count
 parameter. Newly created connections are distributed between handler threads
 in a round-robin manner.
-.IP "\fBint create_queue (const char *queue, scope_t scope = scope_local, const char *interface = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, int64_t hwm = -1, int64_t lwm = -1)\fP
+.IR style
+argument specifies the algorithm the exchange should use to distribute messages
+to the bound queues.
+.IR style_data_distribution
+means that each message is sent to all the bound queues.
+.IR style_load_balancing
+means that each message is sent to exactly one queue. Messages are distributed
+among the queues in round-robin fashion.
+.IP "\fBint create_queue (const char *name, scope_t scope = scope_local, const char *location = NULL, poll_thread_t *listener_thread = NULL, int handler_thread_count = 0, poll_thread_t **handler_threads = NULL, int64_t hwm = no_limit, int64_t lwm = no_limit, int64_t swap = no_swap)\fP
 Creates a queue. The name of the queue to create is specified by the
-.IR queue
+.IR name
 parameter.  The
 .IR scope
 parameter specifies the visibility of the queue (see
 .IR scope_t
 the enumeration above). If the queue is being created with local or process
-scope, subsequent parameters do not need to be specified. If it is created
+scope, subsequent parameters except
+.IR hwm
+, 
+.IR lwm
+and
+.IR swap
+do not need to be specified. If it is created
 with global scope they are mandatory.  The
-.IR interface
-parameter specifies the network interface card used to pass incoming traffic
-to this queue. It is either the IP address of the NIC or its symbolic name. '*'
-stands for 'all interfaces'. In this case, interface to use will be chosen
-by the operating system. Optionally, the port can be specified this
-way: 'eth0:5555'. If the port is not specified, an unused port will
-automatically be used.  The
+.IR location
+parameter specifies the network location of the queue. It is either the IP
+address of the NIC or its symbolic name. '*' stands for 'all interfaces'.
+In this case, interface to use will be chosen by the operating system.
+Optionally, the port can be specified this way: 'eth0:5555'. If the port
+is not specified, an unused port will automatically be used.  The
 .IR listener_thread
 parameter specifies which I/O thread should process connection requests
 (when other parties are binding to this queue). Once the connection
@@ -136,7 +172,9 @@ number of messages in the queue it blocks and no more messages can be written
 to it. Application attempting to write a message to the queue will be blocked
 until number of messages in it drops below low water mark.
 .IR hwm
-equal to -1 means there's no limit on the number of messages in the queue.
+equal to
+.IR no_limit
+means there's no limit on the number of messages in the queue.
 .IR lwm
 specifies low water mark for the queue. If the queue is blocked because
 high watermark was reached, it becomes unblocked once the number of messages
@@ -144,18 +182,16 @@ in it drops below
 .IR lwm .
 If
 .IR hwm
-is set to unlimited (-1)
+is set to
+.IR no_limit
 .IR lwm
 paramter is ignored.
-.IP "\fBvoid bind (const char *exchange, const char *queue, poll_thread_t *exchange_thread, poll_thread_t *queue_thread, const char *exchange_arguments = NULL, const char *queue_arguments = NULL)\fP
-Binds
-.IR queue
-to
-.IR exchange .
-Binding means that messages sent to the
-.IR exchange
-will be forwarded to the
-.IR queue .
+.IP "\fBvoid bind (const char *exchange_name, const char *queue_name, poll_thread_t *exchange_thread, poll_thread_t *queue_thread, const char *exchange_options = NULL, const char *queue_options = NULL)\fP
+Binds the queue specified by
+.IR queue_name
+to the exchange specified by
+.IR exchange_name .
+Binding means that messages sent to the exchange will be forwarded to the queue.
 If the
 .IR exchange
 is in a different process the
@@ -167,36 +203,28 @@ resides in a different process the
 .IR queue_thread
 parameter specifies which I/O thread should be used to handle the network
 traffic.
-.IR exchange_arguments
+.IR exchange_options
 and
-.IR queue_arguments
-can contain additional information passed to eachange and queue engine.
+.IR queue_options
+can contain additional information passed to exchange and queue engine.
 Interpretation of these strings is dependent on the transport mechanism used.
-.IP "\fBvoid mask (uint32_t message_mask)\fP
-This function allows you to specify what messages are to be received.
-By default only standard data messages are received. Check
-.IR message_t
-manpage for different types of messages. Combine individual message types
-you want to receive using binary OR operator to get
-.IR message_mask
-argument. Receiving data messages cannot be switched off.
-.IP "\fBvoid send (int exchange_id, message_t &msg)\fP
+.IP "\fBvoid send (int exchange, message_t &message)\fP
 Sends a message to exchange specified by the
-.IR exchange_id
+.IR exchange
 parameter. The exchange ID is the ID returned by the
 .IR create_exchange
 method. The
-.IR msg
-object will be cleared in this function - it'll represent 0-byte long messages
+.IR message
+object will be cleared in this function - it'll be 0-byte long message
 after the call. If there are any pending pre-sent messages pending,
 .IR send
 will flush them immediately so that the correct message ordering
 will be retained.
-.IP "\fBvoid presend (int exchange_id, message_t &msg)\fP"
+.IP "\fBvoid presend (int exchange, message_t &message)\fP"
 Identical to
 .IR send 
 except that the message specified by the
-.IR msg
+.IR message
 parameter won't be sent immediately, rather it'll wait till next call to
 .IR flush
 or
@@ -215,9 +243,9 @@ almost unmeasurable.
 Flushes all the pre-sent messages to their destinations (see
 .IR presend
 method).
-.IP "\fBint receive (message_t *msg, bool block = true)\fP"
+.IP "\fBint receive (message_t *message, bool block = true)\fP"
 Gets a message from 0MQ.  The message will be stored in the object pointed to by
-.IR msg
+.IR message
 parameter.  The old content of the object will be destoyed silently. By default
 (when the
 .IR block

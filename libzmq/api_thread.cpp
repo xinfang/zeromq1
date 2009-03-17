@@ -47,8 +47,13 @@ zmq::api_thread_t::~api_thread_t ()
 {
 }
 
-int zmq::api_thread_t::create_exchange (const char *exchange_,
-    scope_t scope_, const char *interface_,
+void zmq::api_thread_t::mask (uint32_t notifications_)
+{
+    message_mask = notifications_ | message_data;
+}
+
+int zmq::api_thread_t::create_exchange (const char *name_,
+    scope_t scope_, const char *location_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_, style_t style_)
 {
@@ -56,11 +61,11 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
     //  Make sure that the exchange doesn't already exist.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
-        assert (it->first != exchange_);
+        assert (it->first != name_);
 
     out_engine_t *engine = out_engine_t::create (
         style_ == style_load_balancing);
-    exchanges.push_back (exchanges_t::value_type (exchange_, engine));
+    exchanges.push_back (exchanges_t::value_type (name_, engine));
 
     //  If the scope of the exchange is local, we won't register it
     //  with the locator.
@@ -68,26 +73,26 @@ int zmq::api_thread_t::create_exchange (const char *exchange_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    dispatcher->create (locator, this, false, exchange_, this, engine,
-        scope_, interface_, listener_thread_,
+    dispatcher->create (locator, this, false, name_, this, engine,
+        scope_, location_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
     return exchanges.size () - 1;
 }
 
-int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
-    const char *interface_, i_thread *listener_thread_,
+int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
+    const char *location_, i_thread *listener_thread_,
     int handler_thread_count_, i_thread **handler_threads_,
-    int64_t hwm_, int64_t lwm_, uint64_t swap_size_)
+    int64_t hwm_, int64_t lwm_, uint64_t swap_)
 {
     //  Insert the queue to the local list of queues.
     //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
-        assert (it->first != queue_);
+        assert (it->first != name_);
 
-    in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_size_);
-    queues.push_back (queues_t::value_type (queue_, engine));
+    in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_);
+    queues.push_back (queues_t::value_type (name_, engine));
 
     //  If the scope of the queue is local, we won't register it
     //  with the locator.
@@ -95,31 +100,32 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    dispatcher->create (locator, this, true, queue_, this, engine,
-        scope_, interface_, listener_thread_, handler_thread_count_,
+    dispatcher->create (locator, this, true, name_, this, engine,
+        scope_, location_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
     return queues.size ();
 }
 
-void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
-    i_thread *exchange_thread_, i_thread *queue_thread_,
-    const char *exchange_arguments_, const char *queue_arguments_)
+void zmq::api_thread_t::bind (const char *exchange_name_,
+    const char *queue_name_, i_thread *exchange_thread_,
+    i_thread *queue_thread_, const char *exchange_options_,
+    const char *queue_options_)
 {
     //  Find the exchange.
     i_thread *exchange_thread;
     i_engine *exchange_engine;
     exchanges_t::iterator eit;
     for (eit = exchanges.begin (); eit != exchanges.end (); eit ++)
-        if (eit->first == exchange_)
+        if (eit->first == exchange_name_)
             break;
     if (eit != exchanges.end ()) {
         exchange_thread = this;
         exchange_engine = eit->second;
     }
     else {
-        dispatcher->get (locator, this, exchange_, &exchange_thread,
-            &exchange_engine, exchange_thread_, queue_, exchange_arguments_);
+        dispatcher->get (locator, this, exchange_name_, &exchange_thread,
+            &exchange_engine, exchange_thread_, queue_name_, exchange_options_);
     }
 
     //  Find the queue.
@@ -127,15 +133,15 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     i_engine *queue_engine;
     queues_t::iterator qit;
     for (qit = queues.begin (); qit != queues.end (); qit ++)
-        if (qit->first == queue_)
+        if (qit->first == queue_name_)
             break;
     if (qit != queues.end ()) {
         queue_thread = this;
         queue_engine = qit->second;
     }
     else {
-        dispatcher->get (locator, this, queue_, &queue_thread, &queue_engine,
-            queue_thread_, exchange_, queue_arguments_);
+        dispatcher->get (locator, this, queue_name_, &queue_thread,
+            &queue_engine, queue_thread_, exchange_name_, queue_options_);
     }
 
     //  Create the pipe.
@@ -154,22 +160,17 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
     send_command (queue_thread, cmd_receive_from);
 }
 
-void zmq::api_thread_t::mask (uint32_t message_mask_)
-{
-    message_mask = message_mask_ | message_data;
-}
-
-bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
+bool zmq::api_thread_t::send (int exchange_, message_t &message_, bool block_)
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    assert (msg_.type () == message_data);
+    assert (message_.type () == message_data);
 
     //  Process pending commands, if any.
     process_commands ();
 
     //  Try to send the message.
-    bool sent = exchanges [exchange_id_].second->write (msg_);
+    bool sent = exchanges [exchange_].second->write (message_);
 
     if (block_) {
 
@@ -177,7 +178,7 @@ bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
         //  command, process it and try to send the message again.
         while (!sent) {
             process_commands (pollset.poll ());
-            sent = exchanges [exchange_id_].second->write (msg_);
+            sent = exchanges [exchange_].second->write (message_);
         }
     }
 
@@ -185,19 +186,20 @@ bool zmq::api_thread_t::send (int exchange_id_, message_t &msg_, bool block_)
     //  TODO: This is inefficient in the case of load-balancing mode. Message
     //  is written to a single pipe, however, the flush is done on all the
     //  pipes.
-    exchanges [exchange_id_].second->flush ();
+    exchanges [exchange_].second->flush ();
 
     return sent;
 }
 
-bool zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
+bool zmq::api_thread_t::presend (int exchange_, message_t &message_,
+    bool block_)
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    assert (msg_.type () == message_data);
+    assert (message_.type () == message_data);
 
     //  Try to send the message.
-    bool sent = exchanges [exchange_id_].second->write (msg_);
+    bool sent = exchanges [exchange_].second->write (message_);
 
     if (block_) {
 
@@ -206,7 +208,7 @@ bool zmq::api_thread_t::presend (int exchange_id_, message_t &msg_, bool block_)
         //  available, wait for one.
         while (!sent) {
             process_commands (pollset.poll ());
-            sent = exchanges [exchange_id_].second->write (msg_);
+            sent = exchanges [exchange_].second->write (message_);
         }
     }
 
@@ -224,7 +226,7 @@ void zmq::api_thread_t::flush ()
         it->second->flush ();
 }
 
-int zmq::api_thread_t::receive (message_t *msg_, bool block_)
+int zmq::api_thread_t::receive (message_t *message_, bool block_)
 {
     bool retrieved = false;
     int qid = 0;
@@ -246,8 +248,8 @@ int zmq::api_thread_t::receive (message_t *msg_, bool block_)
 
                //  Get a message or notification that user is subscribed for.
                while (true) {
-                   retrieved = queues [current_queue].second->read (msg_);
-                   if (retrieved && !(msg_->type () & message_mask))
+                   retrieved = queues [current_queue].second->read (message_);
+                   if (retrieved && !(message_->type () & message_mask))
                        continue;
                    break;
                }
