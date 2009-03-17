@@ -152,7 +152,22 @@ void zmq::pipe_t::write_delimiter ()
 
     raw_message_t delimiter;
     raw_message_init_delimiter (&delimiter);
-    pipe.write (delimiter);
+
+    //  Write the delimiter either to the pipe or to the swap.
+    if (swapping) {
+
+        //  If the space in the swap file was used up, abort the application.
+        bool rc = swap->store (&delimiter);
+        assert (rc);
+    }
+    else {
+        pipe.write (delimiter);
+        in_memory_tail ++;
+    }
+
+    //  Move the tail.
+    tail ++;
+
     flush ();
 }
 
