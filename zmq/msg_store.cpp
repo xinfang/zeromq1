@@ -81,11 +81,14 @@ bool zmq::msg_store_t::store (raw_message_t *msg)
     //  Write the message length.
     copy_to_file (&msg_size, sizeof msg_size);
 
-    //  Write the message body.
-    copy_to_file (raw_message_data (msg), msg_size);
-
-    //  Destroy the message.
-    raw_message_destroy (msg);
+    if (msg_size > 0) {
+        copy_to_file (raw_message_data (msg), msg_size);
+        raw_message_destroy (msg);
+    }
+    else {
+        int tag = raw_message_tag (msg);
+        copy_to_file (&tag, sizeof tag);
+    }
 
     //  Update the message counter.
     n_msgs ++;
@@ -103,8 +106,21 @@ void zmq::msg_store_t::fetch (raw_message_t *msg)
     copy_from_file (&msg_size, sizeof msg_size);
 
     //  Build the message.
-    raw_message_init (msg, msg_size);  
-    copy_from_file (raw_message_data (msg), msg_size);
+    if (msg_size > 0) {
+        raw_message_init (msg, msg_size);
+        copy_from_file (raw_message_data (msg), msg_size);
+    }
+    else {
+        int tag;
+        copy_from_file (&tag, sizeof tag);
+
+        if (tag == raw_message_t::delimiter_tag)
+            raw_message_init_delimiter (msg);
+        else if (tag == raw_message_t::vsm_tag)
+            raw_message_init (msg, 0);
+        else
+            assert (false);
+    }
 
     //  Update the message counter.
     n_msgs --;

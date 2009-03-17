@@ -189,6 +189,21 @@ namespace zmq
         return msg_->content->size;
     }
 
+    //  Returns the message tag.
+    inline int raw_message_tag (raw_message_t *msg_)
+    {
+        if (msg_->content == (message_content_t*) raw_message_t::vsm_tag)
+            return raw_message_t::vsm_tag;
+        if (msg_->content == (message_content_t*) raw_message_t::delimiter_tag)
+            return raw_message_t::delimiter_tag;
+
+        //  Either regular message or unsupported tag.
+        assert (false);
+
+        //  Just to keep some compilers happy.
+        return -1;
+    }
+
 }
 
 #endif
