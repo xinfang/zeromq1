@@ -92,7 +92,7 @@ int main (int argc, char *argv [])
 
             //  Rather assert in a case of data loss to avoid misleading
             //  throughput test results.
-            assert (false);
+            //assert (false);
 
             //  Out of data stream.
             seq_num = 0;

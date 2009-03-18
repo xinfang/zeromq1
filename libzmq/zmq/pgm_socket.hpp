@@ -85,6 +85,12 @@ namespace zmq
 
         //  Returns maximum count of apdus which fills readbuf_size_
         size_t get_max_apdu_at_once (size_t readbuf_size_);
+
+        //  Return true if TSI has empty GSI ('\0') and sport 0.
+        bool tsi_empty (const pgm_tsi_t *tsi_);
+
+        //  Compare TSIs, return true if equal.
+        bool tsi_equal (const pgm_tsi_t *tsi_a_, const pgm_tsi_t *tsi_b_);
         
         //  true when pgm_socket should create receiving side.
         bool receiver;
@@ -122,6 +128,12 @@ namespace zmq
     
         //  Receiver transport uses 2 fd.
         enum {pgm_receiver_fd_count = 2};
+
+        //  TSI of the actual peer.
+        pgm_tsi_t tsi;
+
+        //  Previous peer TSI.
+        pgm_tsi_t retired_tsi;
 
     };
 }

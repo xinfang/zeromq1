@@ -57,14 +57,19 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     pgm_msgv_processed (0),
     pgm_msgv_len (0)
 {
+    
+    //  Set actual_tsi and prev_tsi to zeros.
+    memset (&tsi, '\0', sizeof (pgm_tsi_t));
+    memset (&retired_tsi, '\0', sizeof (pgm_tsi_t));
 
     //  Check if we are encapsulating into UDP, interface string has to 
     //  start with udp:.
 
     const char *interface_ptr = interface_;
 
-    if (strlen (interface_) > 4 && interface_ [0] == 'u' && interface_ [1] == 'd'
-        && interface_ [2] == 'p' && interface_ [3] == ':') {
+    if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
+          interface_ [1] == 'd' && interface_ [2] == 'p' && 
+          interface_ [3] == ':') {
     
         //  Shift interface_ptr after ':'.
         interface_ptr += 4;
@@ -140,12 +145,14 @@ void zmq::pgm_socket_t::open_transport (void)
     if (udp_encapsulation) {
 
         //  Use the same port for UDP encapsulation.
-        ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = g_htons (port_number);
-	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = g_htons (port_number);
+        ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = 
+            g_htons (port_number);
+	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = 
+            g_htons (port_number);
     }
 
-    rc = pgm_transport_create (&g_transport, &gsi, 0, port_number, &recv_gsr, 1, 
-        &send_gsr);
+    rc = pgm_transport_create (&g_transport, &gsi, 0, port_number, &recv_gsr, 
+        1, &send_gsr);
     errno_assert (rc == 0);
 
     //  Common parameters for receiver and sender.
@@ -486,8 +493,8 @@ ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
 
         //  Catch the rest of the errors.
         if (nbytes_rec <= 0) {
-            zmq_log (1, "received %i B, errno %i, %s(%i)", (int)nbytes_rec, errno,
-                __FILE__, __LINE__);
+            zmq_log (1, "received %i B, errno %i, %s(%i)", (int)nbytes_rec, 
+                errno, __FILE__, __LINE__);
             errno_assert (nbytes_rec > 0);
         }
    
@@ -497,12 +504,71 @@ ssize_t zmq::pgm_socket_t::receive (void **raw_data_)
     assert (nbytes_rec > 0);
 
     // Only one APDU per pgm_msgv_t structure is allowed. 
-    assert (pgm_msgv[pgm_msgv_processed].msgv_iovlen == 1);
+    assert (pgm_msgv [pgm_msgv_processed].msgv_iovlen == 1);
 
     //  Take pointers from pgm_msgv_t structure.
     *raw_data_ = pgm_msgv[pgm_msgv_processed].msgv_iov->iov_base;
     size_t raw_data_len = pgm_msgv[pgm_msgv_processed].msgv_iov->iov_len;
-      
+
+    //  Check if peer TSI did not change, this is detection of peer restart.
+    const pgm_tsi_t *current_tsi = pgm_msgv [pgm_msgv_processed].msgv_tsi;
+
+    //  If empty store new TSI.
+    if (tsi_empty (&tsi)) {
+        //  Store current peer TSI.
+        memcpy (&tsi, current_tsi, sizeof (pgm_tsi_t));
+#ifdef PGM_SOCKET_DEBUG
+        uint8_t *gsi = (uint8_t*)(&tsi)->gsi.identifier;
+#endif
+
+        zmq_log (1, "First peer TSI: %i.%i.%i.%i.%i.%i.%i, %s(%i)\n",
+            gsi [0], gsi [1], gsi [2], gsi [3], gsi [4], gsi [5], 
+            ntohs (tsi.sport), __FILE__, __LINE__);
+    }
+
+    //  Compare stored TSI with actual.
+    if (!tsi_equal (&tsi, current_tsi)) {
+        //  Peer change detected.
+        zmq_log (1, "Peer change detected, %s(%i)\n", __FILE__, __LINE__);
+        
+        //  Compare with retired TSI, in case of match ignore APDU.
+        if (tsi_equal (&retired_tsi, current_tsi)) {
+            zmq_log (1, "Retired TSI - ignoring APDU, %s(%i)\n", 
+                __FILE__, __LINE__); 
+            
+            //  Move the the next pgm_msgv_t structure.
+            pgm_msgv_processed++;
+            nbytes_processed +=raw_data_len;
+            
+            return 0;
+
+        } else {
+            zmq_log (1, "New TSI, %s(%i)\n", __FILE__, __LINE__); 
+
+            //  Store new TSI and move last valid to retired_tsi
+            memcpy (&retired_tsi, &tsi, sizeof (pgm_tsi_t));
+            memcpy (&tsi, current_tsi, sizeof (pgm_tsi_t));
+
+#ifdef PGM_SOCKET_DEBUG
+            uint8_t *gsi = (uint8_t*)(&retired_tsi)->gsi.identifier;
+#endif
+            zmq_log (1, "retired TSI: %i.%i.%i.%i.%i.%i.%i, %s(%i)\n",
+                gsi [0], gsi [1], gsi [2], gsi [3], gsi [4], gsi [5], 
+                ntohs (retired_tsi.sport), __FILE__, __LINE__);
+
+#ifdef PGM_SOCKET_DEBUG
+            gsi = (uint8_t*)(&tsi)->gsi.identifier;
+#endif
+            zmq_log (1, "        TSI: %i.%i.%i.%i.%i.%i.%i, %s(%i)\n",
+                gsi [0], gsi [1], gsi [2], gsi [3], gsi [4], gsi [5], 
+                ntohs (tsi.sport), __FILE__, __LINE__);
+
+            //  Peers change is recognized as a GAP.
+            return -1;
+        }
+
+    }
+        
     //  Move the the next pgm_msgv_t structure.
     pgm_msgv_processed++;
     nbytes_processed +=raw_data_len;
@@ -526,4 +592,44 @@ void zmq::pgm_socket_t::process_upstream (void)
     assert (dummy_bytes == -1 && errno == EAGAIN);
 }
 
+bool zmq::pgm_socket_t::tsi_equal (const pgm_tsi_t *tsi_a_, 
+    const pgm_tsi_t *tsi_b_)
+{
+    //  Compare 6B GSI.
+    const uint8_t *gsi_a = tsi_a_->gsi.identifier;
+    const uint8_t *gsi_b = tsi_b_->gsi.identifier;
+
+    if (gsi_a [0] != gsi_b [0] || gsi_a [1] != gsi_b [1] || 
+          gsi_a [2] != gsi_b [2] || gsi_a [3] != gsi_b [3] ||
+          gsi_a [4] != gsi_b [4] || gsi_a [5] != gsi_b [5]) {
+
+        return false;
+    }
+
+    //  Compare source port.
+    if (tsi_a_->sport != tsi_b_->sport) {
+        return false;
+    }
+
+    return true;
+}
+
+bool zmq::pgm_socket_t::tsi_empty (const pgm_tsi_t *tsi_)
+{
+
+    uint8_t *gsi = (uint8_t*)tsi_->gsi.identifier;
+
+    //  GSI.
+    if (gsi [0] != 0 || gsi [1] != 0 || gsi [2] != 0 || 
+         gsi [3] != 0 || gsi [4] != 0 || gsi [5] != 0) {
+        return false;
+    }
+
+    //  Source port.
+    if (tsi_->sport != 0) {
+        return false;
+    }
+
+    return true;
+}
 #endif
