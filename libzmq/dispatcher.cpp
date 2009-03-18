@@ -101,7 +101,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
 
 void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
     bool source_, const char *object_, i_thread *thread_,
-    i_engine *engine_, scope_t scope_, const char *interface_,
+    i_engine *engine_, scope_t scope_, const char *location_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_)
 {
@@ -117,9 +117,17 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
     //  Add the object to the global locator.
     if (scope_ == scope_global) {
 
+        //  If location of the global object is not specified, retrieve it
+        //  from the directory service.
+        char buff [256];
+        if (!location_ || strlen (location_) == 0) {
+            locator_->resolve_endpoint (object_, buff, sizeof (buff));
+            location_ = buff;
+        }
+
         //  Create a listener for the object.
         i_engine *listener = engine_factory_t::create_listener (
-            calling_thread_, listener_thread_, interface_,
+            calling_thread_, listener_thread_, location_,
             handler_thread_count_, handler_threads_,
             source_, thread_, engine_, object_);
 
