@@ -147,7 +147,7 @@ void zmq::pgm_socket_t::open_transport (void)
         //  Use the same port for UDP encapsulation.
         ((struct sockaddr_in*)&send_gsr.gsr_group)->sin_port = 
             g_htons (port_number);
-	((struct sockaddr_in*)&recv_gsr.gsr_source)->sin_port = 
+	((struct sockaddr_in*)&recv_gsr.gsr_group)->sin_port = 
             g_htons (port_number);
     }
 
@@ -284,7 +284,6 @@ void zmq::pgm_socket_t::open_transport (void)
     //  Bind a transport to the specified network devices.
     rc = pgm_transport_bind (g_transport);
     assert (rc == 0);
-
 
 }
 
