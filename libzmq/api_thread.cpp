@@ -249,9 +249,8 @@ int zmq::api_thread_t::receive (message_t *message_, bool block_)
                //  Get a message or notification that user is subscribed for.
                while (true) {
                    retrieved = queues [current_queue].second->read (message_);
-                   if (retrieved && !(message_->type () & message_mask))
-                       continue;
-                   break;
+                   if (!retrieved || (message_->type () & message_mask))
+                       break;
                }
 
                if (retrieved)
