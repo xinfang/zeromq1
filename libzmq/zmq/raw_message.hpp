@@ -210,14 +210,14 @@ namespace zmq
     }
 
     //  Returns type of the message.
-    inline uint32_t raw_message_type (raw_message_t *msg_)
+    inline int raw_message_type (raw_message_t *msg_)
     {
         if (msg_->content >= (message_content_t*) raw_message_t::vsm_tag)
-            return 1 << 0;
+            return 0;
 
         //   Trick the compiler to believe that content is an integer.
         unsigned char *offset = 0;
-        return 1 << (int) (((const unsigned char*) msg_->content) - offset);
+        return (((const unsigned char*) msg_->content) - offset);
     }
 
 }

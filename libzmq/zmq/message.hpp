@@ -101,7 +101,7 @@ namespace zmq
         //  Returns message type.
         inline uint32_t type ()
         {
-            return raw_message_type (this);
+            return 1 << raw_message_type (this);
         }
 
         //  Returns pointer to message's data buffer.
