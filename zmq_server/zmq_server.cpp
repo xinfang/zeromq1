@@ -52,6 +52,7 @@ using namespace std;
 #include <zmq/server_protocol.hpp>
 #include <zmq/xmlParser.hpp>
 using namespace zmq;
+#define ZMQ_TRACE
 //  Maps object name to object info.
 typedef map <string, string> objects_t;
 
@@ -204,7 +205,8 @@ int main (int argc, char *argv [])
                             goto error;
                         char name [256];
                         nbytes = socket_list [pos]->read (&name, size);
-                        if (nbytes != size);
+                        if (nbytes != size)
+                            goto error;
                         name [size] = 0;
 
                         //  Parse location.
