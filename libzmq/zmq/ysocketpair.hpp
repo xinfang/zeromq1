@@ -31,6 +31,7 @@
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/export.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS 
 #include <zmq/windows.hpp>
@@ -58,10 +59,10 @@ namespace zmq
     public:
 
         //  Initialise the object.
-        ysocketpair_t ();
+        ZMQ_EXPORT ysocketpair_t ();
 
         //  Destroy the object.
-        ~ysocketpair_t ();
+        ZMQ_EXPORT ~ysocketpair_t ();
 
         //  Send specific signal.
         void signal (int signal_);
@@ -73,7 +74,7 @@ namespace zmq
         uint32_t check ();
 
         //  Get the file descriptor associated with the object.
-        fd_t get_fd ();
+        ZMQ_EXPORT fd_t get_fd ();
 
     private:
 
