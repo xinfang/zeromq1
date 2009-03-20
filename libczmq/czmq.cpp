@@ -50,10 +50,10 @@ void *czmq_create (const char *host_)
     return (void*) context;
 }
 
-void czmq_destroy (void *obj_)
+void czmq_destroy (void *object_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
+    context_t *context = (context_t*) object_;
 
     //  Deallocate the 0MQ infrastructure.   
     delete context->locator;
@@ -61,81 +61,68 @@ void czmq_destroy (void *obj_)
     delete context;
 }
 
-void czmq_mask (void *obj_, uint32_t message_mask_)
+void czmq_mask (void *object_, uint32_t notifications_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;  
+    context_t *context = (context_t*) object_;  
 
     //  Forward the call.
-    context->api_thread->mask (message_mask_);
+    context->api_thread->mask (notifications_);
 }
 
-int czmq_create_exchange (void *obj_, const char *exchange_, int scope_,
-    const char *nic_, int style_)
+int czmq_create_exchange (void *object_, const char *name_, int scope_,
+    const char *location_, int style_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
-
-    //  Get the scope.
-    zmq::scope_t scope = zmq::scope_local;
-    if (scope_ == CZMQ_SCOPE_GLOBAL)
-        scope = zmq::scope_global;
-
-    //  Get the style.
-    zmq::style_t style = zmq::style_data_distribution;
-    if (style_ == CZMQ_STYLE_LOAD_BALANCING)
-        style = zmq::style_load_balancing;
+    context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
-    return context->api_thread->create_exchange (exchange_, scope, nic_,
-        context->io_thread, 1, &context->io_thread, style);
+    return context->api_thread->create_exchange (name_, (zmq::scope_t) scope_,
+        location_, context->io_thread, 1, &context->io_thread,
+        (zmq::style_t) style_);
 }
 
-int czmq_create_queue (void *obj_, const char *queue_, int scope_,
-    const char *nic_, int64_t hwm_, int64_t lwm_, int64_t swap_size_)
+int czmq_create_queue (void *object_, const char *name_, int scope_,
+    const char *location_, int64_t hwm_, int64_t lwm_, int64_t swap_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
-
-    //  Get the scope.
-    zmq::scope_t scope = zmq::scope_local;
-    if (scope_ == CZMQ_SCOPE_GLOBAL)
-        scope = zmq::scope_global;
+    context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
-    return context->api_thread->create_queue (queue_, scope, nic_,
-        context->io_thread, 1, &context->io_thread, hwm_, lwm_, swap_size_);
+    return context->api_thread->create_queue (name_, (zmq::scope_t) scope_,
+        location_, context->io_thread, 1, &context->io_thread,
+        hwm_, lwm_, swap_);
 }
 
-void czmq_bind (void *obj_, const char *exchange_, const char *queue_, 
-     const char *exchange_arguments_, const char *queue_arguments_)
+void czmq_bind (void *object_, const char *exchange_name_,
+     const char *queue_name_, const char *exchange_options_,
+     const char *queue_options_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
+    context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
-    context->api_thread->bind (exchange_, queue_,
+    context->api_thread->bind (exchange_name_, queue_name_,
         context->io_thread, context->io_thread,
-        exchange_arguments_, queue_arguments_);
+        exchange_options_, queue_options_);
 }
 
-int czmq_send (void *obj_, int eid_, void *data_, size_t size_,
+int czmq_send (void *object_, int exchange_, void *data_, size_t size_,
     czmq_free_fn *ffn_, int block_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
+    context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
     zmq::message_t msg (data_, size_, ffn_);
-   
-    return context->api_thread->send (eid_, msg, block_);
+    return context->api_thread->send (exchange_, msg, block_);
 }
 
-int czmq_receive (void *obj_, void **data_, size_t *size_, czmq_free_fn **ffn_,
-    uint32_t *type_, int block_)
+int czmq_receive (void *object_, void **data_, size_t *size_,
+    czmq_free_fn **ffn_, uint32_t *type_, int block_)
 {
     //  Get the context.
-    context_t *context = (context_t*) obj_;
+    context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
     zmq::message_t msg;

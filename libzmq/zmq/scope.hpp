@@ -27,15 +27,15 @@ namespace zmq
     {
         //  Local scope means that the object is visible only within
         //  the engine that created it.
-        scope_local,
+        scope_local = 1,
 
         //  Process scope means that the object is visible to all the engines
         //  within the process registered with the same dispatcher object.
-        scope_process,
+        scope_process = 2,
 
         //  Global scope means that the object is visible to all the 0MQ
         //  processes registered with the same global_locator.
-        scope_global
+        scope_global = 3
     };
 
 }
