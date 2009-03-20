@@ -25,12 +25,12 @@
 #include <sys/types.h>
 
 #include <unicap.h>
-#include <ucil.h>
+#include "./ucil.h"
 #include <SDL.h>
 
 #define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+(((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
 
-int main (int argc, char *argv [])
+int main (void)
 {
     unicap_handle_t handle;
     unicap_device_t device;

@@ -11,5 +11,5 @@ receiver_CXXFLAGS = -Wall @SDL_CFLAGS@ -Werror -Wextra
 
 sender_SOURCES = sender.cpp ./ucil.h
 sender_LDADD = $(top_builddir)/libzmq/libzmq.la
-sender_LDFLAGS = @UNICAP_LIBS@ @UCIL_LIBS@
-sender_CXXFLAGS = -Wall @UNICAP_CFLAGS@ @UCIL_CFLAGS@ -Werror
+sender_LDFLAGS = @UNICAP_LIBS@ @UCIL_LIBS@ @SDL_LIBS@
+sender_CXXFLAGS = -Wall @UNICAP_CFLAGS@ @UCIL_CFLAGS@ @SDL_CFLAGS@ -Werror
