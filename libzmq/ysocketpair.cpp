@@ -43,7 +43,7 @@ zmq::ysocketpair_t::~ysocketpair_t ()
     errno_assert (rc != -1);
 }
 
-zmq::ysocketpair_t::signal (int signal_)
+void zmq::ysocketpair_t::signal (int signal_)
 {
     assert (signal_ >= 0 && signal_ < 32);
     uint64_t inc = 1;
