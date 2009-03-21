@@ -210,7 +210,7 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     int rc;
     int on = 1;
 
-    assert (type == SOCK_STREAM);
+    assert (type_ == SOCK_STREAM);
 
     //  Fill in the localhost address (127.0.0.1).
     lcladdr.sin_family = AF_INET;
