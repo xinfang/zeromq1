@@ -198,3 +198,61 @@ zmq::fd_t zmq::ysocketpair_t::get_fd ()
 }
 
 #endif
+
+#if defined ZMQ_HAVE_OPENVMS
+
+int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
+    int sv_ [2])
+{
+    int listener;
+    sockaddr_in lcladdr;
+    socklen_t lcladdr_len;
+    int rc;
+    int on = 1;
+
+    assert (type == SOCK_STREAM);
+
+    //  Fill in the localhost address (127.0.0.1).
+    lcladdr.sin_family = AF_INET;
+    lcladdr.sin_addr.s_addr = 0x0100007f;
+    lcladdr.sin_port = INADDR_ANY;
+
+    listener = socket (AF_INET, SOCK_STREAM, 0);
+    errno_assert (listener != -1);
+
+    rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
+    errno_assert (rc != -1);
+
+    rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
+    errno_assert (rc != -1);
+
+    rc = bind(listener, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    errno_assert (rc != -1);
+         
+    rc = getsockname (listener, (struct sockaddr*) &lcladdr, &lcladdr_len);
+    errno_assert (rc != -1);
+
+    rc = listen (listener, 1);
+    errno_assert (rc != -1);
+
+    sv [0] = socket (AF_INET, SOCK_STREAM, 0);
+    errno_assert (rc != -1);
+
+    rc = setsockopt (sv [0], IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
+    errno_assert (rc != -1);
+
+    rc = setsockopt (sv [0], IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
+    errno_assert (rc != -1);
+
+    rc = connect(sv [0], (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    errno_assert (rc != -1);
+
+    sv [1] = accept (listener, NULL, NULL);
+    errno_assert (sv [1] != -1);
+
+    close (listener);
+
+    return 0;
+}
+
+#endif

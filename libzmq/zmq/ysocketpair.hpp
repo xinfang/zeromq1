@@ -78,6 +78,19 @@ namespace zmq
 
     private:
 
+#if defined ZMQ_HAVE_OPENVMS
+
+         //  Whilst OpenVMS supports socketpair - it maps to AF_INET only.
+         //  Further, it does not set the socket options TCP_NODELAY and
+         //  TCP_NODELACK which can lead to performance problems. We'll
+         //  overload the socketpair function for this class.
+         //
+         //  The bug will be fixed in V5.6 ECO4 and beyond.  In the
+         //  meantime, we'll create the socket pair manually.
+         static int socketpair (int domain_, int type_, int protocol_,
+             int sv_ [2]);
+#endif
+
 #if defined ZMQ_HAVE_EVENTFD
         //  eventfd descriptor.
         fd_t fd;
