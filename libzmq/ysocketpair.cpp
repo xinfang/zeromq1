@@ -235,20 +235,20 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     rc = listen (listener, 1);
     errno_assert (rc != -1);
 
-    sv [0] = socket (AF_INET, SOCK_STREAM, 0);
+    sv_ [0] = socket (AF_INET, SOCK_STREAM, 0);
     errno_assert (rc != -1);
 
-    rc = setsockopt (sv [0], IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
+    rc = setsockopt (sv_ [0], IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
     errno_assert (rc != -1);
 
-    rc = setsockopt (sv [0], IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
+    rc = setsockopt (sv_ [0], IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
     errno_assert (rc != -1);
 
-    rc = connect(sv [0], (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    rc = connect (sv_ [0], (struct sockaddr*) &lcladdr, sizeof (lcladdr));
     errno_assert (rc != -1);
 
-    sv [1] = accept (listener, NULL, NULL);
-    errno_assert (sv [1] != -1);
+    sv_ [1] = accept (listener, NULL, NULL);
+    errno_assert (sv_ [1] != -1);
 
     close (listener);
 
