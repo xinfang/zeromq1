@@ -35,7 +35,7 @@
 
 zmq::atomic_counter_t zmq::data_dam_t::counter;
 
-zmq::data_dam_t::data_dam_t (size_t filesize_, size_t block_size_) :
+zmq::data_dam_t::data_dam_t (off_t filesize_, size_t block_size_) :
     filesize (filesize_),
     file_pos (0),
     write_pos (0),
@@ -109,7 +109,7 @@ bool zmq::data_dam_t::store (raw_message_t *msg_)
 
     //  Check buffer space availability.
     //  NOTE: We always keep one byte open.
-    if (buffer_space () <= sizeof msg_size + msg_size)
+    if (buffer_space () <= (off_t) (sizeof msg_size + msg_size))
         return false;
 
     //  Write the message length.
@@ -299,7 +299,7 @@ void zmq::data_dam_t::save_write_buf ()
     file_pos += n;
 }
 
-size_t zmq::data_dam_t::buffer_space ()
+off_t zmq::data_dam_t::buffer_space ()
 {
     if (write_pos < read_pos)
         return read_pos - write_pos;
