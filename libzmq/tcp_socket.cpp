@@ -69,6 +69,13 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
+
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+#endif
 }
 
 zmq::tcp_socket_t::~tcp_socket_t ()
@@ -107,8 +114,16 @@ void zmq::tcp_socket_t::reopen ()
 
     //  Disable Nagle's algorithm.
     int flag = 1;
-    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
+        sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
+
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+#endif
 
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
@@ -116,7 +131,8 @@ void zmq::tcp_socket_t::reopen ()
         wsa_assert (rc != SOCKET_ERROR);
 
     if (!(rc == 0 || (rc == -1 &&
-          (WSAGetLastError () == WSAEINPROGRESS || WSAGetLastError () == WSAEWOULDBLOCK)))) {
+          (WSAGetLastError () == WSAEINPROGRESS ||
+          WSAGetLastError () == WSAEWOULDBLOCK)))) {
         close ();
         return;
     }
