@@ -5,7 +5,7 @@ if BUILD_C
 C_TEST_BINS = c_local_lat c_remote_lat c_local_thr c_remote_thr
 endif
 
-if BUILD_OPENPGM
+if BUILD_PGM
 PGM_TEST_BINS = pgm_local_lat pgm_remote_lat \
 pgm_local_thr pgm_remote_thr
 endif
@@ -110,7 +110,7 @@ pgm_receiver_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_receiver_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
 endif
 
-if BUILD_OPENPGM
+if BUILD_PGM
 pgm_local_lat_SOURCES = pgm_local_lat.cpp
 pgm_local_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_local_lat_CPPFLAGS = -Wall -pedantic -Werror -I$(top_srcdir)/libczmq
