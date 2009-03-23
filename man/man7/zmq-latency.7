@@ -83,7 +83,6 @@ network, so run it say on host 10.0.0.1 before starting the test.
 Create a source file (say local.cpp), include the appropriate header files, 
 one containing latency scenario, other one for 0MQ transport. Write dummy main 
 routine (paths to header files may depend on your installation):
-.PP
 .RS 4
 \f(CR
 .nf
@@ -127,7 +126,6 @@ parameters should be known:
 .RE
 .PP
 Deciding on the initialisation arguments we can write the following code:
-.PP
 .RS 4
 \f(CR
 .nf
@@ -190,7 +188,6 @@ include the appropriate header files (one containing latency scenario, other
 one for 0MQ transport). Initialize transport and call proper function from 
 scenario header file (note that paths to header files may depend on your 
 installation):
-.PP
 .RS 4
 \f(CR
 .nf
@@ -230,7 +227,6 @@ Compilation options depend on used transport. According to
 pthreads and 0MQ library. For g++ compiler and 0MQ transport local.cpp and 
 remote.cpp should be compiled in following way (note that 0MQ libraries and 
 header files has to be installed):
-.PP
 .RS 4
 \f(CR
 .nf
@@ -242,7 +238,6 @@ $ g++ remote.cpp -o remote -lpthread -lzmq
 .SS Running the scenario
 To run the scenario, \fBzmq_server\fR(1) has to be started first on local host 
 (10.0.0.1):
-.PP
 .RS 4
 \f(CR
 .nf
@@ -250,9 +245,7 @@ $ zmq_server
 .fi
 \fP
 .RE
-.PP
 Start the local binary on local host (10.0.0.1):
-.PP
 .RS 4
 \f(CR
 .nf
@@ -260,9 +253,7 @@ $ ./local
 .fi
 \fP
 .RE
-.PP
 Then start the remote binary on the remote machine:
-.PP
 .RS 4
 \f(CR
 .nf
@@ -270,9 +261,7 @@ $ ./remote
 .fi
 \fP
 .RE
-.PP
 Output from local binary should show your average latency:
-.PP
 .RS 4
 \f(CR
 .nf
@@ -283,7 +272,6 @@ Your average latency is 45.15 [us]
 .SS Postprocessing
 For statistical postprocessing latency scenario creates tests.dat file on local
 side, each test run adds separate line.
-.PP
 .RS 4
 \f(CR
 .nf
@@ -292,7 +280,6 @@ $ more tests.dat
 .fi
 \fP
 .RE
-.PP
 Columns in the file are arranged as follows: 0, roundtrip count, msg size [B],
 test time [ms], latency [us].
 .SH "SEE ALSO"
