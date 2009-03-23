@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Zmq
-{
 
-    public class Dnzmq : IDisposable
+    public class Zmq : IDisposable
     {
         private bool isDisposed = false;
         private IntPtr zmq_;
@@ -24,17 +22,17 @@ namespace Zmq
 
         public const int NO_SWAP = 0;
 
-        public Dnzmq ()
+        public Zmq ()
         {
             zmq_ = IntPtr.Zero;
         }
 
-        public Dnzmq (string host)
+        public Zmq (string host)
         {
             Open (host);
         }
 
-        ~Dnzmq ()
+        ~Zmq ()
         {
             Dispose (false);
         }
@@ -227,4 +225,3 @@ namespace Zmq
 
         #endregion
     }
-}

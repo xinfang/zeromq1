@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Zmq;
 
 class cs_remote_lat
 {
@@ -44,13 +43,13 @@ class cs_remote_lat
         int roundtripCount = Convert.ToInt32 (args [4]);
 
         //  Create 0MQ Dnzmq class.
-        Dnzmq w = new Dnzmq (host);
+        Zmq w = new Zmq (host);
 
         //  Set up 0MQ wiring.
-        int exchange = w.CreateExchange ("EG", Dnzmq.SCOPE_GLOBAL,
-            exchangeInterface, Dnzmq.STYLE_LOAD_BALANCING);
-        int queue = w.CreateQueue ("QG", Dnzmq.SCOPE_GLOBAL,
-            queueInterface, Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
+        int exchange = w.CreateExchange ("EG", Zmq.SCOPE_GLOBAL,
+            exchangeInterface, Zmq.STYLE_LOAD_BALANCING);
+        int queue = w.CreateQueue ("QG", Zmq.SCOPE_GLOBAL,
+            queueInterface, Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
         byte[] message;
         int type;

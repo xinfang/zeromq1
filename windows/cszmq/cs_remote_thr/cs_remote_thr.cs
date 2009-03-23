@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
-using Zmq;
 
 class CsRemoteThr
 {
@@ -39,11 +38,11 @@ class CsRemoteThr
         int msgCount = Convert.ToInt32 (args[2]);
 
         //  Create 0MQ Dnzmq class
-        Dnzmq w = new Dnzmq (host);
+        Zmq w = new Zmq (host);
         
         //  Set up 0MQ wiring.
-        int exchange = w.CreateExchange ("E", Dnzmq.SCOPE_LOCAL, "", 
-            Dnzmq.STYLE_LOAD_BALANCING);
+        int exchange = w.CreateExchange ("E", Zmq.SCOPE_LOCAL, "", 
+            Zmq.STYLE_LOAD_BALANCING);
         w.Bind ("E", "Q", null, null);
 
         //  Create a message to send.

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using Zmq;
+
 
 class cs_local_thr
 {
@@ -45,11 +45,11 @@ class cs_local_thr
         Console.Out.WriteLine ("message count: " + msgCount);
 
         //  Create the Dnzmq class.
-        Dnzmq w = new Dnzmq (host);
+        Zmq w = new Zmq (host);
 
         //  Set up 0MQ wiring.
-        int queue = w.CreateQueue ("Q", Dnzmq.SCOPE_GLOBAL, queueInterface,
-            Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
+        int queue = w.CreateQueue ("Q", Zmq.SCOPE_GLOBAL, queueInterface,
+            Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
         byte[] message;
         int type;

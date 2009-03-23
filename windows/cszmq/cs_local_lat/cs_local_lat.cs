@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using Zmq;
 
 class cs_local_lat
 {
@@ -45,13 +44,13 @@ class cs_local_lat
         Console.Out.WriteLine ("roundtrip count: " + roundtripCount);
         
         //  Create 0MQ Dnzmq class.
-        Dnzmq w = new Dnzmq (host);
+        Zmq w = new Zmq (host);
 
         //  Set up 0MQ wiring.
-        int exchange = w.CreateExchange ("EL", Dnzmq.SCOPE_LOCAL, "", 
-            Dnzmq.STYLE_LOAD_BALANCING);
-        int queue = w.CreateQueue ("QL", Dnzmq.SCOPE_LOCAL, "",
-            Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
+        int exchange = w.CreateExchange ("EL", Zmq.SCOPE_LOCAL, "",
+            Zmq.STYLE_LOAD_BALANCING);
+        int queue = w.CreateQueue ("QL", Zmq.SCOPE_LOCAL, "",
+            Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
         w.Bind ("EL", "QG", null, null);
         w.Bind ("EG", "QL", null, null);
 
