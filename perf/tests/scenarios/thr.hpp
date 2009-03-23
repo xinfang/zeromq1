@@ -47,134 +47,49 @@
 #include <fstream>
 #include <limits>
 
-#include <zmq/thread.hpp>
 #include "../../transports/i_transport.hpp"
 #include "../../helpers/time.hpp"
 
 namespace perf
 {
-    //  Worker thread arguments structure.
-    struct thr_worker_args_t
-    {
-        //  Transport beeing used by the worker, it has to be created
-        //  in advance.
-        i_transport *transport;
-
-        //  Size of the message being transported in the test.
-        size_t msg_size;
-
-        //  Number of the messages in the test.
-        int msg_count;
-
-        //  Timestamps captured by the worker thread at the beggining & end 
-        //  of the test.
-        time_instant_t start_time;
-        time_instant_t stop_time;
-    };
-
-    //  'Local' worker thread function.
-    void *local_worker_function (void *worker_args_)
-    {
-        thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
-
-        //  Receive msg_nbr messages of msg_size.
-        for (int msg_nbr = 0; msg_nbr < args->msg_count; msg_nbr++)
-        {
-            size_t size = args->transport->receive ();
-
-            //  Capture arrival timestamp of the first message (test start).
-            if (msg_nbr == 0)
-                args->start_time  = now ();
-            
-            //  Check incomming message size.
-            assert (size == args->msg_size);
-        }
-
-        //  Capture test stop timestamp.
-        args->stop_time = now();
-        
-        //  Send sync message to the peer.
-        args->transport->send (1);
-
-        return NULL;
-    }
-
-    //  'Remote' worker thread function.
-    void *remote_worker_function (void *worker_args_)
-    {
-        thr_worker_args_t *args = (thr_worker_args_t*)worker_args_;
-
-        //  Send msg_nbr messages of msg_size.
-        for (int msg_nbr = 0; msg_nbr < args->msg_count; msg_nbr++)
-        {
-            args->transport->send (args->msg_size);
-        }
-
-        //  Wait for sync message.
-        size_t size = args->transport->receive ();
-        assert (size == 1);
-
-        return NULL;
-    }
 
     //  Function initializes parameter structure for each thread and starts
     //  local_worker_function(s) in separate thread(s).
-    void local_thr (i_transport **transports_, size_t msg_size_, 
-        int msg_count_, int thread_count_)
+    void local_thr (i_transport *transport_, size_t msg_size_, 
+        int msg_count_)
     {
-        zmq::thread_t *workers = new zmq::thread_t [thread_count_];
-
-        //  Array of thr_worker_args_t structures for worker threads.
-        thr_worker_args_t *workers_args = 
-            new thr_worker_args_t [thread_count_];
-
-        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
-
-            //  Fill structure, note that start_time & stop_time is filled 
-            //  by worker thread at the begining & end of the test.
-            workers_args [thread_nbr].transport = transports_ [thread_nbr];
-            workers_args [thread_nbr].msg_size = msg_size_;
-            workers_args [thread_nbr].msg_count = msg_count_;
-            workers_args [thread_nbr].start_time = 0;
-            workers_args [thread_nbr].stop_time = 0;
-            
-            //  Start worker thread.
-            workers [thread_nbr].start (
-                (zmq::thread_fn*) local_worker_function, 
-                (void*) &workers_args [thread_nbr]);           
-        }
-
-        //  Gather results from thr_worker_args_t structures.
-        time_instant_t min_start_time  = 
-            std::numeric_limits<uint64_t>::max ();
-        time_instant_t max_stop_time = 0;
-
-        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
-
-            //  Wait for worker threads to finish.
-            workers [thread_nbr].stop ();
-            
-            //  Find max stop & min start time.
-            if (workers_args [thread_nbr].start_time < min_start_time)
-                min_start_time = workers_args [thread_nbr].start_time;
-
-            if (workers_args [thread_nbr].stop_time > max_stop_time)
-                max_stop_time = workers_args [thread_nbr].stop_time;
-
-        }
         
+        //  Timestamp captured after receiving first message.
+        time_instant_t start_time = 0;
+
+        //  Receive msg_nbr messages of msg_size.
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
+        {
+            size_t size = transport_->receive ();
+
+            //  Capture arrival timestamp of the first message (test start).
+            if (msg_nbr == 0)
+                start_time  = now ();
+            
+            //  Check incomming message size.
+            assert (size == msg_size_);
+        }
+
+        //  Capture test stop timestamp.
+        time_instant_t stop_time = now();
+        
+        //  Send sync message to the peer.
+        transport_->send (1);
+
         //  Calculate results.
-        delete [] workers_args;
-        delete [] workers;
 
         //  Test time in [ms] with [ms] resolution, do not use for math!!!
-        uint64_t test_time = uint64_t (max_stop_time - min_start_time) /
+        uint64_t test_time = uint64_t (stop_time - start_time) /
             (uint64_t) 1000000;
                 
         //  Throughput [msgs/s].
         uint64_t msg_thput = ((uint64_t) 1000000000 *
-            (uint64_t) msg_count_ * (uint64_t) thread_count_) /
-            (uint64_t) (max_stop_time - min_start_time);
+            (uint64_t) msg_count_) / (uint64_t) (stop_time - start_time);
 
         //  Throughput [Mb/s].
         uint64_t tcp_thput = (msg_thput * msg_size_ * 8) /
@@ -195,44 +110,27 @@ namespace perf
         //  thread count, message count, msg size [B], test time [ms],
         //  throughput [msg/s],throughput [Mb/s]
         //
-        outf << thread_count_ << "," << msg_count_ << "," << msg_size_ << "," 
+        outf << "1" << "," << msg_count_ << "," << msg_size_ << "," 
             << test_time << "," << msg_thput << "," << tcp_thput << std::endl;
         
-        outf.close ();
+        outf.close (); 
     }
 
     //  Function initializes parameter structure for each thread and starts
     //  remote_worker_function(s) in separate thread(s).
-    void remote_thr (i_transport **transports_, size_t msg_size_, 
-        int msg_count_, int thread_count_)
+    void remote_thr (i_transport *transport_, size_t msg_size_, 
+        int msg_count_)
     {
-        zmq::thread_t *workers = new zmq::thread_t [thread_count_];
 
-        //  Array of thr_worker_args_t structures for worker threads.
-        thr_worker_args_t *workers_args = 
-            new thr_worker_args_t [thread_count_];
-
-
-        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++) {
-            //  Fill structures.
-            workers_args [thread_nbr].transport = transports_ [thread_nbr];
-            workers_args [thread_nbr].msg_size = msg_size_;
-            workers_args [thread_nbr].msg_count = msg_count_;
-            workers_args [thread_nbr].start_time = 0;
-            workers_args [thread_nbr].stop_time = 0;
-         
-            // Create worker thread.
-            workers [thread_nbr].start (
-                (zmq::thread_fn *) remote_worker_function, 
-                (void *)&workers_args [thread_nbr]);
+        //  Send msg_nbr messages of msg_size.
+        for (int msg_nbr = 0; msg_nbr < msg_count_; msg_nbr++)
+        {
+            transport_->send (msg_size_);
         }
 
-        //  Wait for worker threads to finish.
-        for (int thread_nbr = 0; thread_nbr < thread_count_; thread_nbr++)
-            workers [thread_nbr].stop ();
-
-        delete [] workers_args;
-        delete [] workers;
+        //  Wait for sync message.
+        size_t size = transport_->receive ();
+        assert (size == 1);
     }
 }
 #endif

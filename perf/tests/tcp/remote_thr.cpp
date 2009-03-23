@@ -25,73 +25,38 @@
 #include "zmq/platform.hpp"
 #include "../../transports/tcp_transport.hpp"
 #include "../scenarios/thr.hpp"
-#include "../../helpers/functions.hpp"
-#include "zmq/err.hpp"
 
 using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5) { 
+    if (argc != 4) { 
         cerr << "Usage: remote_thr <IP address of \'local\':port> "
-            << "<message size> <message count> <number of threads>\n"; 
+            << "<message size> <message count>" << endl;
         return 1;
     }
  
     //  Parse & print arguments.
     const char *peer_ip = argv [1];
     
-    //  Find port number delimiter.
-    char *colon = (char *)strchr (peer_ip, ':');
-    assert (colon);
-
-    //  Parse port number.
-    unsigned short listen_port = atoi (colon + 1);
-
-    //  Cut delimiter and port number.
-    *colon = 0;
-
-    int thread_count = atoi (argv [4]);
     size_t msg_size = atoi (argv [2]);
     int msg_count = atoi (argv [3]);
 
-    cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "message count: " << msg_count << endl << endl;
 
-    //  Create *transports array.
-    perf::i_transport **transports = new perf::i_transport* [thread_count];
+    //  Create tcp transport.
+    perf::tcp_t transport (false, peer_ip);
 
-    //  Create as many transports as threads, each worker thread uses own
-    //  transport listen port increases by 1.
-    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
-        string peer_ip_port (peer_ip);
-        peer_ip_port.append (":");
-        peer_ip_port.append (perf::to_string (listen_port + thread_nbr));
-
-        //  Create tcp transport.
-        transports [thread_nbr] = 
-            new perf::tcp_t (false, peer_ip_port.c_str ());
-
-        //  Give time to the peer to start to listen.
+    //  Give time to the peer to start to listen.
 #ifdef ZMQ_HAVE_WINDOWS
-        Sleep (1000);
+    Sleep (1000);
 #else
-        sleep (1);
+    sleep (1);
 #endif
-    }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.
-    perf::remote_thr (transports, msg_size, msg_count, thread_count);
+    perf::remote_thr (&transport, msg_size, msg_count);
    
-    //  Cleanup.
-    for (int thread_nbr = 0; thread_nbr < thread_count; thread_nbr++)
-    {
-        delete transports [thread_nbr];
-    }
-    
-    delete [] transports;
-
     return 0;
 }
