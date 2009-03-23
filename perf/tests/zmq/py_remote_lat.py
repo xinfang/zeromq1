@@ -36,7 +36,7 @@ def main ():
         print 'message-size and message-count must be integers'
         sys.exit (1)
 
-    z = libpyzmq.ZMQ (host = sys.argv [1])
+    z = libpyzmq.Zmq (host = sys.argv [1])
 
     eid = z.create_exchange (name = 'EG', scope = libpyzmq.SCOPE_GLOBAL,
         location = sys.argv [3], style = libpyzmq.STYLE_LOAD_BALANCING)

@@ -37,7 +37,7 @@ def main ():
     print "message size:", message_size, "[B]"
     print "message count:", message_count
 
-    z = libpyzmq.ZMQ (host = sys.argv [1])
+    z = libpyzmq.Zmq (host = sys.argv [1])
 
     z.create_queue (name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
         location = sys.argv [2])
@@ -55,6 +55,8 @@ def main ():
 
     delta = end - start
     delta_us = delta.seconds * 1000000 + delta.microseconds
+    if delta_us == 0:
+    	delta_us = 1
     message_thr = (1000000.0 * float (message_count)) / float (delta_us)
     megabit_thr = (message_thr * float (message_size) * 8.0) / 1000000.0;
 

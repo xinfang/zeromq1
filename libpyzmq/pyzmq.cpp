@@ -200,9 +200,9 @@ static PyMethodDef pyZMQ_methods [] =
         "mask",
         (PyCFunction) pyZMQ_mask,
         METH_VARARGS | METH_KEYWORDS, 
-        "mask (message_mask) -> None\n\n"
+        "mask (notifications) -> None\n\n"
         "Specifies which notifications should be received.\n\n" 
-        "'message_mask' could be either MESSAGE_DATA or"
+        "'notifications' could be either MESSAGE_DATA or"
         "MESSAGE_GAP.\n"
     },    
     {
@@ -254,7 +254,7 @@ static PyMethodDef pyZMQ_methods [] =
         "receive",
         (PyCFunction) pyZMQ_receive,
         METH_VARARGS | METH_KEYWORDS, 
-        "receive (block) -> (queue-id, message, type)\n\n"
+        "receive (block) -> (queue, message, type)\n\n"
         "Receive a message."
     },
     {
@@ -265,19 +265,19 @@ static PyMethodDef pyZMQ_methods [] =
 static const char* pyZMQ_ZMQ_doc =  
     "0MQ messaging session\n\n"
     "Available functions:\n"
-    "  z.create_exchange (name, scope, location) -> exchange\n"
-    "  z.create_queue (name, scope, location) -> queue\n"
-    "  z.bind (exchange_name, queue_name, exchange_options, queue_options) -> None\n"
-    "  z.send (exchange_id, message, block) -> sent\n"
-    "  z.receive (block) -> message\n\n";
+    "  create_exchange\n"
+    "  create_queue\n"
+    "  bind\n"
+    "  send\n"
+    "  receive\n\n";
 
 static PyTypeObject pyZMQType =
 {
     PyObject_HEAD_INIT (NULL)
     0,
-    "pyzmq.ZMQ",               /* tp_name (This will appear in the default 
-                                  textual representation of our objects and 
-                                  in some error messages)*/
+    "libpyzmq.Zmq",            /* tp_name (This will appear in the default 
+                               textual representation of our objects and 
+                               in some error messages)*/
     sizeof (pyZMQ),            /* tp_basicsize */
     0,                         /* tp_itemsize */
     (destructor) pyZMQ_dealloc,/* tp_dealloc */
@@ -328,15 +328,15 @@ static PyMethodDef module_methods[] =
 static const char* pyZMQ_doc =
     "0MQ Python Module\n\n"
     "Constructor:\n"
-    "  z = pyzmq.ZMQ (host)\n"
+    "  z = libpyzmq.Zmq (host)\n"
     "  'host' is <ip-address>[:<port>] of where zmq_server is running.\n"
     "\n"
     "Available functions:\n"
-    "  z.create_exchange (name, scope, location) -> exchange\n"
-    "  z.create_queue (name, scope, location) -> queue\n"
-    "  z.bind (exchange_name, queue_name, exchange_options, queue_options) -> None\n"
-    "  z.send (exchange_id, message, block) -> sent\n"
-    "  z.receive (block) -> message\n"
+    "  create_exchange\n"
+    "  create_queuee\n"
+    "  bind\n"
+    "  send\n"
+    "  receive\n"
     "\n"
     "For more information see http://www.zeromq.org.\n"
     "\n"
@@ -354,7 +354,7 @@ PyMODINIT_FUNC initlibpyzmq (void)
 
     Py_INCREF (&pyZMQType);
 
-    PyModule_AddObject (m, "ZMQ", (PyObject*) &pyZMQType);
+    PyModule_AddObject (m, "Zmq", (PyObject*) &pyZMQType);
     
     PyObject *d = PyModule_GetDict (m);
 
