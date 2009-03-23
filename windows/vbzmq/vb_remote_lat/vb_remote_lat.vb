@@ -1,4 +1,4 @@
-﻿Imports zmq
+﻿Imports Zmq
 
 Module vb_remote_lat
     Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
@@ -6,34 +6,34 @@ Module vb_remote_lat
     Sub Main()
 
         '  Parse the command line.
-        Dim Arguments() As String = Split(Command$)
-        If Arguments.Count <> 5 Then
+        Dim arguments() As String = Split(Command$)
+        If arguments.Count <> 5 Then
             Console.Write("usage: vb_remote_lat <hostname> <in-interface> ")
             Console.WriteLine("<out-interface> <message-size> <roundtrip-count>")
             Return
         End If
-        Dim Host As String = Arguments(0)
-        Dim InInterface As String = Arguments(1)
-        Dim OutInterface As String = Arguments(2)
-        Dim MsgSize As Integer = Arguments(3)
-        Dim RoundtripCount As Integer = Arguments(4)
+        Dim host As String = arguments(0)
+        Dim inInterface As String = arguments(1)
+        Dim outInterface As String = arguments(2)
+        Dim messageSize As Integer = arguments(3)
+        Dim roundtripCount As Integer = arguments(4)
 
         '  Create 0MQ Dnzmq class.
-        Dim Transport As New Dnzmq(Host)
+        Dim transport As New Dnzmq(host)
 
         '  Set up 0MQ wiring.
-        Dim ExchangeId As Integer = Transport.create_exchange("EG", Dnzmq.SCOPE_GLOBAL, OutInterface, Dnzmq.STYLE_LOAD_BALANCING)
-        Transport.create_queue("QG", Dnzmq.SCOPE_GLOBAL, InInterface, -1, -1, 0)
+        Dim exchangeId As Integer = transport.createExchange("EG", Dnzmq.SCOPE_GLOBAL, outInterface, Dnzmq.STYLE_LOAD_BALANCING)
+        transport.createQueue("QG", Dnzmq.SCOPE_GLOBAL, inInterface, Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP)
 
-        Dim Size As Int32
+        Dim size As Int32
 
         '  Start sending messages.
-        For i As Integer = 0 To RoundtripCount
-            Dim Msg() As Byte
-            Msg = Nothing
-            Transport.receive(Msg, size)
-            Debug.Assert(Msg.Length = MsgSize)
-            Transport.send(ExchangeId, Msg)
+        For i As Integer = 0 To roundtripCount
+            Dim message() As Byte
+            message = Nothing
+            transport.receive(message, size, True)
+            Debug.Assert(message.Length = messageSize)
+            transport.send(ExchangeId, message, True)
         Next
 
         Sleep(5000)
