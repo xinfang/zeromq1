@@ -16,11 +16,11 @@ Module vb_remote_thr
         Dim messageSize As Integer = arguments(1)
         Dim roundtripCount As Integer = arguments(2)
 
-        '  Create 0MQ Dnzmq class.
-        Dim transport As New Dnzmq(host)
+        '  Create 0MQ Zmq class.
+        Dim transport As New Zmq(host)
 
         '  Set up 0MQ wiring.
-        Dim exchangeId As Integer = transport.createExchange("E", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING)
+        Dim exchangeId As Integer = transport.createExchange("E", Zmq.SCOPE_LOCAL, "", Zmq.STYLE_LOAD_BALANCING)
         transport.bind("E", "Q", "", "")
 
         '  Create a message to send.

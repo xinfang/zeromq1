@@ -22,10 +22,10 @@ Module vb_local_thr
         Console.WriteLine("message count: " & msgCount)
 
         '  Create 0MQ Dnzmq class.
-        Dim transport As New Dnzmq(host)
+        Dim transport As New Zmq(host)
 
         '  Set up 0MQ wiring.
-        transport.createQueue("Q", Dnzmq.SCOPE_GLOBAL, inInterface, -1, -1, 0)
+        transport.createQueue("Q", Zmq.SCOPE_GLOBAL, inInterface, -1, -1, 0)
 
         '  Receive the first message.
         Dim message() As Byte

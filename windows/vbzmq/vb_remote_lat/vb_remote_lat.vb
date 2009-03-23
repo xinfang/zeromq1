@@ -19,11 +19,11 @@ Module vb_remote_lat
         Dim roundtripCount As Integer = arguments(4)
 
         '  Create 0MQ Dnzmq class.
-        Dim transport As New Dnzmq(host)
+        Dim transport As New Zmq(host)
 
         '  Set up 0MQ wiring.
-        Dim exchangeId As Integer = transport.createExchange("EG", Dnzmq.SCOPE_GLOBAL, outInterface, Dnzmq.STYLE_LOAD_BALANCING)
-        transport.createQueue("QG", Dnzmq.SCOPE_GLOBAL, inInterface, Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP)
+        Dim exchangeId As Integer = transport.createExchange("EG", Zmq.SCOPE_GLOBAL, outInterface, Zmq.STYLE_LOAD_BALANCING)
+        transport.createQueue("QG", Zmq.SCOPE_GLOBAL, inInterface, Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP)
 
         Dim size As Int32
 

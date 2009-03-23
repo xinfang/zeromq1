@@ -21,11 +21,11 @@ Module vb_local_lat
         Console.WriteLine("roundtrip count: " & roundtripCount)
 
         '  Create 0MQ Dnzmq class.
-        Dim transport As New Dnzmq(host)
+        Dim transport As New Zmq(host)
 
         '  Set up 0MQ wiring.
-        Dim exchangeId As Integer = Transport.createExchange("EL", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING)
-        transport.createQueue("QL", Dnzmq.SCOPE_LOCAL, "", Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP)
+        Dim exchangeId As Integer = Transport.createExchange("EL", Zmq.SCOPE_LOCAL, "", Zmq.STYLE_LOAD_BALANCING)
+        transport.createQueue("QL", Zmq.SCOPE_LOCAL, "", Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP)
         transport.bind("EL", "QG", "", "")
         transport.bind("EG", "QL", "", "")
 
