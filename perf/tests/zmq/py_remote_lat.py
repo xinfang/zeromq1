@@ -22,6 +22,7 @@ from datetime import datetime
 import libpyzmq
 import time
 
+
 def main ():
     if len(sys.argv) < 6:
         print ('usage: py_remote_lat <hostname> <in-interface> ' +
@@ -35,17 +36,19 @@ def main ():
         print 'message-size and message-count must be integers'
         sys.exit (1)
 
-    z = libpyzmq.ZMQ (hostname = sys.argv [1])
+    z = libpyzmq.ZMQ (host = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EG', scope = libpyzmq.SCOPE_GLOBAL,
-        interface = sys.argv [3], style = libpyzmq.STYLE_LOAD_BALANCING)
-    qid = z.create_queue (queue_name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
-        interface = sys.argv [2])
-
+    eid = z.create_exchange (name = 'EG', scope = libpyzmq.SCOPE_GLOBAL,
+        location = sys.argv [3], style = libpyzmq.STYLE_LOAD_BALANCING)
+    qid = z.create_queue (name = 'QG', scope = libpyzmq.SCOPE_GLOBAL,
+        location = sys.argv [2], hwm = libpyzmq.NO_LIMIT, lwm = libpyzmq.NO_LIMIT, 
+        swap = libpyzmq.NO_SWAP)
+        
     for i in range (0, roundtrip_count):
         list = z.receive (True)
-        msg = list [1]
-        z.send (eid, msg, True)
+        message = list [1]
+        z.send (eid, message, True)
+       
 
     time.sleep (2)
 

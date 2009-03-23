@@ -22,6 +22,7 @@ from datetime import datetime
 import libpyzmq
 import time
 
+
 def main ():
     if len (sys.argv) < 4:
         print 'usage: py_local_lat <hostname> <message-size> <roundtrip-count>'
@@ -37,18 +38,19 @@ def main ():
     print "message size:", message_size, "[B]"
     print "roundtrip count:", roundtrip_count
 
-    z = libpyzmq.ZMQ (hostname = sys.argv [1])
+    z = libpyzmq.ZMQ (host = sys.argv [1])
 
-    eid = z.create_exchange (exchange_name = 'EL', scope = libpyzmq.SCOPE_LOCAL, 
+    exchange = z.create_exchange (name = 'EL', scope = libpyzmq.SCOPE_LOCAL, 
 		style = libpyzmq.STYLE_LOAD_BALANCING)
-    qid = z.create_queue (queue_name = 'QL', scope = libpyzmq.SCOPE_LOCAL)
+    queue = z.create_queue (name = 'QL', scope = libpyzmq.SCOPE_LOCAL, location = "",
+		hwm = libpyzmq.NO_LIMIT, lwm = libpyzmq.NO_LIMIT, swap = libpyzmq.NO_SWAP)
     z.bind ('EL', 'QG')
     z.bind ('EG', 'QL')
 
     msg_out = ''.join ([' ' for n in range (0, message_size)])
     start = datetime.now ()
     for i in range (0, roundtrip_count):
-        z.send (eid, msg_out, True)
+        z.send (exchange , msg_out, True)
         list = z.receive (True)
         msg_in = list [1]
         msg_size = list [2]
