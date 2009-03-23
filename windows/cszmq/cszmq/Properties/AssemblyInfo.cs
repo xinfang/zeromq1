@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("zeromq")]
 [assembly: AssemblyProduct ("zeromq")]
-[assembly: AssemblyCopyright ("Copyright ©  2009")]
+[assembly: AssemblyCopyright ("Copyright FastMQ Inc. 2007-2009")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 
