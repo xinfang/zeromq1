@@ -60,16 +60,16 @@ PyObject *pyZMQ_new (PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
-    static const char *kwlist [] = {"hostname", NULL};
+    static const char *kwlist [] = {"host", NULL};
 
-    char const *hostname = NULL;
+    char const *host = NULL;
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s", (char**) kwlist,
-          &hostname))
+          &host))
         return -1;
 
     self->dispatcher = new zmq::dispatcher_t (2);
-    self->locator = new zmq::locator_t (hostname);
+    self->locator = new zmq::locator_t (host);
     self->io_thread = zmq::io_thread_t::create (self->dispatcher);
     self->api_thread = zmq::api_thread_t::create (self->dispatcher,
         self->locator);
@@ -79,14 +79,14 @@ int pyZMQ_init (pyZMQ *self, PyObject *args, PyObject *kwdict)
  
 PyObject *pyZMQ_mask (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
-    int message_mask;
-    static const char *kwlist [] = {"message_mask"};
+    int notifications;
+    static const char *kwlist [] = {"notifications"};
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "i", (char**) kwlist,
-          &message_mask))
+          &notifications))
         return NULL;
         
-    self->api_thread->mask (message_mask);
+    self->api_thread->mask (notifications);
     
     Py_INCREF (Py_None);
     return Py_None;
@@ -95,64 +95,64 @@ PyObject *pyZMQ_mask (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
 PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
-    char const *exchange_name = NULL;
-    char const *iface = NULL;
+    char const *name = NULL;
+    char const *location = NULL;
     int scope = zmq::scope_local;
     int style = zmq::style_load_balancing;
 
-    static const char *kwlist [] = {"exchange_name", "scope", "interface", 
+    static const char *kwlist [] = {"name", "scope", "location", 
         "style", NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s|isi", (char**) kwlist, 
-        &exchange_name, &scope, &iface, &style))
+        &name, &scope, &location, &style))
         return NULL;
     
-    int eid = self->api_thread->create_exchange (exchange_name, 
-        (zmq::scope_t) scope, iface, self->io_thread, 1,
+    int exchange = self->api_thread->create_exchange (name, 
+        (zmq::scope_t) scope, location, self->io_thread, 1,
         &self->io_thread, (zmq::style_t) style);
 
-    return PyInt_FromLong (eid);
+    return PyInt_FromLong (exchange);
 }
 
 PyObject *pyZMQ_create_queue (pyZMQ *self, PyObject *args, PyObject *kw)
 {
-    char const *queue_name = NULL;
-    char const *iface = NULL;
+    char const *name = NULL;
+    char const *location = NULL;
     int scope = zmq::scope_local;
     int64_t hwm = -1;
     int64_t lwm = -1;
-    int64_t swap_size = 0;
+    int64_t swap = 0;
 
-    static const char* kwlist [] = {"queue_name", "scope", "interface", "hwm", 
-        "lwm", "swap_size", NULL};
+    static const char* kwlist [] = {"name", "scope", "location", "hwm", 
+        "lwm", "swap", NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kw, "s|isLLL", (char**) kwlist,
-          &queue_name, &scope, &iface, &hwm, &lwm, &swap_size)) 
+          &name, &scope, &location, &hwm, &lwm, &swap)) 
         return NULL;
 
-    int qid = self->api_thread->create_queue (queue_name, 
-        (zmq::scope_t) scope, iface, self->io_thread, 1,
-        &self->io_thread, hwm, lwm, swap_size);
+    int queue = self->api_thread->create_queue (name, 
+        (zmq::scope_t) scope, location, self->io_thread, 1,
+        &self->io_thread, hwm, lwm, swap);
 
-    return PyInt_FromLong (qid);
+    return PyInt_FromLong (queue);
 }
 
 PyObject* pyZMQ_bind (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
     char const *exchange_name = NULL;
     char const *queue_name = NULL;
-    char const *exchange_arguments = NULL;
-    char const *queue_arguments = NULL;
+    char const *exchange_options = NULL;
+    char const *queue_options = NULL;
 
-    static const char *kwlist [] = {"exchange", "queue", "exchange_arguments", 
-        "queue_arguments", NULL};
+    static const char *kwlist [] = {"exchange", "queue", "exchange_options", 
+        "queue_options", NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "ss|ss", (char**) kwlist,
-          &exchange_name, &queue_name, &exchange_arguments, &queue_arguments))
+          &exchange_name, &queue_name, &exchange_options, &queue_options))
         return NULL;
     
     self->api_thread->bind (exchange_name, queue_name, self->io_thread, 
-        self->io_thread, exchange_arguments, queue_arguments);
+        self->io_thread, exchange_options, queue_options);
 
     Py_INCREF (Py_None);
     return Py_None;
@@ -160,38 +160,38 @@ PyObject* pyZMQ_bind (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
 PyObject *pyZMQ_send (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
-    PyObject *py_msg = PyString_FromStringAndSize (NULL, 0);
-    int exchange_id = 0;
+    PyObject *py_message = PyString_FromStringAndSize (NULL, 0);
+    int exchange = 0;
     bool block = true;
+    bool sent = false;
 
-    static const char *kwlist [] = {"exchange_id", "msg", "block", NULL};
+    static const char *kwlist [] = {"exchange", "py_message", "block", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwdict, "iSb", (char**) kwlist,
-          &exchange_id, &py_msg, &block))
+          &exchange, &py_message, &block))
         return NULL;
     
-    zmq::message_t msg (PyString_Size (py_msg));
-    memcpy (msg.data (), PyString_AsString (py_msg), msg.size ());
-    self->api_thread->send (exchange_id, msg, block);
+    zmq::message_t message (PyString_Size (py_message));
+    memcpy (message.data (), PyString_AsString (py_message), message.size ());
+    sent = self->api_thread->send (exchange, message, block);
 
-    Py_INCREF (Py_None);
-    return Py_None;
+    return PyInt_FromLong (sent ? 1 : 0);
 }
 
 PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
 {
-    zmq::message_t msg;
-    bool block;
+    zmq::message_t message;
+    bool block = true;
     static const char *kwlist [] = {"block", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwdict, "i", (char**) kwlist,
           &block))
         return NULL;
 
-    int qid = self->api_thread->receive (&msg, block);
+    int queue = self->api_thread->receive (&message, block);
     
-    return Py_BuildValue ("is#i", qid, (char*) msg.data (), msg.size (), 
-        msg.type ());
+    return Py_BuildValue ("is#i", queue, (char*) message.data (), message.size (), 
+        message.type ());
 }
 
 static PyMethodDef pyZMQ_methods [] =
@@ -209,12 +209,12 @@ static PyMethodDef pyZMQ_methods [] =
         "create_exchange",
         (PyCFunction) pyZMQ_create_exchange,
         METH_VARARGS | METH_KEYWORDS, 
-        "create_exchange (exchange_name, scope, interface) -> exchange_id\n\n"
+        "create_exchange (name, scope, location) -> exchange\n\n"
         "Creates new exchange, returns exchange ID.\n\n" 
-        "'exchange_name' is a string specifying the name of the new exchange.\n"
+        "'name' is a string specifying the name of the new exchange.\n"
         "'scope' is either pyzmq.SCOPE_LOCAL (local exchange) or "
         "pyzmq.SCOPE_GLOBAL (global exchange).\n"
-        "'interface' - makes sense for global exchanges only - is network "
+        "'location' - makes sense for global exchanges only - is network "
         "interface to use for outgoing messages from this particular exchange. "
         "The format of the argument is <nic-name>[:<port>]."
     },
@@ -222,12 +222,12 @@ static PyMethodDef pyZMQ_methods [] =
         "create_queue",
         (PyCFunction) pyZMQ_create_queue,
         METH_VARARGS | METH_KEYWORDS, 
-        "create_queue (queue_name, scope, interface) -> queue_id\n\n"
+        "create_queue (name, scope, location) -> queue\n\n"
         "Creates new queue, returns queue ID.\n\n" 
-        "'queue_name' is a string specifying the name of the new queue.\n"
+        "'name' is a string specifying the name of the new queue.\n"
         "'scope' is either pyzmq.SCOPE_LOCAL (local queue) or "
         "pyzmq.SCOPE_GLOBAL (global queue).\n"
-        "'interface' - makes sense for global queues only - is network "
+        "'location' - makes sense for global queues only - is network "
         "interface to use for incoming messages to this particular queue. "
         "The format of the argument is <nic-name>[:<port>]."
     },
@@ -235,21 +235,26 @@ static PyMethodDef pyZMQ_methods [] =
         "bind",
         (PyCFunction) pyZMQ_bind,
         METH_VARARGS | METH_KEYWORDS, 
-        "bind (exchange_name, queue_name) -> None\n\n"
+        "bind (exchange_name, queue_name, exchange_options, "
+        "queue_options) -> None\n\n"
         "Bind an exchange to a queue."
     },
     {
         "send",
         (PyCFunction) pyZMQ_send,
         METH_VARARGS | METH_KEYWORDS, 
-        "send (exchange_id, message) -> None\n\n"
-        "Send a message to the specified exchange.\n"
+        "send (exchange, message, block) -> sent\n\n"
+        "Send a message to the specified exchange, "
+        "returns boolean specifyin if the message was sent.\n"
+        "'exchange' is the id of exchange.\n"
+        "'message' is message to be sent.\n"
+        "'block' is either true or false.\n"
     },
     {
         "receive",
         (PyCFunction) pyZMQ_receive,
         METH_VARARGS | METH_KEYWORDS, 
-        "receive () -> (queue-id, message, type)\n\n"
+        "receive (block) -> (queue-id, message, type)\n\n"
         "Receive a message."
     },
     {
@@ -260,11 +265,11 @@ static PyMethodDef pyZMQ_methods [] =
 static const char* pyZMQ_ZMQ_doc =  
     "0MQ messaging session\n\n"
     "Available functions:\n"
-    "  z.create_exchange (exchange_name, scope, interface) -> exchange_id\n"
-    "  z.create_queue (queue_name, scope, interface) -> queue_id\n"
-    "  z.bind (exchange_name, queue_name) -> None\n"
-    "  z.send (exchange_id, message) -> None\n"
-    "  z.receive () -> message\n\n";
+    "  z.create_exchange (name, scope, location) -> exchange\n"
+    "  z.create_queue (name, scope, location) -> queue\n"
+    "  z.bind (exchange_name, queue_name, exchange_options, queue_options) -> None\n"
+    "  z.send (exchange_id, message, block) -> sent\n"
+    "  z.receive (block) -> message\n\n";
 
 static PyTypeObject pyZMQType =
 {
@@ -323,15 +328,15 @@ static PyMethodDef module_methods[] =
 static const char* pyZMQ_doc =
     "0MQ Python Module\n\n"
     "Constructor:\n"
-    "  z = pyzmq.ZMQ (hostname)\n"
-    "  'hostname' is <ip-address>[:<port>] of where zmq_server is running.\n"
+    "  z = pyzmq.ZMQ (host)\n"
+    "  'host' is <ip-address>[:<port>] of where zmq_server is running.\n"
     "\n"
     "Available functions:\n"
-    "  z.create_exchange (exchange_name, scope, interface) -> exchange_id\n"
-    "  z.create_queue (queue_name, scope, interface) -> queue_id\n"
-    "  z.bind (exchange_name, queue_name) -> None\n"
-    "  z.send (exchange_id, message) -> None\n"
-    "  z.receive () -> message\n"
+    "  z.create_exchange (name, scope, location) -> exchange\n"
+    "  z.create_queue (name, scope, location) -> queue\n"
+    "  z.bind (exchange_name, queue_name, exchange_options, queue_options) -> None\n"
+    "  z.send (exchange_id, message, block) -> sent\n"
+    "  z.receive (block) -> message\n"
     "\n"
     "For more information see http://www.zeromq.org.\n"
     "\n"
@@ -375,6 +380,14 @@ PyMODINIT_FUNC initlibpyzmq (void)
 
     t = PyInt_FromLong (zmq::style_load_balancing);
     PyDict_SetItemString (d, "STYLE_LOAD_BALANCING", t);
+    Py_DECREF (t);
+
+    t = PyInt_FromLong (zmq::no_limit);
+    PyDict_SetItemString (d, "NO_LIMIT", t);
+    Py_DECREF (t);
+
+    t = PyInt_FromLong (zmq::no_swap);
+    PyDict_SetItemString (d, "NO_SWAP", t);
     Py_DECREF (t);
 
     
