@@ -1,0 +1,301 @@
+.TH zmq-latency 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User Manuals"
+.SH NAME
+0MQ latency scenario
+
+.SH LATENCY SCENARIO
+Latency is measured by sending single message back and forth between two 
+components over and over again. Timestamps are taken at the beginning of the 
+test and at the end of the test, meaning that we don't know latency for each 
+individual message. Average one\-way latency is computed by dividing overall 
+time of the test by twice the roundtrip count. This test yields less distorted 
+results compared to the test where timestamps would be acquired for each 
+message. Figure shows detailed implementations of such a measuring in perf 
+framework:
+.PP
+\f(CR
+                         *******************
+.br
+                         *    zmq_server   *
+.br
+                         *******************
+.br
+
+.br
+    *******[ local ]*******                *******[ remote ]******
+.br
+    *                     *            (1.)*                     *
+.br
+    * args: message size  *===============>* args: message size  *
+.br
+    *       message count *            (2.)*       message count *
+.br
+    * scenario: lat       *<===============* scenario: lat       *
+.br
+    * transport: 0MQ, TCP *                * transport: 0MQ, TCP *
+.br
+    *                     *                *                     *
+.br
+    ***********************                ***********************
+.br
+              |
+.br
+              |
+.br
+              V
+.br
+           tests.dat file
+\fP
+.PP
+remote
+.RS 4
+Executable that calls scenario function \fBremote_lat\fR with chosen transport.
+.RE
+.PP
+local 
+.RS 4
+Executable that calls scenario function \fBlocal_lat\fR with chosen transport.
+.RE
+.PP
+tests.dat
+.RS 4
+Output file local program will add one line to. The format of the line is: 0, 
+roundtrip count, msg size [B], test time [ms], latency [us]. 
+.RE
+
+.SH EXAMPLE
+First, you have to choose which transport mechanism you are going to use. Check
+transports directory for the available set of transports. You can write your 
+own transport if none of the existing suits you. In this example, we'll choose
+0MQ to be our transport mechanism.
+.PP
+Next, you have to choose number of messages to be transported from local to 
+remote and back and size of the message. We will run this scenario with message
+6 byte long and roundtrip count of 50000.
+.PP
+In this example we will use two physical hosts. The host running 'local' 
+program has IP address 10.0.0.1; the host running 'remote' has IP address 
+10.0.0.2.
+.PP
+Note that 0MQ transport needs \fBzmq_server\fR(1) running somewhere on the 
+network, so run it say on host 10.0.0.1 before starting the test.
+
+.SS Writing 'local'
+Create a source file (say local.cpp), include the appropriate header files, 
+one containing latency scenario, other one for 0MQ transport. Write dummy main 
+routine (paths to header files may depend on your installation):
+.PP
+.RS 4
+\f(CR
+.nf
+#include "perf/transports/zmq_transport.hpp"
+#include "perf/tests/scenarios/lat.hpp"
+
+int main (void)
+{
+    return 0;
+}
+.fi
+\fP
+.RE
+.PP
+In the main routine you should initialise transport and call appropriate 
+function (local_lat) from appropriate scenario header file (lat.hpp). 
+Looking at \fBzmq-transport\fR(7) object you'll find out that you need to 
+supply following information when initialising it:
+.PP
+.RS 4
+* Hostname or IP address of the zmq_server? (10.0.0.1)
+.br
+* Bind to existing exchange and queue or to create them by itself? (create)
+.br
+* What is the name of exchange being created? (E0)
+.br
+* What is the name of queue being created? (Q0)
+.br
+* Which network interface should be used for exchange? (10.0.0.1:5672)
+.br
+* Which network interface should be used for queue? (10.0.0.1:5673)
+.RE
+.PP
+When calling local_lat function from scenario header file lat.hpp following 
+parameters should be known:
+.PP
+.RS 4
+* What is the size of the message? (6B)
+.br
+* How many messages are going to be send / received? (50000)
+.RE
+.PP
+Deciding on the initialisation arguments we can write the following code:
+.PP
+.RS 4
+\f(CR
+.nf
+#include "perf/transports/zmq_transport.hpp"
+#include "perf/tests/scenarios/lat.hpp"
+
+int main (void) {
+
+    const char *global_locator = "10.0.0.1";
+
+    bool bind = false ; //  Create exchange & queue
+    const char *queue_name = "Q0";
+    const char *queue_iface = "10.0.0.1:5673";
+    const char *exchange_name = "E0";
+    const char *exchange_iface = "10.0.0.1:5672";
+
+    int msg_count = 50000;
+    size_t msg_size = 6;
+ 
+    //  Initialise transport
+    perf::i_transport *transport = new perf::zmq_t (global_locator, 
+        bind, exchange_name, queue_name, exchange_iface, queue_iface);
+
+    //  Do the job
+    perf::local_lat (transport, msg_size, msg_count);
+
+    return 0;
+}
+.fi
+\fP
+.RE
+.SS Writing 'remote'
+Similarly to 'local' program, you should initialise transport and call 
+appropriate function (remote_lat) from appropriate scenario header file 
+(lat.hpp) in the main routine of 'remote'. The transport has to be the 
+same for local and remote. To initialize transport we need following 
+information:
+.PP
+.RS 4
+* Hostname or IP address of the zmq_server? (10.0.0.1)
+.br
+* Bind to existing exchange and queue or to create them by itself? (bind to existing)
+.br
+* What is the name of exchange to bind to? (E0)
+.br
+* What is the name of queue to bind? (Q0)
+.RE
+.PP
+When calling remote_lat function from scenario header file lat.hpp following 
+parameters should be known:
+.PP
+.RS 4
+* What is the size of the message? (6B)
+.br
+* How many messages are going to be received/send? (50000)
+.RE
+.PP
+Now you can write the 'remote' program. Create a source file (say remote.cpp), 
+include the appropriate header files (one containing latency scenario, other 
+one for 0MQ transport). Initialize transport and call proper function from 
+scenario header file (note that paths to header files may depend on your 
+installation):
+.PP
+.RS 4
+\f(CR
+.nf
+#include "perf/transports/zmq_transport.hpp"
+#include "perf/tests/scenarios/lat.hpp"
+
+int main (void) {
+
+    const char *global_locator = "10.0.0.1";
+
+    bool bind = true ; //  bind to exchange & queue
+    const char *queue_name = "Q0";
+    const char *exchange_name = "E0";
+
+    int msg_count = 50000;
+    size_t msg_size = 6;
+
+    //  Initialise transport
+    perf::i_transport *transport = new perf::zmq_t (global_locator, 
+        bind, exchange_name, queue_name, NULL, NULL);
+
+    //  Do the job
+    perf::remote_lat (transport, msg_size, msg_count);
+
+    return 0;
+}
+.fi
+\fP
+.RE
+.SS Compiling the scenario
+In a case of identical hosts we can compile both binaries on a single host and 
+distribute it to the other host afterwards. Otherwise we have to build it on 
+both system independently.
+.PP
+Compilation options depend on used transport. According to 
+\fBzmq-transport\fR(7) build specifications it is necessary to link with 
+pthreads and 0MQ library. For g++ compiler and 0MQ transport local.cpp and 
+remote.cpp should be compiled in following way (note that 0MQ libraries and 
+header files has to be installed):
+.PP
+.RS 4
+\f(CR
+.nf
+$ g++ local.cpp -o local -lpthread -lzmq
+$ g++ remote.cpp -o remote -lpthread -lzmq
+.fi
+\fP
+.RE
+.SS Running the scenario
+To run the scenario, \fBzmq_server\fR(1) has to be started first on local host 
+(10.0.0.1):
+.PP
+.RS 4
+\f(CR
+.nf
+$ zmq_server
+.fi
+\fP
+.RE
+.PP
+Start the local binary on local host (10.0.0.1):
+.PP
+.RS 4
+\f(CR
+.nf
+$ ./local
+.fi
+\fP
+.RE
+.PP
+Then start the remote binary on the remote machine:
+.PP
+.RS 4
+\f(CR
+.nf
+$ ./remote
+.fi
+\fP
+.RE
+.PP
+Output from local binary should show your average latency:
+.PP
+.RS 4
+\f(CR
+.nf
+Your average latency is 45.15 [us]
+.fi
+\fP
+.RE
+.SS Postprocessing
+For statistical postprocessing latency scenario creates tests.dat file on local
+side, each test run adds separate line.
+.PP
+.RS 4
+\f(CR
+.nf
+$ more tests.dat
+0,50000,6,4515,45.15
+.fi
+\fP
+.RE
+.PP
+Columns in the file are arranged as follows: 0, roundtrip count, msg size [B],
+test time [ms], latency [us].
+.SH "SEE ALSO"
+zmq_server(1), zmq-transport(7), zmq-throughput(7)
+.SH AUTHOR
+Pavol Malosek <malosek at fastmq dot com>

@@ -1,0 +1,115 @@
+.TH zmq-perf 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User Manuals"
+.SH NAME
+0MQ perf \- a performance measuring framework
+
+.SH INTRODUCTION
+perf project aims to measure performance statistics for a whole range of 
+messaging products, beginning with simple TCP/IP transfer and ranging to 
+complex proprietary middleware. perf measures end-to-end statistics and 
+adheres to all principles described in Measuring messaging performance 
+document \&[1]\&.
+
+.SH DESIGN
+perf (in the same way as 0MQ) is a pluggable architecture, LEGO-like set 
+of building bricks user has to put together to get anything usable. Note that 
+whole project is just a collection of C++ header files (.hpp) with no 
+associated source files, object files or library files. It has no build 
+mechanism of its own and can be therefore used with any build mechanism user 
+prefers.
+.PP
+When you want to do a performance measurement create new source file (.cpp), 
+include all the components (in form of .hpp files) you want to use, plug them 
+together in a simple and well documented way and compile the whole thing. 
+perf framework consists of two main components:
+.PP
+.RS 8
+\f(CR
+    --------------------------------------
+.br
+   |                                      |
+.br
+   |   ******************************     |
+.br
+   |   *        Main program        *     |
+.br
+   |   ******************************     |
+.br
+   |          |(initializes)  |(runs)     |
+.br
+   |          V               V           |
+.br
+   |   *************    *************     |
+.br
+   |   * transport *--->* scenario  *<====|=====> (messages)
+.br
+   |   *************    *************     |
+.br
+   |                          |           |
+.br
+    --------------------------------------
+.br
+                              |
+.br
+                              V
+.br
+                          (dat file)
+\fP
+.RE
+.PP 
+Transport
+.RS 4
+Transport component is a wrapper for the messaging system being tested. It 
+interfaces the transport with the rest of the system in the coherent and 
+uniform way. Transport component is initialised manually from the main routine.
+This way there doesn't have to be standard set of arguments to initialise all 
+transports \- each transport can be initialised in its unique way. Each 
+transport has to implement i_transport interface which virtualises it to the 
+rest of the framework.
+.PP
+Transport is either written by user or chosen from existing set of transports 
+provided by perf framework. Currently perf framework supports following 
+transports:
+.PP
+.RS 4
+* TCP/IP transport
+.PP
+* 0MQ transport \- \fBzmq-transport\fR(7)
+.RE
+.RE
+.PP 
+Scenario
+.RS 4
+The 'transport' component described above encapsulates only message transfer 
+semantics as such, not caring about actual message flows, message sizes or the
+number of messages sent. These aspects of the test are defined by 'scenario' 
+component.
+.PP
+Scenario component controls what the test program does. It invokes individual 
+methods of the transport component, generates timestamps at defined pipeline 
+points, saves them to the output files and calculate results.
+.PP
+As for the messaging, there are always at least two parties involved \- a 
+publisher (sender) and a consumer (receiver). From simplified user perspective 
+one party can be called 'local' and the other side 'remote'. The rule of the 
+thumb is that 'local' has to be started first and 'remote' only after 'local' 
+is already running. Also, 'local' will deliver the test results.
+.PP
+The mechanism of how these two parties interact each with another is 
+specified by scenario. There are three scenarios defined in perf framework:
+.PP
+.RS 4
+* Throughput scenario \- \fBzmq-throughput\fR(7)
+.PP
+* Latency scenario \- \fBzmq-latency\fR(7)
+.RE
+.RE
+.SH "SEE ALSO"
+zmq-transport(7), zmq-throughput(7), zmq-latency(7)
+.SH AUTHOR
+Pavol Malosek <malosek at fastmq dot com>
+.SH NOTES
+.IP " 1." 4
+Measuring messaging performance document
+.RS 4
+\%http://www.zeromq.org/whitepapers:measuring\-performance
+.RE
