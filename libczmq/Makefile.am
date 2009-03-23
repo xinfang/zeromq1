@@ -1,11 +1,11 @@
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)  -I$(top_builddir)/libzmq \
 -I$(top_srcdir)/libzmq -I$(top_builddir)/libczmq  -I$(top_srcdir)/libczmq
 
-pkginclude_HEADERS = ./zmq/czmq.h
+pkginclude_HEADERS = ./zmq.h
 
 lib_LTLIBRARIES = libczmq.la
 
-libczmq_la_SOURCES = $(pkginclude_HEADERS) czmq.cpp
+libczmq_la_SOURCES = $(pkginclude_HEADERS) zmq.cpp
 
 libczmq_la_LDFLAGS = -version-info 0:0:0
 libczmq_la_CXXFLAGS = -Wall -pedantic

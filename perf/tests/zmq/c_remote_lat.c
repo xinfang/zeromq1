@@ -30,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-#include <zmq/czmq.h>
+#include <zmq.h>
 
 int main (int argc, char *argv [])
 {
@@ -44,7 +44,7 @@ int main (int argc, char *argv [])
     int counter;
     void *buf;
     size_t size;
-    czmq_free_fn *ffn;
+    zmq_free_fn *ffn;
     
     /*  Parse command line arguments.  */
     if (argc != 6) {
@@ -59,17 +59,17 @@ int main (int argc, char *argv [])
     roundtrip_count = atoi (argv [5]);
     
      /*  Create 0MQ transport.  */
-    handle = czmq_create (host);
+    handle = zmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "EG", CZMQ_SCOPE_GLOBAL, out_interface,
-        CZMQ_STYLE_LOAD_BALANCING);
-    czmq_create_queue (handle, "QG", CZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
+    eid = zmq_create_exchange (handle, "EG", ZMQ_SCOPE_GLOBAL, out_interface,
+        ZMQ_STYLE_LOAD_BALANCING);
+    zmq_create_queue (handle, "QG", ZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        czmq_receive (handle, &buf, &size, &ffn, NULL, CZMQ_TRUE);
+        zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
         assert (size == message_size);
-        czmq_send (handle, eid, buf, size, ffn, CZMQ_TRUE);
+        zmq_send (handle, eid, buf, size, ffn, ZMQ_TRUE);
     }
 #ifdef ZMQ_HAVE_WINDOWS
     Sleep (2000);
@@ -78,7 +78,7 @@ int main (int argc, char *argv [])
 #endif
 
     /*  Destroy 0MQ transport.  */
-    czmq_destroy (handle);
+    zmq_destroy (handle);
 
     return 0;
 }

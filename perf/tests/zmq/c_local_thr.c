@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-#include <zmq/czmq.h>
+#include <zmq.h>
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -85,7 +85,7 @@ int main (int argc, char *argv [])
     int counter;
     void *buf;
     size_t size;
-    czmq_free_fn *ffn;
+    zmq_free_fn *ffn;
     uint64_t start;
     uint64_t end;
     uint64_t message_throughput;
@@ -107,14 +107,14 @@ int main (int argc, char *argv [])
     printf ("message count: %d\n", message_count);
 
     /*  Create 0MQ transport.  */
-    handle = czmq_create (host);
+    handle = zmq_create (host);
 
     /*  Create the wiring.  */
-    czmq_create_queue (handle, "Q", CZMQ_SCOPE_GLOBAL, in_interface,
+    zmq_create_queue (handle, "Q", ZMQ_SCOPE_GLOBAL, in_interface,
         -1, -1, 0);
 
     /*  Receive first message.  */
-    czmq_receive (handle, &buf, &size, &ffn, NULL, CZMQ_TRUE);
+    zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
     assert (size == message_size);
     if (buf && ffn)
         ffn (buf);
@@ -123,7 +123,7 @@ int main (int argc, char *argv [])
     start = now ();
 
     for (counter = 0; counter != message_count; counter ++) {
-        czmq_receive (handle, &buf, &size, &ffn, NULL, CZMQ_TRUE);
+        zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
         assert (size == message_size);
         if (buf && ffn)
             ffn (buf);
@@ -143,7 +143,7 @@ int main (int argc, char *argv [])
         (long) megabit_throughput);
 
     /*  Destroy 0MQ transport.  */
-    czmq_destroy (handle);
+    zmq_destroy (handle);
 
     return 0;
 }

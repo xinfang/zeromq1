@@ -28,7 +28,7 @@
 #include <unistd.h>
 #endif
 
-#include <zmq/czmq.h>
+#include <zmq.h>
 
 int main (int argc, char *argv [])
 {
@@ -51,19 +51,19 @@ int main (int argc, char *argv [])
     message_count = atoi (argv [3]);
     
     /*  Create 0MQ transport.  */
-    handle = czmq_create (host);
+    handle = zmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "E", CZMQ_SCOPE_LOCAL, NULL,
-        CZMQ_STYLE_LOAD_BALANCING);
-    czmq_bind (handle, "E", "Q", NULL, NULL);
+    eid = zmq_create_exchange (handle, "E", ZMQ_SCOPE_LOCAL, NULL,
+        ZMQ_STYLE_LOAD_BALANCING);
+    zmq_bind (handle, "E", "Q", NULL, NULL);
 
     /*  Create message data to send.  */
     out_buf = malloc (message_size);
     assert (out_buf);
 
     for (counter = 0; counter != message_count + 1; counter ++)
-        czmq_send (handle, eid, out_buf, message_size, NULL, CZMQ_TRUE);
+        zmq_send (handle, eid, out_buf, message_size, NULL, ZMQ_TRUE);
 
     /*  Wait till all messages are sent.  */
 #ifdef ZMQ_HAVE_WINDOWS
@@ -73,7 +73,7 @@ int main (int argc, char *argv [])
 #endif
 
     /*  Destroy 0MQ transport.  */
-    czmq_destroy (handle);
+    zmq_destroy (handle);
 
     /*  Clean up.  */
     free (out_buf);

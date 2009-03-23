@@ -8,6 +8,6 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-zmq_add_library(czmq czmq.cpp)
+zmq_add_library(czmq zmq.cpp)
 
 endif(WITH_C)

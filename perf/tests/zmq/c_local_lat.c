@@ -18,7 +18,7 @@
 */
 #include <zmq/platform.hpp>
 #include <zmq/stdint.hpp>
-#include <zmq/czmq.h>
+#include <zmq.h>
 
 #include <stddef.h>
 #include <assert.h>
@@ -84,7 +84,7 @@ int main (int argc, char *argv [])
     void *out_buf;
     void *in_buf;
     size_t in_size;
-    czmq_free_fn *in_ffn;
+    zmq_free_fn *in_ffn;
     uint64_t start;
     uint64_t end; 
     double latency;
@@ -104,14 +104,14 @@ int main (int argc, char *argv [])
     printf ("roundtrip count: %d\n", roundtrip_count);
 
     /*  Create 0MQ transport.  */
-    handle = czmq_create (host);
+    handle = zmq_create (host);
 
     /*  Create the wiring.  */
-    eid = czmq_create_exchange (handle, "EL", CZMQ_SCOPE_LOCAL, NULL,
-        CZMQ_STYLE_LOAD_BALANCING);
-    czmq_create_queue (handle, "QL", CZMQ_SCOPE_LOCAL, NULL, -1, -1, 0);
-    czmq_bind (handle, "EL", "QG", NULL, NULL);
-    czmq_bind (handle, "EG", "QL", NULL, NULL);
+    eid = zmq_create_exchange (handle, "EL", ZMQ_SCOPE_LOCAL, NULL,
+        ZMQ_STYLE_LOAD_BALANCING);
+    zmq_create_queue (handle, "QL", ZMQ_SCOPE_LOCAL, NULL, -1, -1, 0);
+    zmq_bind (handle, "EL", "QG", NULL, NULL);
+    zmq_bind (handle, "EG", "QL", NULL, NULL);
 
     /*  Create message data to send.  */
     out_buf = malloc (message_size);
@@ -121,8 +121,8 @@ int main (int argc, char *argv [])
     start = now ();
     
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        czmq_send (handle, eid, out_buf, message_size, NULL, CZMQ_TRUE);
-        czmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL, CZMQ_TRUE);
+        zmq_send (handle, eid, out_buf, message_size, NULL, ZMQ_TRUE);
+        zmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL, ZMQ_TRUE);
         assert (in_size == message_size);
         if (in_ffn)
             in_ffn (in_buf);
@@ -136,7 +136,7 @@ int main (int argc, char *argv [])
     printf ("Your average latency is %.2f [us]\n", latency);
 
     /*  Destroy 0MQ transport.  */
-    czmq_destroy (handle);
+    zmq_destroy (handle);
 
     /*  Clean up.  */
     free (out_buf);
