@@ -17,13 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class Jzmq
+class Zmq
 {
      //  Specifies that the object will be visible only in this session.
-     public static final int SCOPE_LOCAL = 0;
+     public static final int SCOPE_LOCAL = 1;
+
+     //  Specifies that the object will be visible only within this process.
+     public static final int SCOPE_PROCESS = 2;
 
      //  Specifies that the object will be visible all over the network.
-     public static final int SCOPE_GLOBAL = 1;
+     public static final int SCOPE_GLOBAL = 3;
      
      //  Specifies data notifications to be received.
      public static final int MESSAGE_DATA = 1;
@@ -37,44 +40,50 @@ class Jzmq
      //  Specifies load balancing style.
      public static final int STYLE_LOAD_BALANCING = 2;
 
+     //  Specifies that there' no high watermark for the queue. It can consume
+     //  as much memory as needed.
+     public static final int NO_LIMIT = -1;
 
+     //  Specified that disk-offload feature should not be used. All the queue
+     //  data are to be held in the memory.
+     public static final int NO_SWAP = 0;
 
-     //  Initalises Jzmq. Hostname is a name or an IP address of the box where
-     //  zmq_server is running.
-     public Jzmq (String hostname)
+     //  Initalises Zmq object. Hostname is a name or an IP address of the box
+     //  where zmq_server is running.
+     public Zmq (String host)
      {
-        construct (hostname);
+        construct (host);
      }
      
      //  Specifies which notifications should be received.
-     public native void mask (int message_mask);
+     public native void mask (int notifications);
 
      //  Create an exchange. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
      //  Exchange ID is returned.
-     public native int createExchange (String exchange, int scope, String nic, 
-		int style);
+     public native int createExchange (String name, int scope,
+         String location, int style);
 
      //  Create a queue. If the scope is global, you have supply the name
      //  or IP address of the network interface to be used by the exchange.
      //  Optionally you can specify the port to use this way "eth0:5555".
      //  Queue ID is returned.
-     public native int createQueue (String queue, int scope, String nic, long hwm, 
-		long lwm, long swap_size);
+     public native int createQueue (String name, int scope, String location,
+         long hwm, long lwm, long swap);
 
      //  Bind the exchange to the queue.
-     public native void bind (String exchange, String name,
-         String exchange_arguments, String queue_arguments);
+     public native void bind (String exchangeName, String queueName,
+         String exchangeOptions, String queueOptions);
 
      //  Send a binary message to the specified exchange.
-     public native void send (int exchangeId, byte [] data);
+     public native boolean send (int exchange, byte [] message, boolean block);
 
      //  Receive next message.
-     public native byte [] receive ();
+     public native byte [] receive (boolean block);
 
      //  Initialises 0MQ infrastructure.
-     protected native void construct (String hostname);
+     protected native void construct (String host);
 
      //  Deallocates resources associated with the object.
      protected native void finalize ();

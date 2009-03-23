@@ -29,25 +29,26 @@ class j_remote_lat
          }
 
          //  Parse the command line arguments.
-         String hostname = args [0];
+         String host = args [0];
          String inInterface = args [1];
          String outInterface = args [2];
          int messageSize = Integer.parseInt (args [3]);
          int messageCount = Integer.parseInt (args [4]);
 
          //  Initialise 0MQ runtime.
-         Jzmq obj = new Jzmq (hostname);
+         Zmq obj = new Zmq (host);
          
          //  Create the wiring.
-         int eid = obj.createExchange ("EG", Jzmq.SCOPE_GLOBAL, outInterface, 
-			Jzmq.STYLE_LOAD_BALANCING);
-         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface, -1, -1, 0);
+         int eid = obj.createExchange ("EG", Zmq.SCOPE_GLOBAL, outInterface, 
+             Zmq.STYLE_LOAD_BALANCING);
+         obj.createQueue ("QG", Zmq.SCOPE_GLOBAL, inInterface,
+             Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
          //  Bounce the messages back to LocalLat
          for (int i = 0; i != messageCount; i ++) {
-             byte [] data = obj.receive ();
+             byte [] data = obj.receive (true);
              assert (data.length == messageSize);
-             obj.send (eid, data);
+             obj.send (eid, data, true);
          }
 
          //  Wait a while before exiting.

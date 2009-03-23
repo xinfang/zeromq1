@@ -28,7 +28,7 @@ class j_local_thr
          }
 
          //  Parse the command line arguments.
-         String hostname = args [0];
+         String host = args [0];
          String inInterface = args [1];
          long messageSize = Integer.parseInt (args [2]);
          long messageCount = Integer.parseInt (args [3]);
@@ -38,13 +38,14 @@ class j_local_thr
          System.out.println ("message count: " + messageCount);
 
          //  Initialise 0MQ runtime.
-         Jzmq obj = new Jzmq (hostname);
+         Zmq obj = new Zmq (host);
 
          //  Create the wiring.
-         obj.createQueue ("QG", Jzmq.SCOPE_GLOBAL, inInterface, -1, -1, 0);
+         obj.createQueue ("QG", Zmq.SCOPE_GLOBAL, inInterface,
+             Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
          //  Receive the first message from RemoteThr.
-         byte [] data = obj.receive ();
+         byte [] data = obj.receive (true);
          assert (data.length == messageSize);
 
          //  Get the inital timestamp.
@@ -52,7 +53,7 @@ class j_local_thr
 
          //  Receive the remaining messages from RemoteThr.
          for (int i = 1; i != messageCount; i ++) {
-             data = obj.receive ();
+             data = obj.receive (true);
              assert (data.length == messageSize);
          }
 

@@ -28,22 +28,22 @@ class j_remote_thr
          }
 
          //  Parse the command line arguments.
-         String hostname = args [0];
+         String host = args [0];
          int messageSize = Integer.parseInt (args [1]);
          int messageCount = Integer.parseInt (args [2]);
 
          //  Initialise 0MQ runtime.
-         Jzmq obj = new Jzmq (hostname);
+         Zmq obj = new Zmq (host);
 
          //  Create the wiring.
-         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null,
-		Jzmq.STYLE_LOAD_BALANCING);
-         obj.bind ("EL", "QG", "", "");
+         int eid = obj.createExchange ("EL", Zmq.SCOPE_LOCAL, null,
+		Zmq.STYLE_LOAD_BALANCING);
+         obj.bind ("EL", "QG", null, null);
          
          //  Send the messages to LocalThr.
          for (int i = 0; i != messageCount; i ++) {
              byte data [] = new byte [messageSize];
-             obj.send (eid, data);
+             obj.send (eid, data, true);
          }
 
          //  Wait a while before exiting.

@@ -28,7 +28,7 @@ class j_local_lat
          }
 
          //  Parse the command line arguments.
-         String hostname = args [0];
+         String host = args [0];
          int messageSize = Integer.parseInt (args [1]);
          int messageCount = Integer.parseInt (args [2]);
 
@@ -37,14 +37,15 @@ class j_local_lat
          System.out.println ("roundtrip count: " + messageCount);
 
          //  Initialise 0MQ runtime.
-         Jzmq obj = new Jzmq (hostname);
+         Zmq obj = new Zmq (host);
          
          //  Create the wiring.
-         int eid = obj.createExchange ("EL", Jzmq.SCOPE_LOCAL, null, 
-		Jzmq.STYLE_LOAD_BALANCING);
-         obj.createQueue ("QL", Jzmq.SCOPE_LOCAL, null, -1, -1, 0);
-         obj.bind ("EL", "QG", "", "");
-         obj.bind ("EG", "QL", "", "");
+         int eid = obj.createExchange ("EL", Zmq.SCOPE_LOCAL, null, 
+		Zmq.STYLE_LOAD_BALANCING);
+         obj.createQueue ("QL", Zmq.SCOPE_LOCAL, null, Zmq.NO_LIMIT,
+             Zmq.NO_LIMIT, Zmq.NO_SWAP);
+         obj.bind ("EL", "QG", null, null);
+         obj.bind ("EG", "QL", null, null);
          
          //  Wait a while to create connections.
          try {
@@ -59,8 +60,8 @@ class j_local_lat
 
          for (int i = 0; i != messageCount; i ++) {
              byte data [] = new byte [messageSize];
-             obj.send (eid, data);
-             byte [] data2 = obj.receive ();
+             obj.send (eid, data, true);
+             byte [] data2 = obj.receive (true);
              assert (data == data2);
          }
 
