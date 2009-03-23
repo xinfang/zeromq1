@@ -48,19 +48,19 @@ int main (int argc, char *argv [])
         bind_option = argv [3];
     }
 
-    //  Initialise 0MQ infrastructure
+    //  Initialise 0MQ infrastructure.
 
-    //  1. Initialise basic infrastructure for 2 threads
+    //  1. Initialise basic infrastructure for 2 threads.
     zmq::dispatcher_t dispatcher (2);
 
-    //  2. Initialise local locator (to connect to global locator)
+    //  2. Initialise local locator (to connect to zmq_server).
     zmq::locator_t locator (argv [1]);
 
-    //  3. Start one working thread (to receive data from the sender)
+    //  3. Start one working thread (to receive data from the sender).
     zmq::i_thread *pt = zmq::io_thread_t::create (&dispatcher);
 
     //  5. Register one API thread (the application thread - the one that
-    //     is being executed at the moment)
+    //     is being executed at the moment).
     zmq::api_thread_t *api = zmq::api_thread_t::create (&dispatcher, &locator);
 
     //  6. Declare an exit point for the messages. It's called "Q" and it's
@@ -73,25 +73,26 @@ int main (int argc, char *argv [])
     //     connection created should be handled by worker thread "pt".
     api->bind (argv [2], "Q", pt, pt, bind_option);
 
-    //  Display video until user asks to quit
+    //  Display video until user asks to quit.
     while (!quit) {
         SDL_Event event;
 
-        //  Receive single message
+        //  Receive single message.
         zmq::message_t msg;
         api->receive (&msg);
 
-        //  Parse message
-        unsigned char *data = (unsigned char *)msg.data();
+        //  Parse the message.
+        unsigned char *data = (unsigned char*) msg.data();
+        assert (msg.size () >= sizeof (uint32_t) + sizeof (uint32_t));
 
-        //  Image width in pixels
-        image_width = (int)zmq::get_uint32 (data);
+        //  Image width in pixels.
+        image_width = (int) zmq::get_uint32 (data);
         data += sizeof (uint32_t);
 
-        //  Image height in pixels
-        image_height = (int)zmq::get_uint32 (data);
+        //  Image height in pixels.
+        image_height = (int) zmq::get_uint32 (data);
         data += sizeof (uint32_t);
-        //  data now points to RGB24 pixel data
+        //  Data now points to RGB24 pixel data.
 
         if (!sdl_initialised) {
 
