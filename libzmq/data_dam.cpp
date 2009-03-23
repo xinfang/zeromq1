@@ -35,7 +35,7 @@
 
 zmq::atomic_counter_t zmq::data_dam_t::counter;
 
-zmq::data_dam_t::data_dam_t (off_t filesize_, size_t block_size_) :
+zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
     filesize (filesize_),
     file_pos (0),
     write_pos (0),
@@ -109,7 +109,7 @@ bool zmq::data_dam_t::store (raw_message_t *msg_)
 
     //  Check buffer space availability.
     //  NOTE: We always keep one byte open.
-    if (buffer_space () <= (off_t) (sizeof msg_size + msg_size))
+    if (buffer_space () <= (int64_t) (sizeof msg_size + msg_size))
         return false;
 
     //  Write the message length.
@@ -167,26 +167,18 @@ unsigned long zmq::data_dam_t::size ()
     return n_msgs;
 }
 
-static size_t min2 (size_t a, size_t b)
+static int64_t min2 (int64_t a, int64_t b)
 {
     if (a < b)
         return a;
     return b;
 }
 
-static size_t min3 (size_t a, size_t b, size_t c)
+static int64_t min3 (int64_t a, int64_t b, int64_t c)
 {
-    if (a < b) {
-        if (a < c)
-            return a;
-        else
-            return c;
-    }
-    else if (b < c)
-        return b;
-    else
-        return c;
+    return min2 (a, min2 (b, c));
 }
+
 void zmq::data_dam_t::copy_from_file (void *buf_, size_t count_)
 {
     char *ptr = (char *) buf_;
@@ -194,7 +186,7 @@ void zmq::data_dam_t::copy_from_file (void *buf_, size_t count_)
 
     while (n_left > 0) {
 
-        n = min3 (n_left, filesize - read_pos,
+        n = (size_t) min3 (n_left, filesize - read_pos,
             block_size - read_pos % block_size);
 
         memcpy (ptr, &read_buf [read_pos % block_size], n);
@@ -219,7 +211,7 @@ void zmq::data_dam_t::copy_to_file (const void *buf_, size_t count_)
 
     while (n_left > 0) {
 
-        n = min3 (n_left, filesize - write_pos,
+        n = (size_t) min3 (n_left, filesize - write_pos,
             block_size - write_pos % block_size);
 
         memcpy (&write_buf [write_pos % block_size], ptr, n);
@@ -247,16 +239,16 @@ void zmq::data_dam_t::fill_read_buf ()
 {
     if (file_pos != read_pos) {
 #ifdef ZMQ_HAVE_WINDOWS
-        off_t offset = _lseek (fd, read_pos, SEEK_SET);
+        __int64 offset = _lseeki64 (fd, read_pos, SEEK_SET);
 #else
-        off_t offset = lseek (fd, read_pos, SEEK_SET);
+        off_t offset = lseek (fd, (off_t) read_pos, SEEK_SET);
 #endif
         errno_assert (offset == read_pos);
         file_pos = read_pos;
     }
 
     size_t i = 0;
-    size_t n = min2 (block_size, filesize - read_pos);
+    size_t n = (size_t) min2 (block_size, filesize - read_pos);
 
     while (i < n) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -275,16 +267,16 @@ void zmq::data_dam_t::save_write_buf ()
 {
     if (file_pos != write_buf_start_addr) {
 #ifdef ZMQ_HAVE_WINDOWS
-        off_t offset = _lseek (fd, write_buf_start_addr, SEEK_SET);
+        __int64 offset = _lseeki64 (fd, write_buf_start_addr, SEEK_SET);
 #else
-        off_t offset = lseek (fd, write_buf_start_addr, SEEK_SET);
+        off_t offset = lseek (fd, (off_t) write_buf_start_addr, SEEK_SET);
 #endif
         errno_assert (offset == write_buf_start_addr);
         file_pos = write_buf_start_addr;
     }
 
     size_t i = 0;
-    size_t n = min2 (block_size, filesize - write_buf_start_addr);
+    size_t n = (size_t) min2 (block_size, filesize - write_buf_start_addr);
 
     while (i < n) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -299,7 +291,7 @@ void zmq::data_dam_t::save_write_buf ()
     file_pos += n;
 }
 
-off_t zmq::data_dam_t::buffer_space ()
+int64_t zmq::data_dam_t::buffer_space ()
 {
     if (write_pos < read_pos)
         return read_pos - write_pos;

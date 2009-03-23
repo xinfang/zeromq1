@@ -43,7 +43,7 @@ namespace zmq
         virtual void get_watermarks (int64_t *hwm_, int64_t *lwm_) = 0;
 
         //  Returns the size of the swap file.
-        virtual uint64_t get_swap_size () = 0;
+        virtual int64_t get_swap_size () = 0;
 
         //  Returns modified arguments string.
         //  This function will be obsoleted with the shift to centralised

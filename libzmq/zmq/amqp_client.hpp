@@ -51,7 +51,7 @@ namespace zmq
         //  i_engine interface implementation.
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
-        uint64_t get_swap_size ();
+        int64_t get_swap_size ();
         void revive (pipe_t *pipe_);
         void head (pipe_t *pipe_, int64_t position_);
         void send_to (pipe_t *pipe_);

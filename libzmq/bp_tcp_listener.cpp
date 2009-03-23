@@ -65,7 +65,7 @@ void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */,
     assert (false);
 }
 
-uint64_t zmq::bp_tcp_listener_t::get_swap_size ()
+int64_t zmq::bp_tcp_listener_t::get_swap_size ()
 {
     assert (false);
 

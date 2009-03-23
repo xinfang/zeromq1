@@ -59,7 +59,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     }
 
 #ifdef ZMQ_HAVE_DATA_DAM
-    uint64_t swap_size = source_engine->get_swap_size () +
+    int64_t swap_size = source_engine->get_swap_size () +
         destination_engine->get_swap_size ();
 
     //  Create a swap file if necessary.

@@ -28,7 +28,7 @@ zmq::in_engine_t *zmq::in_engine_t::create (int64_t hwm_, int64_t lwm_,
 }
 
 zmq::in_engine_t::in_engine_t (int64_t hwm_, int64_t lwm_,
-      uint64_t swap_size_) :
+      int64_t swap_size_) :
     hwm (hwm_),
     lwm (lwm_),
     swap_size (swap_size_)
@@ -50,7 +50,7 @@ void zmq::in_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = lwm;
 }
 
-uint64_t zmq::in_engine_t::get_swap_size ()
+int64_t zmq::in_engine_t::get_swap_size ()
 {
     return swap_size;
 }

@@ -36,16 +36,16 @@ namespace zmq
 
         //  i_engine implementation.
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
-        uint64_t get_swap_size ();
+        int64_t get_swap_size ();
 
     private:
 
-        in_engine_t (int64_t hwm_, int64_t lwm_, uint64_t swap_size_);
+        in_engine_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_);
         ~in_engine_t ();
 
         int64_t hwm;
         int64_t lwm;
-        uint64_t swap_size;
+        int64_t swap_size;
     };
 
 }

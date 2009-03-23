@@ -117,7 +117,7 @@ void zmq::sctp_listener_t::get_watermarks (int64_t *, int64_t *)
     assert (false);
 }
 
-uint64_t zmq::sctp_listener_t::get_swap_size ()
+int64_t zmq::sctp_listener_t::get_swap_size ()
 {
     assert (false);
 

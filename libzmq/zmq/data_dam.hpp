@@ -41,7 +41,7 @@ namespace zmq
         enum { default_block_size = 8192 };
 
         //  Initializes data dam.
-        data_dam_t (off_t filesize,
+        data_dam_t (int64_t filesize,
             size_t block_size = default_block_size);
 
         ~data_dam_t ();
@@ -74,7 +74,7 @@ namespace zmq
         void copy_to_file (const void *buf, size_t count);
 
         //  Returns the buffer space available.
-        off_t buffer_space ();
+        int64_t buffer_space ();
 
         void fill_read_buf ();
 
@@ -87,16 +87,16 @@ namespace zmq
         std::string filename;
 
         //  Maximum size of the backing file.
-        off_t filesize;
+        int64_t filesize;
 
         //  File offset associated with the fd file descriptor.
-        off_t file_pos;
+        int64_t file_pos;
 
         //  File offset the next message will be stored at.
-        off_t write_pos;
+        int64_t write_pos;
 
         //  File offset the next message will be read from.
-        off_t read_pos;
+        int64_t read_pos;
 
         //  Current number of messages kept in the data dam.
         unsigned long n_msgs;
@@ -108,7 +108,7 @@ namespace zmq
         char *read_buf;
         char *write_buf;
 
-        off_t write_buf_start_addr;
+        int64_t write_buf_start_addr;
     };
 
 }
