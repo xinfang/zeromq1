@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using zmq;
+using Zmq;
 
 class cs_local_lat
 {
@@ -37,24 +37,26 @@ class cs_local_lat
         }
         
         String host = args [0];
-        uint msg_size = Convert.ToUInt32 (args [1]);
-        int roundtrip_count = Convert.ToInt32 (args [2]);
+        uint messageSize = Convert.ToUInt32 (args [1]);
+        int roundtripCount = Convert.ToInt32 (args [2]);
 
         //  Print out the test parameters.
-        Console.Out.WriteLine ("message size: " + msg_size + " [B]");
-        Console.Out.WriteLine ("roundtrip count: " + roundtrip_count);
+        Console.Out.WriteLine ("message size: " + messageSize + " [B]");
+        Console.Out.WriteLine ("roundtrip count: " + roundtripCount);
         
         //  Create 0MQ Dnzmq class.
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EL", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING);
-        int qid = w.create_queue ("QL", Dnzmq.SCOPE_LOCAL, "", -1, -1, 0);
-        w.bind ("EL", "QG", null, null);
-        w.bind ("EG", "QL", null, null);
+        int exchange = w.CreateExchange ("EL", Dnzmq.SCOPE_LOCAL, "", 
+            Dnzmq.STYLE_LOAD_BALANCING);
+        int queue = w.CreateQueue ("QL", Dnzmq.SCOPE_LOCAL, "",
+            Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
+        w.Bind ("EL", "QG", null, null);
+        w.Bind ("EG", "QL", null, null);
 
         //  Create a message to send.
-        byte [] out_msg = new byte [msg_size];
+        byte[] outMessage = new byte[messageSize];
         
         //  Start measuring the time.
         System.Diagnostics.Stopwatch watch;
@@ -62,28 +64,29 @@ class cs_local_lat
         watch.Start ();
 
 
-        byte[] in_msg;
+        byte[] inMessage;
         int type;
         //  Start sending messages.
-        for (int i = 0; i < roundtrip_count; i++)
+        for (int i = 0; i < roundtripCount; i++)
         {
-            w.send (eid, out_msg, Dnzmq.TRUE);
-            w.receive (out in_msg, out type, Dnzmq.TRUE);
-            Debug.Assert (in_msg.Length == msg_size);
+            w.Send (exchange, outMessage, true);
+            w.Receive (out inMessage, out type, true);
+            Debug.Assert (inMessage.Length == messageSize);
         }
 
         //  Stop measuring the time.
         watch.Stop ();
-        Int64 elapsed_time = watch.ElapsedTicks;
+        Int64 elapsedTime = watch.ElapsedTicks;
 
         //  Compute and print out the latency.
-        double latency = (double) (elapsed_time) / roundtrip_count / 2 *
+        double latency = (double) (elapsedTime) / roundtripCount / 2 *
             1000000 / Stopwatch.Frequency;
         Console.Out.WriteLine ("Your average latency is {0} [us]",
             latency.ToString ("f2"));
 
         System.Threading.Thread.Sleep (5000);
- 
+        w.Destroy ();
+
         return 0;
     }
 }

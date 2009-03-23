@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using zmq;
+using Zmq;
 
 class cs_remote_lat
 {
@@ -32,37 +32,39 @@ class cs_remote_lat
         if (args.Length != 5)
         {
             Console.Out.WriteLine ("usage: cs_remote_lat <hostname> " +
-                "<in-interface> <out-interface> " +
+                "<exchange_interface> <queue_interface> " +
                 "<message-size> <roundtrip-count>\n");
             return 1;
         }
 
         String host = args [0];
-        String in_interface = args [1];
-        String out_interface = args [2];
-        uint msg_size = Convert.ToUInt32 (args [3]);
-        int num_msg = Convert.ToInt32 (args [4]);
+        String exchangeInterface = args[1];
+        String queueInterface = args [2];        
+        uint messageSize = Convert.ToUInt32 (args [3]);
+        int roundtripCount = Convert.ToInt32 (args [4]);
 
         //  Create 0MQ Dnzmq class.
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("EG", Dnzmq.SCOPE_GLOBAL,
-            out_interface, Dnzmq.STYLE_LOAD_BALANCING);
-        int qid = w.create_queue ("QG", Dnzmq.SCOPE_GLOBAL,
-            in_interface, -1, -1, 0);
-        
-        //  Bounce the received messages.
-        for (int i = 0; i < num_msg; i++)
-        {
-            byte[] msg;
-            int type;
-            w.receive (out msg, out type, Dnzmq.TRUE);
-            Debug.Assert (msg.Length == msg_size);
-            w.send (eid, msg, Dnzmq.TRUE);
-        }
+        int exchange = w.CreateExchange ("EG", Dnzmq.SCOPE_GLOBAL,
+            exchangeInterface, Dnzmq.STYLE_LOAD_BALANCING);
+        int queue = w.CreateQueue ("QG", Dnzmq.SCOPE_GLOBAL,
+            queueInterface, Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
 
+        byte[] message;
+        int type;
+
+        //  Bounce the received messages.
+        for (int i = 0; i < roundtripCount; i++)
+        {
+            w.Receive (out message, out type, true);
+            Debug.Assert (message.Length == messageSize);
+            w.Send (exchange, message, true);
+        }
+       
         System.Threading.Thread.Sleep (5000);
+        w.Destroy ();
 
         return 0;
     }

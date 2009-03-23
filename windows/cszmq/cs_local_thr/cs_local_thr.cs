@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using zmq;
+using Zmq;
 
 class cs_local_thr
 {
@@ -31,30 +31,32 @@ class cs_local_thr
         if (args.Length != 4)
         {
             Console.Out.WriteLine ("usage: cs_local_thr <hostname> " +
-                "<in-interface> <message-size> <message-count>\n");
+                "<queue-interface> <message-size> <message-count>\n");
             return 1;
         }
 
         String host = args [0];
-        String in_interface = args [1];
-        uint msg_size = Convert.ToUInt32 (args [2]);
-        int msg_count = Convert.ToInt32 (args [3]);
+        String queueInterface = args [1];
+        uint messageSize = Convert.ToUInt32 (args [2]);
+        int msgCount = Convert.ToInt32 (args [3]);
 
         //  Print out the test parameters.
-        Console.Out.WriteLine ("message size: " + msg_size + " [B]");
-        Console.Out.WriteLine ("message count: " + msg_count);
+        Console.Out.WriteLine ("message size: " + messageSize + " [B]");
+        Console.Out.WriteLine ("message count: " + msgCount);
 
         //  Create the Dnzmq class.
         Dnzmq w = new Dnzmq (host);
 
         //  Set up 0MQ wiring.
-        w.create_queue ("Q", Dnzmq.SCOPE_GLOBAL, in_interface, -1, -1, 0);
+        int queue = w.CreateQueue ("Q", Dnzmq.SCOPE_GLOBAL, queueInterface,
+            Dnzmq.NO_LIMIT, Dnzmq.NO_LIMIT, Dnzmq.NO_SWAP);
+
+        byte[] message;
+        int type;
 
         //  Receive the first message.
-        byte [] msg;
-        int type;
-        w.receive (out msg, out type, Dnzmq.TRUE);
-        Debug.Assert (msg.Length == msg_size);
+        w.Receive (out message, out type, true);
+        Debug.Assert (message.Length == messageSize);
 
         //  Start measuring the time.
         System.Diagnostics.Stopwatch watch;
@@ -62,32 +64,33 @@ class cs_local_thr
         watch.Start ();
 
         //  Start receiving messages
-        for (int i = 0; i < msg_count - 1; i++)
+        for (int i = 0; i < msgCount - 1; i++)
         {
-            w.receive (out msg, out type, Dnzmq.TRUE);
-            Debug.Assert (msg.Length == msg_size);
+            w.Receive (out message, out type, true);
+            Debug.Assert (message.Length == messageSize);
         }
 
         //  Stop measuring the time.
         watch.Stop ();
-        Int64 elapsed_time = watch.ElapsedTicks;
-        double time = elapsed_time / Stopwatch.Frequency;
+        Int64 elapsedTime = watch.ElapsedTicks;
+        double time = elapsedTime / Stopwatch.Frequency;
         
         //  Compute and print out the throughput.
-        Int64 message_throughput;
-        Int64 megabit_throughput;
+        Int64 messageThroughput;
+        Int64 megabitThroughput;
 
         //message_throughput = (Int64) (msg_count / time);
-        message_throughput = (Int64) (msg_count *Stopwatch.Frequency / elapsed_time);
-        megabit_throughput = message_throughput * msg_size * 8 /
+        messageThroughput = (Int64) (msgCount *Stopwatch.Frequency / elapsedTime);
+        megabitThroughput = messageThroughput * messageSize * 8 /
             1000000;
        
         Console.Out.WriteLine ("Your average throughput is {0} [msg/s]",
-            message_throughput.ToString ());
+            messageThroughput.ToString ());
         Console.Out.WriteLine ("Your average throughput is {0} [Mb/s]",
-            megabit_throughput.ToString ());
+            megabitThroughput.ToString ());
 
         System.Threading.Thread.Sleep (5000);
+        w.Destroy ();
 
         return 0;
     }

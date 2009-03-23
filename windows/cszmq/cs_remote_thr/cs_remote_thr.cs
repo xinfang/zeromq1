@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
-using zmq;
+using Zmq;
 
-class cs_remote_thr
+class CsRemoteThr
 {
     static unsafe int Main (string [] args)
     {
@@ -35,25 +35,27 @@ class cs_remote_thr
         }
 
         String host = args[0];
-        uint msg_size = Convert.ToUInt32 (args[1]);
-        int msg_count = Convert.ToInt32 (args[2]);
+        uint messageSize = Convert.ToUInt32 (args[1]);
+        int msgCount = Convert.ToInt32 (args[2]);
 
         //  Create 0MQ Dnzmq class
         Dnzmq w = new Dnzmq (host);
         
         //  Set up 0MQ wiring.
-        int eid = w.create_exchange ("E", Dnzmq.SCOPE_LOCAL, "", Dnzmq.STYLE_LOAD_BALANCING);
-        w.bind ("E", "Q", null, null);
+        int exchange = w.CreateExchange ("E", Dnzmq.SCOPE_LOCAL, "", 
+            Dnzmq.STYLE_LOAD_BALANCING);
+        w.Bind ("E", "Q", null, null);
 
         //  Create a message to send.
-        byte [] msg = new byte [msg_size];
+        byte[] message = new byte[messageSize];
 
         //  Start sending messages.
-        for (int i = 0; i < msg_count; i++)
-            w.send (eid, msg, Dnzmq.TRUE);
-            
+        for (int i = 0; i < msgCount; i++)
+            w.Send (exchange, message, true);
+        
         System.Threading.Thread.Sleep (100000);
 
+        w.Destroy ();
         return 0;
     }
 }

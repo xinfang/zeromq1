@@ -56,7 +56,7 @@
   </Target>
   -->
   <ItemGroup>
-    <Reference Include="cszmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a6ac03f4afe7a9b0, processorArchitecture=MSIL" />
+    <Reference Include="cszmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=500b02ec5e96ba8c, processorArchitecture=MSIL" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
