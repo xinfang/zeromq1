@@ -41,7 +41,7 @@ namespace Zmq
 
         public void Open (string host)
         {
-            zmq_ = czmq_create (host);
+            zmq_ = zmq_create (host);
         }
 
         public bool IsOpen { get { return zmq_ == IntPtr.Zero; } }
@@ -50,27 +50,27 @@ namespace Zmq
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
-            czmq_mask (zmq_, Convert.ToUInt32 (messageMask));
+            zmq_mask (zmq_, Convert.ToUInt32 (messageMask));
         }
         public int CreateExchange (string name, int scope, string location, int style)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
-            return czmq_create_exchange (zmq_, name, scope, location, style);
+            return zmq_create_exchange (zmq_, name, scope, location, style);
         }
 
         public int CreateQueue (string name, int scope, string location, Int64 hwm, Int64 lwm, Int64 swap)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
-            return czmq_create_queue (zmq_, name, scope, location, hwm, lwm, swap);
+            return zmq_create_queue (zmq_, name, scope, location, hwm, lwm, swap);
         }
 
         public void Bind (string exchangeName, string queueName, string exchangeArgs, string queueArgs)
         {
             if (zmq_ == IntPtr.Zero)
                 throw new NullReferenceException ("queue must be initialized");
-            czmq_bind (zmq_, exchangeName, queueName, exchangeArgs, queueArgs);
+            zmq_bind (zmq_, exchangeName, queueName, exchangeArgs, queueArgs);
         }
 
         class Pinner
@@ -104,7 +104,7 @@ namespace Zmq
             Marshal.Copy (message, 0, ptr, message.Length);
             try
             {
-                sent = czmq_send (zmq_, exchange, ptr,
+                sent = zmq_send (zmq_, exchange, ptr,
                     Convert.ToUInt32 (message.Length), freeHGlobal, Convert.ToInt32 (block));
             }
             catch
@@ -140,7 +140,7 @@ namespace Zmq
 
             FreeMsgData freeFunc;
             UInt32 _type;
-            int queue = czmq_receive (zmq_, out ptr, out messageSize, out freeFunc,
+            int queue = zmq_receive (zmq_, out ptr, out messageSize, out freeFunc,
                 out _type, Convert.ToInt32 (block));
             type = (int) _type;
 
@@ -165,7 +165,7 @@ namespace Zmq
         {
             if (zmq_ != IntPtr.Zero)
             {
-                czmq_destroy (zmq_);
+                zmq_destroy (zmq_);
                 zmq_ = IntPtr.Zero;
             }
         }
@@ -196,32 +196,32 @@ namespace Zmq
         #region C API
 
         [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern IntPtr czmq_create (string host);
+        static extern IntPtr zmq_create (string host);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern void czmq_destroy (IntPtr zmq);
+        static extern void zmq_destroy (IntPtr zmq);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern void czmq_mask (IntPtr zmq, UInt32 notifications);
+        static extern void zmq_mask (IntPtr zmq, UInt32 notifications);
 
         [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern int czmq_create_exchange (IntPtr zmq, string name,
+        static extern int zmq_create_exchange (IntPtr zmq, string name,
             int scope, string location, int style);
 
         [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern int czmq_create_queue (IntPtr zmq, string name, int scope,
+        static extern int zmq_create_queue (IntPtr zmq, string name, int scope,
             string location, Int64 hwm, Int64 lwm, Int64 swap);
 
         [DllImport ("libczmq", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        static extern void czmq_bind (IntPtr zmq, string exchange_name, string queue_name,
+        static extern void zmq_bind (IntPtr zmq, string exchange_name, string queue_name,
             string exchange_options, string queue_options);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int czmq_send (IntPtr zmq, int exchange, IntPtr data,
+        static extern int zmq_send (IntPtr zmq, int exchange, IntPtr data,
             UInt32 size, FreeMsgData ffn, int block);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int czmq_receive (IntPtr zmq, [Out] out IntPtr data,
+        static extern int zmq_receive (IntPtr zmq, [Out] out IntPtr data,
              [Out] out UInt32 size, [Out] out FreeMsgData ffn,
              [Out] out UInt32 type, int block);
 
