@@ -1,4 +1,4 @@
-.TH zmq-latency 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User \
+.TH zmq\-latency 7 "23. march 2009" "(c)2007\-2009 FastMQ Inc." "0MQ perf User \
 Manuals"
 .SH NAME
 0MQ latency scenario
@@ -33,23 +33,16 @@ framework:
            tests.dat file
 .fi
 \fP
-.PP
-.I remote
-.RS 4
-Executable that calls scenario function \fBremote_lat\fR with chosen transport.
-.RE
-.PP
-.I local 
-.RS 4
-Executable that calls scenario function \fBlocal_lat\fR with chosen transport.
-.RE
-.PP
-.I tests.dat
-.RS 4
+.TP
+.BR remote
+Executable that calls scenario function \f(BIremote_lat\fP with chosen transport.
+.TP
+.BR local 
+Executable that calls scenario function \f(BIlocal_lat\fP with chosen transport.
+.TP
+.BR tests.dat
 Output file local program will add one line to. The format of the line is: 0, 
 roundtrip count, msg size [B], test time [ms], latency [us]. 
-.RE
-
 .SH EXAMPLE
 First, you have to choose which transport mechanism you are going to use. Check
 transports directory for the available set of transports. You can write your 
@@ -87,7 +80,7 @@ int main (void)
 .PP
 In the main routine you should initialise transport and call appropriate 
 function (local_lat) from appropriate scenario header file (lat.hpp). 
-Looking at \fBzmq-transport\fR(7) object you'll find out that you need to 
+Looking at \fBzmq\-transport\fR(7) object you'll find out that you need to 
 supply following information when initialising it:
 .PP
 .RS 4
@@ -211,7 +204,7 @@ distribute it to the other host afterwards. Otherwise we have to build it on
 both system independently.
 .PP
 Compilation options depend on used transport. According to 
-\fBzmq-transport\fR(7) build specifications it is necessary to link with 
+\fBzmq\-transport\fR(7) build specifications it is necessary to link with 
 pthreads and 0MQ library. For g++ compiler and 0MQ transport local.cpp and 
 remote.cpp should be compiled in following way (note that 0MQ libraries and 
 header files has to be installed):
@@ -271,6 +264,6 @@ $ more tests.dat
 Columns in the file are arranged as follows: 0, roundtrip count, msg size [B],
 test time [ms], latency [us].
 .SH "SEE ALSO"
-zmq_server(1), zmq-transport(7), zmq-throughput(7)
+zmq_server(1), zmq\-transport(7), zmq\-throughput(7)
 .SH AUTHOR
 Pavol Malosek <malosek at fastmq dot com>

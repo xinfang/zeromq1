@@ -12,21 +12,15 @@ measurement suite is a convenient way of examining behavior of TCP and 0MQ
 latencies and throughputs aggregates with different message sizes involved.
 .PP
 tests consist of three directories:
-.PP
-.I scenarios 
-.RS 4
-Directory with prepared scenario header files.
-.RE
-.PP
-.I tcp 
-.RS 4
-TCP latency and throughput tests.
-.RE
-.PP
-.I zmq
-.RS 4
-0MQ latency and throughput tests.
-.RE
+.TP 16
+.BR scenarios 
+- directory with prepared scenario header files
+.TP 16
+.BR tcp 
+- TCP latency and throughput tests
+.TP
+.BR zmq
+- 0MQ latency and throughput tests
 .SH COMPILING TEST SUITE
 tests are compiled during the build process, however ./configure has to be run 
 with \-\-with\-perf switch. /configure summary should look like this (have a 
