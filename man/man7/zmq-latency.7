@@ -1,4 +1,5 @@
-.TH zmq-latency 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User Manuals"
+.TH zmq-latency 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User \
+Manuals"
 .SH NAME
 0MQ latency scenario
 
@@ -13,50 +14,37 @@ message. Figure shows detailed implementations of such a measuring in perf
 framework:
 .PP
 \f(CR
+.nf
                          *******************
-.br
                          *    zmq_server   *
-.br
                          *******************
-.br
 
-.br
     *******[ local ]*******                *******[ remote ]******
-.br
     *                     *            (1.)*                     *
-.br
     * args: message size  *===============>* args: message size  *
-.br
     *       message count *            (2.)*       message count *
-.br
     * scenario: lat       *<===============* scenario: lat       *
-.br
     * transport: 0MQ, TCP *                * transport: 0MQ, TCP *
-.br
     *                     *                *                     *
-.br
     ***********************                ***********************
-.br
               |
-.br
               |
-.br
               V
-.br
            tests.dat file
+.fi
 \fP
 .PP
-remote
+.I remote
 .RS 4
 Executable that calls scenario function \fBremote_lat\fR with chosen transport.
 .RE
 .PP
-local 
+.I local 
 .RS 4
 Executable that calls scenario function \fBlocal_lat\fR with chosen transport.
 .RE
 .PP
-tests.dat
+.I tests.dat
 .RS 4
 Output file local program will add one line to. The format of the line is: 0, 
 roundtrip count, msg size [B], test time [ms], latency [us]. 

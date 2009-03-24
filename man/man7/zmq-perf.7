@@ -1,4 +1,5 @@
-.TH zmq-perf 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User Manuals"
+.TH zmq-perf 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User \
+Manuals"
 .SH NAME
 0MQ perf \- a performance measuring framework
 
@@ -24,35 +25,23 @@ perf framework consists of two main components:
 .PP
 .RS 8
 \f(CR
+.nf
     --------------------------------------
-.br
    |                                      |
-.br
    |   ******************************     |
-.br
    |   *        Main program        *     |
-.br
    |   ******************************     |
-.br
    |          |(initializes)  |(runs)     |
-.br
    |          V               V           |
-.br
    |   *************    *************     |
-.br
    |   * transport *--->* scenario  *<====|=====> (messages)
-.br
    |   *************    *************     |
-.br
    |                          |           |
-.br
     --------------------------------------
-.br
                               |
-.br
                               V
-.br
                           (dat file)
+.fi
 \fP
 .RE
 .PP 
