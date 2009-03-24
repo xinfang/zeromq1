@@ -58,10 +58,6 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     pgm_msgv_len (0)
 {
     
-    //  Set actual_tsi and prev_tsi to zeros.
-    memset (&tsi, '\0', sizeof (pgm_tsi_t));
-    memset (&retired_tsi, '\0', sizeof (pgm_tsi_t));
-
     //  Check if we are encapsulating into UDP, interface string has to 
     //  start with udp:.
 
@@ -114,6 +110,10 @@ void zmq::pgm_socket_t::open_transport (void)
 
     //  Can not open transport before destroying old one. 
     assert (g_transport == NULL);
+
+    //  Set actual_tsi and prev_tsi to zeros.
+    memset (&tsi, '\0', sizeof (pgm_tsi_t));
+    memset (&retired_tsi, '\0', sizeof (pgm_tsi_t));
 
     //  Zero counter used in msgrecv.
     nbytes_rec = 0;
