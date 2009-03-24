@@ -1,0 +1,143 @@
+.TH zmq-tests 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ tests \
+User Manuals"
+.SH NAME
+0MQ tests \- a performance measurement test suite
+.SH INTRODUCTION
+0MQ test is a collection of pre\-prepared latency and throughput performance 
+measurement tests for 0MQ. The tests are automating latency and throughput 
+tests for different message sizes. It is a convenient way to investigate 0MQ 
+performance.
+.SH TESTS
+.I Throughput test
+.br
+
+.br
+.I Latency test 
+.SH FILES
+Files are located in perf/tests/zmq directory.
+.PP
+.I local_thr.cpp 
+.RS 4
+ 'local' program for throughput test 
+.RE
+.PP
+.I remote_thr.cpp 
+.RS 4
+ 'remote' program for throughput test
+.RE
+.PP
+.I local_lat.cpp 
+.RS 4
+ 'local' program for latency test
+.RE
+.PP
+.I remote_lat.cpp 
+.RS 4
+ 'remote' program for latency test
+.RE
+.SH COMPILING THE TESTS
+All 0MQ tests are build as a integral part of perf test suite. For detailed 
+info please refer to the \fBzmq-tests-build\fR(7) man page.
+.PP
+Note that in the case of two identical hosts we can compile both binaries on a
+single host and distribute one of them to the other host afterwards. Different 
+situation is when perf is compiled with PERF_CPU_FREQUENCY macro defined and 
+obviously, CPU frequency has to be measured and perf compiled on each box 
+separately.
+.SH RUNNING THE TESTS
+In the following tests two physical hosts are used. The host running 'local' 
+program has IP address 10.0.0.1 (eth1); the host running 'remote' has IP 
+address 10.0.0.2 (eth1).
+.PP
+Note that 0MQ transport needs \fBzmq_server\fR(1) running somewhere on the 
+network. In our case zmq_server will be running on host 10.0.0.1.
+.PP
+All binaries used in the tests (except zmq_server) are located in 
+perf/tests/zmq directory.
+.PP
+First start \fBzmq_server\fR(1) on local host (10.0.0.1):
+.RS 4
+\f(CR
+.nf
+$ zmq_server
+.fi
+\fP
+.RE
+Note that \fBzmq_server\fR(7) uses default port of 5682.
+.SS Throughput test
+To run the throughput test with messages 6 B long and 500000 messages in the 
+test first start the local_thr binary on local host (10.0.0.1). Parameters are
+hostname of zmq_server, IP address or name of local network interface to use 
+for exchange, IP address or name of local network interface to use for queue, 
+message size [B] and number of messages in the test:
+.RS 4
+\f(CR
+.nf
+$ ./local_thr 10.0.0.1 eth1 eth1 6 500000
+.fi
+\fP
+.RE
+Then start the remote_thr binary on the remote machine (10.0.0.2). Parameters 
+are the hostname of zmq_server, message size [B] and number of messages in the 
+test:
+.RS 4
+\f(CR
+.nf
+$ ./remote_thr 10.0.0.1 6 500000
+.fi
+\fP
+.RE
+Following text should appear on the screen where local_thr runs:
+.RS 4
+\f(CR
+.nf
+message size: 6 [B]
+message count: 500000
+Your average throughput is 3523931 [msg/s]
+Your average throughput is 169 [Mb/s]
+.fi
+\fP
+.RE
+After successful test execution tests.dat file should be created / appended on 
+local host. Refer to the Postprocessing chapter in the \fBzmq-throughput\fR(7) 
+scenario man page for more details about tests.dat file format.
+.SS Latency test
+To run the latency test with messages 6 B long and 50000 messages in the test,
+first start the local_lat binary on local host (10.0.0.1). Parameters are 
+hostname of zmq_server, IP address or name of local network interface to use 
+for the exchange, IP address or name of local network interface to use for the 
+queue, message size [B] and number of messages in the test:
+.RS 4
+\f(CR
+.nf
+$ ./local_lat 10.0.0.1 eth1 eth1 6 50000
+.fi
+\fP
+.RE
+Then start the remote_lat binary on the remote machine (10.0.0.2). Parameters 
+are hostname of zmq_server, message size [B] and number of messages in the 
+test:
+.RS 4
+\f(CR
+.nf
+$ ./remote_lat 10.0.0.1 6 50000
+.fi
+\fP
+.RE
+Following text should appear on the screen where local_lat runs:
+.RS 4
+\f(CR
+.nf
+message size: 6 [B]
+roundtrip count: 50000
+Your average latency is 52.00 [us]
+.fi
+\fP
+.RE
+After successful test execution there should be one line appended to tests.dat
+on local host. Refer to the Postprocessing chapter in the \fBzmq-latency\fR(7) 
+scenario man page more details about tests.dat file format.
+.SH "SEE ALSO"
+zmq-throughput(7), zmq-latency(7), zmq-tests-build(7)
+.SH AUTHOR
+Pavol Malosek <malosek at fastmq dot com>
