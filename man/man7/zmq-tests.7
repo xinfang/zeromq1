@@ -28,9 +28,7 @@ Files are located in perf/tests/zmq directory.
 \- 'remote' program for latency test
 .SH COMPILING THE TESTS
 All 0MQ tests are build as a integral part of perf test suite. For detailed 
-info please refer to the 
-.BR zmq\-tests\-build(7) 
-man page.
+info please refer to the \fBzmq\-tests\-build\fR(7) man page.
 .PP
 Note that in the case of two identical hosts we can compile both binaries on a
 single host and distribute one of them to the other host afterwards. Different 
@@ -131,6 +129,8 @@ After successful test execution there should be one line appended to tests.dat
 on local host. Refer to the Postprocessing chapter in the \fBzmq\-latency\fR(7) 
 scenario man page more details about tests.dat file format.
 .SH "SEE ALSO"
-zmq\-throughput(7), zmq\-latency(7), zmq\-tests\-build(7)
+.BR zmq\-throughput (7), 
+.BR zmq\-latency (7), 
+.BR zmq\-tests\-build (7)
 .SH AUTHOR
 Pavol Malosek <malosek at fastmq dot com>
