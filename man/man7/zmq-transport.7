@@ -1,0 +1,118 @@
+.TH zmq-transport 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ User \
+Manuals"
+.SH NAME
+0MQ transport
+
+.SH DESCRIPTION
+0MQ transport sends messages via 0MQ. For messages smaller that 255 bytes the 
+message consists of 1 byte length followed by opaque message body. 
+.PP
+\f(CR
+.nf
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Message size  |                Message body               ... |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Message body ...
+   +-+-+-+-+-+-+- ...
+.fi
+\fP
+For messages equal or bigger than 255 bytes the message consist of 0xff byte 
+followed by 8 bytes message length followed by opaque body.
+.PP
+\f(CR
+.nf
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     0xff      |                Message size               ... |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Message size                       ... |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Message size |                Message body               ... |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Message body ...
+   +-+-+-+-+-+-+-+ ...
+.fi
+\fP
+.SH INITIALISATION
+To initialise 0MQ transport the following constructor is used:
+.RS 4
+\f(CR
+.nf
+zmq_t (const char *host_, bool bind_, const char *exchange_name_, 
+    const char *queue_name_, const char *exchange_interface_, 
+    const char *queue_interface_)
+.fi
+\fP
+.RE
+.I host_ 
+.RS 4
+Hostname or IP address of the \fBzmq_server\fR(1). By default port 5682 is 
+used, for overwritting use hostname:port notation. Note that for 0MQ 
+transport to operate \fBzmq_server\fR(1) has to be up and running on the 
+network. \fBzmq_server\fR(1) operates as a directory service for addressing 
+global exchanges and queues on the network. 
+.RE
+.PP
+.I bind_
+.RS 4
+Determines whether the transport should bind to existing exhange and queue or 
+to create them by itself. If only bind to performed exchange_interface_ and 
+queue_interface_ should be set to NULL. 
+.RE
+.PP
+.I exchange_name_
+.RS 4
+Name of the exchange to be bind to or to be created, depends from bind_ 
+parameter.
+.RE
+.PP
+.I queue_name_
+.RS 4
+Name of the queue to be bind to or to be created, depends from bind_ 
+parameter.
+.RE
+.PP
+.I exchange_interface_
+.RS 4
+Hostname:port of the exchange to be bind to or to be created, depends from 
+bind_ parameter. If exchange is going to be created exchange_interface_ has 
+to be local interface. 
+.RE
+.PP
+.I queue_interface_
+.RS 4
+Hostname:port of the queue to be bind to or to be created, depends from bind_ 
+parameter. If queue is going to be created exchange_interface_ has to be local 
+interface. 
+.RE
+.SH METHODS
+zmq_t is derived from i_transport class and it implemens send and receive 
+methods.
+.SH EXAMPLE
+.PP
+\f(CR
+.nf
+#include <perf/transports/zmq_transport.hpp>
+
+int main (void){
+    size_t msg_size;
+
+    perf::zmq_t transport ("127.0.0.1", false, "E_0", "Q_0", "127.0.0.1:5672", 
+        "127.0.0.1:5673");
+    msg_size = transport.receive();
+
+    return 0;
+}
+.fi
+\fP
+.SH BUILD SPECIFICS
+Link with Pthreads library (e.g. -lpthreads with g++ like compiler).
+.SH LOCATION
+perf/transports/zmq_transport.hpp
+.SH "SEE ALSO"
+zmq-perf(7), zmq-latency(7), zmq-throughput(7)
+.SH AUTHOR
+Pavol Malosek <malosek at fastmq dot com>

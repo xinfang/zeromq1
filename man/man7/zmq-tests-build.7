@@ -1,0 +1,170 @@
+.TH zmq-tests-build 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ tests \
+User Manuals"
+.SH NAME
+0MQ tests \- a performance measurement test suite
+.SH INTRODUCTION
+tests is a pre-prepared performance measurement test suite, that you can build
+and run in a simple manner. The results should give you some idea of what are 
+the latencies and throughputs of 0MQ on your network. tests also measures 
+performance metrics for raw TCP, so that you know what share of latency should 
+be attributed to 0MQ and what to TCP and underlying layers. tests performance 
+measurement suite is a convenient way of examining behavior of TCP and 0MQ 
+latencies and throughputs aggregates with different message sizes involved.
+.PP
+tests consist of three directories:
+.PP
+.I scenarios 
+.RS 4
+Directory with prepared scenario header files.
+.RE
+.PP
+.I tcp 
+.RS 4
+TCP latency and throughput tests.
+.RE
+.PP
+.I zmq
+.RS 4
+0MQ latency and throughput tests.
+.RE
+.SH COMPILING TEST SUITE
+tests are compiled during the build process, however ./configure has to be run 
+with \-\-with\-perf switch. /configure summary should look like this (have a 
+look at performance tests addon status):
+.RS 4
+\f(CR
+.nf
+$ ./configure --with-perf
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for gawk... no
+
+... etc ...
+
+0MQ install dir: /usr/local
+libzmq extesions:
+  SCTP: no
+  OpenPGM: no
+  AMQP: no
+
+Utilities:
+  zmq_server: yes
+  cpu frequency estimator: yes
+
+Addons:
+  manual pages: yes
+  performance tests: yes (gettime)
+  camera example: no
+  stock exchange example: no
+  chartoom example: no
+
+  C language binding: no
+  Python language binding: no
+  Java language binding: no
+.fi
+\fP
+.RE
+When configure is ready, run make:
+.RS 4
+\f(CR
+.nf
+$ make
+.fi
+\fP
+.RE
+There are files prefixed with 'local' and 'remote' located in perf/tests/tcp 
+and /perf/tests/zmq directories. To get idea of 'local' and 'remote' 
+terminology refer to \fBzmq\-throughput\fR(7) and \fBzmq\-latency\fR(7).
+.PP
+Note that perf tests binaries are not installed during make install procedure. 
+Therefore they can be run only from source directory. If you are planing to 
+run perf tests on multiple machines consider using --disable-shared configure 
+switch. Configuring 0MQ as a static library makes transferring test binaries 
+across hosts easier and avoids confusion if there is older version of the 0MQ
+library installed on the destination system. Moreover, there is no need to 
+perform any installation procedures and all the tests can be run directly from 
+the source tree.
+.SH CUSTOMISATION
+To use RTDSC for time measurements, CXXFLAGS has to be set properly before 
+runing ./configure. To estimate your CPU frequency with high accuracy provided 
+\fBestimate_cpu_freq\fR(1) binary can be used.
+.PP
+Switch perf to use RDTSC as follows (x86 only):
+.PP
+.RS 4
+Configure 0MQ package with --with--perf switch. On x86 platform 
+\fBestimate_cpu_freq\fR(1) binary should be automatically compiled. 
+Carefully check ./configure summary. Look for cpu frequency estimator status 
+(should be yes) and performance tests status (should be yes). Time measurement 
+method going to be used in whole perf framework is displayed next to the 
+performance tests status - should be gettime in our case. 
+.RS 4
+\f(CR
+.nf
+$ ./configure --with-perf
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for gawk... no
+
+... etc ...
+
+Addons:
+  manual pages: yes
+  performance tests: yes (gettime)
+
+... etc ...
+.fi
+\fP
+.RE
+When configure is ready, run make:
+.RS 4
+\f(CR
+.nf
+$ make
+.fi
+\fP
+.RE
+Run \fBestimate_cpu_freq\fR(1) to measure your CPU frequency: 
+.RS 4
+\f(CR
+.nf
+$ ./perf/helpers/estimate_cpu_freq
+CPU frequency measured with busy loop: 2009147377 [Hz]
+CPU frequency measured with sleep: 2009138406 [Hz]
+
+Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891 and run
+configure and make in the top of the source tree again.
+.fi
+\fP
+.RE
+Export proper CXXFLAGS and configure 0MQ package \-with\-perf switch again 
+.RS 4
+\f(CR
+.nf
+$ export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891 
+$ ./configure --with-perf
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+
+... etc ...
+
+Addons:
+  manual pages: yes
+  performance tests: yes (rtdsc)
+
+... etc ...
+.fi
+\fP
+.RE
+Compile 0MQ package. Note that time measurement method is now set to rtdsc.
+.RS 4
+\f(CR
+.nf
+$ make
+.fi
+\fP
+.RE
+.SH "SEE ALSO"
+zmq-throughput(7), zmq-latency(7), zmq-tests(7)
+.SH AUTHOR
+Pavol Malosek <malosek at fastmq dot com>
