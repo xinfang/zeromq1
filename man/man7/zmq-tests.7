@@ -1,4 +1,4 @@
-.TH zmq-tests 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ tests \
+.TH zmq\-tests 7 "23. march 2009" "(c)2007\-2009 FastMQ Inc." "0MQ tests \
 User Manuals"
 .SH NAME
 0MQ tests \- a performance measurement test suite
@@ -8,36 +8,29 @@ measurement tests for 0MQ. The tests are automating latency and throughput
 tests for different message sizes. It is a convenient way to investigate 0MQ 
 performance.
 .SH TESTS
-.I Throughput test
-.br
-
-.br
-.I Latency test 
+.TP
+.B Throughput test
+.TP
+.B Latency test 
 .SH FILES
 Files are located in perf/tests/zmq directory.
-.PP
-.I local_thr.cpp 
-.RS 4
- 'local' program for throughput test 
-.RE
-.PP
-.I remote_thr.cpp 
-.RS 4
- 'remote' program for throughput test
-.RE
-.PP
-.I local_lat.cpp 
-.RS 4
- 'local' program for latency test
-.RE
-.PP
-.I remote_lat.cpp 
-.RS 4
- 'remote' program for latency test
-.RE
+.TP 16
+.BR local_thr.cpp
+\- 'local' program for throughput test 
+.TP 16
+.BR remote_thr.cpp
+\- 'remote' program for throughput test
+.TP 16
+.BR local_lat.cpp
+\- 'local' program for latency test
+.TP 16
+.BR remote_lat.cpp 
+\- 'remote' program for latency test
 .SH COMPILING THE TESTS
 All 0MQ tests are build as a integral part of perf test suite. For detailed 
-info please refer to the \fBzmq-tests-build\fR(7) man page.
+info please refer to the 
+.BR zmq\-tests\-build(7) 
+man page.
 .PP
 Note that in the case of two identical hosts we can compile both binaries on a
 single host and distribute one of them to the other host afterwards. Different 
@@ -99,7 +92,7 @@ Your average throughput is 169 [Mb/s]
 \fP
 .RE
 After successful test execution tests.dat file should be created / appended on 
-local host. Refer to the Postprocessing chapter in the \fBzmq-throughput\fR(7) 
+local host. Refer to the Postprocessing chapter in the \fBzmq\-throughput\fR(7) 
 scenario man page for more details about tests.dat file format.
 .SS Latency test
 To run the latency test with messages 6 B long and 50000 messages in the test,
@@ -135,9 +128,9 @@ Your average latency is 52.00 [us]
 \fP
 .RE
 After successful test execution there should be one line appended to tests.dat
-on local host. Refer to the Postprocessing chapter in the \fBzmq-latency\fR(7) 
+on local host. Refer to the Postprocessing chapter in the \fBzmq\-latency\fR(7) 
 scenario man page more details about tests.dat file format.
 .SH "SEE ALSO"
-zmq-throughput(7), zmq-latency(7), zmq-tests-build(7)
+zmq\-throughput(7), zmq\-latency(7), zmq\-tests\-build(7)
 .SH AUTHOR
 Pavol Malosek <malosek at fastmq dot com>
