@@ -29,12 +29,18 @@ static jfieldID context_fid = NULL;
 
 struct context_t
 {
+    //  Cache for JNI static objects.
+    jclass inbound_data_class;
+    jfieldID queue_fid;
+    jfieldID type_fid;
+    jfieldID message_fid;
+
+    //  0MQ infrastructure.
     zmq::locator_t *locator;
     zmq::dispatcher_t *dispatcher;
     zmq::i_thread *io_thread;
     zmq::api_thread_t *api_thread;
 };
-
 
 JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
     jstring host)
@@ -42,6 +48,7 @@ JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
     //  Cache context field ID.
     jclass cls = env->GetObjectClass (obj);
     context_fid = env->GetFieldID (cls, "context", "J");
+    assert (context_fid);
 
     //  Get the hostname.
     assert (host);
@@ -61,6 +68,24 @@ JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
         context->locator);
     assert (context->api_thread);
 
+    //  Cache Zmq.InboundData class.
+    jclass idc = env->FindClass ("Zmq$InboundData");
+    assert (idc);
+    context->inbound_data_class = (jclass) env->NewGlobalRef (idc);
+    assert (context->inbound_data_class);
+    env->DeleteLocalRef (idc);
+
+    //  Cache fieldIDs for InboundData member variables.
+    context->queue_fid = env->GetFieldID (context->inbound_data_class,
+        "queue", "I");
+    assert (context->queue_fid);
+    context->type_fid = env->GetFieldID (context->inbound_data_class,
+        "type", "I");
+    assert (context->type_fid);
+    context->message_fid = env->GetFieldID (context->inbound_data_class,
+        "message", "[B");
+    assert (context->message_fid);
+
     //  Clean-up.
     env->ReleaseStringUTFChars (host, c_host);
 
@@ -74,9 +99,13 @@ JNIEXPORT void JNICALL Java_Zmq_finalize (JNIEnv *env, jobject obj)
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
     assert (context);
 
+    //  Free JNI cached JNI objects.
+    env->DeleteGlobalRef ((jobject) context->inbound_data_class);
+
     //  Deallocate the 0MQ infrastructure.
     delete context->locator;
-    delete context->dispatcher;   
+    delete context->dispatcher;
+
     delete context;
 }
 
@@ -218,27 +247,31 @@ JNIEXPORT jboolean JNICALL Java_Zmq_send (JNIEnv *env, jobject obj,
     return (jboolean) context->api_thread->send (exchange, msg, block);
 }
 
-JNIEXPORT jbyteArray JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
+JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
     jboolean block)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
     assert (context);
 
+    //  Allocate new InboundData object; no constructor is called!
+    //  We're doing the allocation before the receive so that delivery of
+    //  the message is not slowed down by the allocation.
+    jobject result = env->AllocObject (context->inbound_data_class);
+    assert (result);
+
     //  Get new message.
     zmq::message_t msg;
     int qid = context->api_thread->receive (&msg, block);
 
-
-    //  If no message was received, return empty bytearray.
-    jbyteArray result;
-    if (!qid) {
-        result = env->NewByteArray (0);
-    }
-    else {
-        result = env->NewByteArray (msg.size ());
-        env->SetByteArrayRegion (result, 0, msg.size (), (jbyte*) msg.data ());
-    }
+    //  Fill in the InboundData object.
+    env->SetIntField (result, context->queue_fid, (jint) qid);
+    env->SetIntField (result, context->type_fid, (jint) msg.type ());
+    jbyteArray data = env->NewByteArray (msg.size ());
+    assert (data);
+    env->SetByteArrayRegion (data, 0, msg.size (), (jbyte*) msg.data ());
+    env->SetObjectField (result, context->message_fid, data);
+    env->DeleteLocalRef (data);
 
     return result;
 }

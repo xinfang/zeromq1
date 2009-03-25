@@ -45,7 +45,7 @@ class j_local_thr
              Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
          //  Receive the first message from RemoteThr.
-         byte [] data = obj.receive (true);
+         byte [] data = obj.receive (true).message;
          assert (data.length == messageSize);
 
          //  Get the inital timestamp.
@@ -53,7 +53,8 @@ class j_local_thr
 
          //  Receive the remaining messages from RemoteThr.
          for (int i = 1; i != messageCount; i ++) {
-             data = obj.receive (true);
+
+             data = obj.receive (true).message;
              assert (data.length == messageSize);
          }
 

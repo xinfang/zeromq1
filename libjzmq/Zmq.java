@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class Zmq
+public class Zmq
 {
      //  Specifies that the object will be visible only in this session.
      public static final int SCOPE_LOCAL = 1;
@@ -79,8 +79,25 @@ class Zmq
      //  Send a binary message to the specified exchange.
      public native boolean send (int exchange, byte [] message, boolean block);
 
+     //  Ad-hoc structure used to return multiple values from the
+     //  'receive' method.
+     public static class InboundData
+     {
+         //  ID of the queue the message was received from. In case of
+         //  non-blocking receive, value of 0 indicates that no message was
+         //  received.
+         public int queue;
+
+         //  Either MESSAGE_DATA in case it is an actual message or
+         //  a notification type (like MESSAGE_GAP).
+         public int type;
+
+         //  Actual message payload.
+         byte [] message;
+     }
+
      //  Receive next message.
-     public native byte [] receive (boolean block);
+     public native InboundData receive (boolean block);
 
      //  Initialises 0MQ infrastructure.
      protected native void construct (String host);

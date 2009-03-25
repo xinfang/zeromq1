@@ -24,7 +24,7 @@ class j_remote_lat
          if (args.length != 5) {
              System.out.println ("usage: java j_remote_lat <hostname> " +
                  "<in interface> <out interface> <message size> " +
-                 "<message count>");
+                 "<roundtrip count>");
              return;
          }
 
@@ -33,7 +33,7 @@ class j_remote_lat
          String inInterface = args [1];
          String outInterface = args [2];
          int messageSize = Integer.parseInt (args [3]);
-         int messageCount = Integer.parseInt (args [4]);
+         int roundtripCount = Integer.parseInt (args [4]);
 
          //  Initialise 0MQ runtime.
          Zmq obj = new Zmq (host);
@@ -45,13 +45,13 @@ class j_remote_lat
              Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
          //  Bounce the messages back to LocalLat
-         for (int i = 0; i != messageCount; i ++) {
-             byte [] data = obj.receive (true);
+         for (int i = 0; i != roundtripCount; i ++) {
+             byte [] data = obj.receive (true).message;
              assert (data.length == messageSize);
              obj.send (eid, data, true);
          }
 
-         //  Wait a while before exiting.
+         //  Wait a while to be sure that the last message was actually sent.
          try {
              Thread.sleep (2000);
          }
