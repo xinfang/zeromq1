@@ -50,10 +50,11 @@ $!
 $ noJava:
 $ def/job java_include  "''part1'", "''part2'"	! has the Java include dirs
 $!
-$ def/job zmqBase	zmqRoot:[000000]  ! home...
-$ def/job libzmq	zmqRoot:[libzmq]  ! is where the OLB is
-$ def/job libczmq	zmqRoot:[libczmq] ! is where the C OLB is
-$ def/job libjzmq	zmqRoot:[libjzmq] ! is where Java code lives
+$ def/job zmqBase	zmqRoot:[000000]    ! home...
+$ def/job libzmq	zmqRoot:[libzmq]    ! is where the OLB is
+$ def/job libczmq	zmqRoot:[libczmq]   ! is where the C OLB is
+$ def/job libjzmq	zmqRoot:[libjzmq]   ! is where Java code lives
+$ def/job libvmszmq	zmqRoot:[libvmszmq] ! is where OpenVMS wrapper lives
 $
 $ def/job zmq   	zmqRoot:[openvms],   - ! where the include
 			zmqRoot:[libzmq.zmq],- ! files are

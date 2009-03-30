@@ -37,8 +37,8 @@
 #include <ctype.h>
 #include <zmq.h>
 
-readonly globaldef ZMQ__SCOPE_LOCAL = CZMQ_SCOPE_LOCAL;
-readonly globaldef ZMQ__SCOPE_GLOBAL = CZMQ_SCOPE_GLOBAL;
+readonly globaldef ZMQ__SCOPE_LOCAL = ZMQ_SCOPE_LOCAL;
+readonly globaldef ZMQ__SCOPE_GLOBAL = ZMQ_SCOPE_GLOBAL;
 
 static char *rtrim (char *str)
 {
@@ -67,82 +67,91 @@ static char *dscdup (struct dsc$descriptor_s *dsc)
     return (rtrim (tmp));
 }
 
-unsigned long ZMQ_CREATE (struct dsc$descriptor_s *host_desc,
-    unsigned long *obj)
+unsigned long ZMQ_CREATE (struct dsc$descriptor_s *host_desc_,
+    unsigned long *obj_)
 {
     char *host;
 
     lib$establish (lib$sig_to_ret);
-    host = dscdup (host_desc);
-    *obj = (unsigned long) czmq_create (host);
+    host = dscdup (host_desc_);
+    *obj_ = (unsigned long) zmq_create (host);
     free (host);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_DESTROY (unsigned long obj)
+unsigned long ZMQ_DESTROY (unsigned long obj_)
 {
     lib$establish (lib$sig_to_ret);
-    czmq_destroy ((void*) obj);
+    zmq_destroy ((void*) obj_);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_CREATE_EXCHANGE (unsigned long obj,
-    struct dsc$descriptor_s *exc_desc, int scope,
-    struct dsc$descriptor_s *nic_desc, int *eid)
+unsigned long ZMQ_CREATE_EXCHANGE (unsigned long obj_,
+    struct dsc$descriptor_s *exc_desc_, int scope_,
+    struct dsc$descriptor_s *nic_desc_, int style_, int *eid_)
 {
     char *exc;
     char *nic;
 
     lib$establish (lib$sig_to_ret);
-    exc = dscdup (exc_desc);
-    nic = dscdup (nic_desc);
-    *eid = czmq_create_exchange ((void*) obj, exc, scope, nic);
+    exc = dscdup (exc_desc_);
+    nic = dscdup (nic_desc_);
+    *eid_ = zmq_create_exchange ((void*) obj_, exc, scope_, nic, style_);
     free (exc);
     free (nic);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_CREATE_QUEUE (unsigned long obj,
-    struct dsc$descriptor_s *que_desc, int scope,
-    struct dsc$descriptor_s *nic_desc)
+unsigned long ZMQ_CREATE_QUEUE (unsigned long obj_,
+    struct dsc$descriptor_s *que_desc_, int scope_,
+    struct dsc$descriptor_s *nic_desc_, int64_t hwm_, int64_t lwm_, 
+    int64_t swap_, int *qid_)
 {
     char *que;
     char *nic;
 
     lib$establish (lib$sig_to_ret);
-    que = dscdup (que_desc);
-    nic = dscdup (nic_desc);
-    czmq_create_queue ((void*) obj, que, scope, nic);
+    que = dscdup (que_desc_);
+    nic = dscdup (nic_desc_);
+    *qid_ = zmq_create_queue ((void*) obj_, que, scope_, nic, hwm_, lwm_, swap_);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_BIND (unsigned long obj, struct dsc$descriptor_s *exc_desc,
-    struct dsc$descriptor_s *que_desc)
+unsigned long ZMQ_BIND (unsigned long obj_, struct dsc$descriptor_s *exc_desc_,
+    struct dsc$descriptor_s *que_desc_, struct dsc$descriptor_s *exc_options_,
+    struct dsc$descriptor_s *que_options_)
 {
     char *exc;
     char *que;
 
+    char *exc_options;
+    char *que_options;
+
     lib$establish (lib$sig_to_ret);
-    exc = dscdup (exc_desc);
-    que = dscdup (que_desc);
-    czmq_bind ((void *) obj, exc, que);
+    exc = dscdup (exc_desc_);
+    que = dscdup (que_desc_);
+    exc_options = dscdup (exc_options_);
+    que_options = dscdup (que_options_);
+    zmq_bind ((void *) obj_, exc, que, exc_options, que_options);
     free (exc);
     free (que);
+    free (exc_options);
+    free (que_options);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_SEND (unsigned long obj, int eid, void *data, size_t dlen,
-    void *ffn)
+unsigned long ZMQ_SEND (unsigned long obj_, int eid_, void *data_, 
+    uint64_t size_, int block_)
 {
     lib$establish (lib$sig_to_ret);
-    czmq_send ((void*) obj, eid, data, dlen, (czmq_free_fn *) ffn);
+    zmq_send ((void*) obj_, eid_, data_, size_, block_);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_RECEIVE (unsigned long obj, void **data, size_t *dlen,
-    void **ffn)
+unsigned long ZMQ_RECEIVE (unsigned long obj_, void **data_, uint64_t *size_,
+    uint32_t *type_, int block_)
 {
     lib$establish (lib$sig_to_ret);
-    czmq_receive ((void*) obj, data, dlen, (czmq_free_fn **) ffn);
+    zmq_receive ((void*) obj_, data_, size_, type_, block_);
     return (SS$_NORMAL);
 }
