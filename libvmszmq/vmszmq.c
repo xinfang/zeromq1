@@ -35,7 +35,7 @@
 #include <ssdef.h>
 #include <descrip.h>
 #include <ctype.h>
-#include <zmq/czmq.h>
+#include <zmq.h>
 
 readonly globaldef ZMQ__SCOPE_LOCAL = CZMQ_SCOPE_LOCAL;
 readonly globaldef ZMQ__SCOPE_GLOBAL = CZMQ_SCOPE_GLOBAL;
