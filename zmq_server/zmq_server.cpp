@@ -38,7 +38,6 @@ using namespace std;
 #include <sys/select.h>
 #endif
 
-#include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
@@ -141,7 +140,7 @@ int main (int argc, char *argv [])
         }
 
     }
-    
+
     while (true) {
 
        //  Select on the descriptors.
@@ -311,6 +310,14 @@ error:
             for (socket_list_t::size_type i = 0; i < socket_list.size (); i ++)                            
                 FD_SET (socket_list [i]->get_fd (), &source_set_fds);
         }
+
+#ifdef ZMQ_HAVE_OPENVMS
+        //  Make OpenVMS compiler happy, otherwise would complain 
+        //  about return 0 as an unreachable code
+        if (false)
+            break;
+#endif
+
     }
 
 #ifdef ZMQ_HAVE_WINDOWS
