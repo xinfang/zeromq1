@@ -43,7 +43,7 @@ int main (int argc, char *argv [])
     int eid;
     int counter;
     void *buf;
-    size_t size;
+    uint64_t size;
     
     /*  Parse command line arguments.  */
     if (argc != 6) {

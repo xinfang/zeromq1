@@ -2,6 +2,7 @@ $! BUILD_3_LIBCZMQ.COM
 $! 2009-02-17
 $! Modified:
 $!  2009-03-18 ja - change to reflect new zmqRoot definition
+$!  2009-03-30 pm - cmzq.cpp changed to zmq.cpp
 $!+
 $! Build the API for C
 $!-
@@ -11,7 +12,7 @@ $ def="''f$environment("DEFAULT")'"     ! save default
 $ set default zmqRoot:[libczmq]		! ..where the source is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
-$ compit czmq.cpp
+$ compit zmq.cpp
 $!
 $ lib/create libczmq.olb
 $ lib/repl/nolog libczmq.olb *.obj;

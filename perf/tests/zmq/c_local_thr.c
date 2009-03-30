@@ -84,7 +84,7 @@ int main (int argc, char *argv [])
     void *handle;
     int counter;
     void *buf;
-    size_t size;
+    uint64_t size;
     uint64_t start;
     uint64_t end;
     uint64_t message_throughput;

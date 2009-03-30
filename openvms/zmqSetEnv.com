@@ -4,6 +4,7 @@ $! Modified
 $!  2009-03-10 ja - change zmqRoot to include the base level
 $!  2009-03-12 ja - check for Java
 $!  2009-03-25 pm - dir names to lower case
+$!  2009-03-30 pm - changed include dirs for libcmzq and lijzmq
 $!+
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
@@ -56,8 +57,8 @@ $ def/job libjzmq	zmqRoot:[libjzmq] ! is where Java code lives
 $
 $ def/job zmq   	zmqRoot:[openvms],   - ! where the include
 			zmqRoot:[libzmq.zmq],- ! files are
-	     		zmqRoot:[libczmq.zmq],-! C API
-			zmqRoot:[libjzmq.zmq]  ! Java
+	     		zmqRoot:[libczmq],   - ! C API
+			zmqRoot:[libjzmq]      ! Java
 $
 $ def/job zmqOpenVMS	zmqRoot:[openvms]	! saves typing...
 $

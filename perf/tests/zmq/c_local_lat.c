@@ -83,7 +83,7 @@ int main (int argc, char *argv [])
     int counter;
     void *out_buf;
     void *in_buf;
-    size_t in_size;
+    uint64_t in_size;
     uint64_t start;
     uint64_t end; 
     double latency;
