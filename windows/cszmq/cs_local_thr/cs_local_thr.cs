@@ -79,7 +79,8 @@ class cs_local_thr
         Int64 megabitThroughput;
 
         //message_throughput = (Int64) (msg_count / time);
-        messageThroughput = (Int64) (msgCount *Stopwatch.Frequency / elapsedTime);
+        messageThroughput = (Int64) (msgCount *Stopwatch.Frequency /
+            elapsedTime);
         megabitThroughput = messageThroughput * messageSize * 8 /
             1000000;
        
