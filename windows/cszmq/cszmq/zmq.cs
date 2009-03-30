@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
     public class Zmq : IDisposable
     {
         private bool isDisposed = false;
-        private IntPtr zmq_;
+        private IntPtr transport;
 
         public const int SCOPE_LOCAL = 1;
         public const int SCOPE_PROCESS = 2;
@@ -24,7 +24,7 @@ using System.Runtime.InteropServices;
 
         public Zmq ()
         {
-            zmq_ = IntPtr.Zero;
+            transport = IntPtr.Zero;
         }
 
         public Zmq (string host)
@@ -39,76 +39,57 @@ using System.Runtime.InteropServices;
 
         public void Open (string host)
         {
-            zmq_ = zmq_create (host);
+            transport = zmq_create (host);
         }
-
-        public bool IsOpen { get { return zmq_ == IntPtr.Zero; } }
-
-        public void Mask (int messageMask)
+	
+	    public void Mask (int messageMask)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-            zmq_mask (zmq_, Convert.ToUInt32 (messageMask));
+            zmq_mask (transport, Convert.ToUInt32 (messageMask));
         }
+	
         public int CreateExchange (string name, int scope, string location, int style)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-            return zmq_create_exchange (zmq_, name, scope, location, style);
+            return zmq_create_exchange (transport, name, scope, location, style);
         }
 
         public int CreateQueue (string name, int scope, string location, Int64 hwm, Int64 lwm, Int64 swap)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-            return zmq_create_queue (zmq_, name, scope, location, hwm, lwm, swap);
+            return zmq_create_queue (transport, name, scope, location, hwm, lwm, swap);
         }
 
         public void Bind (string exchangeName, string queueName, string exchangeArgs, string queueArgs)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-            zmq_bind (zmq_, exchangeName, queueName, exchangeArgs, queueArgs);
+            zmq_bind (transport, exchangeName, queueName, exchangeArgs, queueArgs);
         }
 
-        class Pinner
-        {
-            public Pinner (GCHandle a_handle)
-            {
-                handle = a_handle;
-            }
-            public GCHandle handle;
-            public void Unpin (IntPtr ptr)
-            {
-                handle.Free ();
-            }
-        };
+        //class Pinner
+        //{
+        //    public Pinner (GCHandle aHandle)
+        //    {
+        //        handle = aHandle;
+        //    }
+        //    public GCHandle handle;
+        //    public void Unpin (IntPtr ptr)
+        //    {
+        //        handle.Free ();
+        //    }
+        //};
 
         public bool Send (int exchange, byte[] message, bool block)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
-
-            //  Return value determines if the message was sent.
-            int sent = 0;
-
             //  TODO: Commented code pins the memory down instead of copying
             //  the content. However, the performance result are undecisive.
             //  Check this out in the future.
             //
             //if (data.Length < 131072)
             //{
+		
             IntPtr ptr = Marshal.AllocHGlobal (message.Length);
             Marshal.Copy (message, 0, ptr, message.Length);
-            try
-            {
-                sent = zmq_send (zmq_, exchange, ptr,
-                    Convert.ToUInt32 (message.Length), freeHGlobal, Convert.ToInt32 (block));
-            }
-            catch
-            {
-                freeHGlobal (ptr);
-            }
+		    
+		    int sent = zmq_send2 (transport, exchange, ptr,
+                Convert.ToUInt32 (message.Length), Convert.ToInt32 (block));
+		
             //}
             //else
             //{
@@ -116,7 +97,7 @@ using System.Runtime.InteropServices;
             //        GCHandle.Alloc (data, GCHandleType.Pinned));
             //    try
             //    {
-            //        sent = czmq_send (zmq_, eid, pin.handle.AddrOfPinnedObject (),
+            //        sent = czmq_send (transport, eid, pin.handle.AddrOfPinnedObject (),
             //            Convert.ToUInt32 (data.Length), pin.Unpin, Convert.ToInt32 (block));
             //    }
             //    catch
@@ -128,19 +109,16 @@ using System.Runtime.InteropServices;
             return Convert.ToBoolean (sent);
             
         }
-
+	
         public int Receive (out byte[] message, out int type, bool block)
         {
-            if (zmq_ == IntPtr.Zero)
-                throw new NullReferenceException ("queue must be initialized");
             IntPtr ptr;
             UInt32 messageSize;
-
-            FreeMsgData freeFunc;
-            UInt32 _type;
-            int queue = zmq_receive (zmq_, out ptr, out messageSize, out freeFunc,
-                out _type, Convert.ToInt32 (block));
-            type = (int) _type;
+            UInt32 typeOut;
+		    		     
+            int queue = zmq_receive2 (transport, out ptr, out messageSize,
+		          out typeOut, Convert.ToInt32 (block));
+		    type = (int) typeOut;
 
             if (ptr == IntPtr.Zero)
             {
@@ -150,21 +128,16 @@ using System.Runtime.InteropServices;
 
             message = new byte[messageSize];
             Marshal.Copy (ptr, message, 0, message.Length);
-            if (freeFunc != null)
-                freeFunc (ptr);
+           
             return queue;
         }
 
-        [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
-        private delegate void FreeMsgData (IntPtr ptr);
-        private static FreeMsgData freeHGlobal = Marshal.FreeHGlobal;
-
         public void Destroy ()
         {
-            if (zmq_ != IntPtr.Zero)
+            if (transport != IntPtr.Zero)
             {
-                zmq_destroy (zmq_);
-                zmq_ = IntPtr.Zero;
+                zmq_destroy (transport);
+                transport = IntPtr.Zero;
             }
         }
 
@@ -215,13 +188,12 @@ using System.Runtime.InteropServices;
             string exchange_options, string queue_options);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int zmq_send (IntPtr zmq, int exchange, IntPtr data,
-            UInt32 size, FreeMsgData ffn, int block);
+        static extern int zmq_send2 (IntPtr zmq, int exchange, IntPtr data,
+            UInt32 size, int block);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int zmq_receive (IntPtr zmq, [Out] out IntPtr data,
-             [Out] out UInt32 size, [Out] out FreeMsgData ffn,
-             [Out] out UInt32 type, int block);
-
+        static extern int zmq_receive2 (IntPtr zmq, [Out] out IntPtr data,
+             [Out] out UInt32 size, [Out] out UInt32 type, int block);
+	
         #endregion
     }

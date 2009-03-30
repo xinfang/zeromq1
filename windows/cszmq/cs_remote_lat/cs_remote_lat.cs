@@ -46,19 +46,18 @@ class cs_remote_lat
         Zmq w = new Zmq (host);
 
         //  Set up 0MQ wiring.
-        int exchange = w.CreateExchange ("EG", Zmq.SCOPE_GLOBAL,
+		int exchange = w.CreateExchange ("EG", Zmq.SCOPE_GLOBAL,
             exchangeInterface, Zmq.STYLE_LOAD_BALANCING);
-        int queue = w.CreateQueue ("QG", Zmq.SCOPE_GLOBAL,
+		w.CreateQueue ("QG", Zmq.SCOPE_GLOBAL,
             queueInterface, Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
-
-        byte[] message;
+	    byte[] message;
         int type;
 
-        //  Bounce the received messages.
+	    //  Bounce the received messages.
         for (int i = 0; i < roundtripCount; i++)
         {
             w.Receive (out message, out type, true);
-            Debug.Assert (message.Length == messageSize);
+			Debug.Assert (message.Length == messageSize);
             w.Send (exchange, message, true);
         }
        

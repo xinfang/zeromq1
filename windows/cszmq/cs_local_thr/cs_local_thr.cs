@@ -48,7 +48,7 @@ class cs_local_thr
         Zmq w = new Zmq (host);
 
         //  Set up 0MQ wiring.
-        int queue = w.CreateQueue ("Q", Zmq.SCOPE_GLOBAL, queueInterface,
+        w.CreateQueue ("Q", Zmq.SCOPE_GLOBAL, queueInterface,
             Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
 
         byte[] message;
@@ -73,7 +73,6 @@ class cs_local_thr
         //  Stop measuring the time.
         watch.Stop ();
         Int64 elapsedTime = watch.ElapsedTicks;
-        double time = elapsedTime / Stopwatch.Frequency;
         
         //  Compute and print out the throughput.
         Int64 messageThroughput;

@@ -49,7 +49,7 @@ class cs_local_lat
         //  Set up 0MQ wiring.
         int exchange = w.CreateExchange ("EL", Zmq.SCOPE_LOCAL, "",
             Zmq.STYLE_LOAD_BALANCING);
-        int queue = w.CreateQueue ("QL", Zmq.SCOPE_LOCAL, "",
+        w.CreateQueue ("QL", Zmq.SCOPE_LOCAL, "",
             Zmq.NO_LIMIT, Zmq.NO_LIMIT, Zmq.NO_SWAP);
         w.Bind ("EL", "QG", null, null);
         w.Bind ("EG", "QL", null, null);
@@ -72,7 +72,6 @@ class cs_local_lat
             w.Receive (out inMessage, out type, true);
             Debug.Assert (inMessage.Length == messageSize);
         }
-
         //  Stop measuring the time.
         watch.Stop ();
         Int64 elapsedTime = watch.ElapsedTicks;
