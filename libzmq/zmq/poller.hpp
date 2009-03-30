@@ -240,7 +240,7 @@ void zmq::poller_t <T>::worker_routine (void *arg_)
 template <class T>
 void zmq::poller_t <T>::loop ()
 {
-#if !defined ZMQ_HAVE_WINDOWS
+#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS
     //  Following code will guarantee more predictable latecnies as it'll
     //  disallow any signal handling in the I/O thread.
     sigset_t signal_set;
