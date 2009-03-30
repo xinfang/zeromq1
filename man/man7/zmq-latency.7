@@ -126,12 +126,12 @@ int main (void) {
     int msg_count = 50000;
     size_t msg_size = 6;
  
-    //  Initialise transport
-    perf::i_transport *transport = new perf::zmq_t (global_locator, 
-        bind, exchange_name, queue_name, exchange_iface, queue_iface);
+    //  Initialise transport.
+    perf::i_transport transport (global_locator, bind, exchange_name, 
+        queue_name, exchange_iface, queue_iface);
 
-    //  Do the job
-    perf::local_lat (transport, msg_size, msg_count);
+    //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
+    perf::local_lat (&transport, msg_size, msg_count);
 
     return 0;
 }
@@ -187,11 +187,11 @@ int main (void) {
     size_t msg_size = 6;
 
     //  Initialise transport
-    perf::i_transport *transport = new perf::zmq_t (global_locator, 
-        bind, exchange_name, queue_name, NULL, NULL);
+    perf::i_transport transport (global_locator, bind, exchange_name, 
+        queue_name, NULL, NULL);
 
     //  Do the job
-    perf::remote_lat (transport, msg_size, msg_count);
+    perf::remote_lat (&transport, msg_size, msg_count);
 
     return 0;
 }
