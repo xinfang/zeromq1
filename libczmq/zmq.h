@@ -58,9 +58,9 @@ void ZMQ_EXPORT zmq_bind (void *object_, const char *exchange_name_,
     const char *queue_options_);
 
 int ZMQ_EXPORT zmq_send (void *object_, int exchange_, void *data_,
-    size_t size_, int block_);
+    uint64_t size_, int block_);
 
-int ZMQ_EXPORT zmq_receive (void *object_, void **data_, size_t *size_,
+int ZMQ_EXPORT zmq_receive (void *object_, void **data_, uint64_t *size_,
     uint32_t *type_, int block_);
 
 void ZMQ_EXPORT zmq_free (void *data_);

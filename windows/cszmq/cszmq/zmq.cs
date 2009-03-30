@@ -87,8 +87,8 @@ using System.Runtime.InteropServices;
             IntPtr ptr = Marshal.AllocHGlobal (message.Length);
             Marshal.Copy (message, 0, ptr, message.Length);
 		    
-		    int sent = zmq_send2 (transport, exchange, ptr,
-                Convert.ToUInt32 (message.Length), Convert.ToInt32 (block));
+		    int sent = zmq_send (transport, exchange, ptr,
+                Convert.ToUInt64 (message.Length), Convert.ToInt32 (block));
 		
             //}
             //else
@@ -113,10 +113,10 @@ using System.Runtime.InteropServices;
         public int Receive (out byte[] message, out int type, bool block)
         {
             IntPtr ptr;
-            UInt32 messageSize;
+            UInt64 messageSize;
             UInt32 typeOut;
 		    		     
-            int queue = zmq_receive2 (transport, out ptr, out messageSize,
+            int queue = zmq_receive (transport, out ptr, out messageSize,
 		          out typeOut, Convert.ToInt32 (block));
 		    type = (int) typeOut;
 
@@ -188,12 +188,12 @@ using System.Runtime.InteropServices;
             string exchange_options, string queue_options);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int zmq_send2 (IntPtr zmq, int exchange, IntPtr data,
-            UInt32 size, int block);
+        static extern int zmq_send (IntPtr zmq, int exchange, IntPtr data,
+            UInt64 size, int block);
 
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
-        static extern int zmq_receive2 (IntPtr zmq, [Out] out IntPtr data,
-             [Out] out UInt32 size, [Out] out UInt32 type, int block);
+        static extern int zmq_receive (IntPtr zmq, [Out] out IntPtr data,
+             [Out] out UInt64 size, [Out] out UInt32 type, int block);
 	
         #endregion
     }

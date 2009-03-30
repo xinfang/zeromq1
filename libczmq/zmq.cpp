@@ -107,20 +107,20 @@ void zmq_bind (void *object_, const char *exchange_name_,
         exchange_options_, queue_options_);
 }
 
-int zmq_send (void *object_, int exchange_, void *data_, size_t size_,
+int zmq_send (void *object_, int exchange_, void *data_, uint64_t size_,
     int block_)
 {
     //  Get the context.
     context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
-    zmq::message_t msg (size_);
-    memcpy (msg.data (), data_, size_);
+    zmq::message_t msg ((size_t) size_);
+    memcpy (msg.data (), data_, (size_t) size_);
     return context->api_thread->send (exchange_, msg,
         block_ ? true : false);
 }
 
-int zmq_receive (void *object_, void **data_, size_t *size_,
+int zmq_receive (void *object_, void **data_, uint64_t *size_,
     uint32_t *type_, int block_)
 {
     //  Get the context.
