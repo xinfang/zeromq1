@@ -184,12 +184,13 @@ PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
     bool block = true;
     static const char *kwlist [] = {"block", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwdict, "i", (char**) kwlist,
+    if (!PyArg_ParseTupleAndKeywords (args, kwdict, "b", (char**) kwlist,
           &block))
         return NULL;
 
+    printf ("pyzmq receive\n");
     int queue = self->api_thread->receive (&message, block);
-    
+    printf ("pyzmq received\n");
     return Py_BuildValue ("is#i", queue, (char*) message.data (),
         message.size (), message.type ());
 }
