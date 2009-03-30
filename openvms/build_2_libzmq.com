@@ -54,15 +54,6 @@ $!
 $ lib/create libzmq.olb
 $ lib/repl/nolog libzmq.olb *.obj;
 $!
-$! Now link the zmqp_client so people can test it.
-$!
-$! linkit amqp_client.obj, libzmq:libzmq.olb/lib
-$!
-$! Now define the command necessary to run the amqp_client
-$! by simply typing "amqp_client"
-$!
-$! amqp_client :== $"''def'amqp_client.exe
-$!
 $ purge/nolog
 $ rename *.* *.*;1
 $ write sys$output "Built ''f$environment("DEFAULT")' at ''f$time()'"
