@@ -18,7 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 groff -man -Tps man1/zmq_server.1 > man1/zmq_server.1.ps
-ps2pdf man1/zmq_server.1.ps man1/zmq_server.1.pdf
+ps2pdf man1/zmq_server.1.ps zmq_server.pdf
+
+groff -man -Tps man1/estimate_cpu_freq.1 > man1/estimate_cpu_freq.1.ps
+ps2pdf man1/estimate_cpu_freq.1.ps estimate_cpu_freq.pdf
 
 groff -man -Tps man3/zmq__api_thread_t.3 > man3/zmq__api_thread_t.3.ps
 ps2pdf man3/zmq__api_thread_t.3.ps api_thread_t.pdf
@@ -55,3 +58,22 @@ ps2pdf man3/zmq__select_thread_t.3.ps select_thread_t.pdf
 
 groff -man -Tps man7/zmq.7 > man7/zmq.7.ps
 ps2pdf man7/zmq.7.ps zmq.pdf
+
+groff -man -Tps man7/zmq-latency.7 > man7/zmq-latency.7.ps
+ps2pdf man7/zmq-latency.7.ps zmq-latency.pdf
+
+groff -man -Tps man7/zmq-perf.7 > man7/zmq-perf.7.ps
+ps2pdf man7/zmq-perf.7.ps zmq-perf.pdf
+
+groff -man -Tps man7/zmq-tests.7 > man7/zmq-tests.7.ps
+ps2pdf man7/zmq-tests.7.ps zmq-tests.pdf
+
+groff -man -Tps man7/zmq-tests-build.7 > man7/zmq-tests-build.7.ps
+ps2pdf man7/zmq-tests-build.7.ps zmq-tests-build.pdf
+
+groff -man -Tps man7/zmq-throughput.7 > man7/zmq-throughput.7.ps
+ps2pdf man7/zmq-throughput.7.ps zmq-throughput.pdf
+
+groff -man -Tps man7/zmq-transport.7 > man7/zmq-transport.7.ps
+ps2pdf man7/zmq-transport.7.ps zmq-transport.pdf
+
