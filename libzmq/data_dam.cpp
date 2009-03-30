@@ -18,20 +18,22 @@
 */
 
 #ifdef ZMQ_HAVE_DATA_DAM
+
 #include <zmq/platform.hpp>
+#include <zmq/data_dam.hpp>
+#include <zmq/formatting.hpp>
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+#include <algorithm>
+
 #ifdef ZMQ_HAVE_WINDOWS
 #include <io.h>
 #else
 #include <unistd.h>
 #endif
-#include <fcntl.h>
-#include <string.h>
-
-#include <zmq/data_dam.hpp>
-#include <zmq/formatting.hpp>
-#include <zmq/platform.hpp>
 
 zmq::atomic_counter_t zmq::data_dam_t::counter;
 
@@ -167,27 +169,15 @@ unsigned long zmq::data_dam_t::size ()
     return n_msgs;
 }
 
-static int64_t min2 (int64_t a, int64_t b)
+void zmq::data_dam_t::copy_from_file (void *buffer_, size_t count_)
 {
-    if (a < b)
-        return a;
-    return b;
-}
-
-static int64_t min3 (int64_t a, int64_t b, int64_t c)
-{
-    return min2 (a, min2 (b, c));
-}
-
-void zmq::data_dam_t::copy_from_file (void *buf_, size_t count_)
-{
-    char *ptr = (char *) buf_;
+    char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
 
     while (n_left > 0) {
 
-        n = (size_t) min3 (n_left, filesize - read_pos,
-            block_size - read_pos % block_size);
+        n = std::min (n_left, std::min ((size_t) (filesize - read_pos),
+            (size_t) (block_size - read_pos % block_size)));
 
         memcpy (ptr, &read_buf [read_pos % block_size], n);
         ptr += n;
@@ -204,15 +194,15 @@ void zmq::data_dam_t::copy_from_file (void *buf_, size_t count_)
     }
 }
 
-void zmq::data_dam_t::copy_to_file (const void *buf_, size_t count_)
+void zmq::data_dam_t::copy_to_file (const void *buffer_, size_t count_)
 {
-    char *ptr = (char *) buf_;
+    char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
 
     while (n_left > 0) {
 
-        n = (size_t) min3 (n_left, filesize - write_pos,
-            block_size - write_pos % block_size);
+        n = std::min (n_left, std::min ((size_t) (filesize - write_pos),
+            (size_t) (block_size - write_pos % block_size)));
 
         memcpy (&write_buf [write_pos % block_size], ptr, n);
         ptr += n;
@@ -248,7 +238,7 @@ void zmq::data_dam_t::fill_read_buf ()
     }
 
     size_t i = 0;
-    size_t n = (size_t) min2 (block_size, filesize - read_pos);
+    size_t n = std::min (block_size, (size_t) (filesize - read_pos));
 
     while (i < n) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -276,7 +266,8 @@ void zmq::data_dam_t::save_write_buf ()
     }
 
     size_t i = 0;
-    size_t n = (size_t) min2 (block_size, filesize - write_buf_start_addr);
+    size_t n = std::min (block_size,
+        (size_t) (filesize - write_buf_start_addr));
 
     while (i < n) {
 #ifdef ZMQ_HAVE_WINDOWS

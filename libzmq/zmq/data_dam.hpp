@@ -41,18 +41,17 @@ namespace zmq
         enum { default_block_size = 8192 };
 
         //  Initializes data dam.
-        data_dam_t (int64_t filesize,
-            size_t block_size = default_block_size);
+        data_dam_t (int64_t filesize_, size_t block_size_ = default_block_size);
 
         ~data_dam_t ();
 
         //  Stores the message into the data dam. The function
         //  returns false if the data dam is full and true otherwise.
-        bool store (raw_message_t *msg);
+        bool store (raw_message_t *msg_);
 
         //  Fetches the oldest message from the data dam. It is an error
         //  to call this function when the data dam is empty.
-        void fetch (raw_message_t *msg);
+        void fetch (raw_message_t *msg_);
 
         //  Returns true if the data dam is empty and false otherwise.
         bool empty ();
@@ -67,11 +66,11 @@ namespace zmq
 
         //  Copies data from the memory buffer to the data dam's file.
         //  Wraps around when reaching maximum file size.
-        void copy_from_file (void *buf, size_t count);
+        void copy_from_file (void *buffer_, size_t count_);
 
         //  Copies data from the data dam's file to the memory buffer.
         //  Wraps around when reaching end-of-file.
-        void copy_to_file (const void *buf, size_t count);
+        void copy_to_file (const void *buffer_, size_t count_);
 
         //  Returns the buffer space available.
         int64_t buffer_space ();
@@ -113,6 +112,6 @@ namespace zmq
 
 }
 
-#endif // ZMQ_HAVE_DATA_DAM
+#endif
 
 #endif
