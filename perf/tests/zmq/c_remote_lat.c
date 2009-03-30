@@ -44,7 +44,6 @@ int main (int argc, char *argv [])
     int counter;
     void *buf;
     size_t size;
-    zmq_free_fn *ffn;
     
     /*  Parse command line arguments.  */
     if (argc != 6) {
@@ -67,9 +66,10 @@ int main (int argc, char *argv [])
     zmq_create_queue (handle, "QG", ZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
+        zmq_receive (handle, &buf, &size, NULL, ZMQ_TRUE);
         assert (size == message_size);
-        zmq_send (handle, eid, buf, size, ffn, ZMQ_TRUE);
+        zmq_send (handle, eid, buf, size, ZMQ_TRUE);
+        zmq_free (buf);
     }
 #ifdef ZMQ_HAVE_WINDOWS
     Sleep (2000);

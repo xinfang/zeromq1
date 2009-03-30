@@ -85,7 +85,6 @@ int main (int argc, char *argv [])
     int counter;
     void *buf;
     size_t size;
-    zmq_free_fn *ffn;
     uint64_t start;
     uint64_t end;
     uint64_t message_throughput;
@@ -114,19 +113,18 @@ int main (int argc, char *argv [])
         -1, -1, 0);
 
     /*  Receive first message.  */
-    zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
+    zmq_receive (handle, &buf, &size, NULL, ZMQ_TRUE);
     assert (size == message_size);
-    if (buf && ffn)
-        ffn (buf);
+    zmq_free (buf);
 
     /*  Get initial timestamp.  */
     start = now ();
 
+    /*  The message loop.  */
     for (counter = 0; counter != message_count; counter ++) {
-        zmq_receive (handle, &buf, &size, &ffn, NULL, ZMQ_TRUE);
+        zmq_receive (handle, &buf, &size, NULL, ZMQ_TRUE);
         assert (size == message_size);
-        if (buf && ffn)
-            ffn (buf);
+        zmq_free (buf);
     }
 
     /*  Get terminal timestamp.  */

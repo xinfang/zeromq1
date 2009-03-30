@@ -41,22 +41,29 @@ extern "C" {
 #define ZMQ_TRUE 1
 #define ZMQ_FALSE 0
 
-typedef void (zmq_free_fn) (void *data_);
-
 void ZMQ_EXPORT *zmq_create (const char *host_);
+
 void ZMQ_EXPORT zmq_destroy (void *object_);
+
 void ZMQ_EXPORT zmq_mask (void *object_, uint32_t notifications_);
+
 int ZMQ_EXPORT zmq_create_exchange (void *object_, const char *name_, 
     int scope_, const char *location_, int style_);
+
 int ZMQ_EXPORT zmq_create_queue (void *object_, const char *name_, int scope_,
     const char *location_, int64_t hwm_, int64_t lwm_, int64_t swap_);
+
 void ZMQ_EXPORT zmq_bind (void *object_, const char *exchange_name_, 
     const char *queue_name_, const char *exchange_options_, 
     const char *queue_options_);
+
 int ZMQ_EXPORT zmq_send (void *object_, int exchange_, void *data_,
-    size_t size_, zmq_free_fn *ffn_, int block_);
+    size_t size_, int block_);
+
 int ZMQ_EXPORT zmq_receive (void *object_, void **data_, size_t *size_,
-    zmq_free_fn **ffn_, uint32_t *type_, int block_);
+    uint32_t *type_, int block_);
+
+void ZMQ_EXPORT zmq_free (void *data_);
 
 #ifdef __cplusplus
 }

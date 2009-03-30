@@ -84,7 +84,6 @@ int main (int argc, char *argv [])
     void *out_buf;
     void *in_buf;
     size_t in_size;
-    zmq_free_fn *in_ffn;
     uint64_t start;
     uint64_t end; 
     double latency;
@@ -119,13 +118,13 @@ int main (int argc, char *argv [])
 
     /*  Get initial timestamp.  */
     start = now ();
-    
+
+    /*  The message loop.  */    
     for (counter = 0; counter != roundtrip_count; counter ++) {
-        zmq_send (handle, eid, out_buf, message_size, NULL, ZMQ_TRUE);
-        zmq_receive (handle, &in_buf, &in_size, &in_ffn, NULL, ZMQ_TRUE);
+        zmq_send (handle, eid, out_buf, message_size, ZMQ_TRUE);
+        zmq_receive (handle, &in_buf, &in_size, NULL, ZMQ_TRUE);
         assert (in_size == message_size);
-        if (in_ffn)
-            in_ffn (in_buf);
+        zmq_free (in_buf);
     }
 
     /*  Get final timestamp.  */

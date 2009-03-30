@@ -108,37 +108,44 @@ void zmq_bind (void *object_, const char *exchange_name_,
 }
 
 int zmq_send (void *object_, int exchange_, void *data_, size_t size_,
-    zmq_free_fn *ffn_, int block_)
+    int block_)
 {
     //  Get the context.
     context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
-    zmq::message_t msg (data_, size_, ffn_);
+    zmq::message_t msg (size_);
+    memcpy (msg.data (), data_, size_);
     return context->api_thread->send (exchange_, msg,
         block_ ? true : false);
 }
 
 int zmq_receive (void *object_, void **data_, size_t *size_,
-    zmq_free_fn **ffn_, uint32_t *type_, int block_)
+    uint32_t *type_, int block_)
 {
     //  Get the context.
     context_t *context = (context_t*) object_;
 
     //  Forward the call to native 0MQ library.
     zmq::message_t msg;
-	int qid = context->api_thread->receive (&msg, block_ ? true : false);
+    int qid = context->api_thread->receive (&msg, block_ ? true : false);
 
     //  Create a buffer and copy the data into it.
     void *buf = malloc (msg.size ());
     assert (buf);
     memcpy (buf, msg.data (), msg.size ());
 
+    assert (data_);
     *data_ = buf;
-    *size_ = msg.size ();
-    *ffn_ = free;
+    if (size_)
+        *size_ = msg.size ();
     if (type_)
         *type_ = msg.type ();
 
     return qid;
+}
+
+void zmq_free (void *data_)
+{
+    free (data_);
 }

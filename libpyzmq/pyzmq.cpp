@@ -190,8 +190,8 @@ PyObject *pyZMQ_receive (pyZMQ *self, PyObject *args, PyObject *kwdict)
 
     int queue = self->api_thread->receive (&message, block);
     
-    return Py_BuildValue ("is#i", queue, (char*) message.data (), message.size (), 
-        message.type ());
+    return Py_BuildValue ("is#i", queue, (char*) message.data (),
+        message.size (), message.type ());
 }
 
 static PyMethodDef pyZMQ_methods [] =
