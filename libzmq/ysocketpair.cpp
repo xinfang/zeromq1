@@ -21,6 +21,10 @@
 #include <zmq/ysocketpair.hpp>
 #include <zmq/fd.hpp>
 
+#if defined (ZMQ_HAVE_OPENVMS)
+#include <netinet/tcp.h>
+#endif
+
 #if defined ZMQ_HAVE_EVENTFD
 
 zmq::ysocketpair_t::ysocketpair_t ()

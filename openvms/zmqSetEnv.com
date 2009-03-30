@@ -3,7 +3,7 @@ $! Created: 2009-02-17
 $! Modified
 $!  2009-03-10 ja - change zmqRoot to include the base level
 $!  2009-03-12 ja - check for Java
-$!  2009-03-25 mp - dir names to lower case
+$!  2009-03-25 pm - dir names to lower case
 $!+
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
