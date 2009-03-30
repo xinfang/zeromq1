@@ -87,8 +87,10 @@ namespace zmq
          //
          //  The bug will be fixed in V5.6 ECO4 and beyond.  In the
          //  meantime, we'll create the socket pair manually.
+/*
          static int socketpair (int domain_, int type_, int protocol_,
              int sv_ [2]);
+*/
 #endif
 
 #if defined ZMQ_HAVE_EVENTFD

@@ -203,8 +203,9 @@ zmq::fd_t zmq::ysocketpair_t::get_fd ()
 
 #endif
 
-#if defined ZMQ_HAVE_OPENVMS
 
+#if defined ZMQ_HAVE_OPENVMS
+/*
 int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     int sv_ [2])
 {
@@ -258,5 +259,6 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
 
     return 0;
 }
-
+*/
 #endif
+
