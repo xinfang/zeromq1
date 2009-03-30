@@ -40,7 +40,7 @@ class CsRemoteThr
         //  Create 0MQ Dnzmq class
         Zmq w = new Zmq (host);
         
-        //  Set up 0MQ wiring.
+		//  Set up 0MQ wiring.
         int exchange = w.CreateExchange ("E", Zmq.SCOPE_LOCAL, "", 
             Zmq.STYLE_LOAD_BALANCING);
         w.Bind ("E", "Q", null, null);
@@ -48,7 +48,7 @@ class CsRemoteThr
         //  Create a message to send.
         byte[] message = new byte[messageSize];
 
-        //  Start sending messages.
+		//  Start sending messages.
         for (int i = 0; i < msgCount; i++)
             w.Send (exchange, message, true);
         

@@ -112,7 +112,6 @@ int zmq_send (void *object_, int exchange_, void *data_, uint64_t size_,
 {
     //  Get the context.
     context_t *context = (context_t*) object_;
-
     //  Forward the call to native 0MQ library.
     zmq::message_t msg ((size_t) size_);
     memcpy (msg.data (), data_, (size_t) size_);
