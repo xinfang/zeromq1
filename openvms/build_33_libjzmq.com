@@ -14,8 +14,8 @@ $!
 $! Do the java first as the output from javah is required in the
 $! C++ compile.
 $!
-$ javac Jzmq.java
-$ javah -jni -force -d [.zmq] -classpath [] Jzmq
+$ javac Zmq.java
+$ javah -jni -force -classpath [] Zmq
 $!
 $ write sys$output ""
 $ write sys$output -
@@ -26,13 +26,13 @@ $ cxx   /define=__USE_STD_IOSTREAM		-
 	/names=(as_is,shortened)		-
 	/OPTIMIZE=(INLINE=SPEED,LEVEL=4,UNROLL=0,TUNE=ITANIUM) -
 	/INCLUDE=(zmq:, libzmq:, java_include:) -
-	Jzmq.cpp
+	Zmq.cpp
 $!
 $ write sys$output ""
 $ write sys$output -
    "ZMQ - Ignore possible '%ILINK-W-COMPWARN, compilation warnings' message"
 $ write sys$output ""
-$ link /share=[]jzmq.exe jzmq.obj, sys$input/opt
+$ link /share=[]zmq.exe zmq.obj, sys$input/opt
 libzmq:libzmq.olb/lib
 !
 GSMATCH=LEQUAL,1,1
