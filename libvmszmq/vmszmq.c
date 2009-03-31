@@ -67,72 +67,76 @@ static char *dscdup (struct dsc$descriptor_s *dsc)
     return (rtrim (tmp));
 }
 
-unsigned long ZMQ_CREATE (struct dsc$descriptor_s *host_desc_,
-    unsigned long *obj_)
+unsigned long ZMQ_CREATE (struct dsc$descriptor_s *host_,
+    unsigned long *object_)
 {
     char *host;
 
     lib$establish (lib$sig_to_ret);
-    host = dscdup (host_desc_);
-    *obj_ = (unsigned long) zmq_create (host);
+    host = dscdup (host_);
+    *object_ = (unsigned long) zmq_create (host);
     free (host);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_DESTROY (unsigned long obj_)
+unsigned long ZMQ_DESTROY (unsigned long object_)
 {
     lib$establish (lib$sig_to_ret);
-    zmq_destroy ((void*) obj_);
+    zmq_destroy ((void*) object_);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_CREATE_EXCHANGE (unsigned long obj_,
-    struct dsc$descriptor_s *exc_desc_, int scope_,
-    struct dsc$descriptor_s *nic_desc_, int style_, int *eid_)
+unsigned long ZMQ_CREATE_EXCHANGE (unsigned long object_,
+    struct dsc$descriptor_s *name_, int scope_,
+    struct dsc$descriptor_s *location_, int style_, int *eid_)
 {
     char *exc;
     char *nic;
 
     lib$establish (lib$sig_to_ret);
-    exc = dscdup (exc_desc_);
-    nic = dscdup (nic_desc_);
-    *eid_ = zmq_create_exchange ((void*) obj_, exc, scope_, nic, style_);
+    exc = dscdup (name_);
+    nic = dscdup (location_);
+    *eid_ = zmq_create_exchange ((void*) object_, exc, scope_, nic, style_);
     free (exc);
     free (nic);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_CREATE_QUEUE (unsigned long obj_,
-    struct dsc$descriptor_s *que_desc_, int scope_,
-    struct dsc$descriptor_s *nic_desc_, int64_t hwm_, int64_t lwm_, 
+unsigned long ZMQ_CREATE_QUEUE (unsigned long object_,
+    struct dsc$descriptor_s *name_, int scope_,
+    struct dsc$descriptor_s *location_, int64_t hwm_, int64_t lwm_, 
     int64_t swap_, int *qid_)
 {
     char *que;
     char *nic;
 
     lib$establish (lib$sig_to_ret);
-    que = dscdup (que_desc_);
-    nic = dscdup (nic_desc_);
-    *qid_ = zmq_create_queue ((void*) obj_, que, scope_, nic, hwm_, lwm_, swap_);
+    que = dscdup (name_);
+    nic = dscdup (location_);
+    *qid_ = zmq_create_queue ((void*) object_, que, scope_, nic, hwm_, lwm_, 
+        swap_);
+    free (que);
+    free (nic);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_BIND (unsigned long obj_, struct dsc$descriptor_s *exc_desc_,
-    struct dsc$descriptor_s *que_desc_, struct dsc$descriptor_s *exc_options_,
-    struct dsc$descriptor_s *que_options_)
+unsigned long ZMQ_BIND (unsigned long object_, 
+    struct dsc$descriptor_s *exchange_name_, 
+    struct dsc$descriptor_s *queue_name_, 
+    struct dsc$descriptor_s *exchange_options_,
+    struct dsc$descriptor_s *queue_options_)
 {
     char *exc;
     char *que;
-
     char *exc_options;
     char *que_options;
 
     lib$establish (lib$sig_to_ret);
-    exc = dscdup (exc_desc_);
-    que = dscdup (que_desc_);
-    exc_options = dscdup (exc_options_);
-    que_options = dscdup (que_options_);
-    zmq_bind ((void *) obj_, exc, que, exc_options, que_options);
+    exc = dscdup (exchange_name_);
+    que = dscdup (queue_name_);
+    exc_options = dscdup (exchange_options_);
+    que_options = dscdup (queue_options_);
+    zmq_bind ((void *) object_, exc, que, exc_options, que_options);
     free (exc);
     free (que);
     free (exc_options);
@@ -140,18 +144,19 @@ unsigned long ZMQ_BIND (unsigned long obj_, struct dsc$descriptor_s *exc_desc_,
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_SEND (unsigned long obj_, int eid_, void *data_, 
+unsigned long ZMQ_SEND (unsigned long object_, int exchange_, void *data_, 
     uint64_t size_, int block_)
 {
     lib$establish (lib$sig_to_ret);
-    zmq_send ((void*) obj_, eid_, data_, size_, block_);
+    zmq_send ((void*) object_, exchange_, data_, size_, block_);
     return (SS$_NORMAL);
 }
 
-unsigned long ZMQ_RECEIVE (unsigned long obj_, void **data_, uint64_t *size_,
+unsigned long ZMQ_RECEIVE (unsigned long object_, void **data_, uint64_t *size_,
     uint32_t *type_, int block_)
 {
     lib$establish (lib$sig_to_ret);
-    zmq_receive ((void*) obj_, data_, size_, type_, block_);
+    zmq_receive ((void*) object_, data_, size_, type_, block_);
     return (SS$_NORMAL);
 }
+
