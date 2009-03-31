@@ -32,11 +32,9 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     last_head_position (0),
     delayed_gap (false),
     in_core_msg_cnt (0),
-#ifdef ZMQ_HAVE_DATA_DAM
     data_dam (NULL),
     swapping (false),
     in_swap_msg_cnt (0),
-#endif
     writer_terminating (false),
     reader_terminating (false)
 {
@@ -58,7 +56,6 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         lwm = slwm + dlwm;
     }
 
-#ifdef ZMQ_HAVE_DATA_DAM
     int64_t swap_size = source_engine->get_swap_size () +
         destination_engine->get_swap_size ();
 
@@ -67,15 +64,13 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         data_dam = new data_dam_t (swap_size);
         assert (data_dam);
     }
-#endif
 }
 
 zmq::pipe_t::~pipe_t ()
 {
-#ifdef ZMQ_HAVE_DATA_DAM
+    //  Purge the associated data dam.
     if (data_dam)
         delete data_dam;
-#endif
 
     //  Destroy the messages in the pipe itself.
     raw_message_t message;
@@ -86,14 +81,7 @@ zmq::pipe_t::~pipe_t ()
 
 bool zmq::pipe_t::check_write ()
 {
-#ifdef ZMQ_HAVE_DATA_DAM
-    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm || data_dam)
-#else
-    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm)
-#endif
-        return true;
-    else
-        return false;
+    return (hwm == 0 || in_core_msg_cnt < (size_t) hwm || data_dam);
 }
 
 
@@ -103,7 +91,6 @@ void zmq::pipe_t::write (raw_message_t *msg_)
     //  have been written beforehand.
     assert (!delayed_gap);
 
-#ifdef ZMQ_HAVE_DATA_DAM
     //  If we have hit the queue limit, switch into swapping mode.
     if (in_core_msg_cnt == (size_t) hwm && hwm != 0) {
         assert (data_dam);
@@ -120,12 +107,6 @@ void zmq::pipe_t::write (raw_message_t *msg_)
         pipe.write (*msg_);
         in_core_msg_cnt ++;
     }
-#else
-    assert (hwm == 0 || in_core_msg_cnt < (size_t) hwm);
-
-    pipe.write (*msg_);
-    in_core_msg_cnt ++;
-#endif
 }
 
 void zmq::pipe_t::gap ()
@@ -152,11 +133,9 @@ void zmq::pipe_t::set_head (uint64_t position_)
     in_core_msg_cnt -= position_ - last_head_position;
     last_head_position = position_;
 
-#ifdef ZMQ_HAVE_DATA_DAM
     //  Transfer messages from the data dam into the main memory.
     if (swapping && in_core_msg_cnt < (size_t) lwm)
         swap_in ();
-#endif
 
     //  If there's a gap notification waiting, push it into the queue.
     if (delayed_gap && check_write ()) {
@@ -267,7 +246,6 @@ void zmq::pipe_t::reader_terminated ()
     destination_engine = NULL;
 }
 
-#ifdef ZMQ_HAVE_DATA_DAM
 void zmq::pipe_t::swap_in ()
 {
     while (in_swap_msg_cnt > 0 && in_core_msg_cnt < (size_t) hwm) {
@@ -286,4 +264,3 @@ void zmq::pipe_t::swap_in ()
         swapping = false;
     }
 }
-#endif

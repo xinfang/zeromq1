@@ -18,9 +18,6 @@
 */
 
 #include <zmq/platform.hpp>
-
-#ifdef ZMQ_HAVE_DATA_DAM
-
 #include <zmq/data_dam.hpp>
 #include <zmq/formatting.hpp>
 
@@ -290,5 +287,3 @@ int64_t zmq::data_dam_t::buffer_space ()
 
     return filesize - (write_pos - read_pos);
 }
-
-#endif

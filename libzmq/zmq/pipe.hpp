@@ -125,7 +125,6 @@ namespace zmq
         //  Number of messages kept in main memory.
         uint64_t in_core_msg_cnt;
 
-#ifdef ZMQ_HAVE_DATA_DAM
         //  Message store keeps messages when the memory buffer is full.
         data_dam_t *data_dam;
 
@@ -137,7 +136,6 @@ namespace zmq
 
         //  Refills the memory buffer from the swap file.
         void swap_in ();
-#endif
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.
