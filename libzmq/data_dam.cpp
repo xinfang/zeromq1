@@ -17,9 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
+
 #ifdef ZMQ_HAVE_DATA_DAM
 
-#include <zmq/platform.hpp>
 #include <zmq/data_dam.hpp>
 #include <zmq/formatting.hpp>
 

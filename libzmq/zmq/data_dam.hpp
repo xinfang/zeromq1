@@ -20,6 +20,8 @@
 #ifndef __ZMQ_DATA_DAM_HPP_INCLUDED__
 #define __ZMQ_DATA_DAM_HPP_INCLUDED__
 
+#include <zmq/platform.hpp>
+
 #ifdef ZMQ_HAVE_DATA_DAM
 
 #include <string>
