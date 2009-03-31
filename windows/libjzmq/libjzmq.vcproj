@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="javac ..\..\libjzmq\Jzmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Jzmq&#x0D;&#x0A;"
+				CommandLine="javac ..\..\libjzmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Zmq&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -97,7 +97,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="javac ..\..\libjzmq\Jzmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Jzmq&#x0D;&#x0A;"
+				CommandLine="javac ..\..\libjzmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq\zmq Zmq&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -177,6 +177,4 @@
 			</File>
 		</Filter>
 	</Files>
-	<Globals>
-	</Globals>
 </VisualStudioProject>
