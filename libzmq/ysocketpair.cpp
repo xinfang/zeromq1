@@ -205,7 +205,7 @@ zmq::fd_t zmq::ysocketpair_t::get_fd ()
 
 
 #if defined ZMQ_HAVE_OPENVMS
-/*
+
 int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     int sv_ [2])
 {
@@ -218,6 +218,7 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     assert (type_ == SOCK_STREAM);
 
     //  Fill in the localhost address (127.0.0.1).
+    memset (&lcladdr, 0, sizeof (lcladdr));
     lcladdr.sin_family = AF_INET;
     lcladdr.sin_addr.s_addr = 0x0100007f;
     lcladdr.sin_port = INADDR_ANY;
@@ -233,7 +234,9 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
 
     rc = bind(listener, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
     errno_assert (rc != -1);
-         
+        
+    lcladdr_len = sizeof (lcladdr);
+
     rc = getsockname (listener, (struct sockaddr*) &lcladdr, &lcladdr_len);
     errno_assert (rc != -1);
 
@@ -259,6 +262,6 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
 
     return 0;
 }
-*/
+
 #endif
 
