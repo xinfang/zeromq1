@@ -48,7 +48,7 @@ namespace zmq
 #define wsa_assert(x) do { if (!(x)){\
     const char *errstr = zmq::wsa_error ();\
     if (errstr != NULL) {\
-    fprintf (stderr, "Assertion filed: %s (%s:%d)\n", errstr, __FILE__, __LINE__);\
+    fprintf (stderr, "Assertion failed: %s (%s:%d)\n", errstr, __FILE__, __LINE__);\
         abort ();\
     }\
 }} while (false)
