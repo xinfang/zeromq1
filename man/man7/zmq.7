@@ -30,6 +30,12 @@ Examples: sctp://eth0:5555 or sctp://192.168.1.2:5555
 .RE
 .IP "\fBAMQP protocol\fP"
 .RS
+0MQ implements only client side of AMQP at the moment. Thus it allows you to
+connect to an existing AMQP broker, however, it doesn't allow your
+0MQ application to play a role of AMQP broker. To define location of AMQP broker
+to connect to specify its location in config file and pass it to
+.IR zmq_server
+on the start-up.
 .TP 10
 .I Format:
 amqp://broker-host:port

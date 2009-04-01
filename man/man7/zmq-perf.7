@@ -1,7 +1,7 @@
 .TH zmq-perf 7 "23. march 2009" "(c)2007-2009 FastMQ Inc." "0MQ perf User \
 Manuals"
 .SH NAME
-0MQ perf \- a performance measuring framework
+0MQ perf \- a performance measurement framework
 
 .SH INTRODUCTION
 perf project aims to measure performance statistics for a whole range of 
@@ -12,11 +12,9 @@ document \&[1]\&.
 
 .SH DESIGN
 perf (in the same way as 0MQ) is a pluggable architecture, LEGO-like set 
-of building bricks user has to put together to get anything usable. Note that 
-whole project is just a collection of C++ header files (.hpp) with no 
-associated source files, object files or library files. It has no build 
-mechanism of its own and can be therefore used with any build mechanism user 
-prefers.
+of building bricks user can put together to create a specific performance
+test. 0MQ-related tests are supplied with the perf and built automatically
+by 0MQ build system.
 .PP
 When you want to do a performance measurement create new source file (.cpp), 
 include all the components (in form of .hpp files) you want to use, plug them 
@@ -26,21 +24,21 @@ perf framework consists of two main components:
 .RS 8
 \f(CR
 .nf
-    --------------------------------------
-   |                                      |
-   |   ******************************     |
-   |   *        Main program        *     |
-   |   ******************************     |
-   |          |(initializes)  |(runs)     |
-   |          V               V           |
-   |   *************    *************     |
-   |   * transport *--->* scenario  *<====|=====> (messages)
-   |   *************    *************     |
-   |                          |           |
-    --------------------------------------
-                              |
-                              V
-                          (dat file)
+                  -------------------------------------------
+                 |                                           |
+                 |        ******************************     |
+                 |        *        Main program        *     |
+                 |        ******************************     |
+                 |               |(initializes)  |(runs)     |
+                 |               V               V           |
+                 |        *************    *************     |
+(messages) <==== | ====>  * transport *<-->* scenario  *     |
+                 |        *************    *************     |
+                 |                               |           |
+                  -------------------------------------------
+                                                 |
+                                                 V
+                                             (dat file)
 .fi
 \fP
 .RE
@@ -84,7 +82,7 @@ thumb is that 'local' has to be started first and 'remote' only after 'local'
 is already running. Also, 'local' will deliver the test results.
 .PP
 The mechanism of how these two parties interact each with another is 
-specified by scenario. There are three scenarios defined in perf framework:
+specified by scenario. There are two scenarios defined in perf framework:
 .PP
 .RS 4
 * Throughput scenario \- \fBzmq-throughput\fR(7)

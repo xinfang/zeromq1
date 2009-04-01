@@ -6,8 +6,8 @@ estimate_cpu_freq \- CPU frequency estimator
 .B estimate_cpu_freq
 .SH DESCRIPTION
 This program is used to measure CPU frequency with high precision. Measured 
-value can be used to define PERF_CPU_FREQUENCY macro as described in time.hpp 
-documentation. CPU frequency is measured in two ways:
+value can be used to define PERF_CPU_FREQUENCY macro as described below.
+CPU frequency is measured in two ways:
 .RS 4
 .TP
 .B during busy loop 
@@ -15,17 +15,17 @@ documentation. CPU frequency is measured in two ways:
 .B during sleep 
 .RE
 .PP
-If results from measurements differs more than 10% program returns error. 
-Frequency difference can be caused by some kernel power saving measures 
+If results of the measurements differ by more than 10% the estimator fails.
+The difference in frequency can be caused by kernel power saving measures 
 therefore all CPU frequency lowering "enhancements" should be turned off.
 .PP
-Note that the frequency measurement can be build only on x86 platforms that 
+Note that the frequency measurement can be built only on x86 platforms that 
 support RDTSC instruction.
 .SH BUILDING IT
 On x86 platform estimate_cpu_freq binary is compiled automatically during the 
-build process, however you have to run ./configure with \-with\-perf switch. 
-/configure summary should look like (have a look at CPU frequency estimator 
-utility status):
+build process if you have turned \-\-with\-perf configure switch on. 
+Configure summary should look something like this (have a look at CPU
+frequency estimator utility status):
 .RS 4
 \f(CR
 .nf
@@ -41,11 +41,7 @@ checking for gawk... no
 Utilities:
   cpu frequency estimator: yes
 
-Addons:
-  performance tests: yes (gettime)
-  camera example: no
-  stock exchange example: no
-  chartoom example: no
+ ... etc ...
 .fi
 \fP
 .RE

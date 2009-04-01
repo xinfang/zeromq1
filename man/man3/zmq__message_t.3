@@ -87,7 +87,7 @@ Copies the content of the message to the message identified by the
 parameter. The message content is not necessarily copied, the operation may be
 handled by copying pointer and increasing reference count of the message.
 Thus the content of the message shouldn't be changed after it has been copied.
-.IP "\fBuint32_t *type ()\fP"
+.IP "\fBuint32_t type ()\fP"
 Returns type of the message. In the case the message is raw data message
 returned value equals to
 .IR message_data

@@ -2,18 +2,38 @@
 .SH NAME
 zmq_server \- starts directory service used by 0MQ messaging system 
 .SH SYNOPSIS
-.B zmq_server [
-.I port-number
-.B ]
+.B zmq_server [--help] [--port <port-number>] [--config-file <filename>]
 .SH DESCRIPTION
 .B zmq_server
 serves as a directory service for a 0MQ messaging system. Applications using 0MQ
 will connect to the running instance of
 .BR zmq_server
-to register or query objects (exchanges and queues) intended to by globally
-visible.
+to register or query locations of the objects (exchanges and queues)
+intended to by globally visible.
 .SH OPTIONS
-Optional command line argument specifies the TCP port zmq_server will listen on.
+.IP "\fB--help\fP"
+prints a help message.
+.IP "\fB--port\fP"
+specifies the TCP port zmq_server will listen on.
 If no port is specified, port 5682 is used.
+.IP "\fB--config-file\fP"
+specifies a file containing the locations of global objects. If this option
+is not used, global objects can be registered by applications only.
+The format of the file looks like this:
+
+.nf
+<root>
+    <node name = "my_queue"
+        location = "zmq.tcp://192.168.0.115:5555"/>
+    <node name = "my_exchange"
+        location = "zmq.tcp://192.168.0.115:5556"/>
+</root>
+.fi
+
+For the format of the location have a look at
+.IR zmq(7)
+manual page.
 .SH AUTHOR
 Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq (7)
