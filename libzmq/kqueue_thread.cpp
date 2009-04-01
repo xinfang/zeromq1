@@ -65,8 +65,7 @@ void zmq::kqueue_t::kevent_delete (fd_t fd_, short filter_)
 
 zmq::handle_t zmq::kqueue_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
-    poll_entry_t *pe;
-    pe = (poll_entry_t*) malloc (sizeof (poll_entry_t));
+    poll_entry_t *pe = new poll_entry_t;
     assert (pe != NULL);
     pe->fd = fd_;
     pe->flag_pollin = 0;
