@@ -56,6 +56,9 @@ ps2pdf man3/zmq__message_t.3.ps message_t.pdf
 groff -man -Tps man3/zmq__select_thread_t.3 > man3/zmq__select_thread_t.3.ps
 ps2pdf man3/zmq__select_thread_t.3.ps select_thread_t.pdf
 
+groff -man -Tps man3/zmq-c-api.3 > man3/zmq-c-api.3.ps
+ps2pdf man3/zmq-c-api.3.ps zmq-c-api.pdf
+
 groff -man -Tps man7/zmq.7 > man7/zmq.7.ps
 ps2pdf man7/zmq.7.ps zmq.pdf
 

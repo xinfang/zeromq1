@@ -1,6 +1,6 @@
 dist_man_MANS = man1/zmq_server.1 man1/estimate_cpu_freq.1 man7/zmq.7 \
 man7/zmq-latency.7 man7/zmq-perf.7 man7/zmq-tests.7 man7/zmq-tests-build.7 \
-man7/zmq-throughput.7 man7/zmq-transport.7
+man7/zmq-throughput.7 man7/zmq-transport.7 man3/zmq-c-api.3
 
 install-data-hook:
 		$(mkdir_p) "$(DESTDIR)$(mandir)/man3";
