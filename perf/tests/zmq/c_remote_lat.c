@@ -63,7 +63,8 @@ int main (int argc, char *argv [])
     /*  Create the wiring.  */
     eid = zmq_create_exchange (handle, "EG", ZMQ_SCOPE_GLOBAL, out_interface,
         ZMQ_STYLE_LOAD_BALANCING);
-    zmq_create_queue (handle, "QG", ZMQ_SCOPE_GLOBAL, in_interface, -1, -1, 0);
+    zmq_create_queue (handle, "QG", ZMQ_SCOPE_GLOBAL, in_interface,
+        ZMQ_NO_LIMIT, ZMQ_NO_LIMIT, ZMQ_NO_SWAP);
 
     for (counter = 0; counter != roundtrip_count; counter ++) {
         zmq_receive (handle, &buf, &size, NULL, ZMQ_TRUE);

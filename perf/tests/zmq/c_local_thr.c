@@ -110,7 +110,7 @@ int main (int argc, char *argv [])
 
     /*  Create the wiring.  */
     zmq_create_queue (handle, "Q", ZMQ_SCOPE_GLOBAL, in_interface,
-        -1, -1, 0);
+        ZMQ_NO_LIMIT, ZMQ_NO_LIMIT, ZMQ_NO_SWAP);
 
     /*  Receive first message.  */
     zmq_receive (handle, &buf, &size, NULL, ZMQ_TRUE);
