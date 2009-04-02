@@ -137,8 +137,6 @@ rm -rf examples/*/.deps/ || :
 #%{__make} check
 
 %install
-[ -z %buildroot ] || rm -rf %buildroot
-mkdir -p %buildroot
 %makeinstall
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/libjzmq.jar %buildroot%{_javadir}
