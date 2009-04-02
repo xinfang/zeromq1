@@ -1,3 +1,48 @@
+Version 0.6
+
+ZMQ-73: Redesign MT throughput test
+ZMQ-102: Move load-balancing functionality from 0.3.3 branch to the trunk
+ZMQ-136: Check I/O threads for rm_fd(x) followed by add_fd(x) behavior
+ZMQ-138: Avoid exporting 0MQ symbols from libs using 0MQ on Windows
+ZMQ-147: Python app hang-up, unresponsive to Ctrl+C
+ZMQ-164: Add reconnection functionality to PGM
+ZMQ-166: Slow down the reconnection process
+ZMQ-176: Update examples to reflect the auto-reconnect feature
+ZMQ-179: Implement OS-agnostic time measurement
+ZMQ-180: What happens if queue is full & disconnection occurs?
+ZMQ-183: Change OpenPGM to PGM in build options
+ZMQ-185: Move msg_store to the trunk
+ZMQ-186: Write an example to demonstrate load-balancing
+ZMQ-187: Declaring same object (exchange, queue) twice doesn't fail
+ZMQ-188: Schemas used by global object URIs don't conform to RFC3986
+ZMQ-190: Compile libdnzmq with /clr support (no old syntax)
+ZMQ-193: Reconnect on Solaris platform not working
+ZMQ-194: Let sender use RDTSC mechanism for command throttling in MSVC build
+ZMQ-195: Failure during fg
+ZMQ-196: System out of sockets after number of reconnections
+ZMQ-197: Offload signal handling from I/O threads
+ZMQ-198: Timers can never expire
+ZMQ-199: Make receive in libczmq zero-copy
+ZMQ-200: Virtualise global locator
+ZMQ-202: Check out SCTP support on QNX
+ZMQ-203: Add auto-reconnect to AMQP engine
+ZMQ-205: Check handling of async errors on a socket
+ZMQ-206: Make zmq_server not to drop the endpoint info on service disconnect
+ZMQ-207: zmq_server should be able to read endpoint info from XML file
+ZMQ-210: Switch perf tests to load-balancing mode
+ZMQ-211: Port Data Dam functionality to Win32
+ZMQ-212: Integrate add and inc in atomic_counter into a single function
+ZMQ-213: When 0MQ infrastructure is terminated, sockets are not closed correctly
+ZMQ-215: Java on Win32 platform not stopping in case of assertion
+ZMQ-217: zmq_server can be crashed by incorect input data
+ZMQ-218: C# integration not working anymore
+ZMQ-219: Change .NET extesnsion to use CamelCase
+ZMQ-220: Check whether individual APIs conforms to API guidelines document
+ZMQ-221: Allow to create global object w/o specifying the location
+ZMQ-222: SPARC code for atomic_counter broken
+ZMQ-223: Rename czmq/jzmq/dnzmq etc. to simple "zmq"
+ZMQ-225: Application fails when it's connected from telnet
+
 Version 0.5
 
 ZMQ-17: look at pgm_transport_set_recv_only and ...send_only
@@ -9,6 +54,7 @@ ZMQ-79: Refactor handling of broken connections
 ZMQ-100: Move flow control and queue limits from 0.3.3 branch to the trunk
 ZMQ-101: Move reconnection functionality from 0.3.3 branch to the trunk
 ZMQ-112: build via cmake (makefile generator)
+ZMQ-115: Identify SPARC V9 microarc and/or availability of CAS instruction
 ZMQ-116: Implement .NET extension
 ZMQ-129: Make engine_source part of the polling object
 ZMQ-139: /dev/poll introduces latency on Solaris
@@ -101,3 +147,28 @@ ZMQ-58: Implement C binding for 0MQ
 ZMQ-59: Implement Java binding for 0MQ  
 ZMQ-60: Implement Python binding for 0MQ 
 ZMQ-62: Write man pages
+
+Version 0.3
+
+ZMQ-1: poll_thread hangs in destructor
+ZMQ-4: Missing -D_REENTRANT command line parameter while compiling 0MQ
+ZMQ-5: Check for buffer overflows in AMQP/0-9 marshaller/unmarshaller
+ZMQ-6: Allow dynamic adding of engines to poll_thread
+ZMQ-7: Implement dynamic assignment of engine IDs to engines
+ZMQ-9: Implement event batching in ysocketpair
+ZMQ-10: Remove remaining references to HAVE_CONFIG_H from the code
+ZMQ-11: Move 'alive' flag to the dispatcher
+ZMQ-12: Move dispatcher signalers into a separate array
+ZMQ-13: Allow up to 63 threads on x86_64 platform
+ZMQ-14: Implement new type of lock-free pipe
+ZMQ-15: Implement an infrastructure to pass arbitrary commands between threads
+ZMQ-16: missing stats_raw_den.R, stats_raw_lat.R in dist package
+ZMQ-20: Sync problem with ypollset/atomic_bitmap
+ZMQ-24: Redundant poll
+ZMQ-30: Implement epoll suport
+ZMQ-37: Identify SPARC V9 microarc and/or availability of CAS instruction
+
+Version 0.2
+
+ZMQ-2: Failure when mutexes are used atomic_uint32 
+ZMQ-3: socket hangup at OS X
