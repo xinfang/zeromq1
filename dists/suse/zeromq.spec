@@ -15,7 +15,6 @@ Source1: %{name}.Key.snk.bz2
 URL: http://www.zeromq.org
 BuildRequires: gcc-c++
 BuildRequires: pkgconfig
-BuildRequires: lksctp-tools-devel
 BuildRequires: python python-devel
 BuildRequires: jpackage-utils
 %if "%{_vendor}" == "suse"  
@@ -34,9 +33,10 @@ BuildRequires:  java-devel >= 1.4
 %endif  
 %endif
 %if "%{_vendor}" == "mandriva"  
-BuildRequires:  mono >= 1.9 mono-devel  
+BuildRequires:  mono mono-devel  
 %else  
-BuildRequires:  mono-core >= 1.9 mono-devel  
+BuildRequires: lksctp-tools-devel
+BuildRequires:  mono-core mono-devel  
 %endif  
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
