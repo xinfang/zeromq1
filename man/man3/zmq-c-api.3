@@ -1,0 +1,151 @@
+.TH zmq-c-api 3 "" "(c)2007-2009 FastMQ Inc." "0MQ User Manuals"
+.SH NAME
+Functions to access 0MQ from C language.
+.SH SYNOPSIS
+\fB
+.nf
+#include <zmq.h>
+
+#define ZMQ_SCOPE_LOCAL 1
+#define ZMQ_SCOPE_PROCESS 2
+#define ZMQ_SCOPE_GLOBAL 3
+
+#define ZMQ_MESSAGE_DATA 1
+#define ZMQ_MESSAGE_GAP 2
+
+#define ZMQ_STYLE_DATA_DISTRIBUTION 1
+#define ZMQ_STYLE_LOAD_BALANCING 2
+
+#define ZMQ_NO_LIMIT -1
+#define ZMQ_NO_SWAP 0
+
+#define ZMQ_TRUE 1
+#define ZMQ_FALSE 0
+
+void *zmq_create (const char *host);
+
+void zmq_destroy (void *object);
+
+void zmq_mask (void *object, uint32_t notifications);
+
+int zmq_create_exchange (void *object, const char *name, 
+    int scope, const char *location, int style);
+
+int zmq_create_queue (void *object, const char *name, int scope,
+    const char *location, int64_t hwm, int64_t lwm, int64_t swap);
+
+void zmq_bind (void *object, const char *exchange_name, 
+    const char *queue_name, const char *exchange_options, 
+    const char *queue_options);
+
+int zmq_send (void *object, int exchange, void *data,
+    uint64_t size, int block);
+
+int zmq_receive (void *object, void **data, uint64_t *size,
+    uint32_t *type, int block);
+
+void zmq_free (void *data);
+.fi
+\fP
+.SH DESCRIPTION
+These functions allow you to access 0MQ functionality from C language.
+.SH METHODS
+.IP "\fBvoid *zmq_create (const char *host)\fP"
+Initialises 0MQ infrastructure.
+.IR host
+parameter specifies the location of
+.IR zmq_server .
+Returns handle to the object encapsulating 0MQ functionality.
+.IP "\fBvoid zmq_destroy (void *object)\fP"
+Uninitialises 0MQ infrastructure.
+.IP "\fBvoid zmq_mask (void *object, uint32_t notifications)\fP"
+Same as
+.IR zmq::api_thread_t::mask
+function. For detailed description check
+.IR zmq::api_thread_t
+manual page.
+.IP "\fBint zmq_create_exchange (void *object, const char *name, int scope, const char *location, int style)\fP"
+Same as
+.IR zmq::api_thread_t::create_exchange
+function. For detailed description check
+.IR zmq::api_thread_t
+manual page.
+.IP "\fBint zmq_create_queue (void *object, const char *name, int scope, const char *location, int64_t hwm, int64_t lwm, int64_t swap)\fP"
+Same as
+.IR zmq::api_thread_t::create_queue
+function. For detailed description check
+.IR zmq::api_thread_t
+manual page.
+.IP "\fBvoid zmq_bind (void *object, const char *exchange_name, const char *queue_name, const char *exchange_options, const char *queue_options)\fP"
+Same as
+.IR zmq::api_thread_t::bind
+function. For detailed description check
+.IR zmq::api_thread_t
+manual page.
+.IP "\fBint zmq_send (void *object, int exchange, void *data, uint64_t size, int block)\fP"
+Same as
+.IR zmq::api_thread_t::send
+function, however, instead of providing message object, provide a pointer to
+buffer as
+.IR data
+argument and the buffer size as
+.IR size
+argument.
+.IR zmq_send
+copies the content of the buffer so you can use the buffer after calling
+the function. Also, it's your responsibility to deallocate it.
+For detailed description of functionality check
+.IR zmq::api_thread_t
+manual page. 
+.IP "\fBint zmq_receive (void *object, void **data, uint64_t *size, uint32_t *type, int block)\fP"
+Same as
+.IR zmq::api_thread_t::receive
+function, however, instead of returning a message object, you are handed
+pointer to a buffer (
+.IR data
+), its size (
+.IR size
+)and type of message (
+.IR type
+). You are responsible for deallocating the buffer using
+.IR zmq_free
+function. For detailed description of the functionality check
+.IR zmq::api_thread_t
+manual page.
+.IP "\fBvoid zmq_free (void *data)\fP"
+Use this function to deallocate the data returned by
+.IR zmq_receive
+function.
+.SH EXAMPLE
+.nf
+    void *object;
+    void *message;
+    uint64_t message_size;
+    int eid;
+    ...
+
+    /*  Initialise 0MQ infrastructure.  */
+    object = zmq_create ("server001");
+    eid = zmq_create_exchange (object, "EL", ZMQ_SCOPE_LOCAL, NULL,
+        ZMQ_STYLE_LOAD_BALANCING);
+    zmq_create_queue (object, "QL", ZMQ_SCOPE_LOCAL, NULL,
+        ZMQ_NO_LIMIT, ZMQ_NO_LIMIT, ZMQ_NO_SWAP);
+    zmq_bind (object, "EL", "QG", NULL, NULL);
+    zmq_bind (object, "EG", "QL", NULL, NULL);
+
+    /*  Send a message.  */
+    message = malloc (message_size);
+    assert (message);
+    ...
+    zmq_send (object, eid, message, message_size, ZMQ_TRUE);
+    free (message);
+
+    /*  Receive a message */
+    zmq_receive (object, &buffer, &message_size, NULL, ZMQ_TRUE);
+    ...
+    zmq_free (message);
+.fi
+.SH AUTHOR
+Martin Sustrik <sustrik at fastmq dot com>
+.SH "SEE ALSO"
+.BR zmq::api_thread_t (3)
