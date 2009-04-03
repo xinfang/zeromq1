@@ -68,48 +68,14 @@ using System.Runtime.InteropServices;
                 queueArgs);
         }
 
-        //class Pinner
-        //{
-        //    public Pinner (GCHandle aHandle)
-        //    {
-        //        handle = aHandle;
-        //    }
-        //    public GCHandle handle;
-        //    public void Unpin (IntPtr ptr)
-        //    {
-        //        handle.Free ();
-        //    }
-        //};
-
         public bool Send (int exchange, byte[] message, bool block)
         {
-            //  TODO: Commented code pins the memory down instead of copying
-            //  the content. However, the performance result are undecisive.
-            //  Check this out in the future.
-            //
-            //if (data.Length < 131072)
-            //{
-		    IntPtr ptr = Marshal.AllocHGlobal (message.Length);
+            IntPtr ptr = Marshal.AllocHGlobal (message.Length);
             Marshal.Copy (message, 0, ptr, message.Length);
 		    int sent = zmq_send (transport, exchange, ptr,
                 Convert.ToUInt64 (message.Length), Convert.ToInt32 (block));
-		    //}
-            //else
-            //{
-            //    Pinner pin = new Pinner (
-            //        GCHandle.Alloc (data, GCHandleType.Pinned));
-            //    try
-            //    {
-            //        sent = czmq_send (transport, eid, 
-            //          pin.handle.AddrOfPinnedObject (),
-            //          Convert.ToUInt32 (data.Length), pin.Unpin, 
-            //          Convert.ToInt32 (block));
-            //    }
-            //    catch
-            //    {
-            //        pin.handle.Free ();
-            //    }
-            //}
+		    
+            Marshal.FreeHGlobal (ptr);
 
             return Convert.ToBoolean (sent);
             
@@ -133,10 +99,11 @@ using System.Runtime.InteropServices;
 
             message = new byte[messageSize];
             Marshal.Copy (ptr, message, 0, message.Length);
-           
+            zmq_free (ptr);
+
             return queue;
         }
-
+                
         public void Destroy ()
         {
             if (transport != IntPtr.Zero)
@@ -203,6 +170,9 @@ using System.Runtime.InteropServices;
         [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
         static extern int zmq_receive (IntPtr zmq, [Out] out IntPtr data,
              [Out] out UInt64 size, [Out] out UInt32 type, int block);
+
+        [DllImport ("libczmq", CallingConvention = CallingConvention.Cdecl)]
+        static extern void zmq_free (IntPtr data_);
 	
         #endregion
     }
