@@ -191,6 +191,13 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
     //  Store the callback.
     poller = poller_;
 
+    //  If initial attemp to connect failed, schedule reconnect.
+    if (socket.get_fd () == retired_fd) {
+        poller->add_timer (this);
+        state = engine_waiting_for_reconnect;
+        return;
+    }
+
     //  Initialise the poll handle.
     handle = poller->add_fd (socket.get_fd (), this);
 
