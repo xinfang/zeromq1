@@ -103,6 +103,8 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cs_local_lat.cs" />
+    <Compile Include="..\..\..\perf\tests\zmq\cs_local_lat.cs">
+      <Link>cs_local_lat.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

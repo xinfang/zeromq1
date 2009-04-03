@@ -99,6 +99,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cs_remote_thr.cs" />
+    <Compile Include="..\..\..\perf\tests\zmq\cs_remote_thr.cs">
+      <Link>cs_remote_thr.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

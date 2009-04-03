@@ -48,6 +48,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cs_remote_lat.cs" />
+    <Compile Include="..\..\..\perf\tests\zmq\cs_remote_lat.cs">
+      <Link>cs_remote_lat.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
