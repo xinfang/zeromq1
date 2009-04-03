@@ -41,7 +41,10 @@
   </Target>
   -->
   <ItemGroup>
-    <Reference Include="libclrzmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=500b02ec5e96ba8c, processorArchitecture=MSIL" />
+    <Reference Include="libclrzmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=500b02ec5e96ba8c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\clrzmq\bin\Release\libclrzmq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <PropertyGroup>
