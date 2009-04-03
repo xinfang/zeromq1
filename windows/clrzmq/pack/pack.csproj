@@ -45,6 +45,6 @@
 copy "$(ProjectDir)..\cs_remote_lat\bin\$(ConfigurationName)\cs_remote_lat.exe" "$(ProjectDir)..\..\tmp\perf"
 copy "$(ProjectDir)..\cs_local_lat\bin\$(ConfigurationName)\cs_local_lat.exe" "$(ProjectDir)..\..\tmp\perf"
 copy "$(ProjectDir)..\cs_local_thr\bin\$(ConfigurationName)\cs_local_thr.exe" "$(ProjectDir)..\..\tmp\perf"
-copy "$(ProjectDir)..\cszmq\bin\$(ConfigurationName)\cszmq.dll" "$(ProjectDir)..\..\tmp\dotnet"</PostBuildEvent>
+copy "$(ProjectDir)..\clrzmq\bin\$(ConfigurationName)\libclrzmq.dll" "$(ProjectDir)..\..\tmp\lib"</PostBuildEvent>
   </PropertyGroup>
 </Project>

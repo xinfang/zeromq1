@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle ("cszmq")]
-[assembly: AssemblyDescription ("cszmq library")]
+[assembly: AssemblyTitle ("libclrzmq")]
+[assembly: AssemblyDescription ("zmq clr library")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("zeromq")]
 [assembly: AssemblyProduct ("zeromq")]

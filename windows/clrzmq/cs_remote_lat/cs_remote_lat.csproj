@@ -41,15 +41,10 @@
   </Target>
   -->
   <ItemGroup>
+    <Reference Include="libclrzmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=500b02ec5e96ba8c, processorArchitecture=MSIL" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="cs_remote_lat.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\cszmq\cszmq.csproj">
-      <Project>{990F8937-0CAF-45B8-91DB-9DBC2E3840C1}</Project>
-      <Name>cszmq</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>

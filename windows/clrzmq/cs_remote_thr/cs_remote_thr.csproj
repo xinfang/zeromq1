@@ -5,15 +5,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{00F469EA-3FE0-463D-A168-6A43D24F6433}</ProjectGuid>
+    <ProjectGuid>{D48F5424-79D9-4D1C-9D0A-953797A26CB6}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>cs_local_lat</RootNamespace>
-    <AssemblyName>cs_local_lat</AssemblyName>
+    <RootNamespace>cs_remote_thr</RootNamespace>
+    <AssemblyName>cs_remote_thr</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <IsWebBootstrapper>true</IsWebBootstrapper>
-    <PublishUrl>http://localhost/cs_local_lat/</PublishUrl>
+    <PublishUrl>http://localhost/cs_remote_thr/</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -25,6 +24,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -56,10 +56,8 @@
   </Target>
   -->
   <ItemGroup>
+    <Reference Include="libclrzmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=500b02ec5e96ba8c, processorArchitecture=MSIL" />
     <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="cs_local_lat.cs" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
@@ -98,12 +96,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\cszmq\cszmq.csproj">
-      <Project>{990F8937-0CAF-45B8-91DB-9DBC2E3840C1}</Project>
-      <Name>cszmq</Name>
-    </ProjectReference>
+    <Compile Include="cs_remote_thr.cs" />
   </ItemGroup>
 </Project>
