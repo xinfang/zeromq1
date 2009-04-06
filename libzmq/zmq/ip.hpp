@@ -23,9 +23,9 @@
 #include <zmq/platform.hpp>
 
 #ifdef ZMQ_HAVE_WINDOWS
-#include <Winsock2.h>
-#include <Ws2tcpip.h>
-#include <Ipexport.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <ipexport.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
