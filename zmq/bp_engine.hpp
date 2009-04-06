@@ -60,6 +60,12 @@ namespace zmq
         bool close_event ();
         void process_command (const engine_command_t &command_);
 
+        //  Returns the engine's context.
+        inline i_context *get_context ()
+        {
+            return context;
+        }
+
     private:
 
         bp_engine_t (poll_thread_t *thread_, tcp_socket_t *socket_,

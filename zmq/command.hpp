@@ -25,6 +25,7 @@
 #include "stdint.h"
 #include "ysemaphore.hpp"
 #include "pipe.hpp"
+#include "tcp_socket.hpp"
 
 namespace zmq
 {
@@ -39,6 +40,7 @@ namespace zmq
             head,
             send_to,
             receive_from,
+            reconnect,
             destroy_pipe
         } type;
 
@@ -58,6 +60,9 @@ namespace zmq
                 char queue [16];
                 class pipe_t *pipe;
             } receive_from;
+            struct {
+                class tcp_socket_t *socket;
+            } reconnect;
             struct {
                 class pipe_t *pipe;
             } destroy_pipe;
@@ -134,6 +139,15 @@ namespace zmq
             strcpy (args.engine_command.command.args.receive_from.queue,
                 queue_);
             args.engine_command.command.args.receive_from.pipe = pipe_;
+        }
+
+        inline void init_engine_reconnect (i_engine *engine_,
+            tcp_socket_t *socket_)
+        {
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::reconnect;
+            args.engine_command.command.args.reconnect.socket = socket_;
         }
 
         inline void init_engine_revive (i_engine *engine_, pipe_t *pipe_)

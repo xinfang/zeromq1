@@ -21,11 +21,13 @@
 #define __ZMQ_BP_LISTENER_HPP_INCLUDED__
 
 #include <vector>
+#include <map>
 
 #include "stdint.hpp"
 #include "i_pollable.hpp"
 #include "poll_thread.hpp"
 #include "tcp_listener.hpp"
+#include "bp_engine.hpp"
 
 namespace zmq
 {
@@ -89,6 +91,11 @@ namespace zmq
         //  The thread array to manage newly-created BP engines.
         typedef std::vector <poll_thread_t*> handler_threads_t;
         handler_threads_t handler_threads;
+
+        //  Dictionary holding all engines created by this listener. Engines
+        //  are identified by the peer's name.
+        typedef std::map <std::string, bp_engine_t *> engines_t;
+        engines_t engines;
 
         //  Points to the I/O thread to use to handle next BP connection.
         //  (Handler threads are used in round-robin fashion.)

@@ -89,12 +89,23 @@ bool zmq::bp_listener_t::in_event ()
     //  Fetch remote peer's ID.
     std::string remote_id = socket->recv_string (256);
 
+    engines_t::iterator it = engines.find (remote_id);
+    if (it != engines.end ()) {
+        command_t cmd;
+        cmd.init_engine_reconnect (it->second, socket);
+        context->send_command (it->second->get_context (), cmd);
+        return true;
+    }
+
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
         handler_threads [current_handler_thread], socket,
         bp_out_batch_size, bp_in_batch_size, peer_name);
     assert (engine);
+
+    //  All engines created by TCP listener are kept in his private dictionary.
+    engines [remote_id] = engine;
 
     if (source) {
 

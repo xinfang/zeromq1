@@ -77,6 +77,11 @@ void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
 
     //  Initialise the poll handle.
     poller->set_fd (handle, socket->get_fd ());
+
+    if (pipe_cnt > 0) {
+        poller->set_pollin (handle);
+        poller->set_pollout (handle);
+    }
 }
 
 bool zmq::bp_engine_t::in_event ()
@@ -162,15 +167,15 @@ bool zmq::bp_engine_t::out_event ()
 
 bool zmq::bp_engine_t::close_event ()
 {
+    //  Clean up. First mark buffers as fully processed.
+    write_pos = write_size;
+    read_pos = read_size;
+
+    //  Cause encoder & decoder to drop any half-processed messages.
+    encoder.clear ();
+    decoder.clear ();
+
     if (socket->is_reconnectable ()) {
-
-        //  Clean up. First mark buffers as fully processed.
-        write_pos = write_size;
-        read_pos = read_size;
-
-        //  Cause encoder & decoder to drop any half-processed messages.
-        encoder.clear ();
-        decoder.clear ();
 
         //  Reconnect to the remote host.
         socket->reconnect ();
@@ -195,11 +200,7 @@ bool zmq::bp_engine_t::close_event ()
         if (!eh (local_object.c_str ()))
             assert (false);
 
-        //  Notify all our receivers that this engine is shutting down.
-        demux.terminate_pipes ();
-
-        //  Notify senders that this engine is shutting down.
-        mux.terminate_pipes ();
+        poller = NULL;
     }
 
     return false;
@@ -211,21 +212,20 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
     case engine_command_t::revive:
 
         //  Forward the revive command to the pipe.
-        if (!socket_error)
-            command_.args.revive.pipe->revive ();
+        command_.args.revive.pipe->revive ();
 
         //  There is at least one engine that has messages ready. Try to do
         //  speculative write to the socket and thus avoid polling for POLLOUT.
-        poller->speculative_write (handle);
+        if (poller)
+            poller->speculative_write (handle);
         break;
 
     case engine_command_t::head:
 
         //  Forward pipe statistics to the appropriate pipe.
-        if (!socket_error) {
-            command_.args.head.pipe->set_head (command_.args.head.position);
+        command_.args.head.pipe->set_head (command_.args.head.position);
+        if (poller)
             in_event ();
-        }
         break;
 
     case engine_command_t::send_to:
@@ -252,6 +252,23 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
             if (pipe_cnt ++ == 0)
                 poller->set_pollin (handle);
         }
+        break;
+
+    case engine_command_t::reconnect:
+
+        delete socket;
+        socket = command_.args.reconnect.socket;
+
+        if (socket_error) {
+            socket_error = false;
+            ((poll_thread_t *) context)->register_engine (this);
+        }
+        else if (poller) {
+            poller->set_fd (handle, socket->get_fd ());
+            if (pipe_cnt > 0)
+                poller->set_pollin (handle);
+        }
+
         break;
 
     case engine_command_t::destroy_pipe:
