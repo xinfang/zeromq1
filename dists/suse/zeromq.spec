@@ -120,7 +120,7 @@ use ZeroMQ in Mono.
 %prep
 
 %setup -n %{name}
-[ ! -e %SOURCE1 ] || bunzip2 -c < %SOURCE1 > windows/cszmq/cszmq/zmq_strong_name.snk
+[ ! -e %SOURCE1 ] || bunzip2 -c < %SOURCE1 > windows/clrzmq/clrzmq/zmq_strong_name.snk
 
 %build
 [ -n "$JAVA_HOME" ] || export JAVA_HOME=%{java_home}
@@ -128,8 +128,8 @@ use ZeroMQ in Mono.
 %{__make} %{?jobs:-j%jobs} JAVACFLAGS="-target %{java_target}"
 (cd libjzmq && %{jar} cvf libjzmq.jar *.class)
 
-(cd windows/cszmq/cszmq && ./configure --prefix=%{_prefix} --bindir=%{_bindir} --datadir=%{_datadir} --libdir=%{_prefix}/lib --config=RELEASE)
-(cd windows/cszmq/cszmq && %{__make} %{?jobs:-j%jobs})
+(cd windows/clrzmq/clrzmq && ./configure --prefix=%{_prefix} --bindir=%{_bindir} --datadir=%{_datadir} --libdir=%{_prefix}/lib --config=RELEASE)
+(cd windows/clrzmq/clrzmq && %{__make} %{?jobs:-j%jobs})
 
 rm -rf examples/*/.deps/ || :
 
@@ -140,13 +140,13 @@ rm -rf examples/*/.deps/ || :
 %makeinstall
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/libjzmq.jar %buildroot%{_javadir}
-mkdir -p %buildroot%{_prefix}/lib/cszmq
-cp windows/cszmq/cszmq/bin/Release/*.dll* %buildroot%{_prefix}/lib/cszmq
+mkdir -p %buildroot%{_prefix}/lib/clrzmq
+cp windows/clrzmq/clrzmq/bin/Release/*.dll* %buildroot%{_prefix}/lib/clrzmq
 mkdir -p %buildroot%{_datadir}/pkgconfig
-cp windows/cszmq/cszmq/bin/Release/*.pc %buildroot%{_datadir}/pkgconfig
-gacutil -i %buildroot%{_prefix}/lib/cszmq/cszmq.dll -f -root %buildroot%{_prefix}/lib -package cszmq
+cp windows/clrzmq/clrzmq/bin/Release/*.pc %buildroot%{_datadir}/pkgconfig
+gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_prefix}/lib -package clrzmq
 
-[ -e %SOURCE1 ] || bzip2 -c < windows/cszmq/cszmq/zmq_strong_name.snk > %SOURCE1
+[ -e %SOURCE1 ] || bzip2 -c < windows/clrzmq/clrzmq/zmq_strong_name.snk > %SOURCE1
 
 %clean
 [ -z %buildroot ] || rm -rf %buildroot
@@ -182,9 +182,9 @@ gacutil -i %buildroot%{_prefix}/lib/cszmq/cszmq.dll -f -root %buildroot%{_prefix
 
 %files mono
 %defattr(-,root,root)
-%{_prefix}/lib/cszmq
+%{_prefix}/lib/clrzmq
 %{_prefix}/lib/mono/gac/*
-%{_prefix}/lib/mono/cszmq
+%{_prefix}/lib/mono/clrzmq
 %{_datadir}/pkgconfig/*
 
 %changelog
