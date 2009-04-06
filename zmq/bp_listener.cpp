@@ -86,6 +86,9 @@ bool zmq::bp_listener_t::in_event ()
     tcp_socket_t *socket = new tcp_socket_t (listener);
     assert (socket);
 
+    //  Fetch remote peer's ID.
+    std::string remote_id = socket->recv_string (256);
+
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (

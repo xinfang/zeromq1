@@ -174,6 +174,10 @@ bool zmq::bp_engine_t::close_event ()
 
         //  Reconnect to the remote host.
         socket->reconnect ();
+
+        //  Publish our ID.
+        socket->send_string (local_object);
+
         poller->set_fd (handle, socket->get_fd ());
         poller->set_pollin (handle);
         return true;

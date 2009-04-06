@@ -18,6 +18,7 @@
 */
 
 #include "tcp_socket.hpp"
+#include "wire.hpp"
 
 #include <assert.h>
 #include <unistd.h>
@@ -115,16 +116,24 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
 void zmq::tcp_socket_t::blocking_write (const void *data, size_t size)
 {
-    ssize_t nbytes = send (s, data, size, 0);
-    errno_assert (nbytes != -1);
-    assert (((size_t) nbytes) == size);
+    size_t i = 0;
+
+    while (i < size) {
+        ssize_t nbytes = send (s, (char *) data + i, size - i, 0);
+        errno_assert (nbytes > 0);
+        i += nbytes;
+    }
 }
 
 void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
 {
-    ssize_t nbytes = recv (s, data, size, MSG_WAITALL);
-    errno_assert (nbytes != -1);
-    assert (((size_t) nbytes) == size);
+    size_t i = 0;
+
+    while (i < size) {
+        ssize_t nbytes = recv (s, (char *) data + i, size - i, MSG_WAITALL);
+        errno_assert (nbytes > 0);
+        i += nbytes;
+    }
 }
 
 void zmq::tcp_socket_t::connect ()
@@ -164,4 +173,46 @@ void zmq::tcp_socket_t::connect ()
     int flag = 1;
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof (int));
     errno_assert (rc == 0);
+}
+
+void zmq::tcp_socket_t::send_string (const std::string &s)
+{
+    size_t slen = s.length ();
+
+    if (slen < 255) {
+        unsigned char tmpbuf [1];
+        tmpbuf [0] = slen;
+        blocking_write (tmpbuf, sizeof tmpbuf);
+    }
+    else {
+        unsigned char tmpbuf [9];
+        tmpbuf [0] = 0xff;
+        put_uint64 (tmpbuf + 1, slen);
+        blocking_write (tmpbuf, sizeof tmpbuf);
+    }
+
+    blocking_write (s.c_str (), slen);
+}
+
+std::string zmq::tcp_socket_t::recv_string (size_t maxlen)
+{
+    size_t slen;
+    unsigned char tmpbuf [8];
+
+    blocking_read (tmpbuf, 1);
+    if (tmpbuf [0] != 0xff)
+        slen = tmpbuf [0];
+    else {
+        blocking_read (tmpbuf, 8);
+        slen = get_uint64 (tmpbuf);
+    }
+
+    assert (slen <= maxlen);
+
+    char *buf = new char [slen];
+    blocking_read (buf, slen);
+    std::string s = std::string (buf, slen);
+    delete [] buf;
+
+    return s;
 }

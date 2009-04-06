@@ -165,6 +165,9 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          tcp_socket_t *socket = new tcp_socket_t (interface);
          assert (socket);
 
+         //  Publish our ID.
+         socket->send_string (local_object_);
+
          //  Create the proxy engine for the object.
          bp_engine_t *engine = bp_engine_t::create (thread_,
              socket, bp_out_batch_size, bp_in_batch_size,
