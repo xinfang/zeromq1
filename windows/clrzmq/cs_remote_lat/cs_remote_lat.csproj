@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -22,11 +22,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${SolutionDir}/cs_remote_lat/bin/Debug/cs_remote_lat.exe ${SolutionDir}/../tmp/perf " />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,11 +31,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${SolutionDir}/cs_remote_lat/bin/Release/cs_remote_lat.exe ${SolutionDir}/../tmp/perf " />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

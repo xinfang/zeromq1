@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -25,11 +25,6 @@
     <WarningLevel>3</WarningLevel>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>zmq_strong_name.snk</AssemblyKeyFile>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${SolutionDir}/clrzmq/bin/Debug/libclrzmq.dll ${SolutionDir}/../tmp/lib" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,11 +35,6 @@
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>zmq_strong_name.snk</AssemblyKeyFile>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${SolutionDir}/clrzmq/bin/Release/libclrzmq.dll ${SolutionDir}/../tmp/lib" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
