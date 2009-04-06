@@ -1,6 +1,7 @@
 dist_man_MANS = man1/zmq_server.1 man1/estimate_cpu_freq.1 man7/zmq.7 \
 man7/zmq-latency.7 man7/zmq-perf.7 man7/zmq-tests.7 man7/zmq-tests-build.7 \
-man7/zmq-throughput.7 man7/zmq-transport.7 man3/zmq-c-api.3
+man7/zmq-throughput.7 man7/zmq-transport.7 man3/zmq-c-api.3 man1/local_lat.1 \
+man1/local_thr.1 man1/remote_lat.1 man1/remote_thr.1
 
 install-data-hook:
 		$(mkdir_p) "$(DESTDIR)$(mandir)/man3";
@@ -44,7 +45,6 @@ install-data-hook:
 			"$(DESTDIR)$(mandir)/man3/zmq::zmq_receive.3";
 		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_free.3"\
 			"$(DESTDIR)$(mandir)/man3/zmq::zmq_free.3";
-
 
 distclean-local:
 		-rm  *.pdf
