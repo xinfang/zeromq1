@@ -27,3 +27,10 @@ install-data-hook:
 		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__set_error_handler.3"\
 			"$(DESTDIR)$(mandir)/man3/zmq::set_error_handler.3";
 
+clean-local:
+		-rm  *.pdf
+
+dist-hook:
+		./convert2pdf.sh
+		$(mkdir_p) $(top_distdir)/doc
+		cp $(top_srcdir)/man/*.pdf $(top_distdir)/doc
