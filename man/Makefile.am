@@ -26,11 +26,34 @@ install-data-hook:
 			"$(DESTDIR)$(mandir)/man3/zmq::kqueue_thread_t.3";
 		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__set_error_handler.3"\
 			"$(DESTDIR)$(mandir)/man3/zmq::set_error_handler.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_create.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_create.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_destroy.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_destroy.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_mask.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_mask.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_create_exchange.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_create_exchange.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_create_queue.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_create_queue.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_bind.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_bind.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_send.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_send.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_receive.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_receive.3";
+		$(INSTALL_DATA) "$(top_srcdir)/man/man3/zmq__zmq_free.3"\
+			"$(DESTDIR)$(mandir)/man3/zmq::zmq_free.3";
 
-clean-local:
+
+distclean-local:
 		-rm  *.pdf
+		-rm  man1/*.ps
+		-rm  man3/*.ps
+		-rm  man7/*.ps
 
 dist-hook:
 		./convert2pdf.sh
 		$(mkdir_p) $(top_distdir)/doc
 		cp $(top_srcdir)/man/*.pdf $(top_distdir)/doc
+
