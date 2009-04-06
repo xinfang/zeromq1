@@ -51,7 +51,7 @@ using namespace std;
 #include <zmq/server_protocol.hpp>
 #include <zmq/xmlParser.hpp>
 using namespace zmq;
-
+#define ZMQ_TRACE
 //  Maps object name to object info.
 typedef map <string, string> objects_t;
 

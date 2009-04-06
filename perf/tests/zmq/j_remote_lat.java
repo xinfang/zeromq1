@@ -36,6 +36,7 @@ class j_remote_lat
          int roundtripCount = Integer.parseInt (args [4]);
 
          //  Initialise 0MQ runtime.
+         System.out.println ("Java test");
          Zmq obj = new Zmq (host);
          
          //  Create the wiring.
@@ -47,6 +48,7 @@ class j_remote_lat
          //  Bounce the messages back to LocalLat
          for (int i = 0; i != roundtripCount; i ++) {
              byte [] data = obj.receive (true).message;
+             System.out.println ("Is java api still running?");
              assert (data.length == messageSize);
              obj.send (eid, data, true);
          }

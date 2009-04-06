@@ -158,6 +158,8 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
 int zmq::tcp_socket_t::read (void *data, int size)
 {
+    printf ("test assert\n");
+    assert (false);
     int nbytes = recv (s, (char*) data, size, 0);
 
     //  If not a single byte can be read from the socket in non-blocking mode
