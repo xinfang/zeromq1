@@ -23,24 +23,30 @@
 
       parameter 			ZMQ$_SCOPE_LOCAL  = 0
       parameter 			ZMQ$_SCOPE_GLOBAL = 1
+      parameter 			ZMQ$_STYLE_DATA_DISTRIBUTION = 1
+      parameter 			ZMQ$_STYLE_LOAD_BALANCING = 2
+      parameter 			ZMQ$_NO_LIMIT = -1
+      parameter 			ZMQ$_NO_SWAP = 0
 
-      external 				ZMQ$CREATE
-      external 				ZMQ$CREATE_EXCHANGE
-      external 				ZMQ$CREATE_QUEUE
-      external 				ZMQ$BIND
-      external 				ZMQ$SEND
-      external 				ZMQ$RECEIVE
-      external 				ZMQ$DESTROY
+      external 				ZMQ_CREATE
+      external 				ZMQ_CREATE_EXCHANGE
+      external 				ZMQ_CREATE_QUEUE
+      external 				ZMQ_BIND
+      external 				ZMQ_SEND
+      external 				ZMQ_RECEIVE
+      external 				ZMQ_DESTROY
+      external 				ZMQ_FREE
 
       external 				lib$get_vm, lib$free_vm
 
-      integer*4 			ZMQ$CREATE
-      integer*4 			ZMQ$CREATE_EXCHANGE
-      integer*4 			ZMQ$CREATE_QUEUE
-      integer*4 			ZMQ$BIND
-      integer*4 			ZMQ$SEND
-      integer*4 			ZMQ$RECEIVE
-      integer*4 			ZMQ$DESTROY
+      integer*4 			ZMQ_CREATE
+      integer*4 			ZMQ_CREATE_EXCHANGE
+      integer*4 			ZMQ_CREATE_QUEUE
+      integer*4 			ZMQ_BIND
+      integer*4 			ZMQ_SEND
+      integer*4 			ZMQ_RECEIVE
+      integer*4 			ZMQ_DESTROY
+      integer*4 			ZMQ_FREE
 
       integer*4 			lib$get_vm, lib$free_vm
 
@@ -52,11 +58,10 @@
       integer*4 			nmsg
 
       integer*4 			ilen
-      integer*4 			ibuf
       integer*4 			olen
       integer*4 			obuf
 
-      integer*4 			ffn
+      character 			ibuf(8192)
 
       character*60   			host
       character*80 			args
@@ -65,6 +70,7 @@
 
       integer*4    			obj
       integer*4 			eid
+      integer*4 			qid
 
 
 
@@ -72,44 +78,45 @@
 
       read(args, *) host, ilen, nmsg
 
+      if (ilen .gt. 8192) then
+         print *, 'Message size must be less than or equal to 8192 bytes'
+         call exit
+      end if
 
-!     In F90 we could just use the allocate statement here, but let's do it the
-!     old way...
-!
-!     Strictly speaking we don't even need to use dynamic allocation.
-!
-      okay = lib$get_vm(ilen, ibuf)
+
+      okay = ZMQ_CREATE(%descr(host), obj)
+
+      if (.not. okay) then
+         call lib$stop(%val(okay))
+      end if
+
+      okay = ZMQ_CREATE_EXCHANGE(%val(obj), %descr('EL'),
+     +%val(ZMQ$_SCOPE_LOCAL), %val(0),
+     +%val(ZMQ$_STYLE_DATA_DISTRIBUTION), eid)
 
       if (.not. okay) then
          call lib$stop(%val(okay))
       end if
 
 
-      okay = ZMQ$CREATE(%descr(host), obj)
+      okay = ZMQ_CREATE_QUEUE(%val(obj), %descr('QL'),
+     +%val(ZMQ$_SCOPE_LOCAL), %val(0),
+     +%val(ZMQ$_NO_LIMIT),
+     +%val(ZMQ$_NO_LIMIT), %val(ZMQ$_NO_SWAP), qid)
 
       if (.not. okay) then
          call lib$stop(%val(okay))
       end if
 
-      okay = ZMQ$CREATE_EXCHANGE(%val(obj), %descr('EL'), %val(ZMQ$_SCOPE_LOCAL), %val(0), eid)
+      okay = ZMQ_BIND(%val(obj), %descr('EL'), %descr('QG'), %val(0),
+     +%val(0))
 
       if (.not. okay) then
          call lib$stop(%val(okay))
       end if
 
-      okay = ZMQ$CREATE_QUEUE(%val(obj), %descr('QL'), %val(ZMQ$_SCOPE_LOCAL), %val(0))
-
-      if (.not. okay) then
-         call lib$stop(%val(okay))
-      end if
-
-      okay = ZMQ$BIND(%val(obj), %descr('EL'), %descr('QG'))
-
-      if (.not. okay) then
-         call lib$stop(%val(okay))
-      end if
-
-      okay = ZMQ$BIND(%val(obj), %descr('EG'), %descr('QL'))
+      okay = ZMQ_BIND(%val(obj), %descr('EG'), %descr('QL'), %val(0),
+     +%val(0))
 
       if (.not. okay) then
          call lib$stop(%val(okay))
@@ -117,25 +124,30 @@
 
 !     Note that this call is accurate to 0.01s, so should be okay for timing
 !     purposes...
-!
+
       t0 = secnds(0.0e+00)
 
       do i = 1, nmsg
-         okay = ZMQ$SEND(%val(obj), %val(eid), %val(ibuf), %val(ilen), %val(0))
+         okay = ZMQ_SEND(%val(obj), %val(eid), ibuf, %val(ilen),
+     +%val(1))
+
 
          if (.not. okay) then
             call lib$stop(%val(okay))
          end if
 
-         okay = ZMQ$RECEIVE(%val(obj), obuf, olen, ffn)
+         okay = ZMQ_RECEIVE(%val(obj), obuf, olen, %val(0), %val(1))
 
          if (.not. okay) then
             call lib$stop(%val(okay))
          end if
 
-         if (ffn .ne. 0) then
-	    call freeit(%val(ffn), obuf)
+         okay = ZMQ_FREE (%val(obuf))
+
+         if (.not. okay) then
+            call lib$stop(%val(okay))
          end if
+
       end do
 
       t1 = secnds(0.0e+00)
@@ -143,39 +155,11 @@
       print *, 'Latency = ', (t1 - t0) / (nmsg * 2.0) * 1.0e+06, 'us'
 
 
-      okay = ZMQ$DESTROY(%val(obj))
+      okay = ZMQ_DESTROY(%val(obj))
 
       if (.not. okay) then
          call lib$stop(%val(okay))
       end if
-
-      okay = lib$free_vm(ilen, ibuf)
-
-      if (.not. okay) then
-         call lib$stop(%val(okay))
-      end if
-
-
-      end
-
-!
-!     --------------------------------------------------------------------------
-!
-
-!     Another option would be to use lib$callg() I suppose, but this method may
-!     be a little faster and it seems to work... (it's been a while since I did
-!     anything in FORTRAN).
-
-      subroutine freeit(func, addr)
-
-      implicit none
-
-      integer*4 		addr
-
-      external 			func
-
-      call func(%val(addr))
-      return
 
       end
 

@@ -160,3 +160,9 @@ unsigned long ZMQ_RECEIVE (unsigned long object_, void **data_, uint64_t *size_,
     return (SS$_NORMAL);
 }
 
+unsigned long ZMQ_FREE (void *data_)
+{
+    lib$establish (lib$sig_to_ret);
+    zmq_free (data_);
+    return (SS$_NORMAL);
+}

@@ -102,6 +102,12 @@ $ c_zlocal_thr  :== $zmqRoot:[perf.tests.zmq]c_local_thr.exe
 $ c_zremote_lat :== $zmqRoot:[perf.tests.zmq]c_remote_lat.exe
 $ c_zremote_thr :== $zmqRoot:[perf.tests.zmq]c_remote_thr.exe
 $!
+$! ZMQ tests - the Fortran version
+$! For running Fortran examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
+$!
+$ f_zlocal_lat :== $zmqRoot:[perf.tests.zmq]f_local_lat.exe
+$!
+$!
 $! Go to where it all happens...
 $!
 $ set default zmqbase		! Go to base level home directory

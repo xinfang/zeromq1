@@ -27,7 +27,8 @@ SYMBOL_VECTOR = ( -
 	ZMQ_CREATE_QUEUE     = PROCEDURE, -
 	ZMQ_BIND             = PROCEDURE, -
 	ZMQ_SEND 	     = PROCEDURE, -
-	ZMQ_RECEIVE          = PROCEDURE  -
+	ZMQ_RECEIVE          = PROCEDURE, -
+        ZMQ_FREE             = PROCEDURE  -
 )
 !
 ! Also include entry points for the CZMQ functions (libczmq)
@@ -39,7 +40,8 @@ SYMBOL_VECTOR = ( -
  	zmq_create_queue    = PROCEDURE, -
  	zmq_bind            = PROCEDURE, -
  	zmq_send            = PROCEDURE, -
- 	zmq_receive         = PROCEDURE  -
+ 	zmq_receive         = PROCEDURE, -
+        zmq_free            = PROCEDURE  -
 )
 !
 $!

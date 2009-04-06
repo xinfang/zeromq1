@@ -17,7 +17,7 @@ $ linkit f_local_lat.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !
-libczmq:zmq_shr/share
+libvmszmq:vmszmq/share
 !
 $!
 $ purge/nolog
