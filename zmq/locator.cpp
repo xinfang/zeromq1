@@ -161,9 +161,13 @@ bool zmq::locator_t::get (unsigned char type_id_, const char *object_,
          global_locator->blocking_read (interface, size);
          interface [size] = 0;
 
+         //  Establish TCP connection with the remote proxy.
+         tcp_socket_t *socket = new tcp_socket_t (interface);
+         assert (socket);
+
          //  Create the proxy engine for the object.
          bp_engine_t *engine = bp_engine_t::create (thread_,
-             interface, bp_out_batch_size, bp_in_batch_size,
+             socket, bp_out_batch_size, bp_in_batch_size,
              local_object_);
 
          //  Write it into object repository.

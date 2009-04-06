@@ -45,17 +45,12 @@ namespace zmq
     {
     public:
 
-        //  Creates bp_engine. Underlying TCP connection is initialised using
-        //  host parameter. writebuf_size and readbuf_size determine
+        //  Creates bp_engine. The engine communicates with its remote peer
+        //  through the socket object. writebuf_size and readbuf_size determine
         //  the amount of batching to use. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
         static bp_engine_t *create (poll_thread_t *thread_,
-            const char *hostname_, size_t writebuf_size_,
-            size_t readbuf_size_, const char *local_object_);
-
-        //  Creates bp_engine from supplied listener object.
-        static bp_engine_t *create (poll_thread_t *thread_,
-            tcp_listener_t &listener_, size_t writebuf_size_,
+            tcp_socket_t *socket_, size_t writebuf_size_,
             size_t readbuf_size_, const char *local_object_);
 
         //  i_pollable interface implementation.
@@ -67,11 +62,7 @@ namespace zmq
 
     private:
 
-        bp_engine_t (poll_thread_t *thread_,
-            const char *hostname_,
-            size_t writebuf_size_, size_t readbuf_size_,
-            const char *local_object_);
-        bp_engine_t (poll_thread_t *thread_, tcp_listener_t &listener_,
+        bp_engine_t (poll_thread_t *thread_, tcp_socket_t *socket_,
             size_t writebuf_size_, size_t readbuf_size_,
             const char *local_object_);
         ~bp_engine_t ();
@@ -107,7 +98,7 @@ namespace zmq
         int pipe_cnt;
 
         //  Underlying TCP/IP socket.
-        tcp_socket_t socket;
+        tcp_socket_t *socket;
 
         //  Callback to poller.
         i_poller *poller;
@@ -120,11 +111,6 @@ namespace zmq
 
         //  Name of the object on this side of the connection (exchange/queue).
         std::string local_object;
-
-        //  If true, connection was created by listener (no need to reconnect
-        //  after connection failure). Otherwise it have connected to the
-        //  remote host itself (it has to reconnect actively after failure).
-        bool reconnect;
 
         bp_engine_t (const bp_engine_t&);
         void operator = (const bp_engine_t&);

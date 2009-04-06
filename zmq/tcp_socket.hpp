@@ -44,6 +44,10 @@ namespace zmq
         //  Closes the socket.
         ~tcp_socket_t ();
 
+        //  Returns true if the connection was established using
+        //  the connect() call and hence can be re-established on error.
+        bool is_reconnectable ();
+
         //  Closes the connection to the host and reconnects anew. If hostname
         //  in NULL, socket reconnects to the same host. Othewise it reconnects
         //  to the host supplied.

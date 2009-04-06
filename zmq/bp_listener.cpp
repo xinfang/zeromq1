@@ -82,10 +82,14 @@ void zmq::bp_listener_t::set_poller (i_poller *poller_, int handle_)
 
 bool zmq::bp_listener_t::in_event ()
 {
+    //  Accept incoming TCP connection.
+    tcp_socket_t *socket = new tcp_socket_t (listener);
+    assert (socket);
+
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
     bp_engine_t *engine = bp_engine_t::create (
-        handler_threads [current_handler_thread], listener,
+        handler_threads [current_handler_thread], socket,
         bp_out_batch_size, bp_in_batch_size, peer_name);
     assert (engine);
 

@@ -57,6 +57,11 @@ zmq::tcp_socket_t::~tcp_socket_t ()
     errno_assert (rc == 0);
 }
 
+bool zmq::tcp_socket_t::is_reconnectable ()
+{
+    return !hostname.empty ();
+}
+
 void zmq::tcp_socket_t::reconnect (const char *hostname_)
 {
     //  If new hostname is specified, store it.

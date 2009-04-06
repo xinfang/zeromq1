@@ -22,28 +22,17 @@
 #include "bp_engine.hpp"
 
 zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    const char *hostname_, size_t writebuf_size_,
-    size_t readbuf_size_, const char *local_object_)
-{
-    bp_engine_t *instance = new bp_engine_t (thread_, hostname_,
-        writebuf_size_, readbuf_size_, local_object_);
-    assert (instance);
-
-    return instance;
-}
-
-zmq::bp_engine_t *zmq::bp_engine_t::create (poll_thread_t *thread_,
-    tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
+    tcp_socket_t *socket_, size_t writebuf_size_, size_t readbuf_size_,
     const char *local_object_)
 {
-    bp_engine_t *instance = new bp_engine_t (thread_, listener_,
+    bp_engine_t *instance = new bp_engine_t (thread_, socket_,
         writebuf_size_, readbuf_size_, local_object_);
     assert (instance);
 
     return instance;
 }
 
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
+zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, tcp_socket_t *socket_,
       size_t writebuf_size_, size_t readbuf_size_,
       const char *local_object_) :
     context (thread_),
@@ -57,43 +46,11 @@ zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_, const char *hostname_,
     encoder (&mux),
     decoder (&demux),
     pipe_cnt (0),
-    socket (hostname_),
+    socket (socket_),
     poller (NULL),
     handle (0),
     socket_error (false),
-    local_object (local_object_),
-    reconnect (true)
-{
-    //  Allocate read and write buffers.
-    writebuf = (unsigned char*) malloc (writebuf_size);
-    assert (writebuf);
-    readbuf = (unsigned char*) malloc (readbuf_size);
-    assert (readbuf);
-
-    //  Register BP engine with the I/O thread.
-    thread_->register_engine (this);
-}
-
-zmq::bp_engine_t::bp_engine_t (poll_thread_t *thread_,
-      tcp_listener_t &listener_, size_t writebuf_size_, size_t readbuf_size_,
-      const char *local_object_) :
-    context (thread_),
-    demux (false),
-    writebuf_size (writebuf_size_),
-    write_size (0),
-    write_pos (0),
-    readbuf_size (readbuf_size_),
-    read_size (0),
-    read_pos (0),
-    encoder (&mux),
-    decoder (&demux),
-    pipe_cnt (0),
-    socket (listener_),
-    poller (NULL),
-    handle (0),
-    socket_error (false),
-    local_object (local_object_),
-    reconnect (false)
+    local_object (local_object_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -109,6 +66,7 @@ zmq::bp_engine_t::~bp_engine_t ()
 {
     free (readbuf);
     free (writebuf);
+    delete socket;
 }
 
 void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
@@ -118,7 +76,7 @@ void zmq::bp_engine_t::set_poller (i_poller *poller_, int handle_)
     handle = handle_;
 
     //  Initialise the poll handle.
-    poller->set_fd (handle, socket.get_fd ());
+    poller->set_fd (handle, socket->get_fd ());
 }
 
 bool zmq::bp_engine_t::in_event ()
@@ -131,7 +89,7 @@ bool zmq::bp_engine_t::in_event ()
     if (read_pos == read_size) {
 
         //  Read as much data as possible to the read buffer.
-        read_size = socket.read (readbuf, readbuf_size);
+        read_size = socket->read (readbuf, readbuf_size);
         read_pos = 0;
 
         if (read_size == -1) {
@@ -193,7 +151,7 @@ bool zmq::bp_engine_t::out_event ()
     //  If there are any data to write in write buffer, write as much as
     //  possible to the socket.
     if (write_pos < write_size) {
-        int nbytes = (ssize_t) socket.write (writebuf + write_pos,
+        int nbytes = (ssize_t) socket->write (writebuf + write_pos,
             write_size - write_pos);
         if (nbytes == -1) 
             return false;
@@ -204,7 +162,7 @@ bool zmq::bp_engine_t::out_event ()
 
 bool zmq::bp_engine_t::close_event ()
 {
-    if (reconnect) {
+    if (socket->is_reconnectable ()) {
 
         //  Clean up. First mark buffers as fully processed.
         write_pos = write_size;
@@ -215,8 +173,8 @@ bool zmq::bp_engine_t::close_event ()
         decoder.clear ();
 
         //  Reconnect to the remote host.
-        socket.reconnect ();
-        poller->set_fd (handle, socket.get_fd ());
+        socket->reconnect ();
+        poller->set_fd (handle, socket->get_fd ());
         poller->set_pollin (handle);
         return true;
     }
