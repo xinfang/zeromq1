@@ -1,6 +1,6 @@
-Name: cszmq
-Description: ZeroMQ is a thin messaging implementation.
+Name: clrzmq
+Description: clrzmq
 Version: 0.1
 
-Requires:
-Libs: -r:@expanded_libdir@/@PACKAGE@/cszmq.dll
+Requires: 
+Libs: -r:@expanded_libdir@/@PACKAGE@/libclrzmq.dll
