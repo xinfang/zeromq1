@@ -41,7 +41,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\libzmq"
-				PreprocessorDefinitions="ZMQ_BUILDING_LIBZMQ"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
