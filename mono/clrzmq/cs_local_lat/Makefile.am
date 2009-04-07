@@ -5,16 +5,14 @@ EXTRA_DIST =
 
 if ENABLE_DEBUG
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -unsafe -warn:3 -optimize- -debug "-define:DEBUG;TRACE"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -unsafe -warn:3 -optimize- "-define:DEBUG;TRACE"
 ASSEMBLY = bin/Debug/cs_local_lat.exe
-ASSEMBLY_MDB = $(ASSEMBLY).mdb
+ASSEMBLY_MDB = 
 COMPILE_TARGET = exe
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Debug/
 
 LIBCLRZMQ_DLL_SOURCE=../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll
-CS_LOCAL_LAT_EXE_MDB_SOURCE=bin/Debug/cs_local_lat.exe.mdb
-CS_LOCAL_LAT_EXE_MDB=$(BUILD_DIR)/cs_local_lat.exe.mdb
 LIBCLRZMQ_DLL_MDB_SOURCE=../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll.mdb
 
 endif
@@ -29,7 +27,6 @@ PROJECT_REFERENCES =
 BUILD_DIR = bin/Release/
 
 LIBCLRZMQ_DLL_SOURCE=../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll
-CS_LOCAL_LAT_EXE_MDB=
 LIBCLRZMQ_DLL_MDB_SOURCE=../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll.mdb
 
 endif
@@ -39,7 +36,6 @@ SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 
 PROGRAMFILES = \
 	$(LIBCLRZMQ_DLL) \
-	$(CS_LOCAL_LAT_EXE_MDB) \
 	$(LIBCLRZMQ_DLL_MDB)  
 
 
@@ -60,12 +56,12 @@ REFERENCES =  \
 	Accessibility \
 	System
 
-DLL_REFERENCES =  \
-	../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll
+DLL_REFERENCES = 
+#	../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll
 
 CLEANFILES = $(PROGRAMFILES) 
 
-include $(top_srcdir)/Makefile.include
+include $(top_srcdir)/mono/Makefile.include
 
 LIBCLRZMQ_DLL = $(BUILD_DIR)/libclrzmq.dll
 LIBCLRZMQ_DLL_MDB = $(BUILD_DIR)/libclrzmq.dll.mdb

@@ -5,15 +5,13 @@ EXTRA_DIST =
 
 if ENABLE_DEBUG
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:3 -optimize- -debug "-define:DEBUG;TRACE" "-keyfile:zmq_strong_name.snk"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:3 -optimize- "-define:DEBUG;TRACE" "-keyfile:zmq_strong_name.snk"
 ASSEMBLY = bin/Debug/libclrzmq.dll
-ASSEMBLY_MDB = $(ASSEMBLY).mdb
+ASSEMBLY_MDB = 
 COMPILE_TARGET = library
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Debug/
 
-LIBCLRZMQ_DLL_MDB_SOURCE=bin/Debug/libclrzmq.dll.mdb
-LIBCLRZMQ_DLL_MDB=$(BUILD_DIR)/libclrzmq.dll.mdb
 
 endif
 
@@ -26,20 +24,16 @@ COMPILE_TARGET = library
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Release/
 
-LIBCLRZMQ_DLL_MDB=
 
 endif
 
 AL=al2
 SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 
-PROGRAMFILES = \
-	$(LIBCLRZMQ_DLL_MDB)  
-
 
 RESGEN=resgen2
 	
-all: $(ASSEMBLY) $(PROGRAMFILES) 
+all: $(ASSEMBLY) 
 
 FILES = \
 	../../../libclrzmq/zmq.cs \
@@ -59,7 +53,7 @@ REFERENCES =  \
 
 DLL_REFERENCES = 
 
-CLEANFILES = $(PROGRAMFILES) 
+CLEANFILES = 
 
 include $(top_srcdir)/Makefile.include
 

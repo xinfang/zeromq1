@@ -307,6 +307,24 @@ else
     JAVAC=true
 fi
 
+clrzmq="no"
+AC_ARG_WITH([clr], [AS_HELP_STRING([--with-clr],
+    [build libclrzmq [default=no]])],
+    [with_clr=yes], [with_clr=no])
+if test "x$with_clr" != "xno"; then
+    #  c wrapper has to build as well.
+    if test "x$czmq" = "xno"; then
+        AC_MSG_ERROR([To run configure with --with-clr option, --with-c option has to be anabled.]);
+    fi
+
+
+    AC_PATH_PROG(GMCS, gmcs, no)
+    if test "x$GMCS" = "xno"; then
+        AC_MSG_ERROR([To run configure with --with-clr option, gmcs has to be installed.]);
+    fi
+    clrzmq="yes"
+fi
+
 #  zmq_server
 zmq_server="yes"
 AC_ARG_WITH([zmq_server], [AS_HELP_STRING([--with-zmq_server], [build zmq_server [default=yes]])], [with_zmq_server=yes], [])
@@ -409,6 +427,10 @@ AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_PGM, test "x$pgm_ext" = "xyes")
+AM_CONDITIONAL(BUILD_CLRZMQ, test "x$clrzmq" = "xyes")
+#  Conditionals for clr builds.
+AM_CONDITIONAL(ENABLE_DEBUG, test "a" = "b")
+AM_CONDITIONAL(ENABLE_RELEASE, test "a" = "a")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -447,7 +469,8 @@ AC_OUTPUT(Makefile libzmq/Makefile libczmq/Makefile libpyzmq/Makefile \
 libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
-examples/chat/Makefile man/Makefile zmq_server/Makefile)
+examples/chat/Makefile man/Makefile zmq_server/Makefile \
+mono/clrzmq/clrzmq/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -484,5 +507,6 @@ AC_MSG_RESULT([])
 AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
 AC_MSG_RESULT([   Java language binding: $jzmq])
+AC_MSG_RESULT([   CLR binding: $clrzmq])
 AC_MSG_RESULT([])
 

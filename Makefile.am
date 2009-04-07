@@ -22,8 +22,14 @@ if INSTALL_MAN
 DIR_MAN = man
 endif
 
-SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) examples $(DIR_MAN)
-DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man
+if BUILD_CLRZMQ
+DIR_CLR = mono/clrzmq/clrzmq
+endif
+
+SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
+examples $(DIR_MAN) $(DIR_CLR)
+DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
+mono/clrzmq
 
 EXTRA_DIST = \
     $(top_srcdir)/perf/tests/scenarios/thr.sh \
