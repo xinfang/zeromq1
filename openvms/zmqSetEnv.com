@@ -19,6 +19,17 @@ $ 	baseLevel == "''p1'"
 $ endif
 $!
 $ write sys$output "You are using base level ''baseLevel'"
+$!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$! Change the following line to reflect your home directory.
+$!------------------------------------------------------------
+$ homeDir == ""
+$!
+$ if homeDir .eqs. ""
+$ then
+$       write sys$output "No homeDirectory given!"
+$       write sys$output "Please edit this script and provide valid homeDir variable."
+$       Exit
+$ endif
 $!
 $ CALL setUPODS5	! set up for ODS-5 disk
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -26,7 +37,10 @@ $! Change the following line to reflect the disk and directory
 $! of the installation.
 $!------------------------------------------------------------
 $ define/translation=(terminal,concealed)/job zmqRoot -
-	"''f$trnlnm("disk$ods5disk")'[hintjens.''baseLevel'.]"
+	"''f$trnlnm("disk$ods5disk")'[''homeDir'.''baseLevel'.]"
+$!
+$ write sys$output "zmqRoot defined to [''homeDir'.''baseLevel'.]"
+$!
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! Change the line above to reflect the disk and directory
 $! of the installation.
@@ -47,8 +61,8 @@ $    part2 = "''f$trnlnm("JAVA$JRE_HOME_VMS")'" - ".jre]" + ".include.vms]"
 $!
 $ close java_file
 $!
-$ noJava:
 $ def/job java_include  "''part1'", "''part2'"	! has the Java include dirs
+$ noJava:
 $!
 $ def/job zmqBase	zmqRoot:[000000]    ! home...
 $ def/job libzmq	zmqRoot:[libzmq]    ! is where the OLB is
