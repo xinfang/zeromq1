@@ -53,4 +53,11 @@
   <PropertyGroup>
     <PostBuildEvent>copy "$(ProjectDir)bin\$(ConfigurationName)\cs_remote_lat.exe" "$(ProjectDir)..\..\tmp\perf"</PostBuildEvent>
   </PropertyGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Deployment.LinuxDeployData generateScript="false" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

@@ -51,17 +51,12 @@ dnl package checks, per config
 
 
 AC_CONFIG_FILES([
-Makefile
-cs_local_lat/Makefile
-cs_local_thr/Makefile
-cs_remote_thr/cs_remote_thr
-clrzmq/Makefile
-cs_local_thr/cs_local_thr
-cs_remote_lat/cs_remote_lat
-clrzmq/clrzmq.pc
-cs_remote_lat/Makefile
 cs_remote_thr/Makefile
-cs_local_lat/cs_local_lat
+clrzmq/Makefile
+cs_remote_lat/Makefile
+cs_local_lat/Makefile
+Makefile
+cs_local_thr/Makefile
 
 ])
 

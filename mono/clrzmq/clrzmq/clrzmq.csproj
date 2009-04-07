@@ -56,4 +56,11 @@
   <PropertyGroup>
     <PostBuildEvent>copy "$(ProjectDir)bin\$(ConfigurationName)\libclrzmq.dll" "$(ProjectDir)..\..\tmp\lib"</PostBuildEvent>
   </PropertyGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Deployment.LinuxDeployData generatePcFile="false" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

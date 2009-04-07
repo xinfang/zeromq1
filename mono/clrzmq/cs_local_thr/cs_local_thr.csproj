@@ -56,4 +56,11 @@
   <ItemGroup>
     <Compile Include="..\..\..\perf\tests\zmq\cs_local_thr.cs" />
   </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Deployment.LinuxDeployData generateScript="false" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

@@ -42,13 +42,10 @@ PROGRAMFILES = \
 	$(CS_REMOTE_LAT_EXE_MDB) \
 	$(LIBCLRZMQ_DLL_MDB)  
 
-BINARIES = \
-	$(CS_REMOTE_LAT)  
-
 
 RESGEN=resgen2
 	
-all: $(ASSEMBLY) $(PROGRAMFILES) $(BINARIES) 
+all: $(ASSEMBLY) $(PROGRAMFILES) 
 
 FILES = \
 	../../../perf/tests/zmq/cs_remote_lat.cs 
@@ -57,8 +54,7 @@ DATA_FILES =
 
 RESOURCES = 
 
-EXTRAS = \
-	cs_remote_lat.in 
+EXTRAS = 
 
 REFERENCES =  \
 	System
@@ -66,15 +62,13 @@ REFERENCES =  \
 DLL_REFERENCES =  \
 	../../../../../../usr/lib/mono/gac/libclrzmq/1.0.0.0__84b2a312945d4e9e/libclrzmq.dll
 
-CLEANFILES = $(PROGRAMFILES) $(BINARIES) 
+CLEANFILES = $(PROGRAMFILES) 
 
 include $(top_srcdir)/Makefile.include
 
-CS_REMOTE_LAT = $(BUILD_DIR)/cs_remote_lat
 LIBCLRZMQ_DLL = $(BUILD_DIR)/libclrzmq.dll
 LIBCLRZMQ_DLL_MDB = $(BUILD_DIR)/libclrzmq.dll.mdb
 
-$(eval $(call emit-deploy-wrapper,CS_REMOTE_LAT,cs_remote_lat,x))
 $(eval $(call emit-deploy-target,LIBCLRZMQ_DLL))
 $(eval $(call emit-deploy-target,LIBCLRZMQ_DLL_MDB))
 

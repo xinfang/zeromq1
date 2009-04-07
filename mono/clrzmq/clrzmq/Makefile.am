@@ -36,13 +36,10 @@ SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 PROGRAMFILES = \
 	$(LIBCLRZMQ_DLL_MDB)  
 
-LINUX_PKGCONFIG = \
-	$(CLRZMQ_PC)  
-
 
 RESGEN=resgen2
 	
-all: $(ASSEMBLY) $(PROGRAMFILES) $(LINUX_PKGCONFIG) 
+all: $(ASSEMBLY) $(PROGRAMFILES) 
 
 FILES = \
 	../../../libclrzmq/zmq.cs \
@@ -53,8 +50,7 @@ DATA_FILES =
 RESOURCES = 
 
 EXTRAS = \
-	zmq_strong_name.snk \
-	clrzmq.pc.in 
+	zmq_strong_name.snk 
 
 REFERENCES =  \
 	System \
@@ -63,13 +59,11 @@ REFERENCES =  \
 
 DLL_REFERENCES = 
 
-CLEANFILES = $(PROGRAMFILES) $(LINUX_PKGCONFIG) 
+CLEANFILES = $(PROGRAMFILES) 
 
 include $(top_srcdir)/Makefile.include
 
-CLRZMQ_PC = $(BUILD_DIR)/clrzmq.pc
 
-$(eval $(call emit-deploy-wrapper,CLRZMQ_PC,clrzmq.pc))
 
 
 $(eval $(call emit_resgen_targets))
