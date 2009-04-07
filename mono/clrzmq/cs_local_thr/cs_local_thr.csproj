@@ -51,9 +51,6 @@
     <PostBuildEvent>copy "$(ProjectDir)bin\$(ConfigurationName)\cs_local_thr.exe" "$(ProjectDir)..\..\tmp\perf"</PostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\..\perf\tests\zmq\cs_local_thr.cs" />
   </ItemGroup>
   <ProjectExtensions>

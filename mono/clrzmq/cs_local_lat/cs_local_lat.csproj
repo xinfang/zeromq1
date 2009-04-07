@@ -87,9 +87,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\..\perf\tests\zmq\cs_local_lat.cs" />
   </ItemGroup>
   <ProjectExtensions>
