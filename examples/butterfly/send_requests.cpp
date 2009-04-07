@@ -51,8 +51,8 @@ __inline uint64_t now ()
     uli.LowPart = file_time.dwLowDateTime;
     uli.HighPart = file_time.dwHighDateTime;
 
-    uint64_t system_time_in_ms (uli.QuadPart / 10000);
-    return system_time_in_ms;
+    uint64_t system_time_in_us (uli.QuadPart / 10);
+    return system_time_in_us;
 }
 
 #else
