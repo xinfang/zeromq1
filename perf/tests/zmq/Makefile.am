@@ -10,6 +10,11 @@ PGM_TEST_BINS = pgm_local_lat pgm_remote_lat \
 pgm_local_thr pgm_remote_thr
 endif
 
+if BUILD_CLRZMQ
+CLR_TEST_BINS = cs_local_lat.exe cs_remote_lat.exe cs_local_thr.exe \
+cs_remote_thr.exe
+endif
+
 noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
 $(C_TEST_BINS) $(PGM_TEST_BINS)
 
@@ -126,4 +131,40 @@ pgm_local_thr_CPPFLAGS = -Wall -pedantic -Werror
 pgm_remote_thr_SOURCES = pgm_remote_thr.cpp
 pgm_remote_thr_LDADD = $(top_builddir)/libzmq/libzmq.la
 pgm_remote_thr_CPPFLAGS = -Wall -pedantic -Werror
+endif
+
+if FALSE
+CLEANFILES = $(CLR_TEST_BINS)
+
+gmcs_options = -noconfig -codepage:utf8 -unsafe -warn:4 -optimize+ 
+gmcs_resources = -r:Accessibility -r:System $(top_srcdir)/libclrzmq/zmq.cs
+
+cs_local_latdir = $(libdir)
+cs_local_lat_SCRIPTS = cs_local_lat.exe
+cs_local_lat_sources = cs_local_lat.cs 
+
+cs_local_lat.exe: $(cs_local_lat_sources)
+	$(GMCS) $(gmcs_options) -out:$(cs_local_lat_SCRIPTS) -target:exe '$(cs_local_lat_sources)' $(gmcs_resources)
+
+cs_remote_latdir = $(libdir)
+cs_remote_lat_SCRIPTS = cs_remote_lat.exe
+cs_remote_lat_sources = cs_remote_lat.cs
+
+cs_remote_lat.exe: $(cs_remote_lat_sources)
+	$(GMCS) $(gmcs_options) -out:$(cs_remote_lat_SCRIPTS) -target:exe '$(cs_remote_lat_sources)' $(gmcs_resources)
+
+cs_local_thrdir = $(libdir)
+cs_local_thr_SCRIPTS = cs_local_thr.exe
+cs_local_thr_sources = cs_local_thr.cs
+
+cs_local_thr.exe: $(cs_local_thr_sources)
+	$(GMCS) $(gmcs_options) -out:$(cs_local_thr_SCRIPTS) -target:exe '$(cs_local_thr_sources)' $(gmcs_resources)
+
+cs_remote_thrdir = $(libdir)
+cs_remote_thr_SCRIPTS = cs_remote_thr.exe
+cs_remote_thr_sources = cs_remote_thr.cs
+
+cs_remote_thr.exe: $(cs_remote_thr_sources)
+	$(GMCS) $(gmcs_options) -out:$(cs_remote_thr_SCRIPTS) -target:exe '$(cs_remote_thr_sources)' $(gmcs_resources)
+
 endif

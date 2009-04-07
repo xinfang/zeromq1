@@ -29,7 +29,7 @@ endif
 SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
 examples $(DIR_MAN) $(DIR_CLR)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
-mono/clrzmq
+mono/clrzmq/clrzmq
 
 EXTRA_DIST = \
     $(top_srcdir)/perf/tests/scenarios/thr.sh \
