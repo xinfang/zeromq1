@@ -34,6 +34,7 @@ EXTRA_DIST = \
     $(top_srcdir)/perf/tests/zmq/py_remote_lat.py \
     $(top_srcdir)/perf/tests/zmq/py_remote_thr.py \
     $(top_srcdir)/perf/tests/zmq/f_local_lat.for \
+    $(top_srcdir)/perf/tests/zmq/f_remote_lat.for \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \

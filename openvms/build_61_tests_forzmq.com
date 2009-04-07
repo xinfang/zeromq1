@@ -12,6 +12,7 @@ $ set default zmqRoot:[perf.tests.zmq]  ! where the source is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $ forit f_local_lat.for
+$ forit f_remote_lat.for
 $!
 $ linkit f_local_lat.obj, sys$input/opt
 !
@@ -20,6 +21,12 @@ $ linkit f_local_lat.obj, sys$input/opt
 libvmszmq:vmszmq/share
 !
 $!
+$ linkit f_remote_lat.obj, sys$input/opt
+!
+! This is the shareable image containing the wrappers for ZMQ
+!
+libvmszmq:vmszmq/share
+!
 $ purge/nolog
 $ rename *.* *.*;1
 $ write sys$output "Built ''f$environment("DEFAULT")' at ''f$time()'"

@@ -17,7 +17,7 @@
 !     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !
 
-      program LOCAL LAT
+      program REMOTE LAT
 
       implicit none
 
@@ -50,9 +50,6 @@
 
       integer*4 			lib$get_vm, lib$free_vm
 
-      real*4 				t0
-      real*4 				t1
-
       integer*4 			okay
 
       integer*4 			nmsg
@@ -61,9 +58,9 @@
       integer*4 			olen
       integer*4 			obuf
 
-      character 			ibuf(8192)
-
       character*60   			host
+      character*60   			e_iface
+      character*60   			q_iface
       character*80 			args
 
       integer*4 			i
@@ -76,7 +73,7 @@
 
       call lib$get_foreign(args)
 
-      read(args, *) host, ilen, nmsg
+      read(args, *) host, q_iface, e_iface, ilen, nmsg
 
       if (ilen .gt. 8192) then
          print *, 'Message size must be less than or equal to 8192B.'
@@ -90,17 +87,16 @@
          call lib$stop(%val(okay))
       end if
 
-      okay = ZMQ_CREATE_EXCHANGE(%val(obj), %descr('EL'),
-     +%val(ZMQ$_SCOPE_LOCAL), %val(0),
+      okay = ZMQ_CREATE_EXCHANGE(%val(obj), %descr('EG'),
+     +%val(ZMQ$_SCOPE_GLOBAL), %descr(e_iface),
      +%val(ZMQ$_STYLE_DATA_DISTRIBUTION), eid)
 
       if (.not. okay) then
          call lib$stop(%val(okay))
       end if
 
-
-      okay = ZMQ_CREATE_QUEUE(%val(obj), %descr('QL'),
-     +%val(ZMQ$_SCOPE_LOCAL), %val(0),
+      okay = ZMQ_CREATE_QUEUE(%val(obj), %descr('QG'),
+     +%val(ZMQ$_SCOPE_GLOBAL), %descr(q_iface),
      +%val(ZMQ$_NO_LIMIT),
      +%val(ZMQ$_NO_LIMIT), %val(ZMQ$_NO_SWAP), qid)
 
@@ -108,35 +104,18 @@
          call lib$stop(%val(okay))
       end if
 
-      okay = ZMQ_BIND(%val(obj), %descr('EL'), %descr('QG'), %val(0),
-     +%val(0))
-
-      if (.not. okay) then
-         call lib$stop(%val(okay))
-      end if
-
-      okay = ZMQ_BIND(%val(obj), %descr('EG'), %descr('QL'), %val(0),
-     +%val(0))
-
-      if (.not. okay) then
-         call lib$stop(%val(okay))
-      end if
-
-!     Note that this call is accurate to 0.01s, so should be okay for timing
-!     purposes...
-
-      t0 = secnds(0.0e+00)
-
       do i = 1, nmsg
-         okay = ZMQ_SEND(%val(obj), %val(eid), ibuf, %val(ilen),
-     +%val(1))
 
+         okay = ZMQ_RECEIVE(%val(obj), obuf, olen, %val(0), %val(1))
 
          if (.not. okay) then
             call lib$stop(%val(okay))
          end if
 
-         okay = ZMQ_RECEIVE(%val(obj), obuf, olen, %val(0), %val(1))
+!  Here we should check message size %val(olen) == ilen.
+
+        okay = ZMQ_SEND(%val(obj), %val(eid), obuf, %val(olen),
+     +%val(1))
 
          if (.not. okay) then
             call lib$stop(%val(okay))
@@ -150,10 +129,8 @@
 
       end do
 
-      t1 = secnds(0.0e+00)
-
-      print *, 'Latency = ', (t1 - t0) / (nmsg * 2.0) * 1.0e+06, 'us'
-
+!  Give some time to 0MQ to send last message.
+      call decc$sleep(%val(1)) ! Sleep for 1 second
 
       okay = ZMQ_DESTROY(%val(obj))
 
