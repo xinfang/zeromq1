@@ -175,6 +175,10 @@ bool zmq::bp_engine_t::close_event ()
     encoder.clear ();
     decoder.clear ();
 
+    //  Write message delimiter to pipes. This is used to force all
+    //  associated pipes to update the queue size.
+    demux.write_delimiters ();
+
     if (socket->is_reconnectable ()) {
 
         //  Reconnect to the remote host.

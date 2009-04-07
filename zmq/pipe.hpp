@@ -115,6 +115,9 @@ namespace zmq
         //  If true, queue size should be monitored.
         bool size_monitoring;
 
+        int write_msg_cnt;
+        int read_msg_cnt;
+
         //  Name to used in queue size monitoring (if switched on).
         std::string queue_name;
 

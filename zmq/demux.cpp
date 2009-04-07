@@ -152,6 +152,13 @@ void zmq::demux_t::terminate_pipes ()
     pipes.clear ();
 }
 
+void zmq::demux_t::write_delimiters ()
+{
+    //  Write delimiters to the pipes.
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+        (*it)->write_delimiter ();
+}
+
 void zmq::demux_t::destroy_pipe (pipe_t *pipe_)
 {
     //  Find the pipe.

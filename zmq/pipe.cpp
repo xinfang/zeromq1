@@ -38,6 +38,8 @@ zmq::pipe_t::pipe_t (i_context *source_context_, i_engine *source_engine_,
     hwm (hwm_),
     lwm (lwm_),
     size_monitoring (false),
+    write_msg_cnt (0),
+    read_msg_cnt (0),
     head (0),
     tail (0),
     last_head (0),
@@ -135,39 +137,32 @@ void zmq::pipe_t::write (raw_message_t *msg_)
     //  Move the tail.
     tail ++;
 
+    if (msg_->content == (void*) raw_message_t::delimiter_tag)
+        return;
+
     //  Adjust the queue size statistics once in a while.
-    if (size_monitoring && tail % queue_size_granularity == 0)
-        source_context->adjust_queue_size (queue_name.c_str (),
-            queue_size_granularity);
+    if (size_monitoring) {
+        if (++ write_msg_cnt == queue_size_granularity) {
+            source_context->adjust_queue_size (queue_name.c_str (),
+                write_msg_cnt);
+            write_msg_cnt = 0;
+        }
+    }
 }
 
 void zmq::pipe_t::write_delimiter ()
 {
-    //  This is the last write so adjust the queue size statistics.
-    if (size_monitoring) {
-        int delta = tail % queue_size_granularity;
-        if (delta != 0)
-            source_context->adjust_queue_size (queue_name.c_str (), delta);
+    //  Adjust queue size.
+    if (write_msg_cnt > 0) {
+        source_context->adjust_queue_size (queue_name.c_str (),
+            write_msg_cnt);
+        write_msg_cnt = 0;
     }
 
+    //  Write delimiter into pipe.
     raw_message_t delimiter;
     raw_message_init_delimiter (&delimiter);
-
-    //  Write the delimiter either to the pipe or to the swap.
-    if (swapping) {
-
-        //  If the space in the swap file was used up, abort the application.
-        bool rc = swap->store (&delimiter);
-        assert (rc);
-    }
-    else {
-        pipe.write (delimiter);
-        in_memory_tail ++;
-    }
-
-    //  Move the tail.
-    tail ++;
-
+    write (&delimiter);
     flush ();
 }
 
@@ -220,39 +215,47 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
     if (!alive)
         return false;
 
-    //  Get next message, if it's not there, die.
-    if (!pipe.read (msg_))
-    {
-        alive = false;
-        return false;
-    }
+    do {
+        //  Get next message, if it's not there, die.
+        if (!pipe.read (msg_)) {
+            alive = false;
+            return false;
+        }
 
-    //  If delimiter is read from the pipe, mark the pipe as ended
-    if (msg_->content == (void*) raw_message_t::delimiter_tag) {
-        endofpipe = true;
-        return false;
-    }
+        //  Adjust head position.
+        head ++;
 
-    //  Adjust head position.
-    head ++;
+        //  Once in N messages send current head position to the writer thread.
+        if (hwm) {
 
-    //  Once in N messages send current head position to the writer thread.
-    if (hwm) {
+            //  If high water mark is same as low water mark we have to report each
+            //  message retrieval from the pipe. Otherwise the period N is computed
+            //  as a difference between high and low water marks.
+            if (head % (hwm - lwm + 1) == 0) {
+                command_t cmd;
+                cmd.init_engine_head (source_engine, this, head);
+                destination_context->send_command (source_context, cmd);
+            }
+        }
 
-        //  If high water mark is same as low water mark we have to report each
-        //  message retrieval from the pipe. Otherwise the period N is computed
-        //  as a difference between high and low water marks.
-        if (head % (hwm - lwm + 1) == 0) {
-            command_t cmd;
-            cmd.init_engine_head (source_engine, this, head);
-            destination_context->send_command (source_context, cmd);
+        if (msg_->content == (void*) raw_message_t::delimiter_tag) {
+            if (read_msg_cnt > 0) {
+                source_context->adjust_queue_size (queue_name.c_str (),
+                    -read_msg_cnt);
+                read_msg_cnt = 0;
+            }
         }
     }
+    while (msg_->content == (void*) raw_message_t::delimiter_tag);
 
     //  Adjust the queue size statistics once in a while.
-    if (size_monitoring && head % queue_size_granularity == 0)
-        source_context->adjust_queue_size (queue_name.c_str (),
-            -queue_size_granularity);
+    if (size_monitoring) {
+        if (++ read_msg_cnt == queue_size_granularity) {
+            source_context->adjust_queue_size (queue_name.c_str (),
+                -read_msg_cnt);
+            read_msg_cnt = 0;
+        }
+    }
 
     return true;
 }
@@ -263,4 +266,3 @@ void zmq::pipe_t::send_destroy_pipe ()
     cmd.init_engine_destroy_pipe (source_engine, this);
     destination_context->send_command (source_context, cmd);
 }
-

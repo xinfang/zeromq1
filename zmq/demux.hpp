@@ -54,6 +54,9 @@ namespace zmq
         //  Write a delimiter to each pipe.
         void terminate_pipes ();
 
+        //  Write delimiter to each pipe. Do not empty the pipe list.
+        void write_delimiters ();
+
         //  Write a delimiter to the specified pipe.
         void destroy_pipe (pipe_t *pipe_);
 
