@@ -57,6 +57,9 @@ int zmq::api_thread_t::create_exchange (const char *name_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_, style_t style_)
 {
+    assert (scope_ == scope_local || scope_ == scope_process ||
+        scope_ == scope_global);
+
     //  Insert the exchange to the local list of exchanges.
     //  Make sure that the exchange doesn't already exist.
     for (exchanges_t::iterator it = exchanges.begin ();
@@ -85,6 +88,9 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
     int handler_thread_count_, i_thread **handler_threads_,
     int64_t hwm_, int64_t lwm_, uint64_t swap_)
 {
+    assert (scope_ == scope_local || scope_ == scope_process ||
+        scope_ == scope_global);
+
     //  Insert the queue to the local list of queues.
     //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
