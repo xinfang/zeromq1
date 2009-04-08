@@ -21,7 +21,6 @@ public class Zmq
 {
     static
     {
-        System.loadLibrary ("libzmq");
         System.loadLibrary ("jzmq");
     }
 

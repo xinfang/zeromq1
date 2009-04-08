@@ -244,7 +244,7 @@ JNIEXPORT jboolean JNICALL Java_Zmq_send (JNIEnv *env, jobject obj,
     env->ReleaseByteArrayElements (message, data, 0);
 
     //  Send the message.
-    return (jboolean) context->api_thread->send (exchange, msg, block);
+    return (jboolean) context->api_thread->send (exchange, msg, (bool) block);
 }
 
 JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
@@ -262,7 +262,7 @@ JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
 
     //  Get new message.
     zmq::message_t msg;
-    int qid = context->api_thread->receive (&msg, block);
+    int qid = context->api_thread->receive (&msg, (bool) block);
 
     //  Fill in the InboundData object.
     env->SetIntField (result, context->queue_fid, (jint) qid);
