@@ -52,7 +52,7 @@ class CsRemoteThr
         for (int i = 0; i < msgCount; i++)
             w.Send (exchange, message, true);
         
-        System.Threading.Thread.Sleep (100000);
+        System.Threading.Thread.Sleep (10000);
 
         w.Destroy ();
         return 0;
