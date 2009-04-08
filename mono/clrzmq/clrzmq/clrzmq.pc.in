@@ -7,4 +7,4 @@ Description: CLR wrapper for 0MQ library.
 Version: @VERSION@
 
 Requires: 
-Libs: -r:${libdir}/libclrzmq.dll
+Libs: -r:${libdir}/clrzmq/libclrzmq.dll
