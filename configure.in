@@ -470,7 +470,7 @@ libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
-mono/clrzmq/clrzmq/Makefile)
+mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])

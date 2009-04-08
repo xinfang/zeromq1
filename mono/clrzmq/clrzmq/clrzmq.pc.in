@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+
+Name: clrzmq
+Description: CLR wrapper for 0MQ library.
+Version: @VERSION@
+
+Requires: 
+Libs: -r:${libdir}/libclrzmq.dll
