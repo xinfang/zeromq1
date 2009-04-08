@@ -32,8 +32,6 @@ DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
 mono/clrzmq/clrzmq
 
 EXTRA_DIST = \
-    $(top_srcdir)/perf/tests/scenarios/thr.sh \
-    $(top_srcdir)/perf/tests/scenarios/lat.sh \
     $(top_srcdir)/examples/exchange/graph.pl \
     $(top_srcdir)/perf/tests/zmq/py_*.py \
     $(top_srcdir)/perf/tests/zmq/f_*.for \
@@ -41,10 +39,5 @@ EXTRA_DIST = \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
-    $(top_srcdir)/libvmszmq/vmszmq.c \
-    $(top_srcdir)/mono/clrzmq/clrzmq/clrzmq.csproj \
-    $(top_srcdir)/mono/clrzmq/cs_local_lat/cs_local_lat.csproj \
-    $(top_srcdir)/mono/clrzmq/cs_remote_lat/cs_remote_lat.csproj \
-    $(top_srcdir)/mono/clrzmq/cs_local_thr/cs_local_thr.csproj \
-    $(top_srcdir)/mono/clrzmq/cs_remote_thr/cs_remote_thr.csproj
+    $(top_srcdir)/libvmszmq/vmszmq.c
 
