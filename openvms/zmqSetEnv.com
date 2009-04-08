@@ -5,6 +5,7 @@ $!  2009-03-10 ja - change zmqRoot to include the base level
 $!  2009-03-12 ja - check for Java
 $!  2009-03-25 pm - dir names to lower case
 $!  2009-03-30 pm - changed include dirs for libcmzq and lijzmq
+$!  2009-04-07 pm - added homeDir variable
 $!+
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
