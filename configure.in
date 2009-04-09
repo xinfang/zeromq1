@@ -325,6 +325,17 @@ if test "x$with_clr" != "xno"; then
     clrzmq="yes"
 fi
 
+AC_ARG_WITH([clrdir], [AS_HELP_STRING([--with-clrdir],
+    [CLR dll install dir [default=EPREFIX/lib/clrzmq]])],
+    [clrdir="$withval"], [clrdir="_default_"])
+
+if test "$clrdir" = "_default_"; then
+    clrdir=$libdir/clrzmq
+fi
+
+CLRDIR="$clrdir"
+AC_SUBST([CLRDIR])
+
 #  zmq_server
 zmq_server="yes"
 AC_ARG_WITH([zmq_server], [AS_HELP_STRING([--with-zmq_server], [build zmq_server [default=yes]])], [with_zmq_server=yes], [])
@@ -508,5 +519,8 @@ AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
 AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([   CLR binding: $clrzmq])
+if test "x$clrzmq" = "xyes"; then
+AC_MSG_RESULT([   CLR ldd install dir: $clrdir])
+fi
 AC_MSG_RESULT([])
 

@@ -3,7 +3,7 @@ EXTRA_DIST =
 
 # Warning: This is an automatically generated file, do not edit!
 
-pkglibdir = $(libdir)/clrzmq
+pkglibdir = @CLRDIR@
 
 if ENABLE_DEBUG
 ASSEMBLY_COMPILER_COMMAND = gmcs
