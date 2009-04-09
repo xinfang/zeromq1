@@ -439,9 +439,6 @@ AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_PGM, test "x$pgm_ext" = "xyes")
 AM_CONDITIONAL(BUILD_CLRZMQ, test "x$clrzmq" = "xyes")
-#  Conditionals for clr builds.
-AM_CONDITIONAL(ENABLE_DEBUG, test "a" = "b")
-AM_CONDITIONAL(ENABLE_RELEASE, test "a" = "a")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

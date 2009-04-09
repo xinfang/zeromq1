@@ -39,5 +39,8 @@ EXTRA_DIST = \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
-    $(top_srcdir)/libvmszmq/vmszmq.c
+    $(top_srcdir)/libvmszmq/vmszmq.c \
+    $(top_srcdir)/libclrzmq/zmq.cs \
+    $(top_srcdir)/mono/clrzmq/clrzmq/zmq_strong_name.snk \
+    $(top_srcdir)/mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs
 
