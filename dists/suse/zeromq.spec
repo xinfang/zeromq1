@@ -6,7 +6,7 @@
 
 Name: zeromq
 Summary: ZeroMQ is a thin messaging implementation
-Version: 0.5svn
+Version: 0.6
 Release: 1
 Group: Development/Libraries
 License: GPL/LGPL
@@ -17,27 +17,27 @@ BuildRequires: gcc-c++
 BuildRequires: pkgconfig
 BuildRequires: python python-devel
 BuildRequires: jpackage-utils
-%if "%{_vendor}" == "suse"  
-BuildRequires:  java-devel >= 1.5 update-alternatives  
-%if %{sles_version} != 0 && %{sles_version} <= 10  
-%ifarch "%{ix86}"  
-BuildRequires:  java-1_4_2-sun-alsa  
-%endif  
-%endif  
-%else  
-%if "%{_vendor}" == "redhat" && 0%{?fedora} >= 9  
-BuildRequires:  java-sdk-openjdk >= 1.5.0  
-%else  
+%if "%{_vendor}" == "suse"
+BuildRequires:  java-devel >= 1.5 update-alternatives
+%if %{sles_version} != 0 && %{sles_version} <= 10
+%ifarch "%{ix86}"
+BuildRequires:  java-1_4_2-sun-alsa
+%endif
+%endif
+%else
+%if "%{_vendor}" == "redhat" && 0%{?fedora} >= 9
+BuildRequires:  java-sdk-openjdk >= 1.5.0
+%else
 BuildRequires:  java-devel >= 1.4
 %define java_target 1.4
-%endif  
 %endif
-%if "%{_vendor}" == "mandriva"  
-BuildRequires:  mono mono-devel  
-%else  
+%endif
+%if "%{_vendor}" == "mandriva"
+BuildRequires:  mono mono-devel
+%else
 BuildRequires: lksctp-tools-devel
-BuildRequires:  mono-core mono-devel  
-%endif  
+BuildRequires:  mono-core mono-devel
+%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
 %description
@@ -120,33 +120,25 @@ use ZeroMQ in Mono.
 %prep
 
 %setup -n %{name}
-[ ! -e %SOURCE1 ] || bunzip2 -c < %SOURCE1 > windows/clrzmq/clrzmq/zmq_strong_name.snk
+[ ! -e %SOURCE1 ] || bunzip2 -c < %SOURCE1 > mono/clrzmq/clrzmq/zmq_strong_name.snk
 
 %build
 [ -n "$JAVA_HOME" ] || export JAVA_HOME=%{java_home}
-%configure --with-c --with-python --with-java --with-sctp --with-amqp
+%configure --with-c --with-python --with-java --with-sctp --with-amqp --with-clr --with-clrdir=%{_prefix}/lib/clrzmq
 %{__make} %{?jobs:-j%jobs} JAVACFLAGS="-target %{java_target}"
 (cd libjzmq && %{jar} cvf libjzmq.jar *.class)
 
-(cd windows/clrzmq/clrzmq && ./configure --prefix=%{_prefix} --bindir=%{_bindir} --datadir=%{_datadir} --libdir=%{_prefix}/lib --config=RELEASE)
-(cd windows/clrzmq/clrzmq && %{__make} %{?jobs:-j%jobs})
-
 rm -rf examples/*/.deps/ || :
-
-#%check
-#%{__make} check
 
 %install
 %makeinstall
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/libjzmq.jar %buildroot%{_javadir}
-mkdir -p %buildroot%{_prefix}/lib/clrzmq
-cp windows/clrzmq/clrzmq/bin/Release/*.dll* %buildroot%{_prefix}/lib/clrzmq
 mkdir -p %buildroot%{_datadir}/pkgconfig
-cp windows/clrzmq/clrzmq/bin/Release/*.pc %buildroot%{_datadir}/pkgconfig
+cp mono/clrzmq/clrzmq/*.pc %buildroot%{_datadir}/pkgconfig/
 gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_prefix}/lib -package clrzmq
 
-[ -e %SOURCE1 ] || bzip2 -c < windows/clrzmq/clrzmq/zmq_strong_name.snk > %SOURCE1
+[ -e %SOURCE1 ] || bzip2 -c < mono/clrzmq/clrzmq/zmq_strong_name.snk > %SOURCE1
 
 %clean
 [ -z %buildroot ] || rm -rf %buildroot
