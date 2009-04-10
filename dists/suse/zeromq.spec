@@ -125,13 +125,19 @@ use ZeroMQ in Mono.
 %build
 [ -n "$JAVA_HOME" ] || export JAVA_HOME=%{java_home}
 %configure --with-c --with-python --with-java --with-sctp --with-amqp --with-clr --with-clrdir=%{_prefix}/lib/clrzmq
-%{__make} %{?jobs:-j%jobs} JAVACFLAGS="-target %{java_target}"
+%{?make:%make}%{!?make:%__make %{?jobs:-j%jobs} IMPORT_CPPFLAGS+="$RPM_OPT_FLAGS"} JAVACFLAGS="-target %{java_target}"
 (cd libjzmq && %{jar} cvf libjzmq.jar *.class)
 
 rm -rf examples/*/.deps/ || :
 
 %install
-%makeinstall
+[ -z %{buildroot} ] || rm -rf %{buildroot}
+mkdir %{buildroot}
+%if "%{_vendor}" == "suse"
+%{?makeinstall:%makeinstall}%{!?makeinstall:make DESTDIR=%{buildroot} install}
+%else
+%{?make:%make}%{!?make:make} install DESTDIR=%{buildroot}
+%endif
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/libjzmq.jar %buildroot%{_javadir}
 mkdir -p %buildroot%{_datadir}/pkgconfig
