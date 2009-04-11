@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -29,7 +31,6 @@
 #include <unistd.h>
 #endif
 
-#include <zmq/platform.hpp>
 #include <zmq/data_dam.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/err.hpp>
