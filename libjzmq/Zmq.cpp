@@ -21,9 +21,9 @@
 #include "Zmq.h"
 
 #include <stdio.h>
-#include <assert.h>
 
 #include <zmq.hpp>
+#include <zmq/err.hpp>
 
 static jfieldID context_fid = NULL;
 
@@ -48,43 +48,43 @@ JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
     //  Cache context field ID.
     jclass cls = env->GetObjectClass (obj);
     context_fid = env->GetFieldID (cls, "context", "J");
-    assert (context_fid);
+    zmq_assert (context_fid);
 
     //  Get the hostname.
-    assert (host);
+    zmq_assert (host);
     char *c_host = (char*) env->GetStringUTFChars (host, 0);
-    assert (c_host);
+    zmq_assert (c_host);
 
     //  Create the context.
     context_t *context = new context_t;
-    assert (context);
+    zmq_assert (context);
     context->dispatcher = new zmq::dispatcher_t (2);
-    assert (context->dispatcher);
+    zmq_assert (context->dispatcher);
     context->locator = new zmq::locator_t (c_host);
-    assert (context->locator);
+    zmq_assert (context->locator);
     context->io_thread = zmq::select_thread_t::create (context->dispatcher);
-    assert (context->io_thread);
+    zmq_assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);
-    assert (context->api_thread);
+    zmq_assert (context->api_thread);
 
     //  Cache Zmq.InboundData class.
     jclass idc = env->FindClass ("Zmq$InboundData");
-    assert (idc);
+    zmq_assert (idc);
     context->inbound_data_class = (jclass) env->NewGlobalRef (idc);
-    assert (context->inbound_data_class);
+    zmq_assert (context->inbound_data_class);
     env->DeleteLocalRef (idc);
 
     //  Cache fieldIDs for InboundData member variables.
     context->queue_fid = env->GetFieldID (context->inbound_data_class,
         "queue", "I");
-    assert (context->queue_fid);
+    zmq_assert (context->queue_fid);
     context->type_fid = env->GetFieldID (context->inbound_data_class,
         "type", "I");
-    assert (context->type_fid);
+    zmq_assert (context->type_fid);
     context->message_fid = env->GetFieldID (context->inbound_data_class,
         "message", "[B");
-    assert (context->message_fid);
+    zmq_assert (context->message_fid);
 
     //  Clean-up.
     env->ReleaseStringUTFChars (host, c_host);
@@ -97,7 +97,7 @@ JNIEXPORT void JNICALL Java_Zmq_finalize (JNIEnv *env, jobject obj)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Free JNI cached JNI objects.
     env->DeleteGlobalRef ((jobject) context->inbound_data_class);
@@ -114,7 +114,7 @@ JNIEXPORT void JNICALL Java_Zmq_mask (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
     
     //  Forward the call.
     context->api_thread->mask (notifications);
@@ -125,12 +125,12 @@ JNIEXPORT jint JNICALL Java_Zmq_createExchange (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Get the exchange name.
-    assert (name);
+    zmq_assert (name);
     char *c_name = (char*) env->GetStringUTFChars (name, 0);
-    assert (c_name);
+    zmq_assert (c_name);
 
     //  Get the location.
     char *c_location = NULL;
@@ -156,12 +156,12 @@ JNIEXPORT jint JNICALL Java_Zmq_createQueue (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Get the queue name.
-    assert (name);
+    zmq_assert (name);
     char *c_name = (char*) env->GetStringUTFChars (name, 0);
-    assert (c_name);
+    zmq_assert (c_name);
 
     //  Get NIC name.
     char *c_location = NULL;
@@ -187,17 +187,17 @@ JNIEXPORT void JNICALL Java_Zmq_bind (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Get the exchange name.
-    assert (exchangeName);
+    zmq_assert (exchangeName);
     char *c_exchange_name = (char*) env->GetStringUTFChars (exchangeName, 0);
-    assert (c_exchange_name);
+    zmq_assert (c_exchange_name);
 
     //  Get the queue name.
-    assert (queueName);
+    zmq_assert (queueName);
     char *c_queue_name = (char*) env->GetStringUTFChars (queueName, 0);
-    assert (c_queue_name);
+    zmq_assert (c_queue_name);
 
     //  Get exchange options.
     char *c_exchange_options = NULL;
@@ -230,7 +230,7 @@ JNIEXPORT jboolean JNICALL Java_Zmq_send (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Get the data from the bytearray.
     jsize size = env->GetArrayLength (message); 
@@ -252,13 +252,13 @@ JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
-    assert (context);
+    zmq_assert (context);
 
     //  Allocate new InboundData object; no constructor is called!
     //  We're doing the allocation before the receive so that delivery of
     //  the message is not slowed down by the allocation.
     jobject result = env->AllocObject (context->inbound_data_class);
-    assert (result);
+    zmq_assert (result);
 
     //  Get new message.
     zmq::message_t msg;
@@ -268,7 +268,7 @@ JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
     env->SetIntField (result, context->queue_fid, (jint) qid);
     env->SetIntField (result, context->type_fid, (jint) msg.type ());
     jbyteArray data = env->NewByteArray (msg.size ());
-    assert (data);
+    zmq_assert (data);
     env->SetByteArrayRegion (data, 0, msg.size (), (jbyte*) msg.data ());
     env->SetObjectField (result, context->message_fid, data);
     env->DeleteLocalRef (data);

@@ -21,6 +21,7 @@
 #define __ZMQ_DATA_DAM_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
+
 #include <string>
 #include <sys/types.h>
 

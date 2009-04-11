@@ -17,9 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <algorithm>
+
 #include <zmq/load_balancer.hpp>
+#include <zmq/err.hpp>
 
 zmq::load_balancer_t::load_balancer_t () :
     current (0)
@@ -103,7 +104,7 @@ void zmq::load_balancer_t::release_pipe (pipe_t *pipe_)
     pipes_t::iterator it = std::find (pipes.begin (), pipes.end (), pipe_);
 
     //  The given pipe must be present in our list.
-    assert (it != pipes.end ());
+    zmq_assert (it != pipes.end ());
 
     //  Remove the pipe from the list.
     pipes.erase (it);

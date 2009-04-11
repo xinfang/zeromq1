@@ -19,6 +19,7 @@
 
 #include <zmq/mux.hpp>
 #include <zmq/raw_message.hpp>
+#include <zmq/err.hpp>
 
 zmq::mux_t::mux_t () :
     current (0)
@@ -84,7 +85,7 @@ void zmq::mux_t::release_pipe (pipe_t *pipe_)
         }
 
     //  There's a bug in shut down mechanism!
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::mux_t::initialise_shutdown ()

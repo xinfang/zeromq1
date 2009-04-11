@@ -19,6 +19,7 @@
 
 #include <zmq/api_thread.hpp>
 #include <zmq/config.hpp>
+#include <zmq/err.hpp>
 
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
@@ -57,14 +58,14 @@ int zmq::api_thread_t::create_exchange (const char *name_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_, style_t style_)
 {
-    assert (scope_ == scope_local || scope_ == scope_process ||
+    zmq_assert (scope_ == scope_local || scope_ == scope_process ||
         scope_ == scope_global);
 
     //  Insert the exchange to the local list of exchanges.
     //  Make sure that the exchange doesn't already exist.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
-        assert (it->first != name_);
+        zmq_assert (it->first != name_);
 
     out_engine_t *engine = out_engine_t::create (
         style_ == style_load_balancing);
@@ -88,14 +89,14 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
     int handler_thread_count_, i_thread **handler_threads_,
     int64_t hwm_, int64_t lwm_, uint64_t swap_)
 {
-    assert (scope_ == scope_local || scope_ == scope_process ||
+    zmq_assert (scope_ == scope_local || scope_ == scope_process ||
         scope_ == scope_global);
 
     //  Insert the queue to the local list of queues.
     //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
-        assert (it->first != name_);
+        zmq_assert (it->first != name_);
 
     in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_);
     queues.push_back (queues_t::value_type (name_, engine));
@@ -153,7 +154,7 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     //  Create the pipe.
     pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
         queue_thread, queue_engine);
-    assert (pipe);
+    zmq_assert (pipe);
 
     //  Bind the source end of the pipe.
     command_t cmd_send_to;
@@ -170,7 +171,7 @@ bool zmq::api_thread_t::send (int exchange_, message_t &message_, bool block_)
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    assert (message_.type () == message_data);
+    zmq_assert (message_.type () == message_data);
 
     //  Process pending commands, if any.
     process_commands ();
@@ -202,7 +203,7 @@ bool zmq::api_thread_t::presend (int exchange_, message_t &message_,
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    assert (message_.type () == message_data);
+    zmq_assert (message_.type () == message_data);
 
     //  Try to send the message.
     bool sent = exchanges [exchange_].second->write (message_);
@@ -290,7 +291,7 @@ int zmq::api_thread_t::receive (message_t *message_, bool block_)
         //  We wait for commands, we process them and we continue
         //  with getting the messages.
         ypollset_t::integer_t signals = pollset.poll ();
-        assert (signals);
+        zmq_assert (signals);
         process_commands (signals);
         ticks = 0;
     }
@@ -374,14 +375,14 @@ void zmq::api_thread_t::process_command (const command_t &command_)
             default:
 
                 //  Unknown engine command.
-                assert (false);
+                zmq_assert (false);
             }
             break;
         }
 
     //  Unsupported/unknown command.
     default:
-        assert (false);
+        zmq_assert (false);
     }
 }
 
@@ -407,7 +408,7 @@ void zmq::api_thread_t::process_commands ()
     //  last command processing. Command delay varies depending on CPU speed:
     //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
 
-	//  Get timestamp counter.
+    //  Get timestamp counter.
 #if defined __GNUC__
     uint32_t low;
     uint32_t high;

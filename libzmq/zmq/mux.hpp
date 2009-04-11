@@ -20,7 +20,6 @@
 #ifndef __ZMQ_MUX_HPP_INCLUDED__
 #define __ZMQ_MUX_HPP_INCLUDED__
 
-#include <assert.h>
 #include <vector>
 
 #include <zmq/message.hpp>

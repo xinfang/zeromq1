@@ -51,7 +51,7 @@ zmq::handle_t zmq::poll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
-    assert (fd_table [fd_].index == retired_fd);
+    zmq_assert (fd_table [fd_].index == retired_fd);
 
     fd_table [fd_].index = pollset.size() - 1;
     fd_table [fd_].engine = engine_;
@@ -64,7 +64,7 @@ zmq::handle_t zmq::poll_t::add_fd (fd_t fd_, i_pollable *engine_)
 void zmq::poll_t::rm_fd (handle_t handle_)
 {
     fd_t index = fd_table [handle_.fd].index;
-    assert (index != retired_fd);
+    zmq_assert (index != retired_fd);
 
     //  Mark the fd as unused.
     pollset [index].fd = retired_fd;
@@ -116,7 +116,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
     }
 
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
-        assert (!(pollset [i].revents & POLLNVAL));
+        zmq_assert (!(pollset [i].revents & POLLNVAL));
 
         fd_t fd = pollset [i].fd;
         i_pollable *engine = fd_table [fd].engine;

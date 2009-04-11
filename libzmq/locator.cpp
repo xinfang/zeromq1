@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <string.h>
 
 #include <zmq/locator.hpp>
+#include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/server_protocol.hpp>
@@ -39,7 +39,7 @@ zmq::locator_t::locator_t (const char *hostname_)
 
         //  Open connection to global locator.
         global_locator = new tcp_socket_t (hostname_, true);
-        assert (global_locator);
+        zmq_assert (global_locator);
     }
     else
         global_locator = NULL;
@@ -55,9 +55,9 @@ void zmq::locator_t::register_endpoint (const char *name_,
     const char *location_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
-    assert (global_locator);
-    assert (strlen (name_) <= 255);
-    assert (strlen (location_) <= 255);
+    zmq_assert (global_locator);
+    zmq_assert (strlen (name_) <= 255);
+    zmq_assert (strlen (location_) <= 255);
 
     //  Send to 'create' command.
     unsigned char cmd = create_id;
@@ -71,7 +71,7 @@ void zmq::locator_t::register_endpoint (const char *name_,
 
     //  Read the response.
     global_locator->read (&cmd, 1);
-    assert (cmd == create_ok_id);
+    zmq_assert (cmd == create_ok_id);
 
 }
 
@@ -79,7 +79,7 @@ void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
     size_t location_size_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
-    assert (global_locator);
+    zmq_assert (global_locator);
 
     //  Send 'get' command.
     unsigned char cmd = get_id;
@@ -90,8 +90,8 @@ void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
 
     //  Read the response.
     global_locator->read (&cmd, 1);
-    assert (cmd == get_ok_id);
-    assert (location_size_ >= 256);
+    zmq_assert (cmd == get_ok_id);
+    zmq_assert (location_size_ >= 256);
     global_locator->read (&size, 1);
     global_locator->read (location_, size);
     location_ [size] = 0;

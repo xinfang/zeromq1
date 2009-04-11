@@ -44,7 +44,7 @@ zmq::epoll_t::~epoll_t ()
 zmq::handle_t zmq::epoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     poll_entry_t *pe = new poll_entry_t;
-    assert (pe != NULL);
+    zmq_assert (pe != NULL);
 
     pe->fd = fd_;
     pe->ev.events = 0;

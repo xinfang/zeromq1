@@ -18,12 +18,13 @@
 */
 
 #include <zmq/in_engine.hpp>
+#include <zmq/err.hpp>
 
 zmq::in_engine_t *zmq::in_engine_t::create (int64_t hwm_, int64_t lwm_,
     uint64_t swap_size_)
 {
     in_engine_t *instance = new in_engine_t (hwm_, lwm_, swap_size_);
-    assert (instance);
+    zmq_assert (instance);
     return instance;
 }
 

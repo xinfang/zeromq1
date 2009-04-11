@@ -104,7 +104,7 @@ void zmq::bp_tcp_engine_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
     if (eh && !eh (local_object.c_str ()))
-        assert (false);
+        zmq_assert (false);
 
     //  Either reestablish the connection or destroy associated resources.
     if (reconnect_flag)
@@ -214,7 +214,7 @@ void zmq::bp_tcp_engine_t::in_event ()
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
     if (state == engine_connecting) {
-        assert (socket.socket_error ());
+        zmq_assert (socket.socket_error ());
         error ();
         return;
     }
@@ -314,7 +314,7 @@ void zmq::bp_tcp_engine_t::out_event ()
 
 void zmq::bp_tcp_engine_t::timer_event ()
 {
-    assert (state == engine_waiting_for_reconnect);
+    zmq_assert (state == engine_waiting_for_reconnect);
     reconnect ();
 }
 

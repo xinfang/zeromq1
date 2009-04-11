@@ -26,6 +26,7 @@
 #include <zmq/amqp_client.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/config.hpp>
+#include <zmq/err.hpp>
 
 zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
@@ -137,7 +138,7 @@ void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
 
 void zmq::amqp_client_t::register_event (i_poller *poller_)
 {
-    assert (state == state_connecting);
+    zmq_assert (state == state_connecting);
 
     //  Store the callback.
     poller = poller_;
@@ -154,7 +155,7 @@ void zmq::amqp_client_t::in_event ()
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
     if (state == state_connecting) {
-        assert (socket.socket_error ());
+        zmq_assert (socket.socket_error ());
         error ();
         return;
     }
@@ -257,7 +258,7 @@ void zmq::amqp_client_t::out_event ()
 
 void zmq::amqp_client_t::timer_event ()
 {
-    assert (state == state_waiting_for_reconnect);
+    zmq_assert (state == state_waiting_for_reconnect);
     reconnect ();
 }
 
@@ -280,12 +281,12 @@ void zmq::amqp_client_t::connection_start (
     const i_amqp::longstr_t /* mechanisms_ */,
     const i_amqp::longstr_t /* locales_ */)
 {
-    assert (channel_ == 0);
-    assert (state == state_waiting_for_connection_start);
+    zmq_assert (channel_ == 0);
+    zmq_assert (state == state_waiting_for_connection_start);
 
     //  Check the version info.
-    assert (version_major_ == 0);
-    assert (version_minor_ == 9);
+    zmq_assert (version_major_ == 0);
+    zmq_assert (version_minor_ == 9);
 
     //  TODO: Security mechanisms and locales should be checked. Client should
     //  use user-supplied login/password rather than hard-wired guest/guest.
@@ -304,8 +305,8 @@ void zmq::amqp_client_t::connection_tune (
     uint32_t /* frame_max_ */,
     uint16_t /* heartbeat_ */)
 {
-    assert (channel_ == 0);
-    assert (state == state_waiting_for_connection_tune);
+    zmq_assert (channel_ == 0);
+    zmq_assert (state == state_waiting_for_connection_tune);
 
     //  TODO: Frame size should be adjusted to match server's min size
     //  TODO: Heartbeats are not implemented at the moment
@@ -325,8 +326,8 @@ void zmq::amqp_client_t::connection_open_ok (
     uint16_t channel_,
     const i_amqp::shortstr_t /* reserved_1_ */)
 {
-    assert (channel_ == 0);
-    assert (state == state_waiting_for_connection_open_ok);
+    zmq_assert (channel_ == 0);
+    zmq_assert (state == state_waiting_for_connection_open_ok);
 
     encoder->channel_open (0, "");
 
@@ -340,7 +341,7 @@ void zmq::amqp_client_t::channel_open_ok (
     uint16_t channel_,
     const i_amqp::longstr_t /* reserved_1_ */)
 {
-    assert (state == state_waiting_for_channel_open_ok);
+    zmq_assert (state == state_waiting_for_channel_open_ok);
 
     //  Store the ID of the open channel.
     channel = channel_;
@@ -361,8 +362,8 @@ void zmq::amqp_client_t::queue_declare_ok (
     uint32_t /* message_count_ */,
     uint32_t /* consumer_count_ */)
 {
-    assert (channel_ == channel);
-    assert (state == state_waiting_for_queue_declare_ok);
+    zmq_assert (channel_ == channel);
+    zmq_assert (state == state_waiting_for_queue_declare_ok);
 
     i_amqp::field_table_t consume_args;
     encoder->basic_consume (channel, 0, arguments.c_str (), "",
@@ -378,8 +379,8 @@ void zmq::amqp_client_t::basic_consume_ok (
     uint16_t channel_,
     const i_amqp::shortstr_t /* consumer_tag_ */)
 {
-    assert (channel_ == channel);
-    assert (state == state_waiting_for_basic_consume_ok);
+    zmq_assert (channel_ == channel);
+    zmq_assert (state == state_waiting_for_basic_consume_ok);
 
     encoder->flow (true, channel);
     decoder->flow (true, channel);
@@ -398,7 +399,7 @@ void zmq::amqp_client_t::channel_close (
     uint16_t /* class_id_ */,
     uint16_t /* method_id_ */)
 {
-    assert (channel_ == channel);
+    zmq_assert (channel_ == channel);
     printf ("AMQP error received: %s\n", reply_text_.data);
     error ();
 }
@@ -410,7 +411,7 @@ void zmq::amqp_client_t::connection_close (
     uint16_t /* class_id_ */,
     uint16_t /* method_id_ */)
 {
-    assert (channel_ == 0);
+    zmq_assert (channel_ == 0);
     printf ("AMQP error received: %s\n", reply_text_.data);
     error ();
 }
@@ -433,7 +434,7 @@ void zmq::amqp_client_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
     if (eh && !eh (local_object.c_str ()))
-        assert (false);
+        zmq_assert (false);
 
     //  Reestablish the connection.
     reconnect ();

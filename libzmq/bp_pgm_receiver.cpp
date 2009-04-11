@@ -21,9 +21,11 @@
 
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
+#include <string>
+
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/wire.hpp>
-#include <string>
+#include <zmq/err.hpp>
 
 //#define PGM_RECEIVER_DEBUG
 //#define PGM_RECEIVER_DEBUG_LEVEL 0
@@ -191,13 +193,13 @@ void zmq::bp_pgm_receiver_t::in_event ()
 
 void zmq::bp_pgm_receiver_t::out_event ()
 {
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::bp_pgm_receiver_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::bp_pgm_receiver_t::unregister_event ()

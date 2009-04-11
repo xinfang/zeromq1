@@ -21,6 +21,7 @@
 #include <zmq/bp_tcp_engine.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
+#include <zmq/err.hpp>
 
 zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
@@ -37,7 +38,7 @@ zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
     zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
 
     //  Initialise the array of threads to handle new connections.
-    assert (handler_thread_count_ > 0);
+    zmq_assert (handler_thread_count_ > 0);
     for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
         handler_threads.push_back (handler_threads_ [thread_nbr]);
     current_handler_thread = 0;
@@ -62,12 +63,12 @@ void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */,
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.
-    assert (false);
+    zmq_assert (false);
 }
 
 int64_t zmq::bp_tcp_listener_t::get_swap_size ()
 {
-    assert (false);
+    zmq_assert (false);
 
     //  Some C++ compilers require this.
     return 0;
@@ -86,7 +87,7 @@ void zmq::bp_tcp_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
         handler_threads [current_handler_thread], listener, peer_name);
-    assert (engine);
+    zmq_assert (engine);
 
     if (source) {
 
@@ -99,7 +100,7 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (source_thread, source_engine,
             peer_thread, peer_engine);
-        assert (pipe);
+        zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
@@ -122,7 +123,7 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
             destination_thread, destination_engine);
-        assert (pipe);
+        zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
         command_t cmd_receive_from;
@@ -145,13 +146,13 @@ void zmq::bp_tcp_listener_t::in_event ()
 void zmq::bp_tcp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::bp_tcp_listener_t::timer_event ()
 {
     //  This class doesn't use timers.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::bp_tcp_listener_t::unregister_event ()

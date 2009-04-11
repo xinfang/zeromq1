@@ -24,7 +24,7 @@
 
 void zmq::ysemaphore_t::signal (int signal_)
 {
-    assert (signal_ == 0);
+    zmq_assert (signal_ == 0);
     int rc = pthread_mutex_unlock (&mutex);
     errno_assert (rc == 0);
 }
@@ -33,7 +33,7 @@ void zmq::ysemaphore_t::signal (int signal_)
 
 void zmq::ysemaphore_t::signal (int signal_)
 {
-    assert (signal_ == 0);
+    zmq_assert (signal_ == 0);
     int rc = SetEvent (ev);
     win_assert (rc != 0);
 }
@@ -42,7 +42,7 @@ void zmq::ysemaphore_t::signal (int signal_)
 
 void zmq::ysemaphore_t::signal (int signal_)
 {
-    assert (signal_ == 0);
+    zmq_assert (signal_ == 0);
     int rc = sem_post (&sem);
     errno_assert (rc != -1);
 }

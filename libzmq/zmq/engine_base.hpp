@@ -20,8 +20,7 @@
 #ifndef __ZMQ_ENGINE_BASE_HPP_INCLUDED__
 #define __ZMQ_ENGINE_BASE_HPP_INCLUDED__
 
-#include <assert.h>
-
+#include <zmq/err.hpp>
 #include <zmq/i_engine.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/i_demux.hpp>
@@ -41,18 +40,18 @@ namespace zmq
                 demux = new load_balancer_t ();
             else
                 demux = new publisher_t ();
-            assert (demux);
+            zmq_assert (demux);
         }
 
         i_pollable *cast_to_pollable ()
         {
-            assert (false);
+            zmq_assert (false);
             return NULL;
         }
 
         const char *get_arguments ()
         {
-            assert (false);
+            zmq_assert (false);
             return NULL;
         }
 
@@ -60,35 +59,35 @@ namespace zmq
         {
             //  Notify the reader of the pipe that there are messages
             //  available in the pipe.
-            assert (HAS_OUT);
+            zmq_assert (HAS_OUT);
             pipe_->revive ();
         }
 
         void head (pipe_t *pipe_, int64_t position_)
         {
             //  Forward pipe head position to the appropriate pipe.
-            assert (HAS_IN);
+            zmq_assert (HAS_IN);
             pipe_->set_head (position_);
         }
 
         void send_to (pipe_t *pipe_)
         {
             //  Start sending messages to a pipe.
-            assert (HAS_IN);
+            zmq_assert (HAS_IN);
             demux->send_to (pipe_);
         }
 
         void receive_from (pipe_t *pipe_)
         {
             //  Start receiving messages from a pipe.
-            assert (HAS_OUT);
+            zmq_assert (HAS_OUT);
             mux.receive_from (pipe_);
         }
 
         void terminate_pipe (pipe_t *pipe_)
         {
             //  Forward the command to the pipe. Drop reference to the pipe.
-            assert (HAS_IN);
+            zmq_assert (HAS_IN);
             pipe_->writer_terminated ();
             demux->release_pipe (pipe_);
         }
@@ -96,7 +95,7 @@ namespace zmq
         void terminate_pipe_ack (pipe_t *pipe_)
         {
             //  Forward the command to the pipe. Drop reference to the pipe.
-            assert (HAS_OUT);
+            zmq_assert (HAS_OUT);
             pipe_->reader_terminated ();
             mux.release_pipe (pipe_);
         }

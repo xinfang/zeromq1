@@ -66,7 +66,7 @@ void zmq::devpoll_t::devpoll_ctl (fd_t fd_, short events_)
 
 zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
-    assert (!fd_table [fd_].in_use);
+    zmq_assert (!fd_table [fd_].in_use);
 
     fd_table [fd_].events = 0;
     fd_table [fd_].engine = engine_;
@@ -84,7 +84,7 @@ zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 
 void zmq::devpoll_t::rm_fd (handle_t handle_)
 {
-    assert (fd_table [handle_.fd].in_use);
+    zmq_assert (fd_table [handle_.fd].in_use);
     devpoll_ctl (handle_.fd, POLLREMOVE);
     fd_table [handle_.fd].in_use = false;
 }

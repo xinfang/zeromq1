@@ -24,7 +24,6 @@
 #include <zmq/formatting.hpp>
 #include <zmq/fd.hpp>
 
-#include <assert.h>
 #include <string.h>
 #include <string>
 #include <sstream>
@@ -109,7 +108,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 
 void zmq::tcp_listener_t::close ()
 {
-    assert (s != retired_fd);
+    zmq_assert (s != retired_fd);
     int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
     s = retired_fd;
@@ -153,12 +152,12 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     size_t isz;
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (iface, sizeof (iface));
-        assert (rc == 0);
+        zmq_assert (rc == 0);
         isz = strlen (iface);
     }
     else {
         rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface, sizeof (iface));
-        assert (rcp);
+        errno_assert (rcp);
         isz = strlen (iface);
     }
     zmq_snprintf (iface + isz, sizeof (iface) - isz, ":%d",
@@ -184,7 +183,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 
 void zmq::tcp_listener_t::close ()
 {
-    assert (s != retired_fd);
+    zmq_assert (s != retired_fd);
     int rc = ::close (s);
     errno_assert (rc == 0);
     s = retired_fd;

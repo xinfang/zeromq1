@@ -104,7 +104,7 @@ PyObject *pyZMQ_create_exchange (pyZMQ *self, PyObject *args, PyObject *kwdict)
         "style", NULL};
 
     if (!PyArg_ParseTupleAndKeywords (args, kwdict, "s|isi", (char**) kwlist, 
-        &name, &scope, &location, &style))
+          &name, &scope, &location, &style))
         return NULL;
     
     int exchange = self->api_thread->create_exchange (name, 

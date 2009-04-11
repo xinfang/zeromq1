@@ -19,6 +19,7 @@
 
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
+#include <zmq/err.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
       i_thread *destination_thread_, i_engine *destination_engine_) :
@@ -62,7 +63,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     //  Create a swap file if necessary.
     if (swap_size > 0) {
         data_dam = new data_dam_t (swap_size);
-        assert (data_dam);
+        zmq_assert (data_dam);
     }
 }
 
@@ -89,18 +90,18 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 {
     //  If we are allowed to write to the pipe, delayed gap notification must
     //  have been written beforehand.
-    assert (!delayed_gap);
+    zmq_assert (!delayed_gap);
 
     //  If we have hit the queue limit, switch into swapping mode.
     if (in_core_msg_cnt == (size_t) hwm && hwm != 0) {
-        assert (data_dam);
+        zmq_assert (data_dam);
         swapping = true;
     }
 
     //  Write the message into main memory or swap file.
     if (swapping) {
         bool rc = data_dam->store (msg_);
-        assert (rc);
+        zmq_assert (rc);
         in_swap_msg_cnt ++;
     }
     else {
@@ -123,7 +124,7 @@ void zmq::pipe_t::gap ()
 
 void zmq::pipe_t::revive ()
 {
-    assert (!alive);
+    zmq_assert (!alive);
     alive = true;
 }
 
@@ -260,7 +261,7 @@ void zmq::pipe_t::swap_in ()
     flush ();
 
     if (in_swap_msg_cnt == 0) {
-        assert (data_dam->empty ());
+        zmq_assert (data_dam->empty ());
         swapping = false;
     }
 }

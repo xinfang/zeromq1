@@ -21,12 +21,14 @@
 
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
+#include <iostream>
+
 #include <zmq/bp_pgm_sender.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/wire.hpp>
-#include <iostream>
+#include <zmq/err.hpp>
 
 //#define PGM_SENDER_DEBUG
 //#define PGM_SENDER_DEBUG_LEVEL 4
@@ -57,7 +59,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 {
     //  Store interface. Note that interface name is not stored in locator.
     char *delim = strchr (interface_, ';');
-    assert (delim);
+    zmq_assert (delim);
 
     delim++;
 
@@ -83,7 +85,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
     //  Create the pipe to the newly created engine.
     pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
         thread_, destination_engine);
-    assert (pipe);
+    zmq_assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
     command_t cmd_receive_from;
@@ -165,7 +167,7 @@ void zmq::bp_pgm_sender_t::out_event ()
                 pgm_socket.get_buffer (&out_buffer_size);
         }
 
-        assert (out_buffer_size > 0);
+        zmq_assert (out_buffer_size > 0);
 
         //  First two bytes /sizeof (uint16_t)/ are used to store message 
         //  offset in following steps.
@@ -192,7 +194,7 @@ void zmq::bp_pgm_sender_t::out_event ()
         if (write_size - write_pos != nbytes && nbytes != 0) {
             zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
                 (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
-            assert (false);
+            zmq_assert (false);
         }
 
         //  PGM rate limit reached nbytes is 0.
@@ -212,7 +214,7 @@ void zmq::bp_pgm_sender_t::out_event ()
 void zmq::bp_pgm_sender_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::bp_pgm_sender_t::unregister_event ()

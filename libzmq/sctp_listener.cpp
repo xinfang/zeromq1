@@ -41,7 +41,7 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
     zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
 
     //  Initialise the array of threads to handle new connections.
-    assert (handler_thread_count_ > 0);
+    zmq_assert (handler_thread_count_ > 0);
     for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
         handler_threads.push_back (handler_threads_ [thread_nbr]);
     current_handler_thread = 0;
@@ -77,12 +77,12 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
     isz = strlen (arguments); 
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (arguments + isz, sizeof (arguments) - isz);
-        assert (rc == 0);
+        zmq_assert (rc == 0);
     }
     else {
         rcp = inet_ntop (AF_INET, &ip_address.sin_addr, arguments + isz,
             sizeof (arguments) - isz);
-        assert (rcp);
+        errno_assert (rcp);
     }
     isz = strlen (arguments);
     zmq_snprintf (arguments + isz, sizeof (arguments) - isz, ":%d",
@@ -114,12 +114,12 @@ void zmq::sctp_listener_t::get_watermarks (int64_t *, int64_t *)
 {
     //  There are never pipes created to/from listener engine.
     //  Thus, watermarks have no meaning.
-    assert (false);
+    zmq_assert (false);
 }
 
 int64_t zmq::sctp_listener_t::get_swap_size ()
 {
-    assert (false);
+    zmq_assert (false);
 
     //  Some C++ compilers require this.
     return 0;
@@ -137,7 +137,7 @@ void zmq::sctp_listener_t::in_event ()
     //  TODO: make buffer size configurable by user
     sctp_engine_t *engine = new sctp_engine_t (thread,
         handler_threads [current_handler_thread], s, peer_name);
-    assert (engine);
+    zmq_assert (engine);
 
     if (source) {
 
@@ -150,7 +150,7 @@ void zmq::sctp_listener_t::in_event ()
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (source_thread, source_engine,
             peer_thread, peer_engine);
-        assert (pipe);
+        zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
@@ -173,7 +173,7 @@ void zmq::sctp_listener_t::in_event ()
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
             destination_thread, destination_engine);
-        assert (pipe);
+        zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
         command_t cmd_receive_from;
@@ -196,13 +196,13 @@ void zmq::sctp_listener_t::in_event ()
 void zmq::sctp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::sctp_listener_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::sctp_listener_t::unregister_event ()

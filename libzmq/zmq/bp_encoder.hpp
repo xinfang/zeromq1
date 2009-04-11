@@ -22,7 +22,6 @@
 #define __ZMQ_BP_ENCODER_HPP_INCLUDED__
 
 #include <stddef.h>
-#include <assert.h>
 
 #include <zmq/mux.hpp>
 #include <zmq/encoder.hpp>

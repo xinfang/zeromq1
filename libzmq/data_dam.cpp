@@ -17,10 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <zmq/platform.hpp>
-#include <zmq/data_dam.hpp>
-#include <zmq/formatting.hpp>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -33,6 +29,11 @@
 #include <unistd.h>
 #endif
 
+#include <zmq/platform.hpp>
+#include <zmq/data_dam.hpp>
+#include <zmq/formatting.hpp>
+#include <zmq/err.hpp>
+
 zmq::atomic_counter_t zmq::data_dam_t::counter;
 
 zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
@@ -44,14 +45,14 @@ zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
     block_size (block_size_),
     write_buf_start_addr (0)
 {
-    assert (filesize > 0);
-    assert (block_size > 0);
+    zmq_assert (filesize > 0);
+    zmq_assert (block_size > 0);
 
     buf1 = new char [block_size];
-    assert (buf1);
+    zmq_assert (buf1);
 
     buf2 = new char [block_size];
-    assert (buf2);
+    zmq_assert (buf2);
 
     read_buf = write_buf = buf1;
 
@@ -79,7 +80,7 @@ zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
 #ifdef ZMQ_HAVE_LINUX
     //  Enable more aggresive read-ahead optimization.
     int rc = posix_fadvise (fd, 0, filesize, POSIX_FADV_SEQUENTIAL);
-    assert (rc == 0);
+    zmq_assert (rc == 0);
 #endif
 }
 
@@ -133,7 +134,7 @@ bool zmq::data_dam_t::store (raw_message_t *msg_)
 void zmq::data_dam_t::fetch (raw_message_t *msg_)
 {
     //  There must be at least one message available.
-    assert (n_msgs > 0);
+    zmq_assert (n_msgs > 0);
 
     //  Retrieve the message size.
     size_t msg_size;

@@ -19,7 +19,6 @@
 
 #include <zmq/tcp_socket.hpp>
 
-#include <assert.h>
 #include <string.h>
 
 #include <zmq/platform.hpp>
@@ -86,7 +85,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 void zmq::tcp_socket_t::close ()
 {
-    assert (s != retired_fd);
+    zmq_assert (s != retired_fd);
     int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
     s = retired_fd;
@@ -94,8 +93,8 @@ void zmq::tcp_socket_t::close ()
 
 void zmq::tcp_socket_t::reopen ()
 {
-    assert (s == retired_fd);
-    assert (hostname != "");
+    zmq_assert (s == retired_fd);
+    zmq_assert (hostname != "");
 
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -234,7 +233,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 void zmq::tcp_socket_t::close ()
 {
-    assert (s != retired_fd);
+    zmq_assert (s != retired_fd);
     int rc = ::close (s);
     errno_assert (rc == 0);
     s = retired_fd;
@@ -242,8 +241,8 @@ void zmq::tcp_socket_t::close ()
 
 void zmq::tcp_socket_t::reopen ()
 {
-    assert (s == retired_fd);
-    assert (hostname != "");
+    zmq_assert (s == retired_fd);
+    zmq_assert (hostname != "");
 
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -326,7 +325,7 @@ bool zmq::tcp_socket_t::socket_error ()
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
     if (rc == -1)
         err = errno;
-    assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
+    zmq_assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
         err == ECONNRESET || err == EADDRNOTAVAIL || err == EHOSTUNREACH);
     return err != 0;
 }

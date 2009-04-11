@@ -18,12 +18,11 @@
 */
 
 #include <algorithm>
-#include <assert.h>
 
 #include <zmq/platform.hpp>
 #include <zmq/dispatcher.hpp>
-#include <zmq/err.hpp>
 #include <zmq/engine_factory.hpp>
+#include <zmq/err.hpp>
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
@@ -33,7 +32,7 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
 {
     //  Alocate NxN matrix of dispatching pipes.
     pipes = new command_pipe_t [thread_count * thread_count];
-    assert (pipes);
+    zmq_assert (pipes);
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -43,7 +42,8 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
     WSADATA wsa_data;
     int rc = WSAStartup (version_requested, &wsa_data);
     errno_assert (rc == 0);
-    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
+    zmq_assert (LOBYTE (wsa_data.wVersion) == 2 ||
+        HIBYTE (wsa_data.wVersion) == 2);
 #endif  
 }
 
@@ -81,7 +81,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
         used.end (), false);
 
     //  No more thread IDs are available!
-    assert (it != used.end ());
+    zmq_assert (it != used.end ());
 
     //  Mark the thread ID as used.
     *it = true;
@@ -105,7 +105,7 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_)
 {
-    assert (strlen (object_) < 256);
+    zmq_assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
@@ -144,7 +144,7 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
     i_thread *handler_thread_, const char *local_object_,
     const char *engine_arguments_)
 {
-    assert (strlen (object_) < 256);
+    zmq_assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();

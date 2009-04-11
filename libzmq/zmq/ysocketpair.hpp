@@ -20,12 +20,9 @@
 #ifndef __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 #define __ZMQ_YSOCKETPAIR_HPP_INCLUDED__
 
-#include <assert.h>
-
 #include <zmq/platform.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq/i_signaler.hpp>
-#include <zmq/err.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/tcp_listener.hpp>
 #include <zmq/formatting.hpp>

@@ -155,7 +155,7 @@ void zmq::sctp_engine_t::in_event ()
 
         //  TODO: Implement queue-full handling.
         bool ok = demux->write (msg);
-        assert (ok);
+        zmq_assert (ok);
     }
 
     //  Flash the messages to system, if there are any.
@@ -177,13 +177,13 @@ void zmq::sctp_engine_t::out_event ()
     ssize_t nbytes = sctp_sendmsg (s, msg.data (), msg.size (),
         NULL, 0, 0, 0, 0, 0, 0);
     errno_assert (nbytes != -1);
-    assert (nbytes == (ssize_t) msg.size ());
+    zmq_assert (nbytes == (ssize_t) msg.size ());
 }
 
 void zmq::sctp_engine_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    assert (false);
+    zmq_assert (false);
 }
 
 void zmq::sctp_engine_t::unregister_event ()

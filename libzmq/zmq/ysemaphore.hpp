@@ -20,8 +20,6 @@
 #ifndef __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 #define __ZMQ_YSEMAPHORE_HPP_INCLUDED__
 
-#include <assert.h>
-
 #include <zmq/platform.hpp>
 #include <zmq/i_signaler.hpp>
 #include <zmq/err.hpp>

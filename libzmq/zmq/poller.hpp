@@ -116,7 +116,7 @@ zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
 {
     //  Create the object.
     poller_t <T> *poller = new poller_t <T> (dispatcher_);
-    assert (poller);
+    zmq_assert (poller);
 
     //  Start the thread.
     poller->worker.start (worker_routine, poller);
@@ -266,7 +266,7 @@ bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
 {
     if (!engine_) {
         uint32_t signals = signaler.check ();
-        assert (signals);
+        zmq_assert (signals);
 
         //  Iterate through all the threads in the process and find out
         //  which of them sent us commands.
@@ -356,14 +356,14 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
             default:
 
                 //  Unknown engine command.
-                assert (false);
+                zmq_assert (false);
             }
             break;
         }
 
     //  Unknown command.
     default:
-        assert (false);
+        zmq_assert (false);
     }
 
     if (command_.type == command_t::stop)

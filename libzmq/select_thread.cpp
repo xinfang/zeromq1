@@ -95,7 +95,7 @@ void zmq::select_t::rm_fd (handle_t handle_)
     for (it = fds.begin (); it != fds.end (); it ++)
         if (it->fd == fd)
             break;
-    assert (it != fds.end ());
+    zmq_assert (it != fds.end ());
     it->fd = retired_fd;
     retired = true;
 }

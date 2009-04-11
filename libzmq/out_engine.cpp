@@ -18,11 +18,12 @@
 */
 
 #include <zmq/out_engine.hpp>
+#include <zmq/err.hpp>
 
 zmq::out_engine_t *zmq::out_engine_t::create (bool load_balancing_)
 {
     out_engine_t *instance = new out_engine_t (load_balancing_);
-    assert (instance);
+    zmq_assert (instance);
     return instance;
 }
 

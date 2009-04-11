@@ -20,8 +20,6 @@
 #ifndef __ZMQ_YPOLLSET_HPP_INCLUDED__
 #define __ZMQ_YPOLLSET_HPP_INCLUDED__
 
-#include <assert.h>
-
 #include <zmq/i_signaler.hpp>
 #include <zmq/atomic_bitmap.hpp>
 #include <zmq/ysemaphore.hpp>
@@ -62,13 +60,10 @@ namespace zmq
                 }
 
                 //  If btsr was really atomic, result would never be 0 at this
-                //  point, i.e. no looping would be possible. This is the case
-                //  when mutexes are used instead of x86 atomic operations.
-                //  However, on x86 platform btsr is composed of two atomic
-                //  operations: bts and btr. If reader thread processes the
-                //  signals between bts and btr (this can happen because another
-                //  writing thread can unlock writer thread in the meantime)
-                //  the result may actually be 0. Thus looping can occur
+                //  point, i.e. no looping would be possible. However, to
+                //  support even CPU architectures without CAS instruction
+                //  we allow btsr to be composed of two independent atomic
+                //  operation (set and reset). In such case looping can occur
                 //  sporadically.
             }
             return result;      

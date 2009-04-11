@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <zmq.hpp>
+#include <zmq/err.hpp>
 #include <zmq.h>
 
 struct context_t
@@ -36,16 +36,16 @@ void *zmq_create (const char *host_)
 {   
     //  Create the context.
     context_t *context = new context_t;
-    assert (context);
+    zmq_assert (context);
     context->dispatcher = new zmq::dispatcher_t (2);
-    assert (context->dispatcher);
+    zmq_assert (context->dispatcher);
     context->locator = new zmq::locator_t (host_);
-    assert (context->locator);    
+    zmq_assert (context->locator);    
     context->io_thread = zmq::io_thread_t::create (context->dispatcher);
-    assert (context->io_thread);
+    zmq_assert (context->io_thread);
     context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);
-    assert (context->api_thread);
+    zmq_assert (context->api_thread);
 
     return (void*) context;
 }
@@ -131,10 +131,10 @@ int zmq_receive (void *object_, void **data_, uint64_t *size_,
 
     //  Create a buffer and copy the data into it.
     void *buf = malloc (msg.size ());
-    assert (buf);
+    zmq_assert (buf);
     memcpy (buf, msg.data (), msg.size ());
 
-    assert (data_);
+    zmq_assert (data_);
     *data_ = buf;
     if (size_)
         *size_ = msg.size ();

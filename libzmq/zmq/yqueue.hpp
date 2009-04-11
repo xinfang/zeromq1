@@ -20,8 +20,9 @@
 #ifndef __ZMQ_YQUEUE_HPP_INCLUDED__
 #define __ZMQ_YQUEUE_HPP_INCLUDED__
 
-#include <assert.h>
 #include <stddef.h>
+
+#include <zmq/err.hpp>
 
 namespace zmq
 {
@@ -47,7 +48,7 @@ namespace zmq
         inline yqueue_t ()
         {
              begin_chunk = new chunk_t;
-             assert (begin_chunk);
+             zmq_assert (begin_chunk);
              begin_pos = 0;
              back_chunk = NULL;
              back_pos = 0;
@@ -91,7 +92,7 @@ namespace zmq
                 return;
 
             end_chunk->next = new chunk_t;
-            assert (end_chunk->next);
+            zmq_assert (end_chunk->next);
             end_chunk = end_chunk->next;
             end_pos = 0;
         }
