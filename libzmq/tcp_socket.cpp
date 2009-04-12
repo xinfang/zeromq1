@@ -115,7 +115,8 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
     //  If not a single byte can be written to the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative write).
-    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
+    if (nbytes == SOCKET_ERROR && (WSAGetLastError () == WSAEWOULDBLOCK ||
+          WSAGetLastError () == WSAENOTCONN))
         return 0;
 		
     //  Signalise peer failure.
@@ -133,7 +134,8 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
-    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
+    if (nbytes == SOCKET_ERROR && (WSAGetLastError () == WSAEWOULDBLOCK ||
+          WSAGetLastError () == WSAENOTCONN))
         return 0;
 
     //  Connection failure.
