@@ -24,6 +24,13 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include <zmq/windows.hpp>
+
+#if (_MSC_VER <= 1400)
+#pragma message ("***************************************** NOTE: A little hack to make it build under VC2005 *********************************************")
+				// hack to make it build under VC2005
+				typedef UINT_PTR        SOCKET;
+				#define INVALID_SOCKET  (SOCKET)(~0)
+#endif
 #endif
 
 namespace zmq

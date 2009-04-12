@@ -21,6 +21,8 @@
 
 #include <assert.h>
 #include <string.h>
+#include <exception>
+#include <stdexcept>
 
 #include <zmq/platform.hpp>
 #ifdef ZMQ_HAVE_WINDOWS
@@ -60,17 +62,24 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 
     //  Connect to the remote peer.
     int rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+				// DG:: 2009/02/17
+				// Throw instead of asserting
     if (block)
-        wsa_assert (rc != SOCKET_ERROR);
+				{
+						if (rc == SOCKET_ERROR)
+								throw std::runtime_error("CONNECTION_ERROR");
+        //wsa_assert (rc != SOCKET_ERROR);
+				}
     else {
         int errcode = WSAGetLastError ();
         wsa_assert (rc != SOCKET_ERROR || errcode == WSAEWOULDBLOCK);
     }
 
+#pragma message ("ZMQ:: Disabled the code to disable Nagle, as it did not work on Vista/Server2008 ***********************")
     //  Disable Nagle's algorithm.
-    int flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
+    //int flag = 1;
+    //rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof (int));
+    //wsa_assert (rc != SOCKET_ERROR);
 }
 
 zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):

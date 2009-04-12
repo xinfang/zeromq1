@@ -87,8 +87,12 @@ void zmq::select_t::rm_fd (handle_t handle_)
     for (it = fds.begin (); it != fds.end (); it ++)
         if (it->fd == fd)
             break;
-    assert (it != fds.end ());
-    it->fd = retired_fd;
+
+				// DG: 2009/02/17 .. commented out (dont want assertion when server goes down and client tries to initiate shutdown)
+    //assert (it != fds.end ());
+				if (it != fds.end ())
+						it->fd = retired_fd;
+
     retired = true;
 }
 
