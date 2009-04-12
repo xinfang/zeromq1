@@ -131,16 +131,14 @@ void zmq::bp_tcp_engine_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
 
-/*
     // DG: 2009/02/17
     // if error handler returns false then initiate shutdown .. otherwise reconnect
     if (eh && !eh (local_object.c_str (), remote_object.c_str ()))
         shutdown ();
     else
         reconnect ();
-*/
 
-///*
+/*
     if (eh && !eh (local_object.c_str (), remote_object.c_str ()))
         assert (false);
 
@@ -149,7 +147,7 @@ void zmq::bp_tcp_engine_t::error ()
         reconnect ();
     else
         shutdown ();
-//*/
+*/
 }
 
 void zmq::bp_tcp_engine_t::reconnect ()
