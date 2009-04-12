@@ -88,7 +88,7 @@ namespace zmq
         //  and passed to error handler function when connection breaks.
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
-            const char * /* arguments_*/);
+            const char *remote_object_, const char * /* arguments_*/);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, const char *local_object_);
 
@@ -130,8 +130,9 @@ namespace zmq
         //  Poll handle associated with this engine.
         handle_t handle;
 
-        //  Name of the object on this side of the connection (exchange/queue).
+        //  Names of the objects on each side of the connection.
         std::string local_object;
+        std::string remote_object;
 
         //  Flag indicating whether the engine should try to reconnect on
         //  connection failure or not. In general, listeners do not try to

@@ -85,7 +85,8 @@ zmq::i_engine *zmq::engine_factory_t::create_listener (
 
 zmq::i_engine *zmq::engine_factory_t::create_engine (
     i_thread *calling_thread_, i_thread *thread_, const char *arguments_,
-    const char *local_object_, const char *engine_arguments_)
+    const char *local_object_, const char *remote_object_,
+    const char *engine_arguments_)
 {
     //  Decompose the string to the transport name (e.g. "bp/tcp") and
     //  transport arguments (e.g. "eth0:5555").
@@ -108,7 +109,8 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
 
     if (transport_type == "bp/tcp") {
         i_engine *engine = new bp_tcp_engine_t (calling_thread_, thread_,
-            transport_args.c_str (), local_object_, engine_arguments_);
+            transport_args.c_str (), local_object_, remote_object_,
+            engine_arguments_);
         assert (engine);
         return engine;
     }

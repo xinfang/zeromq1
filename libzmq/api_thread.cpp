@@ -126,7 +126,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             //  If the exchange cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();
             assert (eh);
-            if (!eh (exchange_))
+            if (!eh (exchange_, queue_))
                 assert (false);
 
             return;
@@ -152,7 +152,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
             //  If the queue cannot be found, report connection error.
             error_handler_t *eh = get_error_handler ();
             assert (eh);
-            if (!eh (exchange_))
+            if (!eh (queue_, exchange_))
                 assert (false);
 
             return;

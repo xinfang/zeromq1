@@ -24,7 +24,7 @@
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_*/) :
+      const char *remote_object_, const char * /* arguments_*/) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -35,6 +35,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     decoder (&demux),
     poller (NULL),
     local_object (local_object_),
+    remote_object (remote_object_),
     reconnect_flag (true),
     hostname (hostname_),
     state (engine_connecting)
@@ -48,6 +49,12 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     //  Open the underlying socket.
     socket = new tcp_socket_t (hostname.c_str ());
     assert (socket);
+
+    //  Send identity of the object on this side of the connection
+    //  to the remote peer.
+    unsigned char n = (unsigned char) local_object.size ();
+    socket->blocking_write (&n, 1);
+    socket->blocking_write (local_object.c_str (), n);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -79,6 +86,14 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     //  Open the underlying socket by accepting it from listener.
     socket = new tcp_socket_t (listener_);
     assert (socket);
+
+    //  Get the name of the object on the other side of the connection.
+    unsigned char n;
+    socket->blocking_read (&n, 1);
+    char buff [256];
+    socket->blocking_read (buff, n);
+    buff [n] = 0;
+    remote_object = buff;
 
     //  Register BP/TCP engine with the I/O thread.
     command_t command;
@@ -116,15 +131,17 @@ void zmq::bp_tcp_engine_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
 
-				// DG: 2009/02/17
-				// if error handler returns false then initiate shutdown .. otherwise reconnect
-    if (eh && !eh (local_object.c_str ()))
-        shutdown ();
-				else
-						reconnect ();
-
 /*
-    if (eh && !eh (local_object.c_str ()))
+    // DG: 2009/02/17
+    // if error handler returns false then initiate shutdown .. otherwise reconnect
+    if (eh && !eh (local_object.c_str (), remote_object.c_str ()))
+        shutdown ();
+    else
+        reconnect ();
+*/
+
+///*
+    if (eh && !eh (local_object.c_str (), remote_object.c_str ()))
         assert (false);
 
     //  Either reestablish the connection or destroy associated resources.
@@ -132,7 +149,7 @@ void zmq::bp_tcp_engine_t::error ()
         reconnect ();
     else
         shutdown ();
-*/
+//*/
 }
 
 void zmq::bp_tcp_engine_t::reconnect ()

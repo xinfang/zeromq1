@@ -42,7 +42,7 @@ namespace zmq
         static i_engine *create_engine (
             i_thread *calling_thread_, i_thread *thread_,
             const char *arguments_, const char *local_object_,
-            const char *engine_arguments_);
+            const char *remote_object_, const char *engine_arguments_);
     };
 
 }

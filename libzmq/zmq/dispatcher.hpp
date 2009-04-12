@@ -116,7 +116,8 @@ namespace zmq
     };
 
     //  Prototype of the error handling function.
-    typedef bool (error_handler_t) (const char *local_object_);
+    typedef bool (error_handler_t) (const char *local_object_,
+        const char *remote_object_);
 
     //  Global error handler.
     extern error_handler_t * volatile eh;
