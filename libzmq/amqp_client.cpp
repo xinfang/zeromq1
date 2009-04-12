@@ -166,7 +166,7 @@ void zmq::amqp_client_t::in_event ()
             //  If error handler returns true, the error is ignored.       
             error_handler_t *eh = get_error_handler ();
             assert (eh);
-            if (!eh (local_object.c_str ()))
+            if (!eh (local_object.c_str (), NULL))
                 assert (false);
 
             //  Remove the file descriptor from the pollset.

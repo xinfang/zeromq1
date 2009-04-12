@@ -28,7 +28,7 @@ using namespace std;
 
 using namespace zmq;
 
-bool error_handler (const char*)
+bool error_handler (const char*, const char*)
 {
     //  We don't want chatroom to fail when clent disconnects
     return true;
