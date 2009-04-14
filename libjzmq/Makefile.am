@@ -2,7 +2,7 @@
 # user has to copy it to the right location.
 #jzmqdir = /tmp
 
-dist_noinst_JAVA = Zmq.java
+dist_noinst_JAVA = ./org/zmq/Zmq.java
 
 lib_LTLIBRARIES = libjzmq.la
 libjzmq_la_SOURCES = Zmq.h Zmq.cpp
@@ -11,14 +11,14 @@ libjzmq_la_CXXFLAGS = -I$(top_builddir)/libzmq -I$(top_srcdir)/libzmq \
 libjzmq_la_LDFLAGS = -version-info 0:0:0
 libjzmq_la_LIBADD = $(top_builddir)/libzmq/libzmq.la
 
-BUILT_SOURCES = Zmq.h Zmq.class
+BUILT_SOURCES = Zmq.h ./org/zmq/Zmq.class
 
 $(srcdir)/Zmq.cpp: Zmq.h
 
-Zmq.h: Zmq.class
-	$(CLASSPATH_ENV) $(JAVAH) -jni -classpath ./ Zmq
+Zmq.h: ./org/zmq/Zmq.class
+	$(CLASSPATH_ENV) $(JAVAH) -jni -classpath ./ org.zmq.Zmq
 
-Zmq.class: classdist_noinst.stamp
+./org/zmq/Zmq.class: classdist_noinst.stamp
 
 dist-hook:
-		-rm $(distdir)/Zmq.h
+		-rm $(distdir)/*.h
