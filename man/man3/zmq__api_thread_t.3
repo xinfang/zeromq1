@@ -56,8 +56,8 @@ namespace zmq
             poll_thread_t *queue_thread,
             const char *exchange_options = NULL,
             const char *queue_options = NULL);
-        void send (int exchange, message_t &message);
-        void presend (int exchange, message_t &message);
+        bool send (int exchange, message_t &message, bool block = true);
+        bool presend (int exchange, message_t &message, bool block = true);
         void flush ();
         int receive (message_t *message, bool block = true);
     };
@@ -208,7 +208,7 @@ and
 .IR queue_options
 can contain additional information passed to exchange and queue engine.
 Interpretation of these strings is dependent on the transport mechanism used.
-.IP "\fBvoid send (int exchange, message_t &message)\fP
+.IP "\fBbool send (int exchange, message_t &message, bool block = true)\fP
 Sends a message to exchange specified by the
 .IR exchange
 parameter. The exchange ID is the ID returned by the
@@ -219,8 +219,14 @@ object will be cleared in this function - it'll be 0-byte long message
 after the call. If there are any pending pre-sent messages pending,
 .IR send
 will flush them immediately so that the correct message ordering
-will be retained.
-.IP "\fBvoid presend (int exchange, message_t &message)\fP"
+will be retained. If
+.IR block
+is set to true and message cannot be send (because queue limits are reached),
+the function will block until the congestion is over. If
+.IR block
+is set to false, function returns false immediately if message cannot be sent.
+If message is sent the function returns true.
+.IP "\fBbool presend (int exchange, message_t &message, bool block = true)\fP"
 Identical to
 .IR send 
 except that the message specified by the
@@ -234,7 +240,7 @@ transaction. This way the processing can be made more efficient. For example,
 0MQ 'exchange' example uses
 .IR presend
 to send all the replies (confirmation, trades, stock quotes) to a single stock
-order in one go. However, use
+order in one go. Use
 .IR presend
 only if you are striving for messaging rates of 1,000,000 messages a second
 or higher. For lower message rates the performance effect of presending is
