@@ -1,5 +1,7 @@
 $! build_33_libjzmq.com
-$! 2009-02-26
+$! Created 2009-02-26
+$! Modified
+$!  2009-04-13 BRC - Changed optimization to TUNE=HOST (platform-agnostic)
 $!+
 $! Build the API for Java
 $!-
@@ -24,7 +26,7 @@ $ write sys$output ""
 $ cxx   /define=__USE_STD_IOSTREAM		-
 	/prefix=all/float=ieee/ieee=denorm	-
 	/names=(as_is,shortened)		-
-	/OPTIMIZE=(INLINE=SPEED,LEVEL=4,UNROLL=0,TUNE=ITANIUM) -
+	/OPTIMIZE=(INLINE=SPEED,LEVEL=4,UNROLL=0,TUNE=HOST) -
 	/INCLUDE=(zmq:, libzmq:, java_include:) -
 	Zmq.cpp
 $!

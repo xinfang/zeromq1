@@ -1,12 +1,15 @@
 $! BUILD_2_LIBZMQ.COM
 $! 2009-02-18
 $! Modified
-$!  2009-03-14 ja - change to reflect new zmqRoot
+$!  2009-03-14 ja  - change to reflect new zmqRoot
+$!  2009-04-13 BRC - support for Alpha (ensure all objects get into library)
+$!
 $!+
 $! Build the libzmq modules and place them in an object library
 $!-
 $ @zmqOpenVMS:BUILD_1_COMP_LINK_SWITCHES! standard compiler switches
 $!
+$ cpu = "''f$getsyi("ARCH_NAME")'"
 $ def = "''f$environment("DEFAULT")'"	! save default directory
 $ set default  zmqRoot:[libzmq]		! go to the libzmq directory
 $ write sys$output "Building ''f$environment("DEFAULT")'"
@@ -53,8 +56,12 @@ $ compit data_dam.cpp
 $!
 $ lib/create libzmq.olb
 $ lib/repl/nolog libzmq.olb *.obj;
+$ if "''cpu'" .eqs. "Alpha"
+$ then
+$    lib/repl/nolog libzmq.olb [.cxx_repository]*.obj;
+$ endif
 $!
-$ purge/nolog
+$ purge/nolog [...]
 $ rename *.* *.*;1
 $ write sys$output "Built ''f$environment("DEFAULT")' at ''f$time()'"
 $!

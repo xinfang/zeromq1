@@ -1,11 +1,13 @@
 $! ZMQSETENV.COM
 $! Created: 2009-02-17
 $! Modified
-$!  2009-03-10 ja - change zmqRoot to include the base level
-$!  2009-03-12 ja - check for Java
-$!  2009-03-25 pm - dir names to lower case
-$!  2009-03-30 pm - changed include dirs for libcmzq and lijzmq
-$!  2009-04-07 pm - added homeDir variable
+$!  2009-03-10 ja  - change zmqRoot to include the base level
+$!  2009-03-12 ja  - check for Java
+$!  2009-03-25 pm  - dir names to lower case
+$!  2009-03-30 pm  - changed include dirs for libcmzq and lijzmq
+$!  2009-04-07 pm  - added homeDir variable
+$!  2009-04-14 BRC - Changed baseLevel and added default for homeDir
+$!  2009-04-14 pm  - Changed baseLevel to zmq-dev
 $!+
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
@@ -23,24 +25,21 @@ $ write sys$output "You are using base level ''baseLevel'"
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! Change the following line to reflect your home directory.
 $!------------------------------------------------------------
-$ homeDir == ""
+$ homeDir == f$parse("sys$login",,,,"NO_CONCEAL")
 $!
-$ if homeDir .eqs. ""
-$ then
-$       write sys$output "No homeDirectory given!"
-$       write sys$output "Please edit this script and provide valid homeDir variable."
-$       Exit
-$ endif
+$! Get rid of the trailing junk
+$ homeDir == ''homeDir' - "].;"
+$!
 $!
 $ CALL setUPODS5	! set up for ODS-5 disk
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! Change the following line to reflect the disk and directory
 $! of the installation.
 $!------------------------------------------------------------
-$ define/translation=(terminal,concealed)/job zmqRoot -
-	"''f$trnlnm("disk$ods5disk")'[''homeDir'.''baseLevel'.]"
+$ define/nolog/translation=(terminal,concealed)/job zmqRoot -
+	"''homeDir'.''baseLevel'.]"
 $!
-$ write sys$output "zmqRoot defined to [''homeDir'.''baseLevel'.]"
+$ write sys$output "zmqRoot defined to ''f$trnlnm("zmqRoot")'"
 $!
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! Change the line above to reflect the disk and directory
@@ -50,7 +49,7 @@ $ part1 = ""	! for setuting up the Java include directory
 $ part2 = ""	! ...
 $!
 $! If Java 5 is on the machine, let's use it
-$! 
+$!
 $ open/read/error=noJava java_file sys$startup:java$150_setup.com
 $!
 $    @sys$startup:java$150_setup	! get Java first
