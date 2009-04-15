@@ -22,6 +22,7 @@
 #include <zmq/err.hpp>
 
 zmq::mux_t::mux_t () :
+    active (0),
     current (0)
 {
 }
@@ -34,6 +35,16 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
     //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
+    ++active;
+    if (pipes.size () > active)
+        swap_pipes (pipes.size () - 1, active - 1);
+}
+
+void zmq::mux_t::revive (pipe_t *pipe_)
+{
+    //  Revive an idle pipe.
+    swap_pipes (pipe_->index (), active);
+    ++active;
 }
 
 bool zmq::mux_t::read (message_t *msg_)
@@ -45,17 +56,19 @@ bool zmq::mux_t::read (message_t *msg_)
     //  Deallocate old content of the message.
     raw_message_destroy (msg);
 
-    //  Round-robin over the pipes to get next message.
-    for (int to_process = pipes.size (); to_process != 0; to_process --) {
+    //  Round-robin over the active pipes to get next message.
+    for (pipes_t::size_type i = active; i != 0; i--) {
 
-        bool retrieved = pipes [current]->read ((raw_message_t*) msg_);
-
-        current ++;
-        if (current == pipes.size ())
-            current = 0;
-
-        if (retrieved)
+        //  Update current.
+        current = (current + 1) % active;
+        
+        //  Try to read from current.
+        if (pipes [current]->read ((raw_message_t*) msg_))
             return true;
+    
+        //  There's no message in the current pipe. Move it to idle list.
+        swap_pipes (current, active - 1);
+        --active;
     }
 
     //  No message is available. Initialise the output parameter
@@ -71,21 +84,20 @@ bool zmq::mux_t::empty ()
 
 void zmq::mux_t::release_pipe (pipe_t *pipe_)
 {
-    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
-        if (*it == pipe_) {
-
-            //  At this point pipe is physically destroyed.
-            delete *it;
-
-            //  Remove the pipe from the list.
-            pipes.erase (it);
-            if (current == pipes.size ())
-                current = 0;
-            return;
-        }
-
-    //  There's a bug in shut down mechanism!
-    zmq_assert (false);
+    pipes_t::size_type i = pipe_->index ();
+ 
+    //  Remove pipe from the active list.
+    if (i < active) {
+        swap_pipes (i, active - 1);
+        i = --active;
+    }
+            
+    //  Move the pipe to the end of the idle list and remove it.
+    swap_pipes (i, pipes.size () - 1);
+    pipes.pop_back ();
+        
+    //  At this point pipe is physically destroyed.
+    delete pipe_;
 }
 
 void zmq::mux_t::initialise_shutdown ()

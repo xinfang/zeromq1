@@ -28,7 +28,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     source_engine (source_engine_),
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
-    alive (true),
+    mux_index (0),
     head (0),
     last_head_position (0),
     delayed_gap (false),
@@ -122,12 +122,6 @@ void zmq::pipe_t::gap ()
     flush ();
 }
 
-void zmq::pipe_t::revive ()
-{
-    zmq_assert (!alive);
-    alive = true;
-}
-
 void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
@@ -158,15 +152,9 @@ void zmq::pipe_t::flush ()
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
 {
-    //  If the pipe is dead, there's nothing we can do.
-    if (!alive)
+    //  Get next message, if there's none, die.
+    if (!pipe.read (msg_))
         return false;
-
-    //  Get next message, if it's not there, die.
-    if (!pipe.read (msg_)) {
-        alive = false;
-        return false;
-    }
 
     //  If delimiter is read from the pipe, start the shutdown process.
     //  If 'read' is not called the pipe would hang in the memory for

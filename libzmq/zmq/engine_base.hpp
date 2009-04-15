@@ -60,7 +60,7 @@ namespace zmq
             //  Notify the reader of the pipe that there are messages
             //  available in the pipe.
             zmq_assert (HAS_OUT);
-            pipe_->revive ();
+            mux.revive (pipe_);
         }
 
         void head (pipe_t *pipe_, int64_t position_)

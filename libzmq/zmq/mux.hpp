@@ -21,6 +21,7 @@
 #define __ZMQ_MUX_HPP_INCLUDED__
 
 #include <vector>
+#include <algorithm>
 
 #include <zmq/message.hpp>
 #include <zmq/pipe.hpp>
@@ -40,6 +41,9 @@ namespace zmq
         //  Adds a pipe to receive messages from.
         void receive_from (pipe_t *pipe_);
 
+        //  Revives a stalled pipe.
+        void revive (pipe_t *pipe_);
+
         //  Returns a message, if available. If not, returns false.
         bool read (message_t *msg_);
 
@@ -54,13 +58,26 @@ namespace zmq
 
     private:
 
-        //  The list of inbound pipes.
+        //  The list of inbound pipes. The active pipes are occupying indices
+        //  from 0 to active-1. Suspended pipes occupy indices from 'active'
+        //  to the end of the array.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
+
+        //  The number of active pipes.
+        pipes_t::size_type active;
 
         //  Pipe to retrieve next message from. The messages are retrieved
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
+
+        //  Swaps pipes at specified indices. 
+        inline void swap_pipes (pipes_t::size_type i1_, pipes_t::size_type i2_)
+        {
+            std::swap (pipes [i1_], pipes [i2_]);
+            pipes [i1_]->set_index (i1_);
+            pipes [i2_]->set_index (i2_);
+        }
 
         mux_t (const mux_t&);
         void operator = (const mux_t&);

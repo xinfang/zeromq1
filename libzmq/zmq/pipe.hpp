@@ -67,11 +67,22 @@ namespace zmq
         //  Reads a message from the pipe.
         bool read (raw_message_t *msg);
 
-        //  Make the dead pipe alive once more.
-        void revive ();
-
         //  Process the 'head' command from reader thread.
         void set_head (uint64_t position_);
+
+        //  Sets mux index of the pipe. By adding 1 to the index in the
+        //  internal representation we can use value of 0 for 'invalid
+        //  index' tag.
+        inline void set_index (size_t index_)
+        {
+            mux_index = index_ + 1;
+        }
+
+        //  Retrieves mux index of the pipe.
+        inline size_t index ()
+        {
+            return mux_index - 1;
+        }
 
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
@@ -100,8 +111,10 @@ namespace zmq
         i_thread *destination_thread;
         i_engine *destination_engine;
 
-        //  If true we can read messages from the underlying ypipe.
-        bool alive;
+        //  Index of this pipe in the mux object containing it.
+        //  It is redundant information, however, it allows the schedular to
+        //  achieve O(1) complexity. Value of 0 means invalid index.
+        size_t mux_index;
 
         //  If hwm is non-zero, the size of pipe is limited. In that case hwm
         //  is the high water mark for the pipe and lwm is the low water mark.
