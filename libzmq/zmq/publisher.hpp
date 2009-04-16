@@ -44,6 +44,7 @@ namespace zmq
         bool empty ();
         void release_pipe (pipe_t *pipe_);
         void initialise_shutdown ();
+        void subscribe (pipe_t *pipe_, const char *criteria_);
 
     private:
 

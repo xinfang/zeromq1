@@ -61,6 +61,7 @@ namespace zmq
         void head (pipe_t *pipe_, int64_t position_);
         void send_to (pipe_t *pipe_);
         void receive_from (pipe_t *pipe_);
+        void subscribe (pipe_t *pipe_, const char *criteria_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);

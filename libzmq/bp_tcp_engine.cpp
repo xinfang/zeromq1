@@ -378,3 +378,11 @@ void zmq::bp_tcp_engine_t::receive_from (pipe_t *pipe_)
     if (state == engine_connected)
         poller->set_pollout (handle);
 }
+
+void zmq::bp_tcp_engine_t::subscribe (pipe_t *pipe_, const char *criteria_)
+{
+    //  TODO: Pass filtering criteria upstream.
+    
+    //  Ask pipe itself to filter the messages.
+    demux->subscribe (pipe_, criteria_);
+}

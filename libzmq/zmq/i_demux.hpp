@@ -62,6 +62,10 @@ namespace zmq
         //  Initiates shutdown of all attached pipes.
         virtual void initialise_shutdown () = 0;
 
+        //  Subscribe for particular messages.
+        //  TODO: Make this function pure virtual.
+        virtual void subscribe (pipe_t *pipe_, const char *criteria_) {}
+
         //  Returns true if there is no pipe we can send message to.
         inline bool no_pipes ()
         {

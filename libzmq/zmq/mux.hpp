@@ -44,6 +44,9 @@ namespace zmq
         //  Revives a stalled pipe.
         void revive (pipe_t *pipe_);
 
+        //  Subscribe to particular messages.
+        void subscribe (const char *criteria_);
+
         //  Returns a message, if available. If not, returns false.
         bool read (message_t *msg_);
 

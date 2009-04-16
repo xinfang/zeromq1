@@ -20,6 +20,9 @@
 #ifndef __ZMQ_PIPE_HPP_INCLUDED__
 #define __ZMQ_PIPE_HPP_INCLUDED__
 
+#include <set>
+#include <string>
+
 #include <zmq/stdint.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/ypipe.hpp>
@@ -64,6 +67,12 @@ namespace zmq
         //  Flush all the written messages to be accessible for reading.
         void flush ();
 
+        //  Subscribe for particular messages (mux side).
+        void subscribe (const char *criteria_);
+
+        //  Subscribe for particular messages (demux side).
+        void subscribe2 (const char *criteria_);
+
         //  Reads a message from the pipe.
         bool read (raw_message_t *msg);
 
@@ -97,6 +106,8 @@ namespace zmq
         void reader_terminated ();
 
     private:
+
+        bool read_internal (raw_message_t *msg);
 
         //  The message pipe itself.
         typedef ypipe_t <raw_message_t, false, message_pipe_granularity>
@@ -149,6 +160,8 @@ namespace zmq
 
         //  Refills the memory buffer from the swap file.
         void swap_in ();
+
+        std::set <std::string> subscriptions;
 
         //  Determines whether writer & reader side of the pipe are in the
         //  process of shutting down.

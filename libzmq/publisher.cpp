@@ -136,3 +136,8 @@ void zmq::publisher_t::initialise_shutdown ()
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->terminate_writer ();
 }
+
+void zmq::publisher_t::subscribe (pipe_t *pipe_, const char *criteria_)
+{
+    pipe_->subscribe2 (criteria_);
+}

@@ -47,6 +47,13 @@ void zmq::mux_t::revive (pipe_t *pipe_)
     ++active;
 }
 
+void zmq::mux_t::subscribe (const char *criteria_)
+{
+    //  Pass the subscription up the all inbound pipes.
+    for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it++)
+        (*it)->subscribe (criteria_);
+}
+
 bool zmq::mux_t::read (message_t *msg_)
 {
     //  Underlying layers work with raw_message_t, layers above use message_t.

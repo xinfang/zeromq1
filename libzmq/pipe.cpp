@@ -150,7 +150,48 @@ void zmq::pipe_t::flush ()
     }
 }
 
+void zmq::pipe_t::subscribe (const char *criteria_)
+{
+    //  Pas the subscription to the source engine.
+    command_t cmd;
+    cmd.init_engine_subscribe (source_engine, this, criteria_);
+    destination_thread->send_command (source_thread, cmd);
+}
+
+void zmq::pipe_t::subscribe2 (const char *criteria_)
+{
+    subscriptions.insert (criteria_);
+}
+
 bool zmq::pipe_t::read (raw_message_t *msg_)
+{
+    while (true) {
+
+        //  If there is no message, return immediately.
+        if (!read_internal (msg_))
+            return false;
+
+        //  If there are no subscriptions, pass all the messages up the stack.
+        if (subscriptions.empty ())
+            return true;
+
+        //  Ignore malformed messages.
+        unsigned char sz = ((unsigned char*) raw_message_data (msg_)) [0];
+        if ((size_t) (1 + sz) > raw_message_size (msg_))
+            continue;
+
+        //  If there's no corresponding subscription, ignore the message.
+        if (subscriptions.find (
+              std::string (((char*) raw_message_data (msg_)) + 1, sz)) ==
+              subscriptions.end ())
+            continue;
+
+        //  We've found a matching message!
+        return true;
+    }
+}
+
+bool zmq::pipe_t::read_internal (raw_message_t *msg_)
 {
     //  Get next message, if there's none, die.
     if (!pipe.read (msg_))

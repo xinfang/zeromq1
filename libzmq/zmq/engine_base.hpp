@@ -100,6 +100,12 @@ namespace zmq
             mux.release_pipe (pipe_);
         }
 
+        void subscribe (pipe_t *pipe_, const char *criteria_)
+        {
+            zmq_assert (HAS_IN);
+            demux->subscribe (pipe_, criteria_);
+        }
+
         mux_t mux;
         i_demux *demux;
     };

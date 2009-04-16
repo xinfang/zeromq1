@@ -57,6 +57,7 @@ namespace zmq
         virtual void receive_from (class pipe_t *pipe_) = 0;
         virtual void terminate_pipe (class pipe_t *pipe_) = 0;
         virtual void terminate_pipe_ack (class pipe_t *pipe_) = 0;
+        virtual void subscribe (class pipe_t *pipe_, const char *criteria_) = 0;
     };
 
 }

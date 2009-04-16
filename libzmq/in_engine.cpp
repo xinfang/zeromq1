@@ -42,34 +42,12 @@ zmq::in_engine_t::~in_engine_t ()
 
 void zmq::in_engine_t::subscribe (const char *criteria_)
 {
-    subscriptions.insert (criteria_);
+    mux.subscribe (criteria_);
 }
 
 bool zmq::in_engine_t::read (message_t *msg_)
 {
-    while (true) {
-
-        //  Get next message.
-        if (!mux.read (msg_))
-            return false;
-        
-        //  If there are no subscriptions, pass all the messages up the stack.
-        if (subscriptions.empty ())
-            return true;
-
-        //  Ignore malformed messages.
-        unsigned char sz = ((unsigned char*) msg_->data ()) [0];
-        if ((size_t) (1 + sz) > msg_->size ())
-            continue;
-
-        //  If there's no corresponding subscription, ignore the message.
-        if (subscriptions.find (std::string (((char*) msg_->data ()) + 1, sz))
-              == subscriptions.end ())
-            continue;
-
-        //  We've found a matching message!
-        return true;
-    }
+    return mux.read (msg_);
 }
 
 void zmq::in_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)

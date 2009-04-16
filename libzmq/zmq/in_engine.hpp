@@ -47,8 +47,6 @@ namespace zmq
         in_engine_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_);
         ~in_engine_t ();
 
-        std::set <std::string> subscriptions;
-
         int64_t hwm;
         int64_t lwm;
         int64_t swap_size;
