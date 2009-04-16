@@ -26,6 +26,7 @@
 #include <zmq/i_engine.hpp>
 #include <zmq/pipe.hpp>
 #include <zmq/formatting.hpp>
+#include <zmq/err.hpp>
 
 namespace zmq
 {
@@ -41,7 +42,8 @@ namespace zmq
             send_to,
             receive_from,
             terminate_pipe,
-            terminate_pipe_ack
+            terminate_pipe_ack,
+            subscribe
         } type;
 
         union {
@@ -64,6 +66,10 @@ namespace zmq
             struct {
                 class pipe_t *pipe;
             } terminate_pipe_ack;
+            struct {
+                class pipe_t *pipe;
+                char criteria [256];
+            } subscribe;
         } args;   
     };
 
@@ -165,6 +171,19 @@ namespace zmq
             args.engine_command.command.type =
                 engine_command_t::terminate_pipe_ack;
             args.engine_command.command.args.terminate_pipe_ack.pipe = pipe_;
+        }
+
+        inline void init_engine_subscribe (i_engine *engine_, pipe_t *pipe_,
+            const char *criteria_)
+        {
+            zmq_assert (strlen (criteria_) < 256);
+
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::subscribe;
+            args.engine_command.command.args.subscribe.pipe = pipe_;
+            zmq_strncpy (args.engine_command.command.args.subscribe.criteria,
+                criteria_, 256);
         }
         
     };

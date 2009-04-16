@@ -167,6 +167,11 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     send_command (queue_thread, cmd_receive_from);
 }
 
+void zmq::api_thread_t::subscribe (int queue_, const char *criteria_)
+{
+    queues [queue_ - 1].second->subscribe (criteria_);
+}
+
 bool zmq::api_thread_t::send (int exchange_, message_t &message_, bool block_)
 {
     //  Only data messages can be sent. Notifications are intended for notifying

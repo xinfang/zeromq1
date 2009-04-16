@@ -100,6 +100,8 @@ namespace zmq
             i_thread *queue_thread_, const char *exchange_options_ = NULL,
             const char *queue_options_ = NULL);
 
+        ZMQ_EXPORT void subscribe (int queue_, const char *criteria_);
+
         //  Send a message to specified exchange. 0MQ takes responsibility
         //  for deallocating the message. If there are any pending pre-sent
         //  messages, flush them immediately. If 'block' parameter is true
