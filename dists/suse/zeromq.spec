@@ -2,6 +2,12 @@
 %{!?py_sitedir: %define py_sitedir %(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0,0,'%{_prefix}')")}
 %{!?py_sitearch: %define py_sitearch %(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1,0,'%{_prefix}')")}
 
+%if "%{_vendor}" == "redhat" && 0%{?rhelversion} <= 5
+%define with_mono 0
+%else
+%define with_mono 1
+%endif
+
 %define java_target 1.5
 
 Name: zeromq
@@ -33,10 +39,14 @@ BuildRequires:  java-devel >= 1.4
 %endif
 %endif
 %if "%{_vendor}" == "mandriva"
+%if 0%{?with_mono} == 1
 BuildRequires:  mono mono-devel
+%endif
 %else
 BuildRequires: lksctp-tools-devel
+%if 0%{?with_mono} == 1
 BuildRequires:  mono-core mono-devel
+%endif
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
@@ -95,6 +105,7 @@ ZeroMQ is an extensible framework: kernel-style drivers for custom hardware, pro
 This package contains the libraries for building programs which
 use ZeroMQ in Java.
 
+%if 0%{?with_mono} == 1
 %package mono
 Summary: Development files for using ZeroMQ with Mono
 Group: Development/Libraries
@@ -116,6 +127,7 @@ and LAN nodes.
 ZeroMQ is an extensible framework: kernel-style drivers for custom hardware, protocols or applications.
 This package contains the libraries for building programs which
 use ZeroMQ in Mono.
+%endif
 
 %prep
 
@@ -124,7 +136,11 @@ use ZeroMQ in Mono.
 
 %build
 [ -n "$JAVA_HOME" ] || export JAVA_HOME=%{java_home}
-%configure --with-c --with-python --with-java --with-sctp --with-amqp --with-clr --with-clrdir=%{_prefix}/lib/clrzmq
+%configure --with-c --with-python --with-java --with-sctp --with-amqp \
+%if 0%{?with_mono} == 1
+--with-clr --with-clrdir=%{_prefix}/lib/clrzmq
+%endif
+
 %{?make:%make}%{!?make:%__make %{?jobs:-j%jobs} IMPORT_CPPFLAGS+="$RPM_OPT_FLAGS"} JAVACFLAGS="-target %{java_target}"
 (cd libjzmq && %{jar} cvf libjzmq.jar *.class)
 
@@ -141,8 +157,10 @@ mkdir %{buildroot}
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/libjzmq.jar %buildroot%{_javadir}
 mkdir -p %buildroot%{_datadir}/pkgconfig
+%if 0%{?with_mono} == 1
 cp mono/clrzmq/clrzmq/*.pc %buildroot%{_datadir}/pkgconfig/
 gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_prefix}/lib -package clrzmq
+%endif
 
 [ -e %SOURCE1 ] || bzip2 -c < mono/clrzmq/clrzmq/zmq_strong_name.snk > %SOURCE1
 
@@ -178,12 +196,14 @@ gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_p
 %defattr(-,root,root)
 %{_javadir}/*
 
+%if 0%{?with_mono} == 1
 %files mono
 %defattr(-,root,root)
 %{_prefix}/lib/clrzmq
 %{_prefix}/lib/mono/gac/*
 %{_prefix}/lib/mono/clrzmq
 %{_datadir}/pkgconfig/*
+%endif
 
 %changelog
 * Wed Feb 11 2009 Dirk O. Siebnich <dok@dok-net.net>
