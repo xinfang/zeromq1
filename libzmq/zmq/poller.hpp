@@ -353,6 +353,11 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
                 engine->terminate_pipe_ack (
                     engcmd.args.terminate_pipe_ack.pipe);
                 break;
+            case engine_command_t::subscribe:
+                engine->subscribe (
+                    engcmd.args.subscribe.pipe,
+                    engcmd.args.subscribe.criteria);
+                break;
             default:
 
                 //  Unknown engine command.

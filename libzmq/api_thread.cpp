@@ -132,7 +132,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     }
     else {
         dispatcher->get (locator, this, exchange_name_, &exchange_thread,
-            &exchange_engine, exchange_thread_, queue_name_, exchange_options_);
+            &exchange_engine, exchange_thread_, queue_name_, exchange_options_,
+            true);
     }
 
     //  Find the queue.
@@ -148,7 +149,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     }
     else {
         dispatcher->get (locator, this, queue_name_, &queue_thread,
-            &queue_engine, queue_thread_, exchange_name_, queue_options_);
+            &queue_engine, queue_thread_, exchange_name_, queue_options_,
+            false);
     }
 
     //  Create the pipe.

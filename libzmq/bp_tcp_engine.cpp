@@ -24,7 +24,7 @@
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_*/) :
+      const char * /* arguments_*/, bool source_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -37,7 +37,8 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     local_object (local_object_),
     reconnect_flag (true),
     state (engine_connecting),
-    socket (hostname_)
+    socket (hostname_),
+    source (source_)
 {
     
     //  Allocate read and write buffers.
@@ -53,7 +54,8 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
 }
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, tcp_listener_t &listener_, const char *local_object_) :
+      i_thread *thread_, tcp_listener_t &listener_, const char *local_object_,
+      bool source_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
@@ -66,7 +68,8 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     local_object (local_object_),
     reconnect_flag (false),
     state (engine_connected),
-    socket (listener_)
+    socket (listener_),
+    source (source_)
 {
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
@@ -216,6 +219,18 @@ void zmq::bp_tcp_engine_t::in_event ()
     if (state == engine_connecting) {
         zmq_assert (socket.socket_error ());
         error ();
+        return;
+    }
+
+    //  The only data destination engine can get from the socket are
+    //  subscriptions. Read it and pass it upstream.
+    if (!source) {
+        unsigned char sz;
+        socket.blocking_read (&sz, 1);
+        char criteria [256];
+        socket.blocking_read (criteria, sz);
+        criteria [sz] = 0;
+        mux.subscribe (criteria);
         return;
     }
 
@@ -381,8 +396,15 @@ void zmq::bp_tcp_engine_t::receive_from (pipe_t *pipe_)
 
 void zmq::bp_tcp_engine_t::subscribe (pipe_t *pipe_, const char *criteria_)
 {
-    //  TODO: Pass filtering criteria upstream.
+    //  Pass filtering criteria upstream.
+    zmq_assert (source);
+    size_t size = strlen (criteria_);
+    zmq_assert (size < 256);
+    unsigned char sz = (unsigned char) size;
+    socket.blocking_write (&sz, 1);
+    socket.blocking_write (criteria_, size);
     
+    //  TODO: This isn't needed IMO.
     //  Ask pipe itself to filter the messages.
     demux->subscribe (pipe_, criteria_);
 }

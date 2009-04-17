@@ -332,3 +332,23 @@ bool zmq::tcp_socket_t::socket_error ()
 
 #endif
 
+void zmq::tcp_socket_t::blocking_write (const void *data, int size)
+{
+    while (size > 0) {
+        int n = write (data, size);
+        assert (n >= 0);
+        size -= n;
+        data = (void*) (((unsigned char*) data) + n);
+    }
+}
+
+void zmq::tcp_socket_t::blocking_read (void *data, int size)
+{
+    while (size > 0) {
+        int n = read (data, size);
+        assert (n >= 0);
+        size -= n;
+        data = (void*) (((unsigned char*) data) + n);
+    }
+}
+

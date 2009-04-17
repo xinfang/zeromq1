@@ -94,9 +94,9 @@ namespace zmq
         //  and passed to error handler function when connection breaks.
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
-            const char * /* arguments_*/);
+            const char * /* arguments_*/, bool source_);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            tcp_listener_t &listener_, const char *local_object_);
+            tcp_listener_t &listener_, const char *local_object_, bool source_);
 
         ~bp_tcp_engine_t ();
 
@@ -146,6 +146,10 @@ namespace zmq
 
         //  Underlying TCP/IP socket.
         tcp_socket_t socket;
+
+        //  If true, the engine is a source of messages. Othrwise its a sink
+        //  for messages.
+        bool source;
 
         bp_tcp_engine_t (const bp_tcp_engine_t&);
         void operator = (const bp_tcp_engine_t&);

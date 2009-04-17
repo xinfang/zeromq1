@@ -142,7 +142,7 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
 bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
     const char *object_, i_thread **thread_, i_engine **engine_,
     i_thread *handler_thread_, const char *local_object_,
-    const char *engine_arguments_)
+    const char *engine_arguments_, bool source_)
 {
     zmq_assert (strlen (object_) < 256);
 
@@ -161,7 +161,8 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
 
         //  Create the proxy engine for the object.
         i_engine *engine = engine_factory_t::create_engine (calling_thread_,
-            handler_thread_, location, local_object_, engine_arguments_);
+            handler_thread_, location, local_object_, engine_arguments_,
+            source_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

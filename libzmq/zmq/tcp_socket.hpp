@@ -82,6 +82,10 @@ namespace zmq
         //  is no error. Fails in case on unrecoverable error.
         ZMQ_EXPORT bool socket_error ();
 
+        //  TODO: This is a HACK
+        ZMQ_EXPORT void blocking_write (const void *data, int size);
+        ZMQ_EXPORT void blocking_read (void *data, int size);
+
     private:
 
         //  Underlying socket

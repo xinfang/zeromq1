@@ -103,7 +103,7 @@ namespace zmq
         bool get (i_locator *locator_, i_thread *calling_thread_, 
             const char *object_, i_thread **thread_, i_engine **engine_,
             i_thread *handler_thread_, const char *local_object_,
-            const char *engine_arguments_);
+            const char *engine_arguments_, bool source_);
 
     private:
 

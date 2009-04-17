@@ -39,7 +39,8 @@ void zmq::bp_encoder_t::reset ()
 bool zmq::bp_encoder_t::size_ready ()
 {
     //  Write message body into the buffer.
-    next_step (message.data (), message.size (), &bp_encoder_t::message_ready, false);
+    next_step (message.data (), message.size (), &bp_encoder_t::message_ready,
+        false);
     return true;
 }
 
