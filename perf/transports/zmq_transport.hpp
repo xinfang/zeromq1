@@ -20,16 +20,18 @@
 #ifndef __PERF_ZMQ_TRANSPORT_HPP_INCLUDED__
 #define __PERF_ZMQ_TRANSPORT_HPP_INCLUDED__
 
+#include <stdio.h>
+
 #include "i_transport.hpp"
 
 #include <zmq.hpp>
 
 namespace perf
 {
-    bool error_handler (const char*, const char*)
+    bool error_handler (const char *local_, const char *remote_)
     {
-        //  We don't want to fail when peer disconnects
-        return true;
+        printf ("connection %s-%s broken\n", local_, remote_);
+        return false;
     }
 
     class zmq_t : public i_transport

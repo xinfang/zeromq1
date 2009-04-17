@@ -21,6 +21,7 @@
 #ifndef __ZMQ_BP_ENCODER_HPP_INCLUDED__
 #define __ZMQ_BP_ENCODER_HPP_INCLUDED__
 
+#include <string>
 #include <stddef.h>
 #include <assert.h>
 
@@ -36,7 +37,7 @@ namespace zmq
     {
     public:
 
-        bp_encoder_t (mux_t *mux_);
+        bp_encoder_t (mux_t *mux_, bool send_identity_, const char *identity_);
 
         //  Clears any partially encoded messages.
         void reset ();
@@ -47,6 +48,9 @@ namespace zmq
         bool message_ready ();
 
         mux_t *mux;
+        bool send_identity;
+        std::string identity;
+        bool startup;
         message_t message;
         unsigned char tmpbuf [9];
 

@@ -115,8 +115,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
     //  If not a single byte can be written to the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative write).
-    if (nbytes == SOCKET_ERROR && (WSAGetLastError () == WSAEWOULDBLOCK ||
-          WSAGetLastError () == WSAENOTCONN))
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
         return 0;
 		
     //  Signalise peer failure.
@@ -134,8 +133,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
-    if (nbytes == SOCKET_ERROR && (WSAGetLastError () == WSAEWOULDBLOCK ||
-          WSAGetLastError () == WSAENOTCONN))
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
         return 0;
 
     //  Connection failure.
@@ -234,7 +232,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
     //  If not a single byte can be written to the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative write).
-    if (nbytes == -1 && (errno == EAGAIN || errno == ENOTCONN))
+    if (nbytes == -1 && errno == EAGAIN)
         return 0;
 
     //  Signalise peer failure.
@@ -251,7 +249,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
-    if (nbytes == -1 && (errno == EAGAIN || errno == ENOTCONN))
+    if (nbytes == -1 && errno == EAGAIN)
         return 0;
 
     //  Signalise peer failure.
@@ -282,23 +280,3 @@ bool zmq::tcp_socket_t::socket_error ()
 }
 
 #endif
-
-void zmq::tcp_socket_t::blocking_write (const void *data, int size)
-{
-    while (size > 0) {
-        int n = write (data, size);
-        assert (n >= 0);
-        size -= n;
-        data = (void*) (((unsigned char*) data) + n);
-    }
-}
-
-void zmq::tcp_socket_t::blocking_read (void *data, int size)
-{
-    while (size > 0) {
-        int n = read (data, size);
-        assert (n >= 0);
-        size -= n;
-        data = (void*) (((unsigned char*) data) + n);
-    }
-}

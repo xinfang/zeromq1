@@ -31,8 +31,8 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
-    encoder (&mux),
-    decoder (&demux),
+    encoder (&mux, true, local_object_),
+    decoder (&demux, false, NULL),
     poller (NULL),
     local_object (local_object_),
     remote_object (remote_object_),
@@ -50,12 +50,6 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     socket = new tcp_socket_t (hostname.c_str ());
     assert (socket);
 
-    //  Send identity of the object on this side of the connection
-    //  to the remote peer.
-    unsigned char n = (unsigned char) local_object.size ();
-    socket->blocking_write (&n, 1);
-    socket->blocking_write (local_object.c_str (), n);
-
     //  Register BP engine with the I/O thread.
     command_t command;
     command.init_register_engine (this);
@@ -70,8 +64,8 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
-    encoder (&mux),
-    decoder (&demux),
+    encoder (&mux, false, ""),
+    decoder (&demux, true, &remote_object),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
@@ -86,14 +80,6 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     //  Open the underlying socket by accepting it from listener.
     socket = new tcp_socket_t (listener_);
     assert (socket);
-
-    //  Get the name of the object on the other side of the connection.
-    unsigned char n;
-    socket->blocking_read (&n, 1);
-    char buff [256];
-    socket->blocking_read (buff, n);
-    buff [n] = 0;
-    remote_object = buff;
 
     //  Register BP/TCP engine with the I/O thread.
     command_t command;
@@ -273,8 +259,8 @@ void zmq::bp_tcp_engine_t::out_event ()
             return;
         }
 
-        if (mux.empty ())
-            poller->reset_pollout (handle);
+//        if (mux.empty ())
+//            poller->reset_pollout (handle);
         poller->set_pollin (handle);
         state = engine_connected;
         return;

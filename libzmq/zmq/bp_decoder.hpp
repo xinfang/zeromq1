@@ -21,6 +21,8 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
+#include <string>
+
 #include <zmq/demux.hpp>
 #include <zmq/decoder.hpp>
 #include <zmq/message.hpp>
@@ -33,7 +35,8 @@ namespace zmq
     {
     public:
 
-        bp_decoder_t (demux_t *demux_);
+        bp_decoder_t (demux_t *demux_, bool receive_identity_,
+            std::string *identity_);
 
         //  Clears any partially decoded messages.
         void reset ();
@@ -45,6 +48,9 @@ namespace zmq
         bool message_ready ();
 
         demux_t *demux;
+        bool receive_identity;
+        std::string *identity;
+        bool startup;
         unsigned char tmpbuf [8];
         message_t message;
 
