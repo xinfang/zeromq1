@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: ../../../libjzmq/Zmq.jar
+Main-Class: j_remote_lat
+
+
+
