@@ -43,7 +43,7 @@ struct context_t
     zmq::api_thread_t *api_thread;
 };
 
-JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
+JNIEXPORT void JNICALL Java_org_zmq_Zmq_construct (JNIEnv *env, jobject obj,
     jstring host)
 {
     //  Cache context field ID.
@@ -69,8 +69,8 @@ JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
         context->locator);
     zmq_assert (context->api_thread);
 
-    //  Cache Zmq.InboundData class.
-    jclass idc = env->FindClass ("Zmq$InboundData");
+    //  Cache zmq.org.Zmq.InboundData class.
+    jclass idc = env->FindClass ("org/zmq/Zmq$InboundData");
     zmq_assert (idc);
     context->inbound_data_class = (jclass) env->NewGlobalRef (idc);
     zmq_assert (context->inbound_data_class);
@@ -94,7 +94,7 @@ JNIEXPORT void JNICALL Java_Zmq_construct (JNIEnv *env, jobject obj,
     env->SetLongField (obj, context_fid, (jlong) context);
 }
 
-JNIEXPORT void JNICALL Java_Zmq_finalize (JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_org_zmq_Zmq_finalize (JNIEnv *env, jobject obj)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
@@ -110,7 +110,7 @@ JNIEXPORT void JNICALL Java_Zmq_finalize (JNIEnv *env, jobject obj)
     delete context;
 }
 
-JNIEXPORT void JNICALL Java_Zmq_mask (JNIEnv *env, jobject obj,
+JNIEXPORT void JNICALL Java_org_zmq_Zmq_mask (JNIEnv *env, jobject obj,
     int notifications)
 {
     //  Get the context.
@@ -121,7 +121,7 @@ JNIEXPORT void JNICALL Java_Zmq_mask (JNIEnv *env, jobject obj,
     context->api_thread->mask (notifications);
 }
 
-JNIEXPORT jint JNICALL Java_Zmq_createExchange (JNIEnv *env, jobject obj,
+JNIEXPORT jint JNICALL Java_org_zmq_Zmq_createExchange (JNIEnv *env, jobject obj,
     jstring name, jint scope, jstring location, jint style)
 {
     //  Get the context.
@@ -151,7 +151,7 @@ JNIEXPORT jint JNICALL Java_Zmq_createExchange (JNIEnv *env, jobject obj,
     return eid;
 }
 
-JNIEXPORT jint JNICALL Java_Zmq_createQueue (JNIEnv *env, jobject obj,
+JNIEXPORT jint JNICALL Java_org_zmq_Zmq_createQueue (JNIEnv *env, jobject obj,
     jstring name, jint scope, jstring location, jlong hwm, jlong lwm, 
     jlong swap)
 {
@@ -182,7 +182,7 @@ JNIEXPORT jint JNICALL Java_Zmq_createQueue (JNIEnv *env, jobject obj,
     return qid;
 }
 
-JNIEXPORT void JNICALL Java_Zmq_bind (JNIEnv *env, jobject obj,
+JNIEXPORT void JNICALL Java_org_zmq_Zmq_bind (JNIEnv *env, jobject obj,
     jstring exchangeName, jstring queueName, jstring exchangeOptions,
     jstring queueOptions)
 {
@@ -226,7 +226,7 @@ JNIEXPORT void JNICALL Java_Zmq_bind (JNIEnv *env, jobject obj,
         env->ReleaseStringUTFChars (queueOptions, c_queue_options);
 }
 
-JNIEXPORT jboolean JNICALL Java_Zmq_send (JNIEnv *env, jobject obj,
+JNIEXPORT jboolean JNICALL Java_org_zmq_Zmq_send (JNIEnv *env, jobject obj,
     jint exchange, jbyteArray message, jboolean block)
 {
     //  Get the context.
@@ -248,7 +248,7 @@ JNIEXPORT jboolean JNICALL Java_Zmq_send (JNIEnv *env, jobject obj,
     return (jboolean) context->api_thread->send (exchange, msg, (bool) block);
 }
 
-JNIEXPORT jobject JNICALL Java_Zmq_receive (JNIEnv *env, jobject obj,
+JNIEXPORT jobject JNICALL Java_org_zmq_Zmq_receive (JNIEnv *env, jobject obj,
     jboolean block)
 {
     //  Get the context.
