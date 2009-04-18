@@ -16,28 +16,28 @@ $ forit f_remote_lat.for
 $ forit f_remote_thr.for
 $ forit f_local_thr.for
 $!
-$ linkit f_local_lat.obj, sys$input/opt
+$ clinkit f_local_lat.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !
 libvmszmq:vmszmq/share
 !
 $!
-$ linkit f_remote_lat.obj, sys$input/opt
+$ clinkit f_remote_lat.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !
 libvmszmq:vmszmq/share
 !
 $!
-$ linkit f_remote_thr.obj, sys$input/opt
+$ clinkit f_remote_thr.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !
 libvmszmq:vmszmq/share
 !
 $!
-$ linkit f_local_thr.obj, sys$input/opt
+$ clinkit f_local_thr.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !

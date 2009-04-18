@@ -13,7 +13,7 @@ $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $ ccompit vmszmq.c
 $!
-$ linkit/share=vmszmq.exe vmszmq, sys$input/opt
+$ clinkit/share=vmszmq.exe vmszmq, sys$input/opt
 libczmq:libczmq.olb/lib
 libzmq:libzmq.olb/lib
 !
