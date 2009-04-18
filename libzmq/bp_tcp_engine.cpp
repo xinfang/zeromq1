@@ -219,10 +219,6 @@ void zmq::bp_tcp_engine_t::in_event ()
         return;
     }
 
-    //  This variable determines whether processing incoming messages is
-    //  stuck because of exceeded pipe limits.
-    bool stuck = read_pos < read_size;
-
     //  If there's no data to process in the buffer, read new data.
     if (read_pos == read_size) {
 
@@ -240,31 +236,18 @@ void zmq::bp_tcp_engine_t::in_event ()
     //  If there's at least one unprocessed byte in the buffer, process it.
     if (read_pos < read_size) {
 
-        //  Push the data to the decoder and adjust read position in the buffer.
+        //  Push the data to the decoder.
         int nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
-        read_pos += nbytes;
 
         //  If at least one byte was processed, flush all messages the decoder
         //  may have produced.
         if (nbytes > 0)
             demux->flush ();
 
-        //  If processing was stuck and became unstuck, start reading
-        //  from the socket. If it was unstuck and became stuck, stop polling
-        //  for new data.
-        if (stuck) {
-            if (read_pos == read_size)
-
-                //  TODO: Speculative read should be used at this place to
-                //  avoid excessive poll. However, it looks like this can
-                //  result in infinite cycle in some cases, virtually
-                //  preventing other engines' access to CPU. Fix it.
-                poller->set_pollin (handle);
-        }
-        else {
-            if (read_pos < read_size)
-                poller->reset_pollin (handle);
-        }
+        //  Adjust read position. Stop monitoring input if we got stuck.
+        read_pos += nbytes;
+        if (read_pos < read_size)
+            poller->reset_pollin (handle);
     }
 }
 
@@ -350,8 +333,31 @@ void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, int64_t position_)
 {
     engine_base_t <true,true>::head (pipe_, position_);
 
-    //  This command may have unblocked the pipe - start receiving messages.
-    in_event ();
+    if (read_pos < read_size) {
+
+        //  Decoding has been suspended - try to resume it now.
+        int nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
+
+        //  Flush pending messages if necessary.
+        if (nbytes > 0)
+            demux->flush ();
+
+        //  Has the message decoder consumed all the data? If so, we need to
+        //  get notified when more input data is available.
+        read_pos += nbytes;
+        if (read_pos == read_size)
+            poller->set_pollin (handle);
+    }
+    else {
+
+        //  It's possible there is a message left in the decoder.
+        //  Give the decoder oportunity to push the message forward.
+        //
+        //  TODO: the flush operation can be rather expensive so we
+        //        should call it only when absolutely necessary.
+        decoder.write (NULL, 0);
+        demux->flush ();
+    }
 }
 
 void zmq::bp_tcp_engine_t::send_to (pipe_t *pipe_)
