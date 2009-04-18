@@ -25,7 +25,7 @@
 #include <zmq/ypipe.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/config.hpp>
-#include <zmq/data_dam.hpp>
+#include <zmq/swap.hpp>
 
 namespace zmq
 {
@@ -139,12 +139,12 @@ namespace zmq
         uint64_t in_core_msg_cnt;
 
         //  Message store keeps messages when the memory buffer is full.
-        data_dam_t *data_dam;
+        swap_t *swap;
 
         //  Flag indicating whether the swapping has been activated or not.
         bool swapping;
 
-        //  Number of messages kept in the data dam (swap file).
+        //  Number of messages kept in the swap file.
         size_t in_swap_msg_cnt;
 
         //  Refills the memory buffer from the swap file.

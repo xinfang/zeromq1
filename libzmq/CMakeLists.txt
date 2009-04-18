@@ -31,7 +31,7 @@ set(libzmq_headers
   zmq/config.hpp
   zmq/decoder.hpp
   zmq/i_demux.hpp
-  zmq/publisher.hpp
+  zmq/data_distributor.hpp
   zmq/load_balancer.hpp
   zmq/devpoll_thread.hpp
   zmq/dispatcher.hpp
@@ -81,7 +81,7 @@ set(libzmq_headers
   zmq/sctp_engine.hpp
   zmq/sctp_listener.hpp
   zmq/xmlParser.hpp
-  zmq/data_dam.hpp
+  zmq/swap.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
@@ -100,7 +100,7 @@ set(libzmq_sources
   bp_pgm_sender.cpp
   bp_tcp_engine.cpp
   bp_tcp_listener.cpp
-  publisher.cpp
+  data_distributor.cpp
   load_balancer.cpp
   devpoll_thread.cpp
   dispatcher.cpp
@@ -126,7 +126,7 @@ set(libzmq_sources
   sctp_engine.cpp
   sctp_listener.cpp
   xmlParser.cpp
-  data_dam.cpp
+  swap.cpp
 )
 
 set(libzmq_libraries

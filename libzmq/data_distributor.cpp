@@ -18,23 +18,23 @@
 */
 
 #include <algorithm>
-#include <zmq/publisher.hpp>
+#include <zmq/data_distributor.hpp>
 
-zmq::publisher_t::publisher_t ()
+zmq::data_distributor_t::data_distributor_t ()
 {
 }
 
-zmq::publisher_t::~publisher_t ()
+zmq::data_distributor_t::~data_distributor_t ()
 {
 }
 
-void zmq::publisher_t::send_to (pipe_t *pipe_)
+void zmq::data_distributor_t::send_to (pipe_t *pipe_)
 {
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
 }
 
-bool zmq::publisher_t::write (message_t &msg_)
+bool zmq::data_distributor_t::write (message_t &msg_)
 {
     //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Demux is the component that translates between the two.
@@ -102,25 +102,25 @@ bool zmq::publisher_t::write (message_t &msg_)
     return true;
 }
 
-void zmq::publisher_t::flush ()
+void zmq::data_distributor_t::flush ()
 {
     //  Flush all the present messages to the pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->flush ();
 }
 
-void zmq::publisher_t::gap ()
+void zmq::data_distributor_t::gap ()
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->gap ();
 }
 
-bool zmq::publisher_t::empty ()
+bool zmq::data_distributor_t::empty ()
 {
     return pipes.empty ();
 }
 
-void zmq::publisher_t::release_pipe (pipe_t *pipe_)
+void zmq::data_distributor_t::release_pipe (pipe_t *pipe_)
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
         if (*it == pipe_) {
@@ -130,7 +130,7 @@ void zmq::publisher_t::release_pipe (pipe_t *pipe_)
     }
 }
 
-void zmq::publisher_t::initialise_shutdown ()
+void zmq::data_distributor_t::initialise_shutdown ()
 {
     //  Broadcast 'terminate_writer' to all associated pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)

@@ -33,7 +33,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     last_head_position (0),
     delayed_gap (false),
     in_core_msg_cnt (0),
-    data_dam (NULL),
+    swap (NULL),
     swapping (false),
     in_swap_msg_cnt (0),
     writer_terminating (false),
@@ -62,16 +62,16 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
 
     //  Create a swap file if necessary.
     if (swap_size > 0) {
-        data_dam = new data_dam_t (swap_size);
-        zmq_assert (data_dam);
+        swap = new swap_t (swap_size);
+        zmq_assert (swap);
     }
 }
 
 zmq::pipe_t::~pipe_t ()
 {
-    //  Purge the associated data dam.
-    if (data_dam)
-        delete data_dam;
+    //  Purge the associated swap.
+    if (swap)
+        delete swap;
 
     //  Destroy the messages in the pipe itself.
     raw_message_t message;
@@ -82,7 +82,7 @@ zmq::pipe_t::~pipe_t ()
 
 bool zmq::pipe_t::check_write ()
 {
-    return (hwm == 0 || in_core_msg_cnt < (size_t) hwm || data_dam);
+    return (hwm == 0 || in_core_msg_cnt < (size_t) hwm || swap);
 }
 
 
@@ -94,13 +94,13 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
     //  If we have hit the queue limit, switch into swapping mode.
     if (in_core_msg_cnt == (size_t) hwm && hwm != 0) {
-        zmq_assert (data_dam);
+        zmq_assert (swap);
         swapping = true;
     }
 
     //  Write the message into main memory or swap file.
     if (swapping) {
-        bool rc = data_dam->store (msg_);
+        bool rc = swap->store (msg_);
         zmq_assert (rc);
         in_swap_msg_cnt ++;
     }
@@ -128,7 +128,7 @@ void zmq::pipe_t::set_head (uint64_t position_)
     in_core_msg_cnt -= position_ - last_head_position;
     last_head_position = position_;
 
-    //  Transfer messages from the data dam into the main memory.
+    //  Transfer messages from the swap into the main memory.
     if (swapping && in_core_msg_cnt < (size_t) lwm)
         swap_in ();
 
@@ -241,7 +241,7 @@ void zmq::pipe_t::swap_in ()
 {
     while (in_swap_msg_cnt > 0 && in_core_msg_cnt < (size_t) hwm) {
         raw_message_t msg;
-        data_dam->fetch (&msg);
+        swap->fetch (&msg);
         pipe.write (msg);
         in_swap_msg_cnt --;
         in_core_msg_cnt ++;
@@ -251,7 +251,7 @@ void zmq::pipe_t::swap_in ()
     flush ();
 
     if (in_swap_msg_cnt == 0) {
-        zmq_assert (data_dam->empty ());
+        zmq_assert (swap->empty ());
         swapping = false;
     }
 }

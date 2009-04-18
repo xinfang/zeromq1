@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_PUBLISHER_HPP_INCLUDED__
-#define __ZMQ_PUBLISHER_HPP_INCLUDED__
+#ifndef __ZMQ_DATA_DISTRIBUTOR_HPP_INCLUDED__
+#define __ZMQ_DATA_DISTRIBUTOR_HPP_INCLUDED__
 
 #include <vector>
 
@@ -29,14 +29,14 @@ namespace zmq
 
     //  Object to distribute messages to outbound pipes.
 
-    class publisher_t : public i_demux
+    class data_distributor_t : public i_demux
     {
     public:
 
-        publisher_t ();
+        data_distributor_t ();
 
         //  i_demux interface implementation.
-        ~publisher_t ();
+        ~data_distributor_t ();
         void send_to (pipe_t *pipe_);
         bool write (message_t &msg_);
         void flush ();
@@ -51,8 +51,8 @@ namespace zmq
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
 
-        publisher_t (const publisher_t&);
-        void operator = (const publisher_t&);
+        data_distributor_t (const data_distributor_t&);
+        void operator = (const data_distributor_t&);
     };
 
 }

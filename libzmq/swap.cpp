@@ -31,13 +31,13 @@
 #include <unistd.h>
 #endif
 
-#include <zmq/data_dam.hpp>
+#include <zmq/swap.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/err.hpp>
 
-zmq::atomic_counter_t zmq::data_dam_t::counter;
+zmq::atomic_counter_t zmq::swap_t::counter;
 
-zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
+zmq::swap_t::swap_t (int64_t filesize_, size_t block_size_) :
     filesize (filesize_),
     file_pos (0),
     write_pos (0),
@@ -85,7 +85,7 @@ zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
 #endif
 }
 
-zmq::data_dam_t::~data_dam_t ()
+zmq::swap_t::~swap_t ()
 {
     delete [] buf1;
     delete [] buf2;
@@ -105,7 +105,7 @@ zmq::data_dam_t::~data_dam_t ()
     errno_assert (rc == 0);
 }
 
-bool zmq::data_dam_t::store (raw_message_t *msg_)
+bool zmq::swap_t::store (raw_message_t *msg_)
 {
     size_t msg_size = raw_message_size (msg_);
 
@@ -132,7 +132,7 @@ bool zmq::data_dam_t::store (raw_message_t *msg_)
     return true;
 }
 
-void zmq::data_dam_t::fetch (raw_message_t *msg_)
+void zmq::swap_t::fetch (raw_message_t *msg_)
 {
     //  There must be at least one message available.
     zmq_assert (n_msgs > 0);
@@ -159,17 +159,17 @@ void zmq::data_dam_t::fetch (raw_message_t *msg_)
     n_msgs --;
 }
 
-bool zmq::data_dam_t::empty ()
+bool zmq::swap_t::empty ()
 {
     return n_msgs == 0;
 }
 
-unsigned long zmq::data_dam_t::size ()
+unsigned long zmq::swap_t::size ()
 {
     return n_msgs;
 }
 
-void zmq::data_dam_t::copy_from_file (void *buffer_, size_t count_)
+void zmq::swap_t::copy_from_file (void *buffer_, size_t count_)
 {
     char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
@@ -194,7 +194,7 @@ void zmq::data_dam_t::copy_from_file (void *buffer_, size_t count_)
     }
 }
 
-void zmq::data_dam_t::copy_to_file (const void *buffer_, size_t count_)
+void zmq::swap_t::copy_to_file (const void *buffer_, size_t count_)
 {
     char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
@@ -225,7 +225,7 @@ void zmq::data_dam_t::copy_to_file (const void *buffer_, size_t count_)
     }
 }
 
-void zmq::data_dam_t::fill_read_buf ()
+void zmq::swap_t::fill_read_buf ()
 {
     if (file_pos != read_pos) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -253,7 +253,7 @@ void zmq::data_dam_t::fill_read_buf ()
     file_pos += n;
 }
 
-void zmq::data_dam_t::save_write_buf ()
+void zmq::swap_t::save_write_buf ()
 {
     if (file_pos != write_buf_start_addr) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -282,7 +282,7 @@ void zmq::data_dam_t::save_write_buf ()
     file_pos += n;
 }
 
-int64_t zmq::data_dam_t::buffer_space ()
+int64_t zmq::swap_t::buffer_space ()
 {
     if (write_pos < read_pos)
         return read_pos - write_pos;

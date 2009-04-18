@@ -32,7 +32,7 @@ pkginclude_HEADERS = \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
     ./zmq/i_demux.hpp \
-    ./zmq/publisher.hpp \
+    ./zmq/data_distributor.hpp \
     ./zmq/load_balancer.hpp \
     ./zmq/i_thread.hpp \
     ./zmq/pipe.hpp \
@@ -73,7 +73,7 @@ pkginclude_HEADERS = \
     ./zmq/i_amqp.hpp \
     ./zmq/engine_base.hpp \
     ./zmq/xmlParser.hpp \
-    ./zmq/data_dam.hpp
+    ./zmq/swap.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -93,7 +93,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     kqueue_thread.cpp \
     bp_tcp_engine.cpp \
     mux.cpp \
-    publisher.cpp \
+    data_distributor.cpp \
     load_balancer.cpp \
     pipe.cpp \
     bp_tcp_listener.cpp \
@@ -116,7 +116,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_marshaller.cpp \
     amqp_unmarshaller.cpp \
     xmlParser.cpp \
-    data_dam.cpp
+    swap.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@

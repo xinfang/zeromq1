@@ -24,7 +24,7 @@
 #include <zmq/i_engine.hpp>
 #include <zmq/mux.hpp>
 #include <zmq/i_demux.hpp>
-#include <zmq/publisher.hpp>
+#include <zmq/data_distributor.hpp>
 #include <zmq/load_balancer.hpp>
 
 namespace zmq
@@ -39,7 +39,7 @@ namespace zmq
             if (load_balancing_)
                 demux = new load_balancer_t ();
             else
-                demux = new publisher_t ();
+                demux = new data_distributor_t ();
             zmq_assert (demux);
         }
 
