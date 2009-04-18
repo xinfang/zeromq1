@@ -221,7 +221,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\data_dam.cpp"
+				RelativePath="..\..\libzmq\data_distributor.cpp"
 				>
 			</File>
 			<File
@@ -285,10 +285,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\publisher.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\sctp_engine.cpp"
 				>
 			</File>
@@ -298,6 +294,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\select_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\swap.cpp"
 				>
 			</File>
 			<File
@@ -407,7 +407,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\data_dam.hpp"
+				RelativePath="..\..\libzmq\zmq\data_distributor.hpp"
 				>
 			</File>
 			<File
@@ -547,10 +547,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\publisher.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\zmq\raw_message.hpp"
 				>
 			</File>
@@ -576,6 +572,10 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\stdint.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\swap.hpp"
 				>
 			</File>
 			<File
