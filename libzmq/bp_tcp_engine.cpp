@@ -241,31 +241,30 @@ void zmq::bp_tcp_engine_t::in_event ()
     if (read_pos < read_size) {
 
         //  Push the data to the decoder and adjust read position in the buffer.
-        int  nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
+        int nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
         read_pos += nbytes;
 
-         //  If processing was stuck and become unstuck start reading
-         //  from the socket. If it was unstuck and became stuck, stop polling
-         //  for new data.
-         if (stuck) {
-             if (read_pos == read_size)
-
-                 //  TODO: Speculative read should be used at this place to
-                 //  avoid excessive poll. However, it looks like this can
-                 //  result in infinite cycle in some cases, virtually
-                 //  preventing other engines' access to CPU. Fix it.
-                 poller->set_pollin (handle);
-         }
-         else {
-             if (read_pos < read_size) {
-                 poller->reset_pollin (handle);
-             }    
-         }
-
-        //  If at least one byte was processed, flush any messages decoder
+        //  If at least one byte was processed, flush all messages the decoder
         //  may have produced.
         if (nbytes > 0)
             demux->flush ();
+
+        //  If processing was stuck and became unstuck, start reading
+        //  from the socket. If it was unstuck and became stuck, stop polling
+        //  for new data.
+        if (stuck) {
+            if (read_pos == read_size)
+
+                //  TODO: Speculative read should be used at this place to
+                //  avoid excessive poll. However, it looks like this can
+                //  result in infinite cycle in some cases, virtually
+                //  preventing other engines' access to CPU. Fix it.
+                poller->set_pollin (handle);
+        }
+        else {
+            if (read_pos < read_size)
+                poller->reset_pollin (handle);
+        }
     }
 }
 
