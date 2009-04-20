@@ -29,7 +29,7 @@ $ compit devpoll_thread.cpp
 $ compit kqueue_thread.cpp
 $ compit bp_tcp_engine.cpp
 $ compit mux.cpp
-$ compit publisher.cpp
+$ compit data_distributor.cpp
 $ compit load_balancer.cpp
 $ compit pipe.cpp
 $ compit bp_tcp_listener.cpp
@@ -52,7 +52,7 @@ $ compit amqp_decoder.cpp
 $ compit amqp_marshaller.cpp
 $ compit amqp_unmarshaller.cpp
 $ compit xmlParser.cpp
-$ compit data_dam.cpp
+$ compit swap.cpp
 $!
 $ lib/create libzmq.olb
 $ lib/repl/nolog libzmq.olb *.obj;
