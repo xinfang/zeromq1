@@ -193,8 +193,7 @@ void zmq::sctp_listener_t::out_event ()
 
 void zmq::sctp_listener_t::unregister_event ()
 {
-    //  TODO: implement this
-    assert (false);
+    //  TODO: Implement this. For now we'll do nothing here.
 }
 
 const char *zmq::sctp_listener_t::get_arguments ()

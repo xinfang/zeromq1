@@ -71,9 +71,9 @@ namespace zmq
         //  sends them to the socket).
         bool source;
 
-        //  The thread listener is running in.
-        i_thread *thread;
-
+        //  Associated poller object.
+        i_poller *poller;
+        
         //  Determine the engine and the object (either exchange or queue)
         //  within the engine to serve as a peer to this engine.
         i_thread *peer_thread;
@@ -85,6 +85,9 @@ namespace zmq
 
         //  Listening socket.
         tcp_listener_t listener;
+
+        //  Handle of the underlying socket.
+        handle_t handle;
 
         //  The thread array to manage newly-created BP engines.
         typedef std::vector <i_thread*> handler_threads_t;

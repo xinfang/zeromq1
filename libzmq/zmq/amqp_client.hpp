@@ -146,7 +146,7 @@ namespace zmq
         int write_size;
         int write_pos;
 
-        //  Buffer to read from undrlying socket.
+        //  Buffer to read from underlying socket.
         unsigned char *readbuf;
         int readbuf_size;
         int read_size;

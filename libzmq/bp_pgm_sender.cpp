@@ -206,7 +206,7 @@ void zmq::bp_pgm_sender_t::out_event ()
 
 void zmq::bp_pgm_sender_t::unregister_event ()
 {
-    assert (false);
+    // TODO: Implement this. For now we just ignore the event.
 }
 
 void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)

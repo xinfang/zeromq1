@@ -255,7 +255,12 @@ void zmq::amqp_client_t::out_event ()
 
 void zmq::amqp_client_t::unregister_event ()
 {
-    assert (false);
+    //  TODO: Implement full-blown shut-down mechanism.
+    //  For now, we'll just close the underlying socket.
+    if (state != state_shutting_down) {
+        poller->rm_fd (handle);
+        socket.close ();
+    }
 }
 
 void zmq::amqp_client_t::connection_start (

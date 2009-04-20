@@ -295,8 +295,12 @@ void zmq::bp_tcp_engine_t::out_event ()
 
 void zmq::bp_tcp_engine_t::unregister_event ()
 {
-    //  TODO: Implement this.
-    assert (false);
+    //  TODO: Implement full-blown shut-down mechanism.
+    //  For now, we'll just close the underlying socket.
+    if (state != engine_shutting_down) {
+        poller->rm_fd (handle); 
+        socket->close ();
+    }
 }
 
 void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)

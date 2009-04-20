@@ -28,7 +28,7 @@ zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
     source (source_),
-    thread (thread_),
+    poller (NULL),
     peer_thread (peer_thread_),
     peer_engine (peer_engine_),
     listener (interface_)
@@ -67,15 +67,16 @@ void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */,
 
 void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 {
-    handle_t handle = poller_->add_fd (listener.get_fd (), this);
-    poller_->set_pollin (handle);
+    poller = poller_;
+    handle = poller->add_fd (listener.get_fd (), this);
+    poller->set_pollin (handle);
 }
 
 void zmq::bp_tcp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    bp_tcp_engine_t *engine = new bp_tcp_engine_t (thread,
+    bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
         handler_threads [current_handler_thread], listener, peer_name);
     assert (engine);
 
@@ -95,12 +96,12 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  Bind new engine to the source end of the pipe.
         command_t cmd_send_to;
         cmd_send_to.init_engine_send_to (source_engine, pipe);
-        thread->send_command (source_thread, cmd_send_to);
+        poller->send_command (source_thread, cmd_send_to);
 
         //  Bind the peer to the destination end of the pipe.
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (peer_engine, pipe);
-        thread->send_command (peer_thread, cmd_receive_from);
+        poller->send_command (peer_thread, cmd_receive_from);
     }
     else {
 
@@ -119,12 +120,12 @@ void zmq::bp_tcp_listener_t::in_event ()
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (
             destination_engine, pipe);
-        thread->send_command (destination_thread, cmd_receive_from);
+        poller->send_command (destination_thread, cmd_receive_from);
 
         //  Bind the peer to the source end of the pipe.
         command_t cmd_send_to;
         cmd_send_to.init_engine_send_to (peer_engine, pipe);
-        thread->send_command (peer_thread, cmd_send_to);
+        poller->send_command (peer_thread, cmd_send_to);
     }
 
     //  Move to the next thread to get round-robin balancing of engines.
@@ -141,8 +142,10 @@ void zmq::bp_tcp_listener_t::out_event ()
 
 void zmq::bp_tcp_listener_t::unregister_event ()
 {
-    //  TODO: implement this
-    assert (false);
+    //  TODO: Implement full-blown shut-down mechanism.
+    //  For now, we'll just close the underlying socket.
+    poller->rm_fd (handle);
+    listener.close ();
 }
 
 const char *zmq::bp_tcp_listener_t::get_arguments ()

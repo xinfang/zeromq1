@@ -109,6 +109,14 @@ zmq::tcp_socket_t::~tcp_socket_t ()
     wsa_assert (rc != SOCKET_ERROR);
 }
 
+void zmq::tcp_socket_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = closesocket (s);
+    wsa_assert (rc != SOCKET_ERROR);
+    s = retired_fd;
+}
+
 int zmq::tcp_socket_t::write (const void *data, int size)
 {
     int nbytes = send (s, (char*) data, size, 0);
@@ -224,6 +232,14 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 {
     int rc = close (s);
     errno_assert (rc == 0);
+}
+
+void zmq::tcp_socket_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = closesocket (s);
+    wsa_assert (rc != SOCKET_ERROR);
+    s = retired_fd;
 }
 
 int zmq::tcp_socket_t::write (const void *data, int size)

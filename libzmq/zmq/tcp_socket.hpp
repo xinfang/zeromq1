@@ -48,6 +48,9 @@ namespace zmq
         //  Closes the socket.
         ZMQ_EXPORT ~tcp_socket_t ();
 
+        //  Closes the underlying socket without destroying the object.
+        ZMQ_EXPORT void close ();
+
         //  Returns the underlying socket.
         inline fd_t get_fd ()
         {

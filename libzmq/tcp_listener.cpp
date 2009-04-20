@@ -96,8 +96,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 
 zmq::tcp_listener_t::~tcp_listener_t ()
 {
-    int rc = closesocket (s);
-    wsa_assert (rc != SOCKET_ERROR);
+    close ();
 }
 
 zmq::fd_t zmq::tcp_listener_t::accept ()
@@ -107,6 +106,15 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
     wsa_assert (sock != INVALID_SOCKET);
     return sock;
 }
+
+void zmq::tcp_listener_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = closesocket (s);
+    wsa_assert (rc != SOCKET_ERROR);
+    s = retired_fd;
+}
+
 
 #else
 
@@ -164,8 +172,7 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 
 zmq::tcp_listener_t::~tcp_listener_t ()
 {
-    int rc = close (s);
-    errno_assert (rc == 0);
+    close ();
 }
 
 zmq::fd_t zmq::tcp_listener_t::accept ()
@@ -174,6 +181,14 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
     fd_t sock = ::accept (s, NULL, NULL);
     errno_assert (sock != -1); 
     return sock;
+}
+
+void zmq::tcp_listener_t::close ()
+{
+    assert (s != retired_fd);
+    int rc = ::close (s);
+    errno_assert (rc == 0);
+    s = retired_fd;
 }
 
 #endif
