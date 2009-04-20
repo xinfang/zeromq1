@@ -284,6 +284,7 @@ AC_ARG_WITH([java], [AS_HELP_STRING([--with-java], [build Java language binding 
 if test "x$with_java" != "xno"; then
     AC_PATH_PROG(JAVAC, javac, "no")
     AC_PATH_PROG(JAVAH, javah, "no")
+    AC_PATH_PROG(JAR, jar, "no")
 
     if test "x$JAVA_HOME" = "x"; then
         AC_MSG_ERROR([To run configure with --with-java, please set the JAVA_HOME variable to your JDK environment.]);

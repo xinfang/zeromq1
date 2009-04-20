@@ -13,10 +13,14 @@ libjzmq_la_LIBADD = $(top_builddir)/libzmq/libzmq.la
 
 BUILT_SOURCES = org_zmq_Zmq.h ./org/zmq/Zmq.class
 
+CLEANFILES = org_zmq_Zmq.h org_zmq_Zmq_InboundData.h Zmq.jar ./org/zmq/Zmq.class \
+./org/zmq/Zmq\$$InboundData.class
+
 $(srcdir)/Zmq.cpp: org_zmq_Zmq.h
 
 org_zmq_Zmq.h: ./org/zmq/Zmq.class
 	$(CLASSPATH_ENV) $(JAVAH) -jni -classpath ./ org.zmq.Zmq
+	$(CLASSPATH_ENV) $(JAR) cfv Zmq.jar ./org/zmq/Zmq.class ./org/zmq/Zmq\$$InboundData.class
 
 ./org/zmq/Zmq.class: classdist_noinst.stamp
 
