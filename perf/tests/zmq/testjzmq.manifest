@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Class-Path: ../../../libjzmq/Zmq.jar
-Main-Class: j_remote_thr
+Main-Class: j_local_lat j_remote_lat j_remote_thr j_local_thr
 
 
 
