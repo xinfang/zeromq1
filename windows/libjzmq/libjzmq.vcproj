@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="javac ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq org.zmq.Zmq&#x0D;&#x0A;javadoc ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;&#x0D;&#x0A;cd ..\..\libjzmq&#x0D;&#x0A;jar -cfv Zmq.jar .\org\zmq\Zmq.class .\org\zmq\Zmq$InboundData.class&#x0D;&#x0A;cd $(ProjectDir)"
+				CommandLine="javac ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq org.zmq.Zmq&#x0D;&#x0A;javadoc ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;&#x0D;&#x0A;cd ..\..\libjzmq&#x0D;&#x0A;jar -cfv Zmq.jar .\org\zmq\Zmq.class .\org\zmq\Zmq$InboundData.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -85,7 +85,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;&#x0D;&#x0A;cd &quot;..\..\perf\tests\zmq&quot;&#x0D;&#x0A;jar -cvfm j_local_lat.jar j_local_lat.manifest j_local_lat.class&#x0D;&#x0A;jar -cvfm j_remote_lat.jar j_remote_lat.manifest j_remote_lat.class&#x0D;&#x0A;jar -cvfm j_local_thr.jar j_local_thr.manifest j_local_thr.class&#x0D;&#x0A;jar -cvfm j_remote_thr.jar j_remote_thr.manifest j_remote_thr.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
+				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;&#x0D;&#x0A;cd &quot;..\..\perf\tests\zmq&quot;&#x0D;&#x0A;jar -cvfm testsjzmq.jar testsjzmq.manifest j_local_lat.class j_local_thr.class j_remote_thr.class j_remote_lat.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -98,7 +98,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="javac ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq org.zmq.Zmq&#x0D;&#x0A;javadoc ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;&#x0D;&#x0A;cd ..\..\libjzmq&#x0D;&#x0A;jar -cfv Zmq.jar .\org\zmq\Zmq.class .\org\zmq\Zmq$InboundData.class&#x0D;&#x0A;cd $(ProjectDir)"
+				CommandLine="javac ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;javah -jni -classpath ..\..\libjzmq -d ..\..\libjzmq org.zmq.Zmq&#x0D;&#x0A;javadoc ..\..\libjzmq\org\zmq\Zmq.java&#x0D;&#x0A;&#x0D;&#x0A;cd ..\..\libjzmq&#x0D;&#x0A;jar -cfv Zmq.jar .\org\zmq\Zmq.class .\org\zmq\Zmq$InboundData.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -161,7 +161,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;&#x0D;&#x0A;cd &quot;..\..\perf\tests\zmq&quot;&#x0D;&#x0A;jar -cvfm j_local_lat.jar j_local_lat.manifest j_local_lat.class&#x0D;&#x0A;jar -cvfm j_remote_lat.jar j_remote_lat.manifest j_remote_lat.class&#x0D;&#x0A;jar -cvfm j_local_thr.jar j_local_thr.manifest j_local_thr.class&#x0D;&#x0A;jar -cvfm j_remote_thr.jar j_remote_thr.manifest j_remote_thr.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
+				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;&#x0D;&#x0A;cd &quot;..\..\perf\tests\zmq&quot;&#x0D;&#x0A;jar -cvfm testsjzmq.jar testsjzmq.manifest j_local_lat.class j_local_thr.class j_remote_thr.class j_remote_lat.class&#x0D;&#x0A;cd $(ProjectDir)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
