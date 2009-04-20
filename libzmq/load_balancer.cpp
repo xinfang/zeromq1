@@ -60,7 +60,7 @@ bool zmq::load_balancer_t::write (message_t &msg_)
     //  Find the first pipe that is ready to accept the message.
     bool found = false;
     for (pipes_t::size_type i = 0; !found && i < pipes.size (); i++) {
-        if (pipes [current]->check_write ())
+        if (pipes [current]->check_write (msg))
             found = true;
         else
             current = (current + 1) % pipes.size ();

@@ -105,16 +105,27 @@ zmq::swap_t::~swap_t ()
     errno_assert (rc == 0);
 }
 
-bool zmq::swap_t::store (raw_message_t *msg_)
+bool zmq::swap_t::check_capacity (raw_message_t *msg_)
 {
-    size_t msg_size = raw_message_size (msg_);
+    size_t record_size, msg_size = raw_message_size (msg_);
 
-    //  Check buffer space availability.
+    if (msg_size > 0)
+        record_size = sizeof (size_t) + msg_size;
+    else
+        record_size = sizeof (size_t) + sizeof (int);
+
+    //  Check swap space availability.
     //  NOTE: We always keep one byte open.
-    if (buffer_space () <= (int64_t) (sizeof msg_size + msg_size))
-        return false;
+    return (int64_t) record_size < buffer_space ();
+}
+
+void zmq::swap_t::store (raw_message_t *msg_)
+{
+    bool swap_space_available = check_capacity (msg_);
+    zmq_assert (swap_space_available);
 
     //  Write the message length.
+    size_t msg_size = raw_message_size (msg_);
     copy_to_file (&msg_size, sizeof msg_size);
 
     if (msg_size > 0) {
@@ -128,8 +139,6 @@ bool zmq::swap_t::store (raw_message_t *msg_)
 
     //  Update the message counter.
     n_msgs ++;
-
-    return true;
 }
 
 void zmq::swap_t::fetch (raw_message_t *msg_)

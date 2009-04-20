@@ -45,9 +45,11 @@ namespace zmq
 
         ~swap_t ();
 
-        //  Stores the message into the swap. The function
-        //  returns false if the swap is full and true otherwise.
-        bool store (raw_message_t *msg_);
+        //  Tests if the swap can accept the message.
+        bool check_capacity (raw_message_t *msg_);
+
+        //  Stores the message into the swap.
+        void store (raw_message_t *msg_);
 
         //  Fetches the oldest message from the swap. It is an error
         //  to call this function when the swap is empty.

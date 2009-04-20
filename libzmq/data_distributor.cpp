@@ -62,7 +62,7 @@ bool zmq::data_distributor_t::write (message_t &msg_)
 
     //  First check whether all pipes are available for writing.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
-        if (!(*it)->check_write ())
+        if (!(*it)->check_write (msg))
             return false;
 
     //  For VSMs the copying is straighforward.

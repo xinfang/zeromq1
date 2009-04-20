@@ -49,7 +49,7 @@ namespace zmq
         //  Check whether message can be written to the pipe (i.e. whether
         //  pipe limits are exceeded. If true, it's OK to write the message
         //  to the pipe.
-        bool check_write ();
+        bool check_write (raw_message_t *msg_);
 
         //  Write a message to the pipe.
         void write (raw_message_t *msg_);

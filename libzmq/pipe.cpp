@@ -80,11 +80,18 @@ zmq::pipe_t::~pipe_t ()
         raw_message_destroy (&message);
 }
 
-bool zmq::pipe_t::check_write ()
+bool zmq::pipe_t::check_write (raw_message_t *msg_)
 {
-    return (hwm == 0 || in_core_msg_cnt < (size_t) hwm || swap);
-}
+    //  Never exceed hwm memory limit.
+    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm)
+        return true;
 
+    //  Can we keep the message in file-backed message store?
+    if (swap && swap->check_capacity (msg_))
+        return true;
+
+    return false;
+}
 
 void zmq::pipe_t::write (raw_message_t *msg_)
 {
@@ -100,8 +107,7 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
     //  Write the message into main memory or swap file.
     if (swapping) {
-        bool rc = swap->store (msg_);
-        zmq_assert (rc);
+        swap->store (msg_);
         in_swap_msg_cnt ++;
     }
     else {
@@ -112,14 +118,15 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
 void zmq::pipe_t::gap ()
 {
-    if (!check_write ()) {
-        delayed_gap = true;
-        return;
-    }
     raw_message_t msg;
     raw_message_init_notification (&msg, raw_message_t::gap_tag);
-    write (&msg);
-    flush ();
+
+    if (check_write (&msg)) {
+        write (&msg);
+        flush ();
+    }
+    else
+        delayed_gap = true;
 }
 
 void zmq::pipe_t::set_head (uint64_t position_)
@@ -133,11 +140,15 @@ void zmq::pipe_t::set_head (uint64_t position_)
         swap_in ();
 
     //  If there's a gap notification waiting, push it into the queue.
-    if (delayed_gap && check_write ()) {
+    if (delayed_gap) {
+
         raw_message_t msg;
         raw_message_init_notification (&msg, raw_message_t::gap_tag);
-        write (&msg);
-        delayed_gap = false;
+
+        if (check_write (&msg)) {
+            write (&msg);
+            delayed_gap = false;
+        }
     }
 }
 
