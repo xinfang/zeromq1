@@ -44,6 +44,19 @@ case "${host_os}" in
         AC_CHECK_LIB(nsl, main)
         AC_CHECK_LIB(rt, main)
         CPPFLAGS="-D_REENTRANT -D_PTHREADS $CPPFLAGS"
+        AC_MSG_CHECKING([wheter atomic operations can be used])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+            [[#include <atomic.h>]],
+            [[uint32_t value;
+              atomic_cas_32 (&value, 0, 0);
+              return 0;]])],
+            [solaris_has_atomic=yes],
+            [solaris_has_atomic=no])
+        AC_MSG_RESULT([$solaris_has_atomic])
+        # Solaris 8 does not have atomic operations exported to user space.
+        if test "x$solaris_has_atomic" = "xno"; then
+            AC_DEFINE(ZMQ_FORCE_MUTEXES, 1, [Force to use mutexes])
+        fi
         ;;
     *freebsd*)
         AC_DEFINE(ZMQ_HAVE_FREEBSD, 1, [Have FreeBSD OS])
