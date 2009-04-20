@@ -95,9 +95,14 @@ endif
 
 if BUILD_JAVA
 AM_JAVACFLAGS=-classpath $(top_builddir)/libjzmq 
-
 dist_noinst_JAVA = j_local_lat.java j_remote_lat.java j_local_thr.java \
 j_remote_thr.java
+testjzmq.jardir=/tmp
+testjzmq.jar_DATA: testjzmq.jar
+testjzmq.jar: j_local_lat.java j_remote_lat.java j_local_thr.java \
+j_remote_thr.java
+	$(JAR) jar cfvm testjzmq.jar testjzmq.manifest \
+j_local_lat.class j_local_thr.class j_remote_lat.class j_remote_thr.class
 endif
 
 if FALSE
