@@ -230,15 +230,15 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
 
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
-    int rc = close (s);
-    errno_assert (rc == 0);
+    if (s != retired_fd)
+        close ();
 }
 
 void zmq::tcp_socket_t::close ()
 {
     assert (s != retired_fd);
-    int rc = closesocket (s);
-    wsa_assert (rc != SOCKET_ERROR);
+    int rc = ::close (s);
+    errno_assert (rc == 0);
     s = retired_fd;
 }
 
