@@ -56,7 +56,7 @@ namespace zmq
         void flush ();
 
         //  Reads a message from the pipe.
-        bool read (raw_message_t *msg);
+        bool read (raw_message_t *msg, const char *remote_object_);
 
         //  Make the dead pipe alive once more.
         void revive ();

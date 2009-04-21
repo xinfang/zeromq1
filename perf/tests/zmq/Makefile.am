@@ -10,8 +10,8 @@ PGM_TEST_BINS = pgm_local_lat pgm_remote_lat \
 pgm_local_thr pgm_remote_thr
 endif
 
-noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr \
-$(C_TEST_BINS) $(PGM_TEST_BINS)
+noinst_PROGRAMS = local_lat remote_lat local_thr remote_thr router_test \
+router_test_client $(C_TEST_BINS) $(PGM_TEST_BINS)
 
 local_thr_SOURCES = local_thr.cpp ../../transports/zmq_transport.hpp \
 ../../transports/i_transport.hpp ../../helpers/functions.hpp\
@@ -34,6 +34,14 @@ remote_lat_SOURCES = remote_lat.cpp ../../transports/zmq_transport.hpp \
 ../../transports/i_transport.hpp ../scenarios/lat.hpp 
 remote_lat_LDADD = $(top_builddir)/libzmq/libzmq.la
 remote_lat_CXXFLAGS = -Wall -pedantic -Werror
+
+router_test_SOURCES = router_test.cpp 
+router_test_LDADD = $(top_builddir)/libzmq/libzmq.la
+router_test_CXXFLAGS = -Wall -pedantic -Werror
+
+router_test_client_SOURCES = router_test_client.cpp 
+router_test_client_LDADD = $(top_builddir)/libzmq/libzmq.la
+router_test_client_CXXFLAGS = -Wall -pedantic -Werror
 
 if FALSE
 local_fo_SOURCES = local_fo.cpp ../../transports/zmq_transport.hpp \

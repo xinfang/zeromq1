@@ -29,6 +29,7 @@
 #include <zmq/ypipe.hpp>
 #include <zmq/mutex.hpp>
 #include <zmq/config.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {
@@ -132,7 +133,19 @@ namespace zmq
     //  true, disconnection is silently ignored. If it returns false,
     //  application will fail (this is the default behaviour).
     ZMQ_EXPORT void set_error_handler (error_handler_t *eh_);
-    
+ 
+    //  Prototype of the routing handling function.
+    typedef bool (routing_handler_t) (message_t *msg_,
+        const char *remote_object_);
+
+    //  Global routing handler.
+    extern routing_handler_t * volatile rh;
+
+    //  Returns pointer to the current routing handling function.
+    routing_handler_t * get_routing_handler();
+ 
+    //  Sets routing function.
+    ZMQ_EXPORT void set_routing_handler (routing_handler_t *rh_);
 }
 
 #endif

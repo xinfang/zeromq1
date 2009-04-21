@@ -71,6 +71,7 @@ namespace zmq
         };
 
         message_content_t *content;
+        void *hint;
         bool shared;
         uint16_t vsm_size;
         unsigned char vsm_data [max_vsm_size];
@@ -94,6 +95,9 @@ namespace zmq
             msg_->content->ffn = NULL;
         }
 
+        //  Set routing hint to NULL.
+        msg_->hint = NULL;
+
     }
 
     //  Creates a message from the supplied buffer. From this point on
@@ -112,6 +116,10 @@ namespace zmq
         msg_->content->data = data_;
         msg_->content->size = size_;
         msg_->content->ffn = ffn_;
+
+        //  Set routing hint to NULL.
+        msg_->hint = NULL;
+
     }
 
     //  Initialises raw_message_t to be of a non-data type.
@@ -218,6 +226,18 @@ namespace zmq
         //   Trick the compiler to believe that content is an integer.
         unsigned char *offset = 0;
         return 1 << (int) (((const unsigned char*) msg_->content) - offset);
+    }
+
+    //  Set routing hint pointer.
+    inline void raw_set_hint (raw_message_t *msg_, void *hint_)
+    {
+        msg_->hint = hint_;
+    }
+
+    //  Get routing hint pointer.
+    inline void* raw_get_hint (raw_message_t *msg_)
+    {
+        return msg_->hint;
     }
 
 }

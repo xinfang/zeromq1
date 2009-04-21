@@ -47,8 +47,8 @@ bool zmq::mux_t::read (message_t *msg_)
     //  Round-robin over the pipes to get next message.
     for (int to_process = pipes.size (); to_process != 0; to_process --) {
 
-        bool retrieved = pipes [current]->read ((raw_message_t*) msg_);
-
+        bool retrieved = pipes [current]->read (msg, remote_object.c_str ());
+        
         current ++;
         if (current == pipes.size ())
             current = 0;
@@ -92,4 +92,9 @@ void zmq::mux_t::initialise_shutdown ()
     //  Broadcast 'terminate_reader' to all the pipes associated with the mux.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->terminate_reader ();
+}
+
+void zmq::mux_t::set_remote_object (std::string &remote_object_)
+{
+    remote_object = remote_object_;
 }

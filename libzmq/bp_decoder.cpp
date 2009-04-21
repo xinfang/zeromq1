@@ -20,9 +20,10 @@
 #include <zmq/bp_decoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_, bool receive_identity_,
-      std::string *identity_) :
+zmq::bp_decoder_t::bp_decoder_t (demux_t *demux_, mux_t *mux_, 
+      bool receive_identity_, std::string *identity_) :
     demux (demux_),
+    mux (mux_),
     receive_identity (receive_identity_),
     identity (identity_),
     startup (true)
@@ -67,9 +68,10 @@ bool zmq::bp_decoder_t::message_ready ()
 {
     if (startup && receive_identity) {
         *identity = std::string ((char*) message.data (), message.size ());
+        assert (mux);
+        mux->set_remote_object (*identity);
         startup = false;
-    }
-    else {
+    } else {
 
         //  Message is completely read. Push it to the dispatcher and start
         //  reading new message.

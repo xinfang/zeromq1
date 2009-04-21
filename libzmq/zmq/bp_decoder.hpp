@@ -24,6 +24,7 @@
 #include <string>
 
 #include <zmq/demux.hpp>
+#include <zmq/mux.hpp>
 #include <zmq/decoder.hpp>
 #include <zmq/message.hpp>
 
@@ -35,7 +36,7 @@ namespace zmq
     {
     public:
 
-        bp_decoder_t (demux_t *demux_, bool receive_identity_,
+        bp_decoder_t (demux_t *demux_, mux_t *mux_, bool receive_identity_,
             std::string *identity_);
 
         //  Clears any partially decoded messages.
@@ -48,6 +49,7 @@ namespace zmq
         bool message_ready ();
 
         demux_t *demux;
+        mux_t *mux;
         bool receive_identity;
         std::string *identity;
         bool startup;

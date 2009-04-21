@@ -21,6 +21,7 @@
 
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
+#include <zmq/dispatcher.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
       i_thread *destination_thread_, i_engine *destination_engine_) :
@@ -111,15 +112,49 @@ void zmq::pipe_t::flush ()
     }
 }
 
-bool zmq::pipe_t::read (raw_message_t *msg_)
+bool zmq::pipe_t::read (raw_message_t *msg_, const char *remote_object_)
 {
     //  If the pipe is dead, there's nothing we can do.
     if (!alive)
         return false;
 
+    //  Have message from pipe.
+    bool have_msg = false;
+
+    //  Get routing handler.
+    routing_handler_t *rh = get_routing_handler ();
+            
     //  Get next message, if it's not there, die.
-    if (!pipe.read (msg_))
+    while (pipe.read (msg_))
     {
+
+        //  raw_message_type should return 1 for data messages.
+        //  Non data messages are not passed into the routing handler.
+        if (raw_message_type (msg_) != 1) {
+            have_msg = true;
+            break;
+        }
+
+        //  If routing handler not set pass all the messages.
+        if (!rh) {
+            have_msg = true;
+            break;
+        }
+
+        //  If remote_object is not set do not pass messages.
+        if (!remote_object_) {
+            continue;
+        }
+
+        if (!rh ((message_t*)msg_, remote_object_))
+            continue;
+
+        have_msg = true;
+        break;
+    }
+
+    //  If it's not there, die.
+    if (!have_msg) {
         alive = false;
         return false;
     }

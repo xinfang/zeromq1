@@ -32,7 +32,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_size (0),
     read_pos (0),
     encoder (&mux, true, local_object_),
-    decoder (&demux, false, NULL),
+    decoder (&demux, NULL, false, NULL),
     poller (NULL),
     local_object (local_object_),
     remote_object (remote_object_),
@@ -45,6 +45,9 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     errno_assert (writebuf);
     readbuf = (unsigned char*) malloc (readbuf_size);
     errno_assert (readbuf);
+
+    //  Set remote_object in mux.
+    mux.set_remote_object (remote_object);
 
     //  Open the underlying socket.
     socket = new tcp_socket_t (hostname.c_str ());
@@ -65,7 +68,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_size (0),
     read_pos (0),
     encoder (&mux, false, ""),
-    decoder (&demux, true, &remote_object),
+    decoder (&demux, &mux, true, &remote_object),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),

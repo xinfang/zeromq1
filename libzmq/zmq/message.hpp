@@ -116,6 +116,18 @@ namespace zmq
             return raw_message_size (this);
         }
 
+        //  Set routing hint.
+        inline void set_hint (void *hint_)
+        {
+            raw_set_hint (this, hint_);
+        }
+
+        //  Get routing hint.
+        inline void* get_hint ()
+        {
+            return raw_get_hint (this);
+        }
+
     private:
 
         //  Disable implicit message copying, so that users won't use shared

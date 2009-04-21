@@ -108,6 +108,16 @@ void zmq::set_error_handler (zmq::error_handler_t *eh_)
     eh = eh_;
 }
 
+zmq::routing_handler_t * volatile zmq::rh = NULL;
+
+zmq::routing_handler_t *zmq::get_routing_handler ()
+{
+    return rh;
+}
+void zmq::set_routing_handler (zmq::routing_handler_t *rh_)
+{
+    rh = rh_;
+}
 
 
 

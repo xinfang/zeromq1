@@ -25,6 +25,7 @@
 
 #include <zmq/message.hpp>
 #include <zmq/pipe.hpp>
+#include <string>
 
 namespace zmq
 {
@@ -53,6 +54,9 @@ namespace zmq
         //  Initiate shutdown of all associated pipes.
         void initialise_shutdown ();
 
+        //  Set remote object identity.
+        void set_remote_object (std::string &remote_object_);
+
     private:
 
         //  The list of inbound pipes.
@@ -62,6 +66,9 @@ namespace zmq
         //  Pipe to retrieve next message from. The messages are retrieved
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
+
+        //  Remote object identity.
+        std::string remote_object;
 
         //  TODO: disable copying
     };
