@@ -31,65 +31,16 @@
 #include <zmq/amqp_client.hpp>
 #include <zmq/err.hpp>
 
-zmq::i_engine *zmq::engine_factory_t::create_listener (
-    i_thread *calling_thread_, i_thread *thread_, const char *location_,
+zmq::i_engine *zmq::engine_factory_t::create (
+    const char *name_, bool global_, bool sender_,
+    const char *location_, const char *options_,
+    i_thread *calling_thread_, i_thread *engine_thread_,
     int handler_thread_count_, i_thread **handler_threads_,
-    bool source_, i_thread *peer_thread_, i_engine *peer_engine_,
-    const char *peer_name_)
-{
-    std::string transport_type;
-    std::string transport_args;
-
-    std::string location (location_);
-    std::string::size_type pos = location.find ("://");
-
-    if (pos == std::string::npos) {
-        transport_type = "zmq.tcp";
-        transport_args = location;
-    }
-    else {
-        transport_type = location.substr (0, pos);
-        transport_args = location.substr (pos + 3);
-    }
-
-    if (transport_type == "zmq.tcp") {
-        i_engine *engine = new bp_tcp_listener_t (calling_thread_, thread_,
-            transport_args.c_str (), handler_thread_count_, handler_threads_,
-            source_, peer_thread_, peer_engine_, peer_name_);
-        zmq_assert (engine);
-        return engine;
-    }
-
-#if defined ZMQ_HAVE_OPENPGM
-    if (transport_type == "zmq.pgm") {
-        i_engine *engine = new bp_pgm_sender_t (calling_thread_, thread_,
-            transport_args.c_str (), peer_thread_, peer_engine_);
-        zmq_assert (engine);
-        return engine;
-    }
-#endif
-
-#if defined ZMQ_HAVE_SCTP
-    if (transport_type == "sctp") {
-        i_engine *engine = new sctp_listener_t (calling_thread_, thread_,
-            transport_args.c_str (), handler_thread_count_, handler_threads_,
-            source_, peer_thread_, peer_engine_, peer_name_);
-        zmq_assert (engine);
-        return engine;
-    }
-#endif
-
-    //  Unknown transport type.
-    zmq_assert (false);
-    return NULL;
-}
-
-zmq::i_engine *zmq::engine_factory_t::create_engine (
-    i_thread *calling_thread_, i_thread *thread_, const char *location_,
-    const char *local_object_, const char *engine_options_)
+    i_thread *peer_thread_, i_engine *peer_engine_)
 {
     //  Decompose the string to the transport name (e.g. "zmq.tcp") and
-    //  transport arguments (e.g. "eth0:5555").
+    //  transport arguments (e.g. "eth0:5555"). Default transport protocol
+    //  is zmq.tcp.
     std::string transport_type;
     std::string transport_args;
 
@@ -105,20 +56,31 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
         transport_args = location.substr (pos + 3);
     }
 
-    //  Create appropriate engine.
-
+    i_engine *engine;
     if (transport_type == "zmq.tcp") {
-        i_engine *engine = new bp_tcp_engine_t (calling_thread_, thread_,
-            transport_args.c_str (), local_object_, engine_options_);
+        if (global_)
+            engine = new bp_tcp_listener_t (calling_thread_,
+                engine_thread_, transport_args.c_str (), handler_thread_count_,
+                handler_threads_, sender_, peer_thread_, peer_engine_,
+                name_);
+        else
+            engine = new bp_tcp_engine_t (calling_thread_, engine_thread_,
+                sender_, transport_args.c_str (), name_, options_);
         zmq_assert (engine);
         return engine;
     }
 
 #if defined ZMQ_HAVE_OPENPGM
     if (transport_type == "zmq.pgm") {
-        i_engine *engine = new bp_pgm_receiver_t (calling_thread_,
-            thread_, transport_args.c_str (), pgm_in_batch_size,
-            engine_options_);
+        assert (global_ == sender_);
+        if (global_)
+            engine = new bp_pgm_sender_t (calling_thread_,
+                engine_thread_, transport_args.c_str (), peer_thread_,
+                peer_engine_);
+        else
+            engine = new bp_pgm_receiver_t (calling_thread_,
+                engine_thread_, transport_args.c_str (), pgm_in_batch_size,
+                options_);
         zmq_assert (engine);
         return engine;
     }
@@ -126,8 +88,13 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
 
 #if defined ZMQ_HAVE_SCTP
     if (transport_type == "sctp") {
-        i_engine *engine = new sctp_engine_t (calling_thread_, thread_,
-            transport_args.c_str (), local_object_, engine_options_);
+        if (global_)
+            engine = new sctp_listener_t (calling_thread_,
+                engine_thread_, transport_args.c_str (), handler_thread_count_,
+                handler_threads_, !sender_, peer_thread_, peer_engine_, name_);
+        else
+            engine = new sctp_engine_t (calling_thread_,
+                engine_thread_, transport_args.c_str (), name_, options_);
         zmq_assert (engine);
         return engine;
     }
@@ -135,8 +102,8 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
 
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp") {
-        i_engine *engine = new amqp_client_t (calling_thread_,
-            thread_, transport_args.c_str (), local_object_, engine_options_);
+        engine = new amqp_client_t (calling_thread_, engine_thread_,
+            transport_args.c_str (), name_, options_);
         zmq_assert (engine);
         return engine;
     }

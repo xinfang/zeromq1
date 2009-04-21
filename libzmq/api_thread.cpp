@@ -77,7 +77,7 @@ int zmq::api_thread_t::create_exchange (const char *name_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    dispatcher->create (locator, this, false, name_, this, engine,
+    dispatcher->create (locator, this, true, name_, this, engine,
         scope_, location_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -107,7 +107,7 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    dispatcher->create (locator, this, true, name_, this, engine,
+    dispatcher->create (locator, this, false, name_, this, engine,
         scope_, location_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -131,7 +131,7 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         exchange_engine = eit->second;
     }
     else {
-        dispatcher->get (locator, this, exchange_name_, &exchange_thread,
+        dispatcher->get (locator, this, true, exchange_name_, &exchange_thread,
             &exchange_engine, exchange_thread_, queue_name_, exchange_options_);
     }
 
@@ -147,7 +147,7 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         queue_engine = qit->second;
     }
     else {
-        dispatcher->get (locator, this, queue_name_, &queue_thread,
+        dispatcher->get (locator, this, false, queue_name_, &queue_thread,
             &queue_engine, queue_thread_, exchange_name_, queue_options_);
     }
 

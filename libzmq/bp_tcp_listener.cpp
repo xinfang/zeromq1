@@ -25,10 +25,10 @@
 
 zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
-      i_thread **handler_threads_, bool source_,
+      i_thread **handler_threads_, bool sender_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
-    source (source_),
+    sender (sender_),
     poller (NULL),
     peer_thread (peer_thread_),
     peer_engine (peer_engine_),
@@ -86,10 +86,10 @@ void zmq::bp_tcp_listener_t::in_event ()
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
     bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
-        handler_threads [current_handler_thread], listener, peer_name);
+        handler_threads [current_handler_thread], sender, listener, peer_name);
     zmq_assert (engine);
 
-    if (source) {
+    if (!sender) {
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to

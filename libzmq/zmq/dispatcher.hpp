@@ -100,7 +100,7 @@ namespace zmq
 
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
-        bool get (i_locator *locator_, i_thread *calling_thread_, 
+        bool get (i_locator *locator_, i_thread *calling_thread_, bool source_,
             const char *object_, i_thread **thread_, i_engine **engine_,
             i_thread *handler_thread_, const char *local_object_,
             const char *engine_arguments_);

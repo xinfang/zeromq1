@@ -92,10 +92,10 @@ namespace zmq
         //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_,
-            const char * /* arguments_*/);
+            bool sender_, const char *hostname_, const char *local_object_,
+            const char * /* options_*/);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            tcp_listener_t &listener_, const char *local_object_);
+            bool sender_, tcp_listener_t &listener_, const char *local_object_);
 
         ~bp_tcp_engine_t ();
 
@@ -119,6 +119,10 @@ namespace zmq
         int readbuf_size;
         int read_size;
         int read_pos;
+
+        //  If true, engine is used to send messages to the remote peer.
+        //  Otherwise it's used to receive messages.
+        bool sender;
 
         //  Backend wire-level protocol encoder.
         bp_encoder_t encoder;

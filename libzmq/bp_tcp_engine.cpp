@@ -23,14 +23,15 @@
 #include <zmq/config.hpp>
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_*/) :
+      i_thread *thread_, bool sender_, const char *hostname_,
+      const char *local_object_, const char * /* options_*/) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
+    sender (sender_),
     encoder (&mux),
     decoder (demux),
     poller (NULL),
@@ -53,13 +54,15 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
 }
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, tcp_listener_t &listener_, const char *local_object_) :
+      i_thread *thread_, bool sender_, tcp_listener_t &listener_,
+      const char *local_object_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
+    sender (sender_),
     encoder (&mux),
     decoder (demux),
     poller (NULL),

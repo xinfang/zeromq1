@@ -62,16 +62,16 @@ namespace zmq
         //  the threads that will serve newly-created BP engines.
         bp_tcp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
-            i_thread **handler_threads_, bool source_,
+            i_thread **handler_threads_, bool sender_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
         ~bp_tcp_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
-        //  (i.e. reads them from the sockets and makes them available) or
-        //  a local destination of messages (i.e. gathers the messages and
-        //  sends them to the socket).
-        bool source;
+        //  (i.e. reads them from the sockets and makes them available; false)
+        //  or a local destination of messages (i.e. gathers the messages and
+        //  sends them to the socket; true).
+        bool sender;
 
         //  Associated poller object.
         i_poller *poller;
