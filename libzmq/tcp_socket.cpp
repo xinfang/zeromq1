@@ -65,16 +65,16 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
 				// DG:: 2009/02/17
 				// Throw instead of asserting
     if (block)
-				{
-						if (rc == SOCKET_ERROR)
-								throw std::runtime_error("CONNECTION_ERROR");
+                               {
+                                               if (rc == SOCKET_ERROR)
+                                                               throw std::runtime_error("CONNECTION_ERROR");
         //wsa_assert (rc != SOCKET_ERROR);
 				}
     else {
         int errcode = WSAGetLastError ();
         wsa_assert (rc != SOCKET_ERROR || errcode == WSAEWOULDBLOCK);
     }
-
+    
 #pragma message ("ZMQ:: Disabled the code to disable Nagle, as it did not work on Vista/Server2008 ***********************")
     //  Disable Nagle's algorithm.
     //int flag = 1;
@@ -241,6 +241,7 @@ void zmq::tcp_socket_t::close ()
     errno_assert (rc == 0);
     s = retired_fd;
 }
+
 
 int zmq::tcp_socket_t::write (const void *data, int size)
 {

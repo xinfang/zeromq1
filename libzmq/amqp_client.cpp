@@ -172,6 +172,11 @@ void zmq::amqp_client_t::in_event ()
             //  Remove the file descriptor from the pollset.
             poller->rm_fd (handle);    
 
+            // We don't need the socket any more, so close it
+            // to allow OS to reuse it.
+            socket.close (); 
+
+
             //  Ask all inbound & outound pipes to shut down.
             demux.initialise_shutdown ();
             mux.initialise_shutdown ();
