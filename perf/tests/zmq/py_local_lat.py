@@ -53,8 +53,7 @@ def main ():
         z.send (exchange , msg_out, True)
         list = z.receive (True)
         msg_in = list [1]
-        msg_size = list [2]
-        assert msg_size == message_size
+        assert len(msg_in) == message_size
     end = datetime.now ()
 
     delta = end - start

@@ -43,14 +43,13 @@ def main ():
         location = sys.argv [2])
 
     list = z.receive (True)
-    msg_size = list [2]
-    assert msg_size == message_size
+    msg = list [1]
+    assert len(msg) == message_size
     start = datetime.now ()
     for i in range (1, message_count):
         list = z.receive (True)
         msg = list [1]
-        msg_size = list [2]
-        assert msg_size == message_size
+        assert len(msg) == message_size
     end = datetime.now()
 
     delta = end - start
