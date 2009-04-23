@@ -23,7 +23,8 @@
 #include <zmq/config.hpp>
 #include <zmq/engine_factory.hpp>
 #include <zmq/bp_tcp_listener.hpp>
-#include <zmq/bp_tcp_engine.hpp>
+#include <zmq/bp_tcp_sender.hpp>
+#include <zmq/bp_tcp_receiver.hpp>
 #include <zmq/sctp_listener.hpp>
 #include <zmq/sctp_engine.hpp>
 #include <zmq/bp_pgm_sender.hpp>
@@ -63,9 +64,13 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 engine_thread_, transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_,
                 name_);
+        else if (sender_)
+            engine = new bp_tcp_receiver_t (calling_thread_, engine_thread_,
+                transport_args.c_str (), name_, options_);
         else
-            engine = new bp_tcp_engine_t (calling_thread_, engine_thread_,
-                sender_, transport_args.c_str (), name_, options_);
+            engine = new bp_tcp_sender_t (calling_thread_, engine_thread_,
+                transport_args.c_str (), name_, options_);
+
         zmq_assert (engine);
         return engine;
     }

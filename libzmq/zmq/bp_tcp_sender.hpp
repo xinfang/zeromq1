@@ -18,8 +18,8 @@
 */
 
 
-#ifndef __ZMQ_BP_TCP_ENGINE_HPP_INCLUDED__
-#define __ZMQ_BP_TCP_ENGINE_HPP_INCLUDED__
+#ifndef __ZMQ_BP_TCP_SENDER_HPP_INCLUDED__
+#define __ZMQ_BP_TCP_SENDER_HPP_INCLUDED__
 
 #include <string>
 
@@ -28,21 +28,19 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/engine_base.hpp>
 #include <zmq/bp_encoder.hpp>
-#include <zmq/bp_decoder.hpp>
 #include <zmq/tcp_socket.hpp>
-#include <zmq/tcp_listener.hpp>
 
 namespace zmq
 {
 
-    //  BP/TCP engine is defined by follwowing properties:
+    //  BP/TCP sender is defined by the follwowing properties:
     //
     //  1. Underlying transport is TCP.
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_tcp_engine_t :
-        public engine_base_t <true,true>,
+    class bp_tcp_sender_t :
+        public engine_base_t <false,true>,
         public i_pollable
     {
         //  Allow class factory to create this engine.
@@ -58,8 +56,6 @@ namespace zmq
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
         void revive (pipe_t *pipe_);
-        void head (pipe_t *pipe_, int64_t position_);
-        void send_to (pipe_t *pipe_);
         void receive_from (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
@@ -88,16 +84,16 @@ namespace zmq
             engine_shutting_down
         };
 
-        //  Creates bp_tcp_engine. Underlying TCP connection is initialised
+        //  Creates bp_tcp_sender. Underlying TCP connection is initialised
         //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            bool sender_, const char *hostname_, const char *local_object_,
+        bp_tcp_sender_t (i_thread *calling_thread_, i_thread *thread_,
+            const char *hostname_, const char *local_object_,
             const char * /* options_*/);
-        bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            bool sender_, tcp_listener_t &listener_, const char *local_object_);
+        bp_tcp_sender_t (i_thread *calling_thread_, i_thread *thread_,
+            tcp_listener_t &listener_, const char *local_object_);
 
-        ~bp_tcp_engine_t ();
+        ~bp_tcp_sender_t ();
 
         //  Handle connection error.
         void error ();
@@ -114,21 +110,8 @@ namespace zmq
         int write_size;
         int write_pos;
 
-        //  Buffer to read from undrlying socket.
-        unsigned char *readbuf;
-        int readbuf_size;
-        int read_size;
-        int read_pos;
-
-        //  If true, engine is used to send messages to the remote peer.
-        //  Otherwise it's used to receive messages.
-        bool sender;
-
         //  Backend wire-level protocol encoder.
         bp_encoder_t encoder;
-
-        //  Backend wire-level protocol decoder.
-        bp_decoder_t decoder;
 
         //  Callback to poller.
         i_poller *poller;
@@ -150,8 +133,8 @@ namespace zmq
         //  Underlying TCP/IP socket.
         tcp_socket_t socket;
 
-        bp_tcp_engine_t (const bp_tcp_engine_t&);
-        void operator = (const bp_tcp_engine_t&);
+        bp_tcp_sender_t (const bp_tcp_sender_t&);
+        void operator = (const bp_tcp_sender_t&);
     };
 
 }

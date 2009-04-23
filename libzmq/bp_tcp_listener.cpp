@@ -18,7 +18,8 @@
 */
 
 #include <zmq/bp_tcp_listener.hpp>
-#include <zmq/bp_tcp_engine.hpp>
+#include <zmq/bp_tcp_sender.hpp>
+#include <zmq/bp_tcp_receiver.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/err.hpp>
@@ -83,13 +84,13 @@ void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 
 void zmq::bp_tcp_listener_t::in_event ()
 {
-    //  Create the engine to take care of the connection.
-    //  TODO: make buffer size configurable by user
-    bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
-        handler_threads [current_handler_thread], sender, listener, peer_name);
-    zmq_assert (engine);
-
     if (!sender) {
+
+        //  Create the engine to take care of the connection.
+        //  TODO: make buffer size configurable by user
+        bp_tcp_receiver_t *engine = new bp_tcp_receiver_t (poller,
+            handler_threads [current_handler_thread], listener, peer_name);
+        zmq_assert (engine);
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
@@ -113,6 +114,12 @@ void zmq::bp_tcp_listener_t::in_event ()
         poller->send_command (peer_thread, cmd_receive_from);
     }
     else {
+
+        //  Create the engine to take care of the connection.
+        //  TODO: make buffer size configurable by user
+        bp_tcp_sender_t *engine = new bp_tcp_sender_t (poller,
+            handler_threads [current_handler_thread], listener, peer_name);
+        zmq_assert (engine);
 
         //  The newly created engine serves as a local destination of messages
         //  I.e. it sends messages received from the peer engine to the socket.

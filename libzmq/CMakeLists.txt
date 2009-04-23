@@ -25,7 +25,8 @@ set(libzmq_headers
   zmq/bp_encoder.hpp
   zmq/bp_pgm_receiver.hpp
   zmq/bp_pgm_sender.hpp
-  zmq/bp_tcp_engine.hpp
+  zmq/bp_tcp_sender.hpp
+  zmq/bp_tcp_receiver.hpp
   zmq/bp_tcp_listener.hpp
   zmq/command.hpp
   zmq/config.hpp
@@ -98,7 +99,8 @@ set(libzmq_sources
   bp_encoder.cpp
   bp_pgm_receiver.cpp
   bp_pgm_sender.cpp
-  bp_tcp_engine.cpp
+  bp_tcp_sender.cpp
+  bp_tcp_receiver.cpp
   bp_tcp_listener.cpp
   data_distributor.cpp
   load_balancer.cpp
