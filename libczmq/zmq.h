@@ -62,7 +62,7 @@ int ZMQ_EXPORT zmq_send (void *object_, int exchange_, void *data_,
 
 int ZMQ_EXPORT zmq_receive (void *object_, void **data_, uint64_t *size_,
     uint32_t *type_, int block_);
-
+    
 void ZMQ_EXPORT zmq_free (void *data_);
 
 #ifdef __cplusplus
