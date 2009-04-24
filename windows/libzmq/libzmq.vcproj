@@ -213,11 +213,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_tcp_engine.cpp"
+				RelativePath="..\..\libzmq\bp_tcp_listener.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_tcp_listener.cpp"
+				RelativePath="..\..\libzmq\bp_tcp_receiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\bp_tcp_sender.cpp"
 				>
 			</File>
 			<File
@@ -391,11 +395,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\bp_tcp_engine.hpp"
+				RelativePath="..\..\libzmq\zmq\bp_tcp_listener.hpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\bp_tcp_listener.hpp"
+				RelativePath="..\..\libzmq\zmq\bp_tcp_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\bp_tcp_sender.hpp"
 				>
 			</File>
 			<File
