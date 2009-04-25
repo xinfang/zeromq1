@@ -43,16 +43,8 @@ bool zmq::load_balancer_t::write (message_t &msg_)
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 
-    //  For delimiters, the algorithm is straighforward.
-    //  Send it to all pipes. We don't care about pipe limits.
-    //  TODO: Delimiters are special, they should be passed via different
-    //  codepath.
-    if (msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
-        for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
-            (*it)->write (msg);
-        raw_message_init (msg, 0);
-        return true;
-    }
+    //  Delimiters go through a different code path.
+    zmq_assert (raw_message_type (msg) != raw_message_t::delimiter_tag);
 
     if (pipes.size () == 0)
         return false;
