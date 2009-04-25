@@ -43,6 +43,11 @@ namespace zmq
             zmq_assert (demux);
         }
 
+        ~engine_base_t ()
+        {
+            delete demux;
+        }
+
         i_pollable *cast_to_pollable ()
         {
             zmq_assert (false);
