@@ -287,7 +287,7 @@ void zmq::bp_tcp_receiver_t::head (pipe_t *pipe_, int64_t position_)
     else {
 
         //  It's possible there is a message left in the decoder.
-        //  Give the decoder oportunity to push the message forward.
+        //  Give the decoder opportunity to push the message forward.
         //
         //  TODO: the flush operation can be rather expensive so we
         //        should call it only when absolutely necessary.

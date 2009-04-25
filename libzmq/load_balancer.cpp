@@ -58,7 +58,7 @@ bool zmq::load_balancer_t::write (message_t &msg_)
             current = (current + 1) % pipes.size ();
     }
 
-    //  Oops, no pipe is ready to accept he message.
+    //  Oops, no pipe is ready to accept the message.
     if (!found)
         return false;
 
