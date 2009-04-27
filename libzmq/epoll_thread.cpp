@@ -149,18 +149,19 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-            if (poller_->process_event (pe->engine, event_err))
-                return true;
+            pe->engine->in_event ();
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLOUT)
-            if (poller_->process_event (pe->engine, event_out))
-                return true;
+            pe->engine->out_event ();
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLIN)
-            if (poller_->process_event (pe->engine, event_in))
-                return true;
+            if (pe->engine)
+                pe->engine->in_event ();
+            else
+                if (!poller_->process_commands ())
+                    return true;
     }
 
     //  Destroy retired event sources.

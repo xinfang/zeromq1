@@ -191,18 +191,19 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
-            if (poller_->process_event (fds [i].engine, event_out))
-                return true;
+            fds [i].engine->out_event ();
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
-            if (poller_->process_event (fds [i].engine, event_in))
-                return true;
+            if (fds [i].engine)
+                fds [i].engine->in_event ();
+            else
+                if (!poller_->process_commands ())
+                    return true;
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
-            if (poller_->process_event (fds [i].engine, event_err))
-                return true;
+            fds [i].engine->in_event ();
     }
 
     //  Destroy retired event sources.

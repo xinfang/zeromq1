@@ -146,18 +146,19 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (engine, event_err))
-                return true;
+            engine->in_event ();
         if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLOUT)
-            if (poller_->process_event (engine, event_out))
-                return true;
+            engine->out_event ();
         if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLIN)
-            if (poller_->process_event (engine, event_in))
-                return true;
+            if (engine)
+                engine->in_event ();
+            else
+                if (!poller_->process_commands ())
+                    return true;
     }
 
     //  Clean up the pollset and update the fd_table accordingly.

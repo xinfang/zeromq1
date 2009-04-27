@@ -169,18 +169,19 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].flags & EV_EOF)
-            if (poller_->process_event (pe->engine, event_err))
-                return true;
+            pe->engine->in_event ();
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].filter == EVFILT_WRITE)
-            if (poller_->process_event (pe->engine, event_out))
-                return true;
+            pe->engine->out_event ();
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
-            if (poller_->process_event (pe->engine, event_in))
-                return true;
+            if (pe->engine)
+                pe->engine->in_event ();
+            else
+                if (!poller_->process_commands ())
+                    return true;
     }
 
     //  Destroy retired event sources.

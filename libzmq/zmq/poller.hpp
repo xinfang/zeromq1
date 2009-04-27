@@ -62,8 +62,9 @@ namespace zmq
         void add_timer (struct i_pollable *engine_);
         void cancel_timer (struct i_pollable *engine_);
 
-        //  Callback functions called by event_monitor.
-        bool process_event (i_pollable *engine_, event_t event_);
+        //  Callback functions called by event_monitor. Returns false if the
+        //  is to be shut down.
+        bool process_commands ();
 
     private:
 
@@ -254,40 +255,27 @@ void zmq::poller_t <T>::loop ()
 }
 
 template <class T>
-bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
+bool zmq::poller_t <T>::process_commands ()
 {
-    if (!engine_) {
-        uint32_t signals = signaler.check ();
-        zmq_assert (signals);
+    //  Find out which threads are sending us commands.
+    uint32_t signals = signaler.check ();
+    zmq_assert (signals);
 
-        //  Iterate through all the threads in the process and find out
-        //  which of them sent us commands.
-        for (int source_thread_id = 0;
-              source_thread_id != dispatcher->get_thread_count ();
-              source_thread_id ++) {
-            if (signals & (1 << source_thread_id)) {
+    //  Iterate through all the threads in the process and find out
+    //  which of them sent us commands.
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals & (1 << source_thread_id)) {
 
-                //  Read all the commands from particular thread.
-                command_t command;
-                while (dispatcher->read (source_thread_id, thread_id,
-                      &command))
-                    if (!process_command (command))
-                        return true;
-            }
+            //  Read all the commands from particular thread.
+            command_t command;
+            while (dispatcher->read (source_thread_id, thread_id, &command))
+                if (!process_command (command))
+                    return false;
         }
     }
-    else {
-        switch (event_) {
-        case event_out:
-            engine_->out_event ();
-            break;
-        case event_err:
-        case event_in:
-            engine_->in_event ();
-            break;
-        }
-    }
-    return false;
+    return true;
 }
 
 template <class T>
