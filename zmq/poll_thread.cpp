@@ -18,6 +18,7 @@
 */
 
 #include <algorithm>
+#include <signal.h>
 
 #include "poll_thread.hpp"
 #include "err.hpp"
@@ -126,6 +127,14 @@ void *zmq::poll_thread_t::worker_routine (void *arg_)
 
 void zmq::poll_thread_t::loop ()
 {
+    //  The following code will guarantee more predictable latencies as it
+    //  disallows any signal handling in the I/O thread.
+    sigset_t signal_set;
+    int rc = sigfillset (&signal_set);
+    errno_assert (rc == 0);
+    rc = pthread_sigmask (SIG_BLOCK, &signal_set, NULL);
+    errno_assert (rc == 0);
+
     while (true)
     {
 
