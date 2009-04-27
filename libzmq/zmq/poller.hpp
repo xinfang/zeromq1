@@ -59,12 +59,11 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        void add_timer (i_pollable *engine_);
-        void cancel_timer (i_pollable *engine_);
+        void add_timer (struct i_pollable *engine_);
+        void cancel_timer (struct i_pollable *engine_);
 
         //  Callback functions called by event_monitor.
         bool process_event (i_pollable *engine_, event_t event_);
-        void timer_event ();
 
     private:
 
@@ -99,10 +98,6 @@ namespace zmq
 
         //  We perform I/O multiplexing using event monitor.
         T event_monitor;
-
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
 
         //  List of all registered engines.
         typedef std::vector <i_engine*> engines_t;
@@ -216,18 +211,15 @@ void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 }
 
 template <class T>
-void zmq::poller_t <T>::add_timer (i_pollable *engine_)
+void zmq::poller_t <T>::add_timer (struct i_pollable *engine_)
 {
-     timers.push_back (engine_);
+    event_monitor.add_timer (engine_);
 }
 
 template <class T>
-void zmq::poller_t <T>::cancel_timer (i_pollable *engine_)
+void zmq::poller_t <T>::cancel_timer (struct i_pollable *engine_)
 {
-    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
-    if (it == timers.end ())
-        return;
-    timers.erase (it);
+    event_monitor.cancel_timer (engine_);
 }
 
 template <class T>
@@ -252,7 +244,7 @@ void zmq::poller_t <T>::loop ()
 
     //  Main event loop.
     while (true) {
-        if (event_monitor.process_events (this, !timers.empty ()))
+        if (event_monitor.process_events (this))
            break;
     }
 
@@ -369,18 +361,6 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
     if (command_.type == command_t::stop)
         return false;
     return true;
-}
-
-template <class T>
-void zmq::poller_t <T>::timer_event ()
-{
-    //  Use local copy of timers array as timer handlers may fill new timers
-    //  into the original array.
-    timers_t t = timers;
-    timers.clear ();
-
-    for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-         (*it)->timer_event ();
 }
 
 #endif

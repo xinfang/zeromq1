@@ -27,6 +27,7 @@
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO ||\
     defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_AIX
 
+#include <algorithm>
 #include <poll.h>
 #include <stddef.h>
 #include <vector>
@@ -54,7 +55,9 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        bool process_events (poller_t <poll_t> *poller_, bool timers_);
+        void add_timer (i_pollable *engine_);
+        void cancel_timer (i_pollable *engine_);
+        bool process_events (poller_t <poll_t> *poller_);
 
     private:
 
@@ -73,6 +76,10 @@ namespace zmq
 
         //  If true, there's at least one retired event source.
         bool retired;
+
+        //  List of all the engines waiting for the timer event.
+        typedef std::vector <i_pollable*> timers_t;
+        timers_t timers;
 
         poll_t (const poll_t&);
         void operator = (const poll_t&);

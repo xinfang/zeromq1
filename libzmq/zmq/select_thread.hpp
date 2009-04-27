@@ -25,6 +25,7 @@
 
 #include <stddef.h>
 #include <vector>
+#include <algorithm>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include "winsock2.h"
@@ -57,8 +58,9 @@ namespace zmq
         ZMQ_EXPORT void reset_pollin (handle_t handle_);
         ZMQ_EXPORT void set_pollout (handle_t handle_);
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
-        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_,
-            bool timers_);
+        ZMQ_EXPORT void add_timer (i_pollable *engine_);
+        ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
+        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_);
 
     private:
 
@@ -86,6 +88,10 @@ namespace zmq
 
         //  If true, at least one file descriptor is retired.
         bool retired;
+
+        //  List of all the engines waiting for the timer event.
+        typedef std::vector <i_pollable*> timers_t;
+        timers_t timers;
 
         select_t (const select_t&);
         void operator = (const select_t&);

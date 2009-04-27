@@ -19,6 +19,7 @@
 
 #include <zmq/platform.hpp>
 
+#include <algorithm>
 #include <string.h>
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -120,7 +121,20 @@ void zmq::select_t::reset_pollout (handle_t handle_)
     FD_CLR (handle_.fd, &source_set_out);
 }
 
-bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
+void zmq::select_t::add_timer (i_pollable *engine_)
+{
+     timers.push_back (engine_);
+}
+
+void zmq::select_t::cancel_timer (i_pollable *engine_)
+{
+    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
+    if (it == timers.end ())
+        return;
+    timers.erase (it);
+}
+
+bool zmq::select_t::process_events (poller_t <select_t> *poller_)
 {
     //  Intialise the pollsets.
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
@@ -139,7 +153,7 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
         int rc;
         while (true) {
             rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
-                timers_ ? &timeout : NULL);
+                timers.empty () ? NULL : &timeout);
 
 #ifdef ZMQ_HAVE_WINDOWS
             wsa_assert (rc != SOCKET_ERROR);
@@ -153,8 +167,17 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
         }
 
         //  Handle timer.
-        if (timers_ && !rc) {
-            poller_->timer_event ();
+        if (!timers.empty () && !rc) {
+
+            //  Use local list of timers as timer handlers may fill new timers
+            //  into the original array.
+            timers_t t;
+            std::swap (timers, t);
+
+            //  Trigger all the timers.
+            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+                (*it)->timer_event ();
+
             return false;
         }
 

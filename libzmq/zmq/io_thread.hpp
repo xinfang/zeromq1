@@ -55,7 +55,7 @@ namespace zmq
     typedef poll_thread_t io_thread_t;
 
 #elif defined (ZMQ_HAVE_HPUX)
-    typedef poll_thread_t io_thread_t;
+    typedef devpoll_thread_t io_thread_t;
 
 #elif defined (ZMQ_HAVE_OPENVMS)
     typedef select_thread_t io_thread_t;

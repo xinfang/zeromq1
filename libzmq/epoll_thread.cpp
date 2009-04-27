@@ -100,7 +100,20 @@ void zmq::epoll_t::reset_pollout (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
+void zmq::epoll_t::add_timer (i_pollable *engine_)
+{
+     timers.push_back (engine_);
+}
+
+void zmq::epoll_t::cancel_timer (i_pollable *engine_)
+{
+    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
+    if (it == timers.end ())
+        return;
+    timers.erase (it);
+}
+
+bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
 {
     epoll_event ev_buf [max_io_events];
 
@@ -108,16 +121,25 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
     int n;
     while (true) {
         n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
-            timers_ ? max_timer_period : -1);
+            timers.empty () ? -1 : max_timer_period);
         if (!(n == -1 && errno == EINTR)) {
-           errno_assert (n != -1);
-           break;
+            errno_assert (n != -1);
+            break;
         }
     }
 
     //  Handle timer.
     if (!n) {
-        poller_->timer_event ();
+
+        //  Use local list of timers as timer handlers may fill new timers
+        //  into the original array.
+        timers_t t;
+        std::swap (timers, t);
+
+        //  Trigger all the timers.
+        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+            (*it)->timer_event ();
+
         return false;
     }
 

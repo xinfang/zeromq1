@@ -96,22 +96,44 @@ void zmq::poll_t::reset_pollout (handle_t handle_)
     pollset [index].events &= ~((short) POLLOUT);
 }
 
-bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
+void zmq::poll_t::add_timer (i_pollable *engine_)
+{
+     timers.push_back (engine_);
+}
+
+void zmq::poll_t::cancel_timer (i_pollable *engine_)
+{
+    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
+    if (it == timers.end ())
+        return;
+    timers.erase (it);
+}
+
+bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
 {
     //  Wait for events.
     int rc;
     while (true) {
         rc = poll (&pollset [0], pollset.size (),
-            timers_ ? max_timer_period : -1);
+            timers.empty () ? -1 : max_timer_period);
         if (!(rc == -1 && errno == EINTR)) {
             errno_assert (rc != -1);
             break;
         }
     }
 
-    //  Handle timer.
+    //  Handle timer expiration.
     if (!rc) {
-        poller_->timer_event ();
+
+        //  Use local list of timers as timer handlers may fill new timers
+        //  into the original array.
+        timers_t t;
+        std::swap (timers, t);
+
+        //  Trigger all the timers.
+        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+            (*it)->timer_event ();
+
         return false;
     }
 

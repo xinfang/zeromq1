@@ -26,6 +26,7 @@
 
 #include <sys/epoll.h>
 #include <vector>
+#include <algorithm>
 
 #include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
@@ -50,7 +51,9 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        bool process_events (poller_t <epoll_t> *poller_, bool timers_);
+        void add_timer (i_pollable *engine_);
+        void cancel_timer (i_pollable *engine_);
+        bool process_events (poller_t <epoll_t> *poller_);
 
     private:
 
@@ -67,6 +70,10 @@ namespace zmq
         //  List of retired event sources.
         typedef std::vector <poll_entry_t*> retired_t;
         retired_t retired;
+
+        //  List of all the engines waiting for the timer event.
+        typedef std::vector <i_pollable*> timers_t;
+        timers_t timers;
 
         epoll_t (const epoll_t&);
         void operator = (const epoll_t&);
