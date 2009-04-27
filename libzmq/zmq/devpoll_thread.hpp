@@ -49,7 +49,9 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        bool process_events (poller_t <devpoll_t> *poller_, bool timers_);
+        void add_timer (i_pollable *engine_);
+        void cancel_timer (i_pollable *engine_);
+        bool process_events (poller_t <devpoll_t> *poller_);
 
     private:
 
@@ -68,6 +70,10 @@ namespace zmq
 
         typedef std::vector <fd_t> pending_list_t;
         pending_list_t pending_list;
+
+        //  List of all the engines waiting for the timer event.
+        typedef std::vector <i_pollable*> timers_t;
+        timers_t timers;
 
         //  Pollset manipulation function.
         void devpoll_ctl (fd_t fd_, short events_);
