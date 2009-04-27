@@ -20,6 +20,7 @@
 #include <zmq/tcp_socket.hpp>
 
 #include <string.h>
+#include <stdio.h>
 
 #include <zmq/platform.hpp>
 #ifdef ZMQ_HAVE_WINDOWS
@@ -117,19 +118,18 @@ void zmq::tcp_socket_t::reopen ()
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 
-#ifdef ZMQ_HAVE_OPENVMS
-    //  Disable delayed acknowledgements.
-    flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-#endif
-
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
-    if (block)
-        wsa_assert (rc != SOCKET_ERROR);
 
-    if (!(rc == 0 || (rc == -1 &&
+    //  Blocking socket is used only for communication with zmq_server.
+    //  Thus it's failure is always a failure to connect to zmq_server.
+    if (block && rc == SOCKET_ERROR) {
+        fprintf (stderr, "Cannot connect to zmq_server at %s.\n",
+            hostname.c_str ());\
+        wsa_assert (false);
+    }
+
+    if (!(rc == 0 || (rc == SOCKET_ERROR &&
           (WSAGetLastError () == WSAEINPROGRESS ||
           WSAGetLastError () == WSAEWOULDBLOCK)))) {
         close ();
@@ -268,10 +268,23 @@ void zmq::tcp_socket_t::reopen ()
         sizeof (int));
     errno_assert (rc == 0);
 
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+#endif
+
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
-    if (block)
-        errno_assert (rc == 0);
+
+    //  Blocking socket is used only for communication with zmq_server.
+    //  Thus it's failure is always a failure to connect to zmq_server.
+    if (block && rc != 0) {
+        fprintf (stderr, "Cannot connect to zmq_server at %s.\n",
+            hostname.c_str ());\
+        errno_assert (false);
+    }
 
     if (!(rc == 0 || (rc == -1 && errno == EINPROGRESS)))
         close ();

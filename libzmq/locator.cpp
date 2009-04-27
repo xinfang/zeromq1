@@ -18,6 +18,7 @@
 */
 
 #include <string.h>
+#include <stdio.h>
 
 #include <zmq/locator.hpp>
 #include <zmq/err.hpp>
@@ -90,6 +91,10 @@ void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
 
     //  Read the response.
     global_locator->read (&cmd, 1);
+    if (cmd == fail_id) {
+        fprintf (stderr, "Global object %s does not exist.\n", name_);
+        zmq_assert (false);
+    }
     zmq_assert (cmd == get_ok_id);
     zmq_assert (location_size_ >= 256);
     global_locator->read (&size, 1);
