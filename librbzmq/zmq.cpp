@@ -3,6 +3,7 @@
 #include <zmq/err.hpp>
 
 static VALUE rb_zmq;
+static VALUE rb_data;
 
 struct context_t
 {
@@ -12,10 +13,8 @@ struct context_t
     zmq::api_thread_t *api_thread;
 };
 
-static void rb_free(void * p) 
+static void rb_free(void *p) 
 {
-	
-	//  Get the context.
 	context_t *context = (context_t*) p;
 
 	//  Deallocate the 0MQ infrastructure.   
@@ -42,7 +41,6 @@ static VALUE rb_init (VALUE self_, VALUE host_)
 	//  Get the context.
 	context_t *context;
 	Data_Get_Struct (self_, context_t, context);
-	
 	
     //zmq_assert (context);
 	assert (context);
@@ -71,7 +69,7 @@ static VALUE rb_mask (VALUE self_, VALUE notifications_)
 	Data_Get_Struct (self_, context_t, context);
 	
 	//  Forward the call.
-    context->api_thread->mask (NUM2UINT(notifications_));
+    context->api_thread->mask (NUM2UINT (notifications_));
 
 	return self_;
 }
@@ -84,10 +82,10 @@ static VALUE rb_create_exchange (VALUE self_, VALUE name_, VALUE scope_,
 	Data_Get_Struct (self_, context_t, context);
 	
 	//  Forward the call to native 0MQ library.
-    return context->api_thread->create_exchange (STR2CSTR (name_), 
+    return INT2NUM (context->api_thread->create_exchange (STR2CSTR (name_), 
 		(zmq::scope_t) NUM2INT (scope_), STR2CSTR (location_), 
 		context->io_thread, 1, &context->io_thread, 
-		(zmq::style_t) NUM2INT (style_));
+		(zmq::style_t) NUM2INT (style_)) ? 1: 0);
 }
 
 static VALUE rb_create_queue (VALUE self_, VALUE name_, VALUE scope_, 
@@ -98,10 +96,10 @@ static VALUE rb_create_queue (VALUE self_, VALUE name_, VALUE scope_,
 	Data_Get_Struct (self_, context_t, context);
 	
 	//  Forward the call to native 0MQ library.
-    return context->api_thread->create_queue (STR2CSTR (name_), 
+    return INT2NUM ((context->api_thread->create_queue (STR2CSTR (name_), 
 		(zmq::scope_t) NUM2INT (scope_), STR2CSTR (location_), 
 		context->io_thread, 1, &context->io_thread, 
-		NUM2LL (hwm_), NUM2LL (lwm_), NUM2LL (swap_));
+		NUM2LL (hwm_), NUM2LL (lwm_), NUM2LL (swap_))) ? 1 : 0);
 }	
 
 static VALUE rb_bind (VALUE self_, VALUE exchange_name_, VALUE queue_name_,
@@ -127,10 +125,10 @@ static VALUE rb_send (VALUE self_, VALUE exchange_, VALUE data_, VALUE size_,
 	Data_Get_Struct (self_, context_t, context);
 
 	//  Forward the call to native 0MQ library.
-    zmq::message_t msg ((size_t) size_);
-    memcpy (msg.data (), (void*) STR2CSTR (data_), (size_t) size_);
+    zmq::message_t msg ((size_t) NUM2ULL (size_));
+    memcpy (msg.data (), (void*) STR2CSTR (data_), (size_t) NUM2ULL (size_));
     return context->api_thread->send (NUM2INT (exchange_), msg,
-        block_ ? true : false);
+        NUM2INT (block_) ? true : false);
 }
 
 static VALUE rb_receive (VALUE self_, VALUE block_)
@@ -138,21 +136,22 @@ static VALUE rb_receive (VALUE self_, VALUE block_)
 	//  Get the context.
 	context_t *context;
 	Data_Get_Struct (self_, context_t, context);
-
-
+	
 	//  Forward the call to native 0MQ library.
     zmq::message_t msg;
     int qid = context->api_thread->receive (&msg, 
-    	NUM2INT (block_ ? true : false));
+    	NUM2INT (block_) ? true : false);
 
     //  Create a buffer and copy the data into it.
     void *buf = malloc (msg.size ());
-    //zmq_assert (buf);
-	assert (buf);
+    assert (buf);
     memcpy (buf, msg.data (), msg.size ());
+   
+	VALUE rb_msg = rb_str_new ((char *) buf, msg.size ());
+	VALUE rb_type = INT2NUM (msg.type());
+	VALUE rb_qid = INT2NUM (qid);
 
-    return rb_str_new2 ((char *) buf), ULL2NUM (msg.size ()), 
-    	UINT2NUM (msg.type ()), INT2NUM (qid);
+	return rb_struct_new (rb_data, rb_msg, rb_type, rb_qid, NULL);
 }
 
 extern "C" {
@@ -169,8 +168,30 @@ void Init_zmq() {
 		(VALUE(*)(...)) rb_create_queue, 6);
 	rb_define_method (rb_zmq, "bind", (VALUE(*)(...)) rb_bind, 4);
 	rb_define_method (rb_zmq, "send", (VALUE(*)(...)) rb_send, 4);
-	rb_define_method (rb_zmq, "receive", (VALUE(*)(...)) rb_receive, 4);
-	rb_define_method (rb_zmq, "free", (VALUE(*)(...)) rb_free, 0); 		
+	rb_define_method (rb_zmq, "receive", (VALUE(*)(...)) rb_receive, 1);
+	rb_define_method (rb_zmq, "free", (VALUE(*)(...)) rb_free, 0);
+	
+	rb_data = rb_struct_define (NULL, "msg", "type", "qid", NULL);
+	rb_define_const(rb_zmq, "DATA", rb_data);
+
+	
+	VALUE one = INT2NUM (1);
+	VALUE two = INT2NUM (2);
+	VALUE three = INT2NUM (3);
+	VALUE m_one = INT2NUM (-1);
+	VALUE zero = INT2NUM (0);
+	
+	rb_define_global_const ("ZMQ_SCOPE_LOCAL", one);
+	rb_define_global_const ("ZMQ_SCOPE_PROCESS", two);
+	rb_define_global_const ("ZMQ_SCOPE_GLOBAL", three);
+	rb_define_global_const ("ZMQ_MESSAGE_DATA", one);
+	rb_define_global_const ("ZMQ_MESSAGE_GAP", two);
+	rb_define_global_const ("ZMQ_STYLE_DATA_DISTRIBUTION", one);
+	rb_define_global_const ("ZMQ_STYLE_LOAD_BALANCING", two);
+	rb_define_global_const ("ZMQ_NO_LIMIT", m_one);
+	rb_define_global_const ("ZMQ_NO_SWAP", zero);
+	rb_define_global_const ("ZMQ_TRUE", one);
+	rb_define_global_const ("ZMQ_FALSE", zero);
 
 }
 }
