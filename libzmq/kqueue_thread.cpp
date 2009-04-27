@@ -116,7 +116,20 @@ void zmq::kqueue_t::reset_pollout (handle_t handle_)
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
 
-bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
+void zmq::kqueue_t::add_timer (i_pollable *engine_)
+{
+     timers.push_back (engine_);
+}
+
+void zmq::kqueue_t::cancel_timer (i_pollable *engine_)
+{
+    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
+    if (it == timers.end ())
+        return;
+    timers.erase (it);
+}
+
+bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
 {
     struct kevent ev_buf [max_io_events];
 
@@ -128,7 +141,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
     int n;
     while (true) {
         n = kevent (kqueue_fd, NULL, 0,
-             &ev_buf [0], max_io_events, timers_ ? &timeout : NULL);
+             &ev_buf [0], max_io_events, timers.empty () ? NULL : &timeout);
         if (!(n == -1 && errno == EINTR)) {
             errno_assert (n != -1);
             break;
@@ -137,7 +150,16 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
 
     //  Handle timer.
     if (!n) {
-        poller_->timer_event ();
+
+        //  Use local list of timers as timer handlers may fill new timers
+        //  into the original array.
+        timers_t t;
+        std::swap (timers, t);
+
+        //  Trigger all the timers.
+        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+            (*it)->timer_event ();
+
         return false;
     }
 
