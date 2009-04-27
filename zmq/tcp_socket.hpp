@@ -73,11 +73,11 @@ namespace zmq
         void blocking_write (const void *data, size_t size);
 
         //  Reads 'size' bytes from the socket.
-        void blocking_read (void *data, size_t size);
+        int blocking_read (void *data, size_t size);
 
         void send_string (const std::string &s);
 
-        std::string recv_string (size_t maxlen);
+        int recv_string (std::string &s, size_t maxlen);
 
     private:
 

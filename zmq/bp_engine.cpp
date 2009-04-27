@@ -263,6 +263,14 @@ void zmq::bp_engine_t::process_command (const engine_command_t &command_)
         delete socket;
         socket = command_.args.reconnect.socket;
 
+        //  Clean the buffers.
+        write_pos = write_size;
+        read_pos = read_size;
+
+        //  Make encoder & decoder drop any half-processed messages.
+        encoder.clear ();
+        decoder.clear ();
+
         if (socket_error) {
             socket_error = false;
             ((poll_thread_t *) context)->register_engine (this);

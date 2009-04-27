@@ -87,7 +87,11 @@ bool zmq::bp_listener_t::in_event ()
     assert (socket);
 
     //  Fetch remote peer's ID.
-    std::string remote_id = socket->recv_string (256);
+    std::string remote_id;
+    if (socket->recv_string (remote_id, 256) < 0) {
+        delete socket;
+        return true;
+    }
 
     engines_t::iterator it = engines.find (remote_id);
     if (it != engines.end ()) {

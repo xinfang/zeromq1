@@ -125,15 +125,19 @@ void zmq::tcp_socket_t::blocking_write (const void *data, size_t size)
     }
 }
 
-void zmq::tcp_socket_t::blocking_read (void *data, size_t size)
+int zmq::tcp_socket_t::blocking_read (void *data, size_t size)
 {
     size_t i = 0;
 
     while (i < size) {
         ssize_t nbytes = recv (s, (char *) data + i, size - i, MSG_WAITALL);
+        if (nbytes == 0)
+            return -1;
         errno_assert (nbytes > 0);
         i += nbytes;
     }
+
+    return 0;
 }
 
 void zmq::tcp_socket_t::connect ()
@@ -194,25 +198,32 @@ void zmq::tcp_socket_t::send_string (const std::string &s)
     blocking_write (s.c_str (), slen);
 }
 
-std::string zmq::tcp_socket_t::recv_string (size_t maxlen)
+int zmq::tcp_socket_t::recv_string (std::string &s, size_t maxlen)
 {
     size_t slen;
     unsigned char tmpbuf [8];
 
-    blocking_read (tmpbuf, 1);
+    if (blocking_read (tmpbuf, 1) < 0)
+        return -1;
     if (tmpbuf [0] != 0xff)
         slen = tmpbuf [0];
     else {
-        blocking_read (tmpbuf, 8);
+        if (blocking_read (tmpbuf, 8) < 0)
+            return -1;
         slen = get_uint64 (tmpbuf);
     }
 
-    assert (slen <= maxlen);
+    if (slen > maxlen)
+        return -1;
 
     char *buf = new char [slen];
-    blocking_read (buf, slen);
-    std::string s = std::string (buf, slen);
+    assert (buf);
+    if (blocking_read (buf, slen) < 0) {
+        delete [] buf;
+        return -1;
+    }
+    s.assign (buf, slen);
     delete [] buf;
 
-    return s;
+    return 0;
 }
