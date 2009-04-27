@@ -97,10 +97,7 @@ void zmq::pipe_t::set_mux (mux_t *mux_)
 
 bool zmq::pipe_t::check_write ()
 {
-    if (swapping)
-        return true;
-
-    if (hwm) {
+    if (hwm && !swap) {
 
         //  If pipe size have reached high watermark, reject the write.
         //  The else branch will come into effect after 500,000 years of
@@ -108,20 +105,27 @@ bool zmq::pipe_t::check_write ()
         //  in case ...
         int size = last_head <= tail ? tail - last_head :
             std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
-     
+
         if (size == hwm)
-            if (swap) {
-                swapping = true;
-                in_memory_tail = tail;
-            }
-            else
-                return false;
+            return false;
     }
+
     return true;
 }
 
 void zmq::pipe_t::write (raw_message_t *msg_)
 {
+    if (hwm && swap && !swapping) {
+
+        int size = last_head <= tail ? tail - last_head :
+            std::numeric_limits <uint64_t>::max () - last_head + tail + 1;
+
+        if (size == hwm) {
+            swapping = true;
+            in_memory_tail = tail;
+        }
+    }
+
     //  Write the message either to the pipe or to the swap.
     if (swapping) {
 
