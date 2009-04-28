@@ -61,7 +61,8 @@ uint32_t zmq::ysocketpair_t::check ()
 {
     uint64_t val;
     ssize_t sz = read (fd, &val, sizeof (uint64_t));
-    if (sz == -1 && errno == EAGAIN)
+    if (sz == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+          errno == EINTR))
         return 0;
     errno_assert (sz != -1);
     return (uint32_t) val;
