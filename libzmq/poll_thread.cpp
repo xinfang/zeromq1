@@ -153,12 +153,13 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
             engine->out_event ();
         if (pollset [i].fd == retired_fd)
            continue;
-        if (pollset [i].revents & POLLIN)
+        if (pollset [i].revents & POLLIN) {
             if (engine)
                 engine->in_event ();
             else
                 if (!poller_->process_commands ())
                     return true;
+        }
     }
 
     //  Clean up the pollset and update the fd_table accordingly.

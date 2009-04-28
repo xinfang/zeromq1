@@ -194,12 +194,13 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
             fds [i].engine->out_event ();
         if (fds [i].fd == retired_fd)
             continue;
-        if (FD_ISSET (fds [i].fd, &readfds))
+        if (FD_ISSET (fds [i].fd, &readfds)) {
             if (fds [i].engine)
                 fds [i].engine->in_event ();
             else
                 if (!poller_->process_commands ())
                     return true;
+        }
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))

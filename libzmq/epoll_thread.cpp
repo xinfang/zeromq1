@@ -156,12 +156,13 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
             pe->engine->out_event ();
         if (pe->fd == retired_fd)
             continue;
-        if (ev_buf [i].events & EPOLLIN)
+        if (ev_buf [i].events & EPOLLIN) {
             if (pe->engine)
                 pe->engine->in_event ();
             else
                 if (!poller_->process_commands ())
                     return true;
+        }
     }
 
     //  Destroy retired event sources.
