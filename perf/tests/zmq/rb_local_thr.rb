@@ -45,10 +45,13 @@ end
     end_time = Time.now
     
     #  Compute and print out the throughput.
-    message_throughput = roundtrip_count.to_i / (end_time.to_f - start_time.to_f);
+    message_throughput = roundtrip_count.to_i / 
+    	(end_time.to_f - start_time.to_f);
     megabit_throughput = message_throughput.to_f * message_size.to_i * 8 /
         1000000;
-    puts "Your average throughput is " + message_throughput.to_s + "[msg/s]"
-    puts "Your average throughput is " + megabit_throughput.to_s + "[Mb/s]"    
+    puts "Your average throughput is " + "%0.2f" % message_throughput.to_s + 
+    	"[msg/s]"
+    puts "Your average throughput is " + "%0.2f" % megabit_throughput.to_s + 
+    	"[Mb/s]"    
 
 

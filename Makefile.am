@@ -14,6 +14,10 @@ if BUILD_JAVA
 DIR_J = libjzmq
 endif
 
+if BUILD_RUBY
+DIR_R = librbzmq
+endif
+
 if BUILD_ZMQ_SERVER
 DIR_ZMQ_SERVER = zmq_server
 endif
@@ -27,9 +31,9 @@ DIR_CLR = mono/clrzmq/clrzmq
 endif
 
 SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
-examples $(DIR_MAN) $(DIR_CLR)
+examples $(DIR_MAN) $(DIR_CLR) $(DIR_R)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
-mono/clrzmq/clrzmq
+mono/clrzmq/clrzmq librbzmq
 
 EXTRA_DIST = \
     $(top_srcdir)/examples/exchange/graph.pl \

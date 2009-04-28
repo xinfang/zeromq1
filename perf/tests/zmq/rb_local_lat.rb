@@ -50,6 +50,6 @@ end
   	end_time = Time.now
 
     #  Compute and print out the latency.
-    latency = (end_time.to_f - start_time.to_f) *1000000 / roundtrip_count.to_i / 2
-    puts "Your average latency is " + latency.to_s + "[us]"
-
+    latency = (end_time.to_f - start_time.to_f) *1000000 / 
+    	roundtrip_count.to_i / 2
+    puts "Your average latency is " +  "%0.2f" % latency  + "[us]"

@@ -13,7 +13,7 @@ struct context_t
     zmq::api_thread_t *api_thread;
 };
 
-static void rb_free(void *p) 
+static void rb_free (void *p) 
 {
 	context_t *context = (context_t*) p;
 
@@ -42,22 +42,17 @@ static VALUE rb_init (VALUE self_, VALUE host_)
 	context_t *context;
 	Data_Get_Struct (self_, context_t, context);
 	
-    //zmq_assert (context);
-	assert (context);
-    context->dispatcher = new zmq::dispatcher_t (2);
-    //zmq_assert (context->dispatcher);
-	assert (context->dispatcher);
-    context->locator = new zmq::locator_t (STR2CSTR (host_));
-    //zmq_assert (context->locator);    
-	assert (context->locator);    
-    context->io_thread = zmq::io_thread_t::create (context->dispatcher);
-    //zmq_assert (context->io_thread);
-	assert (context->io_thread);
-    context->api_thread = zmq::api_thread_t::create (context->dispatcher,
+    zmq_assert (context);
+	context->dispatcher = new zmq::dispatcher_t (2);
+    zmq_assert (context->dispatcher);
+	context->locator = new zmq::locator_t (STR2CSTR (host_));
+    zmq_assert (context->locator);    
+	context->io_thread = zmq::io_thread_t::create (context->dispatcher);
+    zmq_assert (context->io_thread);
+	context->api_thread = zmq::api_thread_t::create (context->dispatcher,
         context->locator);
-    //zmq_assert (context->api_thread);
-	assert (context->api_thread);
-
+    zmq_assert (context->api_thread);
+	
     return self_;
 
 }
@@ -148,7 +143,7 @@ static VALUE rb_receive (VALUE self_, VALUE block_)
     memcpy (buf, msg.data (), msg.size ());
    
 	VALUE rb_msg = rb_str_new ((char *) buf, msg.size ());
-	VALUE rb_type = INT2NUM (msg.type());
+	VALUE rb_type = INT2NUM (msg.type ());
 	VALUE rb_qid = INT2NUM (qid);
 
 	return rb_struct_new (rb_data, rb_msg, rb_type, rb_qid, NULL);
@@ -172,7 +167,7 @@ void Init_zmq() {
 	rb_define_method (rb_zmq, "free", (VALUE(*)(...)) rb_free, 0);
 	
 	rb_data = rb_struct_define (NULL, "msg", "type", "qid", NULL);
-	rb_define_const(rb_zmq, "DATA", rb_data);
+	rb_define_const (rb_zmq, "DATA", rb_data);
 
 	
 	VALUE one = INT2NUM (1);

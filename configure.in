@@ -350,6 +350,13 @@ fi
 CLRDIR="$clrdir"
 AC_SUBST([CLRDIR])
 
+# RUBY
+rbzmq="no"
+AC_ARG_WITH([ruby], [AS_HELP_STRING([--with-ruby], [build ruby language binding [default=no]])], [with_ruby=yes], [with_ruby=no])
+if test "x$with_ruby" != "xno"; then
+    rbzmq="yes"
+fi
+
 #  zmq_server
 zmq_server="yes"
 AC_ARG_WITH([zmq_server], [AS_HELP_STRING([--with-zmq_server], [build zmq_server [default=yes]])], [with_zmq_server=yes], [])
@@ -449,6 +456,7 @@ AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
 AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
+AM_CONDITIONAL(BUILD_RUBY, test "x$rbzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_PGM, test "x$pgm_ext" = "xyes")
@@ -528,6 +536,7 @@ AC_MSG_RESULT([   butterfly example: $butterfly])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
+AC_MSG_RESULT([   Ruby language binding: $rbzmq])
 AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([   CLR binding: $clrzmq])
 if test "x$clrzmq" = "xyes"; then
