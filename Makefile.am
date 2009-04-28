@@ -40,6 +40,7 @@ EXTRA_DIST = \
     $(top_srcdir)/perf/tests/zmq/py_*.py \
     $(top_srcdir)/perf/tests/zmq/f_*.for \
     $(top_srcdir)/perf/tests/zmq/cs_*.cs \
+    $(top_srcdir)/perf/tests/zmq/rb_*.rb \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
