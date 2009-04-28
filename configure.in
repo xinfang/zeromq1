@@ -352,8 +352,31 @@ AC_SUBST([CLRDIR])
 
 # RUBY
 rbzmq="no"
+
+AC_ARG_WITH(ruby_headersdir,
+    AC_HELP_STRING([--with-ruby-headersdir], [ruby.h header file location]),
+        [ruby_headersdir="$withval"], [ruby_headersdir="no"])
+
+if test "x$ruby_headersdir" != "xno"; then
+    CPPFLAGS="${CPPFLAGS} -I${ruby_headersdir}"
+fi
+
+AC_ARG_WITH(ruby_libdir,
+    AC_HELP_STRING([--with-ruby-libdir],[libruby library file location]),
+        [ruby_libdir="$withval"], [ruby_libdir="no"])
+
+if test "x$ruby_libdir" != "xno"; then
+    LDFLAGS="${LDFLAGS} -L${ruby_libdir}"
+fi
+
 AC_ARG_WITH([ruby], [AS_HELP_STRING([--with-ruby], [build ruby language binding [default=no]])], [with_ruby=yes], [with_ruby=no])
 if test "x$with_ruby" != "xno"; then
+    AC_CHECK_HEADERS([ruby.h], [], 
+        [AC_MSG_ERROR([Could not find Ruby header files, Please specify their location with --with-ruby-headersdir.])])
+
+    AC_SEARCH_LIBS(ruby_init,[ruby ruby1.8 ruby18],, 
+        [AC_MSG_ERROR([Could not link with Ruby library. Please specify their location with --with-ruby-libdir.])])
+   
     rbzmq="yes"
 fi
 
@@ -500,7 +523,8 @@ libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
-mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc)
+mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
+librbzmq/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])

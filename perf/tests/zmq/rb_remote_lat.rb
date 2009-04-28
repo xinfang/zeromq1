@@ -1,4 +1,4 @@
-require 'zmq'
+require 'librbzmq'
 
 class AssertionFailure < StandardError
 end

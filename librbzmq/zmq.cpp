@@ -151,7 +151,7 @@ static VALUE rb_receive (VALUE self_, VALUE block_)
 
 extern "C" {
 
-void Init_zmq() {
+void Init_librbzmq() {
 	
 	rb_zmq = rb_define_class ("Zmq", rb_cObject);
 	rb_define_alloc_func (rb_zmq, rb_alloc);
