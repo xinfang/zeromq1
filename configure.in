@@ -319,6 +319,7 @@ else
 # Workaround to be able to run make dist without real JAVAH
     JAVAH=true
     JAVAC=true
+    JAR=true
 fi
 
 clrzmq="no"
@@ -433,6 +434,9 @@ if test "x$with_pgm_ext" != "xno"; then
 
      case "${host_os}" in
         *linux*)
+            LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} -Wno-variadic-macros -Wno-long-long "
+        ;;
+        *solaris*)
         ;;
         *)
             AC_MSG_ERROR([PGM extesion is not supported on this platform $host.])
@@ -441,10 +445,10 @@ if test "x$with_pgm_ext" != "xno"; then
 
     #  Check for OpenPGM
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
-    LIBZMQ_EXTRA_CXXFLAGS+=" -Wno-variadic-macros -Wno-long-long "
-    CPPFLAGS+=" "
-    CPPFLAGS+=$GLIB_CFLAGS
-    LIBS+=$GLIB_LIBS
+
+    CPPFLAGS="${CPPFLAGS} ${GLIB_CFLAGS}"
+
+    LIBS="${LIBS} ${GLIB_LIBS}"
 
     AC_CHECK_HEADERS([pgm/pgm.h], [], 
         [AC_MSG_ERROR([Could not find OpenPGM header files, Set CPPFLAGS to OpenPGM include directory.])])
@@ -453,7 +457,7 @@ if test "x$with_pgm_ext" != "xno"; then
         [openpgm_link=yes],
         [AC_MSG_ERROR([Could not link with pgm-pic library. Set LDFLAGS to OpenPGM lib directory.])])
 
-    LIBS+=-lpgm-pic
+    LIBS="${LIBS} -lpgm-pic"
 
     AC_DEFINE(ZMQ_HAVE_OPENPGM, 1, [Have OpenPGM extension.])
     pgm_name="OpenPGM"
