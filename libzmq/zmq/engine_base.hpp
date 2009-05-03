@@ -72,7 +72,6 @@ namespace zmq
         {
             //  Forward pipe head position to the appropriate pipe.
             zmq_assert (HAS_IN);
-            pipe_->set_head (position_);
         }
 
         void send_to (pipe_t *pipe_)

@@ -129,7 +129,12 @@ void zmq::pipe_t::gap ()
         delayed_gap = true;
 }
 
-void zmq::pipe_t::set_head (uint64_t position_)
+void zmq::pipe_t::revive_reader ()
+{
+    destination_engine->revive (this);
+}
+
+void zmq::pipe_t::notify_writer (uint64_t position_)
 {
     //  This may cause the next write to succeed.
     in_core_msg_cnt -= position_ - last_head_position;
@@ -150,13 +155,15 @@ void zmq::pipe_t::set_head (uint64_t position_)
             delayed_gap = false;
         }
     }
+
+    source_engine->head (this, position_);
 }
 
 void zmq::pipe_t::flush ()
 {
     if (!pipe.flush ()) {
         command_t cmd;
-        cmd.init_engine_revive (destination_engine, this);
+        cmd.init_revive_reader (this);
         source_thread->send_command (destination_thread, cmd);
     }
 }
@@ -188,7 +195,7 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         //  as a difference between high and low water marks.
         if (head % (hwm - lwm + 1) == 0) {
             command_t cmd;
-            cmd.init_engine_head (source_engine, this, head);
+            cmd.init_notify_writer (this, head);
             destination_thread->send_command (source_thread, cmd);
         }
     }

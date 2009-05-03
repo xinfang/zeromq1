@@ -282,11 +282,22 @@ template <class T>
 bool zmq::poller_t <T>::process_command (const command_t &command_)
 {
     i_engine *engine;
+    pipe_t *pipe;
 
     switch (command_.type) {
 
     //  Exit the working thread.
     case command_t::stop:
+        break;
+
+    case command_t::revive_reader:
+        pipe = command_.args.revive_reader.pipe;
+        pipe->revive_reader ();
+        break;
+
+    case command_t::notify_writer:
+        pipe = command_.args.notify_writer.pipe;
+        pipe->notify_writer (command_.args.notify_writer.position);
         break;
 
     //  Register the engine supplied with the poll thread.
@@ -314,12 +325,6 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
             const engine_command_t &engcmd =
                 command_.args.engine_command.command;
             switch (engcmd.type) {
-            case engine_command_t::revive:
-                engine->revive (engcmd.args.revive.pipe);
-                break;
-            case engine_command_t::head:
-                engine->head (engcmd.args.head.pipe, engcmd.args.head.position);
-                break;
             case engine_command_t::send_to:
                 engine->send_to (engcmd.args.send_to.pipe);
                 break;

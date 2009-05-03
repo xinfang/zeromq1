@@ -36,8 +36,6 @@ namespace zmq
     {
         enum type_t
         {
-            revive,
-            head,
             send_to,
             receive_from,
             terminate_pipe,
@@ -45,13 +43,6 @@ namespace zmq
         } type;
 
         union {
-            struct {
-                class pipe_t *pipe;
-            } revive;
-            struct {
-                class pipe_t *pipe;
-                uint64_t position;
-            } head;
             struct {
                 class pipe_t *pipe;
             } send_to;
@@ -75,6 +66,8 @@ namespace zmq
         enum type_t
         {
             stop,
+            revive_reader,
+            notify_writer,
             register_engine,
             unregister_engine,
             engine_command
@@ -84,6 +77,13 @@ namespace zmq
         {
             struct {
             } stop;
+            struct {
+                class pipe_t *pipe;
+            } revive_reader;
+            struct {
+                class pipe_t *pipe;
+                uint64_t position;
+            } notify_writer;
             struct {
                 i_engine *engine;
             } register_engine;
@@ -99,6 +99,19 @@ namespace zmq
         inline void init_stop ()
         {
             type = stop;
+        }
+
+        inline void init_revive_reader (class pipe_t *pipe_)
+        {
+            type = revive_reader;
+            args.revive_reader.pipe = pipe_;
+        }
+
+        inline void init_notify_writer (class pipe_t *pipe_, uint64_t position_)
+        {
+            type = notify_writer;
+            args.notify_writer.pipe = pipe_;
+            args.notify_writer.position = position_;
         }
 
         inline void init_register_engine (i_engine *engine_)
@@ -127,25 +140,6 @@ namespace zmq
             args.engine_command.engine = engine_;
             args.engine_command.command.type = engine_command_t::receive_from;
             args.engine_command.command.args.receive_from.pipe = pipe_;
-        }
-
-        inline void init_engine_revive (i_engine *engine_,
-            pipe_t *pipe_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::revive;
-            args.engine_command.command.args.revive.pipe = pipe_;
-        }
-
-        inline void init_engine_head (i_engine *engine_, pipe_t *pipe_,
-            uint64_t position_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::head;
-            args.engine_command.command.args.head.pipe = pipe_;
-            args.engine_command.command.args.head.position = position_;
         }
 
         inline void init_engine_terminate_pipe (i_engine *engine_,
