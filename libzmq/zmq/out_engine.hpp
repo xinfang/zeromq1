@@ -20,16 +20,19 @@
 #ifndef __ZMQ_OUT_ENGINE_HPP_INCLUDED__
 #define __ZMQ_OUT_ENGINE_HPP_INCLUDED__
 
-#include <zmq/engine_base.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_demux.hpp>
+#include <zmq/data_distributor.hpp>
+#include <zmq/load_balancer.hpp>
 
 namespace zmq
 {
 
-    class out_engine_t : public engine_base_t <true, false>
+    class out_engine_t : public i_engine
     {
     public:
 
-        static out_engine_t *create (bool load_balancing_);
+        static out_engine_t *create (i_demux *demux_);
 
         bool write (message_t &msg_);
         void flush ();
@@ -37,11 +40,25 @@ namespace zmq
         //  i_engine implementation.
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
+    
+    protected:
+        //  i_engine interface implementation.
+        i_pollable *cast_to_pollable ();
+        const char *get_arguments ();
+        void revive (pipe_t *pipe_);
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
 
     private:
 
-        out_engine_t (bool load_balancing_);
+        out_engine_t (i_demux *demux_);
         ~out_engine_t ();
+
+        //  Engine demux
+        i_demux *demux;
 
     };
 

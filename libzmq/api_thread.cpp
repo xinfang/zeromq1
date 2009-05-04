@@ -67,8 +67,15 @@ int zmq::api_thread_t::create_exchange (const char *name_,
           it != exchanges.end (); it ++)
         zmq_assert (it->first != name_);
 
-    out_engine_t *engine = out_engine_t::create (
-        style_ == style_load_balancing);
+    //  Create demux for out_engine.
+    i_demux *demux = NULL;
+
+    if (style_ == style_load_balancing)
+        demux = new load_balancer_t ();
+    else
+        demux = new data_distributor_t ();
+
+    out_engine_t *engine = out_engine_t::create (demux);
     exchanges.push_back (exchanges_t::value_type (name_, engine));
 
     //  If the scope of the exchange is local, we won't register it
@@ -98,7 +105,10 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
           it != queues.end (); it ++)
         zmq_assert (it->first != name_);
 
-    in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_);
+    //  Create mux object for in_engine.
+    mux_t *mux = new mux_t ();
+
+    in_engine_t *engine = in_engine_t::create (mux, hwm_, lwm_, swap_);
     queues.push_back (queues_t::value_type (name_, engine));
 
     //  If the scope of the queue is local, we won't register it

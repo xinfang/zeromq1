@@ -21,10 +21,12 @@
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
+#include <zmq/i_demux.hpp>
 
-zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_,
+zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, const char *hostname_,
       const char *local_object_, const char * /* options_*/) :
+    demux (demux_),
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
@@ -35,6 +37,9 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
     state (engine_connecting),
     socket (hostname_)
 {
+
+    zmq_assert (demux);
+
     //  Allocate read buffer.
     readbuf = new unsigned char [readbuf_size];
     zmq_assert (readbuf);
@@ -45,9 +50,10 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
-      i_thread *thread_, tcp_listener_t &listener_,
+zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, tcp_listener_t &listener_,
       const char *local_object_) :
+    demux (demux_),
     readbuf_size (bp_in_batch_size),
     read_size (0),
     read_pos (0),
@@ -58,6 +64,9 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
     state (engine_connected),
     socket (listener_)
 {
+
+    zmq_assert (demux);
+
     //  Allocate read buffer.
     readbuf = new unsigned char [readbuf_size];
     zmq_assert (readbuf);
@@ -71,6 +80,8 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_thread *calling_thread_,
 zmq::bp_tcp_receiver_t::~bp_tcp_receiver_t ()
 {
     delete [] readbuf;
+    //  TODO: For engines with identity demux should not be deleted.
+    delete demux;
 }
 
 void zmq::bp_tcp_receiver_t::error ()
@@ -267,8 +278,6 @@ void zmq::bp_tcp_receiver_t::unregister_event ()
 
 void zmq::bp_tcp_receiver_t::head (pipe_t *pipe_, int64_t position_)
 {
-    engine_base_t <true,false>::head (pipe_, position_);
-
     if (read_pos < read_size) {
 
         //  Decoding has been suspended - try to resume it now.
@@ -304,5 +313,34 @@ void zmq::bp_tcp_receiver_t::send_to (pipe_t *pipe_)
     if (state == engine_connected && demux->no_pipes ())
         poller->set_pollin (handle);
 
-    engine_base_t <true,false>::send_to (pipe_);
+    demux->send_to (pipe_);
 }
+
+const char *zmq::bp_tcp_receiver_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::bp_tcp_receiver_t::revive (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_receiver_t::receive_from (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_receiver_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    pipe_->writer_terminated ();
+    demux->release_pipe (pipe_);
+}
+
+void zmq::bp_tcp_receiver_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+

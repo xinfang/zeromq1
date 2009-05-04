@@ -59,17 +59,22 @@ zmq::i_engine *zmq::engine_factory_t::create (
 
     i_engine *engine;
     if (transport_type == "zmq.tcp") {
-        if (global_)
+        if (global_) {
             engine = new bp_tcp_listener_t (calling_thread_,
                 engine_thread_, transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_,
                 name_);
-        else if (sender_)
-            engine = new bp_tcp_receiver_t (calling_thread_, engine_thread_,
+        } else if (sender_) {
+            //  Create demux for receiver engine.
+            i_demux *demux = new data_distributor_t ();
+            engine = new bp_tcp_receiver_t (demux, calling_thread_, engine_thread_,
                 transport_args.c_str (), name_, options_);
-        else
-            engine = new bp_tcp_sender_t (calling_thread_, engine_thread_,
+        } else {
+            //  Create mux for sender engine.
+            mux_t *mux = new mux_t ();
+            engine = new bp_tcp_sender_t (mux, calling_thread_, engine_thread_,
                 transport_args.c_str (), name_, options_);
+        }
 
         zmq_assert (engine);
         return engine;

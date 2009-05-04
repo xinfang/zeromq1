@@ -34,18 +34,15 @@ namespace zmq
     {
     protected:
 
-        engine_base_t (bool load_balancing_ = false)
+        engine_base_t (mux_t *mux_, i_demux *demux_/*,
+              bool load_balancing_ = false*/)
         {
-            if (load_balancing_)
-                demux = new load_balancer_t ();
-            else
-                demux = new data_distributor_t ();
-            zmq_assert (demux);
+            mux = mux_;
+            demux = demux_;
         }
 
         ~engine_base_t ()
         {
-            delete demux;
         }
 
         i_pollable *cast_to_pollable ()
@@ -65,7 +62,7 @@ namespace zmq
             //  Notify the reader of the pipe that there are messages
             //  available in the pipe.
             zmq_assert (HAS_OUT);
-            mux.revive (pipe_);
+            mux->revive (pipe_);
         }
 
         void head (pipe_t *pipe_, int64_t position_)
@@ -85,7 +82,7 @@ namespace zmq
         {
             //  Start receiving messages from a pipe.
             zmq_assert (HAS_OUT);
-            mux.receive_from (pipe_);
+            mux->receive_from (pipe_);
         }
 
         void terminate_pipe (pipe_t *pipe_)
@@ -101,10 +98,10 @@ namespace zmq
             //  Forward the command to the pipe. Drop reference to the pipe.
             zmq_assert (HAS_OUT);
             pipe_->reader_terminated ();
-            mux.release_pipe (pipe_);
+            mux->release_pipe (pipe_);
         }
 
-        mux_t mux;
+        mux_t *mux;
         i_demux *demux;
     };
 

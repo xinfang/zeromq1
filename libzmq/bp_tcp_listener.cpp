@@ -29,6 +29,7 @@ zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread **handler_threads_, bool sender_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
+    engine_base_t <false, false> (NULL, NULL),
     sender (sender_),
     poller (NULL),
     peer_thread (peer_thread_),
@@ -85,10 +86,12 @@ void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 void zmq::bp_tcp_listener_t::in_event ()
 {
     if (!sender) {
+        //  Create demux for receiver engine.
+        i_demux *demux = new data_distributor_t ();
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
-        bp_tcp_receiver_t *engine = new bp_tcp_receiver_t (poller,
+        bp_tcp_receiver_t *engine = new bp_tcp_receiver_t (demux, poller,
             handler_threads [current_handler_thread], listener, peer_name);
         zmq_assert (engine);
 
@@ -114,10 +117,12 @@ void zmq::bp_tcp_listener_t::in_event ()
         poller->send_command (peer_thread, cmd_receive_from);
     }
     else {
+        //  Create mux for the sender_engine
+        mux_t *mux = new mux_t ();
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
-        bp_tcp_sender_t *engine = new bp_tcp_sender_t (poller,
+        bp_tcp_sender_t *engine = new bp_tcp_sender_t (mux, poller,
             handler_threads [current_handler_thread], listener, peer_name);
         zmq_assert (engine);
 

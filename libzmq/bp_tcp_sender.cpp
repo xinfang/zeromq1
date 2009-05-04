@@ -21,20 +21,25 @@
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
+#include <zmq/mux.hpp>
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_thread *calling_thread_,
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_,
       const char *local_object_, const char * /* options_*/) :
+    mux (mux_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    encoder (&mux),
+    encoder (mux),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (true),
     state (engine_connecting),
     socket (hostname_)
 {
+
+    zmq_assert (mux);
+
     //  Allocate write buffer.
     writebuf = new unsigned char [writebuf_size];
     zmq_assert (writebuf);
@@ -45,19 +50,23 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_thread *calling_thread_,
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
       i_thread *thread_, tcp_listener_t &listener_,
       const char *local_object_) :
+    mux (mux_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    encoder (&mux),
+    encoder (mux),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
     state (engine_connected),
     socket (listener_)
 {
+
+    zmq_assert (mux);
+
     //  Allocate write buffer.
     writebuf = new unsigned char [writebuf_size];
     zmq_assert (writebuf);
@@ -71,6 +80,8 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_thread *calling_thread_,
 zmq::bp_tcp_sender_t::~bp_tcp_sender_t ()
 {
     delete [] writebuf;
+    //  TODO: For engines with identity mux should not be deleted.
+    delete mux;
 }
 
 void zmq::bp_tcp_sender_t::error ()
@@ -146,7 +157,7 @@ void zmq::bp_tcp_sender_t::shutdown ()
     socket.close ();
 
     //  Ask all inbound pipes to shut down.
-    mux.initialise_shutdown ();
+    mux->initialise_shutdown ();
 
     state = engine_shutting_down;
 }
@@ -216,7 +227,7 @@ void zmq::bp_tcp_sender_t::out_event ()
             return;
         }
 
-        if (mux.empty ())
+        if (mux->empty ())
             poller->reset_pollout (handle);
         poller->set_pollin (handle);
         state = engine_connected;
@@ -270,7 +281,7 @@ void zmq::bp_tcp_sender_t::unregister_event ()
 void zmq::bp_tcp_sender_t::revive (pipe_t *pipe_)
 {
     //  Mark pipe as alive.
-    engine_base_t <false,true>::revive (pipe_);
+    mux->revive (pipe_);
 
     //  Don't start polling for output if you are not connected.
     if (state == engine_connected) {
@@ -287,7 +298,7 @@ void zmq::bp_tcp_sender_t::revive (pipe_t *pipe_)
 
 void zmq::bp_tcp_sender_t::receive_from (pipe_t *pipe_)
 {
-    engine_base_t <false,true>::receive_from (pipe_);
+    mux->receive_from (pipe_);
 
     //  If we are already in shut down phase, initiate shut down of the pipe
     //  immediately.
@@ -297,3 +308,32 @@ void zmq::bp_tcp_sender_t::receive_from (pipe_t *pipe_)
     if (state == engine_connected)
         poller->set_pollout (handle);
 }
+
+const char *zmq::bp_tcp_sender_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::bp_tcp_sender_t::head (pipe_t *pipe_, int64_t position_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_sender_t::send_to (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_sender_t::terminate_pipe (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_sender_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    pipe_->reader_terminated ();
+    mux->release_pipe (pipe_);
+}
+

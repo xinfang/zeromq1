@@ -20,16 +20,17 @@
 #ifndef __ZMQ_IN_ENGINE_HPP_INCLUDED__
 #define __ZMQ_IN_ENGINE_HPP_INCLUDED__
 
-#include <zmq/engine_base.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/mux.hpp>
 
 namespace zmq
 {
 
-    class in_engine_t : public engine_base_t <false, true>
+    class in_engine_t : public i_engine
     {
     public:
 
-        static in_engine_t *create (int64_t hwm_, int64_t lwm_,
+        static in_engine_t *create (mux_t *mux_, int64_t hwm_, int64_t lwm_,
             uint64_t swap_size_);
 
         bool read (message_t *msg_);
@@ -38,16 +39,27 @@ namespace zmq
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
 
+    protected:
+        //  i_engine implementation.
+        i_pollable *cast_to_pollable ();
+        const char *get_arguments ();
+        void revive (pipe_t *pipe_);
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
     private:
 
-        in_engine_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_);
+        in_engine_t (mux_t *mux_, int64_t hwm_, int64_t lwm_, 
+            int64_t swap_size_);
         ~in_engine_t ();
 
+        mux_t *mux;
         int64_t hwm;
         int64_t lwm;
         int64_t swap_size;
     };
-
 }
-
 #endif

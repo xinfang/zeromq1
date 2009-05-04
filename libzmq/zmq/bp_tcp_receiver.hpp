@@ -26,9 +26,10 @@
 #include <zmq/stdint.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/bp_decoder.hpp>
 #include <zmq/tcp_socket.hpp>
+#include <zmq/i_engine.hpp>
+#include <zmq/i_demux.hpp>
 
 namespace zmq
 {
@@ -39,9 +40,7 @@ namespace zmq
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_tcp_receiver_t :
-        public engine_base_t <true,false>,
-        public i_pollable
+    class bp_tcp_receiver_t : public i_engine, public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -87,11 +86,12 @@ namespace zmq
         //  Creates bp_tcp_receiver. Underlying TCP connection is initialised
         //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        bp_tcp_receiver_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_,
-            const char * /* options_*/);
-        bp_tcp_receiver_t (i_thread *calling_thread_, i_thread *thread_,
-            tcp_listener_t &listener_, const char *local_object_);
+        bp_tcp_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
+            i_thread *thread_, const char *hostname_, 
+            const char *local_object_, const char * /* options_*/);
+        bp_tcp_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
+            i_thread *thread_, tcp_listener_t &listener_, 
+            const char *local_object_);
 
         ~bp_tcp_receiver_t ();
 
@@ -103,6 +103,16 @@ namespace zmq
 
         //  Initialise engine shutdown.
         void shutdown ();
+
+        //  i_engine interface implementation.
+        const char *get_arguments ();
+        void revive (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  Demux.
+        i_demux *demux;
 
         //  Buffer to read from undrlying socket.
         unsigned char *readbuf;

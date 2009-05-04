@@ -26,9 +26,9 @@
 #include <zmq/stdint.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/tcp_socket.hpp>
+#include <zmq/mux.hpp>
 
 namespace zmq
 {
@@ -39,9 +39,7 @@ namespace zmq
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_tcp_sender_t :
-        public engine_base_t <false,true>,
-        public i_pollable
+    class bp_tcp_sender_t : public i_engine, public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -87,10 +85,10 @@ namespace zmq
         //  Creates bp_tcp_sender. Underlying TCP connection is initialised
         //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        bp_tcp_sender_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_,
-            const char * /* options_*/);
-        bp_tcp_sender_t (i_thread *calling_thread_, i_thread *thread_,
+        bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
+            i_thread *thread_, const char *hostname_, 
+            const char *local_object_, const char * /* options_*/);
+        bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_, i_thread *thread_,
             tcp_listener_t &listener_, const char *local_object_);
 
         ~bp_tcp_sender_t ();
@@ -103,6 +101,16 @@ namespace zmq
 
         //  Initialise engine shutdown.
         void shutdown ();
+       
+        //  i_engine interface implementation.
+        const char *get_arguments ();
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  Mux.
+        mux_t *mux;
 
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;

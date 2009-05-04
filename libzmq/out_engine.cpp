@@ -20,20 +20,22 @@
 #include <zmq/out_engine.hpp>
 #include <zmq/err.hpp>
 
-zmq::out_engine_t *zmq::out_engine_t::create (bool load_balancing_)
+zmq::out_engine_t *zmq::out_engine_t::create (i_demux *demux_)
 {
-    out_engine_t *instance = new out_engine_t (load_balancing_);
+    out_engine_t *instance = new out_engine_t (demux_);
     zmq_assert (instance);
     return instance;
 }
 
-zmq::out_engine_t::out_engine_t (bool load_balancing_) :
-    engine_base_t <true, false> (load_balancing_)
+zmq::out_engine_t::out_engine_t (i_demux *demux_) :
+    demux (demux_)
 {
+    zmq_assert (demux);
 }
 
 zmq::out_engine_t::~out_engine_t ()
 {
+    delete demux;
 }
 
 bool zmq::out_engine_t::write (message_t &msg_)
@@ -56,3 +58,48 @@ int64_t zmq::out_engine_t::get_swap_size ()
 {
     return 0;
 }
+
+zmq::i_pollable *zmq::out_engine_t::cast_to_pollable ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+const char *zmq::out_engine_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::out_engine_t::revive (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::out_engine_t::head (pipe_t *pipe_, int64_t position_)
+{
+}
+
+void zmq::out_engine_t::send_to (pipe_t *pipe_)
+{
+    //  Start sending messages to a pipe.
+    demux->send_to (pipe_);
+}
+
+void zmq::out_engine_t::receive_from (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::out_engine_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    pipe_->writer_terminated ();
+    demux->release_pipe (pipe_);
+}
+
+void zmq::out_engine_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
