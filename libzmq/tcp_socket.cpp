@@ -148,7 +148,8 @@ int zmq::tcp_socket_t::read (void *data, int size)
     if (nbytes == -1 && (
           WSAGetLastError () == WSAECONNRESET ||
           WSAGetLastError () == WSAECONNREFUSED ||
-          WSAGetLastError () == WSAENOTCONN))
+          WSAGetLastError () == WSAENOTCONN ||
+		  WSAGetLastError () == WSAECONNABORTED))
         return -1;
 
     wsa_assert (nbytes != SOCKET_ERROR);
