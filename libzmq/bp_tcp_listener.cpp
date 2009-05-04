@@ -20,6 +20,7 @@
 #include <zmq/bp_tcp_listener.hpp>
 #include <zmq/bp_tcp_sender.hpp>
 #include <zmq/bp_tcp_receiver.hpp>
+#include <zmq/data_distributor.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/err.hpp>
@@ -29,7 +30,6 @@ zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread **handler_threads_, bool sender_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
-    engine_base_t <false, false> (NULL, NULL),
     sender (sender_),
     poller (NULL),
     peer_thread (peer_thread_),
@@ -180,4 +180,34 @@ const char *zmq::bp_tcp_listener_t::get_arguments ()
     zmq_snprintf (arguments, sizeof (arguments), "zmq.tcp://%s",
         listener.get_interface ());
     return arguments;
+}
+
+void zmq::bp_tcp_listener_t::revive (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_listener_t::head (pipe_t *pipe_, int64_t position_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_listener_t::receive_from (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_listener_t::send_to (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_listener_t::terminate_pipe (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_tcp_listener_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    zmq_assert (false);
 }

@@ -25,7 +25,6 @@
 #include <zmq/stdint.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/tcp_listener.hpp>
 
 namespace zmq
@@ -34,9 +33,7 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_tcp_listener_t :
-        public engine_base_t <false, false>,
-        public i_pollable
+    class bp_tcp_listener_t : public i_engine, public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -55,6 +52,16 @@ namespace zmq
         void out_event ();
         void timer_event ();
         void unregister_event ();
+
+    protected:
+
+        //  i_engine interface implementation.
+        void revive (pipe_t *pipe_);
+        void head (pipe_t *pipe_, int64_t position_);
+        void receive_from (pipe_t *pipe_);
+        void send_to (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
 
     private:
 
