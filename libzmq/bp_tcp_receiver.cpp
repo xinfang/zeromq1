@@ -334,8 +334,7 @@ void zmq::bp_tcp_receiver_t::receive_from (pipe_t *pipe_)
 
 void zmq::bp_tcp_receiver_t::terminate_pipe (pipe_t *pipe_)
 {
-    //  Forward the command to the pipe. Drop reference to the pipe.
-    pipe_->writer_terminated ();
+    //  Drop reference to the pipe.
     demux->release_pipe (pipe_);
 }
 

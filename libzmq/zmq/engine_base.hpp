@@ -87,17 +87,15 @@ namespace zmq
 
         void terminate_pipe (pipe_t *pipe_)
         {
-            //  Forward the command to the pipe. Drop reference to the pipe.
+            //  Drop reference to the pipe.
             zmq_assert (HAS_IN);
-            pipe_->writer_terminated ();
             demux->release_pipe (pipe_);
         }
 
         void terminate_pipe_ack (pipe_t *pipe_)
         {
-            //  Forward the command to the pipe. Drop reference to the pipe.
+            //  Drop reference to the pipe.
             zmq_assert (HAS_OUT);
-            pipe_->reader_terminated ();
             mux->release_pipe (pipe_);
         }
 

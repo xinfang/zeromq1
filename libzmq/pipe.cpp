@@ -218,9 +218,11 @@ void zmq::pipe_t::terminate_writer ()
     }
 }
 
-void zmq::pipe_t::writer_terminated ()
+void zmq::pipe_t::terminate_pipe_req ()
 {
     i_thread *st = source_thread;
+
+    source_engine->terminate_pipe (this);
 
     //  Drop the pointers to the writer. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
@@ -230,7 +232,7 @@ void zmq::pipe_t::writer_terminated ()
 
     //  Send termination acknowledgement to the pipe reader.
     command_t cmd;
-    cmd.init_engine_terminate_pipe_ack (destination_engine, this);
+    cmd.init_terminate_pipe_ack (this);
     st->send_command (destination_thread, cmd);
 }
 
@@ -240,14 +242,16 @@ void zmq::pipe_t::terminate_reader ()
 
         //  Send termination request to the pipe writer.
         command_t cmd;
-        cmd.init_engine_terminate_pipe (source_engine, this);
+        cmd.init_terminate_pipe_req (this);
         destination_thread->send_command (source_thread, cmd);
         reader_terminating = true;
     }
 }
 
-void zmq::pipe_t::reader_terminated ()
+void zmq::pipe_t::terminate_pipe_ack ()
 {
+    destination_engine->terminate_pipe_ack (this);
+
     //  Drop the pointers to the reader. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
     //  to fail faster in case of certain synchronisation bugs.

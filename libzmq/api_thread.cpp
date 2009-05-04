@@ -367,6 +367,16 @@ void zmq::api_thread_t::process_command (const command_t &command_)
         pipe->notify_writer (command_.args.notify_writer.position);
         break;
 
+    case command_t::terminate_pipe_req:
+        pipe = command_.args.terminate_pipe_req.pipe;
+        pipe->terminate_pipe_req ();
+        break;
+
+    case command_t::terminate_pipe_ack:
+        pipe = command_.args.terminate_pipe_ack.pipe;
+        pipe->terminate_pipe_ack ();
+        break;
+
     //  Forward engine command to appropriate engine.
     case command_t::engine_command:
         {
@@ -380,13 +390,6 @@ void zmq::api_thread_t::process_command (const command_t &command_)
                 break;
             case engine_command_t::receive_from:
                 engine->receive_from (engcmd.args.receive_from.pipe);
-                break;
-            case engine_command_t::terminate_pipe:
-                engine->terminate_pipe (engcmd.args.terminate_pipe.pipe);
-                break;
-            case engine_command_t::terminate_pipe_ack:
-                engine->terminate_pipe_ack (
-                    engcmd.args.terminate_pipe_ack.pipe);
                 break;
             default:
 

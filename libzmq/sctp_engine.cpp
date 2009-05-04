@@ -260,17 +260,15 @@ const char *zmq::sctp_engine_t::get_arguments ()
 
 void zmq::sctp_engine_t::terminate_pipe (pipe_t *pipe_)
 {
-    //  Forward the command to the pipe. Drop reference to the pipe.
+    //  Drop reference to the pipe.
     zmq_assert (demux);
-    pipe_->writer_terminated ();
     demux->release_pipe (pipe_);
 }
 
 void zmq::sctp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
 {
-    //  Forward the command to the pipe. Drop reference to the pipe.
+    //  Drop reference to the pipe.
     zmq_assert (mux);
-    pipe_->reader_terminated ();
     mux->release_pipe (pipe_);
 }
 #endif

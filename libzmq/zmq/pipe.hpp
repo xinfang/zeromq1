@@ -94,14 +94,14 @@ namespace zmq
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
 
-        //  Confirms pipe shut down to the writer.
-        void writer_terminated ();
+        //  The message consumer has requested for pipe shutdown.
+        void terminate_pipe_req ();
 
         //  Used by the pipe reader to initialise  pipe shut down.
         void terminate_reader ();
 
-        //  Confirms pipe shut down to the reader.
-        void reader_terminated ();
+        //  The message producer has acknowledged the shutdown request.
+        void terminate_pipe_ack ();
 
     private:
 

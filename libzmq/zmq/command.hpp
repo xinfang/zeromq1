@@ -37,9 +37,7 @@ namespace zmq
         enum type_t
         {
             send_to,
-            receive_from,
-            terminate_pipe,
-            terminate_pipe_ack
+            receive_from
         } type;
 
         union {
@@ -49,12 +47,6 @@ namespace zmq
             struct {
                 class pipe_t *pipe;
             } receive_from;
-            struct {
-                class pipe_t *pipe;
-            } terminate_pipe;
-            struct {
-                class pipe_t *pipe;
-            } terminate_pipe_ack;
         } args;   
     };
 
@@ -68,6 +60,8 @@ namespace zmq
             stop,
             revive_reader,
             notify_writer,
+            terminate_pipe_req,
+            terminate_pipe_ack,
             register_engine,
             unregister_engine,
             engine_command
@@ -84,6 +78,12 @@ namespace zmq
                 class pipe_t *pipe;
                 uint64_t position;
             } notify_writer;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe_req;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe_ack;
             struct {
                 i_engine *engine;
             } register_engine;
@@ -114,6 +114,18 @@ namespace zmq
             args.notify_writer.position = position_;
         }
 
+        inline void init_terminate_pipe_req (class pipe_t *pipe_)
+        {
+            type = terminate_pipe_req;
+            args.terminate_pipe_req.pipe = pipe_;
+        }
+
+        inline void init_terminate_pipe_ack (class pipe_t *pipe_)
+        {
+            type = terminate_pipe_ack;
+            args.terminate_pipe_ack.pipe = pipe_;
+        }
+
         inline void init_register_engine (i_engine *engine_)
         {
             type = register_engine;
@@ -142,25 +154,6 @@ namespace zmq
             args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
-        inline void init_engine_terminate_pipe (i_engine *engine_,
-            pipe_t *pipe_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::terminate_pipe;
-            args.engine_command.command.args.terminate_pipe.pipe = pipe_;
-        }
-
-        inline void init_engine_terminate_pipe_ack (i_engine *engine_,
-            pipe_t *pipe_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type =
-                engine_command_t::terminate_pipe_ack;
-            args.engine_command.command.args.terminate_pipe_ack.pipe = pipe_;
-        }
-        
     };
 
 }    

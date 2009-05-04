@@ -103,8 +103,7 @@ void zmq::in_engine_t::terminate_pipe (pipe_t *pipe_)
 
 void zmq::in_engine_t::terminate_pipe_ack (pipe_t *pipe_)
 {
-    //  Forward the command to the pipe. Drop reference to the pipe.
-    pipe_->reader_terminated ();
+    //  Drop reference to the pipe.
     mux->release_pipe (pipe_);
 }
 
