@@ -66,13 +66,32 @@ namespace zmq
             return pipes.empty ();
         }
 
+        //  Returns true if demux state is dead or new.
+        bool dead ();
+
     private:
+
+        enum demux_state_t {
+
+            //  Newly created demux, no pipe attached.
+            demux_new,
+
+            //  Demux has at least one pipe attached.
+            //  Engine processed recv_from command.
+            demux_connected,
+            
+            //  All pipes deleted.
+            demux_dead
+        };
 
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
 
         //  TODO: disable copying
+
+        //  Demux state.
+        demux_state_t state;
     };
 
 }

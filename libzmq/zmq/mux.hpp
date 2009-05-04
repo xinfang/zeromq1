@@ -57,7 +57,23 @@ namespace zmq
         //  Set remote object identity.
         void set_remote_object (std::string &remote_object_);
 
+        //  Returns true if mux state is dead or new.
+        bool dead ();
+
     private:
+
+        enum mux_state_t {
+
+            //  Newly created mux, no pipe attached.
+            mux_new,
+
+            //  Mux has at least one pipe attached.
+            //  Engine processed recv_from command.
+            mux_connected,
+            
+            //  All pipes deleted.
+            mux_dead
+        };
 
         //  The list of inbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
@@ -71,6 +87,9 @@ namespace zmq
         std::string remote_object;
 
         //  TODO: disable copying
+
+        //  Mux state.
+        mux_state_t state;
     };
 
 }

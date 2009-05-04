@@ -21,7 +21,8 @@
 #include <zmq/raw_message.hpp>
 
 zmq::mux_t::mux_t () :
-    current (0)
+    current (0),
+    state (mux_new)
 {
 }
 
@@ -33,6 +34,9 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
 {
     //  Associate new pipe with the mux object.
     pipes.push_back (pipe_);
+
+    //  Change state to mux_connected.
+    state = mux_connected;
 }
 
 bool zmq::mux_t::read (message_t *msg_)
@@ -70,6 +74,12 @@ bool zmq::mux_t::empty ()
 
 void zmq::mux_t::release_pipe (pipe_t *pipe_)
 {
+    //  If mux is not connected there is nothing to release.
+    if (state != mux_connected) {
+        state = mux_dead;
+        return;
+    }
+        
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         if (*it == pipe_) {
 
@@ -80,6 +90,10 @@ void zmq::mux_t::release_pipe (pipe_t *pipe_)
             pipes.erase (it);
             if (current == pipes.size ())
                 current = 0;
+
+            if (pipes.empty () && state == mux_connected)
+                state = mux_dead;
+ 
             return;
         }
 
@@ -98,3 +112,9 @@ void zmq::mux_t::set_remote_object (std::string &remote_object_)
 {
     remote_object = remote_object_;
 }
+
+bool zmq::mux_t::dead ()
+{
+    return state == mux_dead || state == mux_new;
+}
+

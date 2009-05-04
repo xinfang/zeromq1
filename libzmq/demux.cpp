@@ -20,7 +20,8 @@
 #include <zmq/demux.hpp>
 #include <zmq/raw_message.hpp>
 
-zmq::demux_t::demux_t ()
+zmq::demux_t::demux_t () :
+    state (demux_new)
 {
 }
 
@@ -32,6 +33,9 @@ void zmq::demux_t::send_to (pipe_t *pipe_)
 {
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
+
+    //  Change state to demux_connected.
+    state = demux_connected;
 }
 
 bool zmq::demux_t::write (message_t &msg_)
@@ -116,12 +120,26 @@ bool zmq::demux_t::empty ()
 
 void zmq::demux_t::release_pipe (pipe_t *pipe_)
 {
+    //  If mux is not connected there is nothing to release.
+    if (state != demux_connected) {
+        state = demux_dead;
+        return;
+    }
+
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
         if (*it == pipe_) {
             pipes.erase (it);
+
+            //  If last pipe has been erased demux is dead.
+            if (pipes.empty () && state == demux_connected)
+                state = demux_dead;
+                
             return;
         }
     }
+
+    //  There's a bug in shut down mechanism!
+    assert (false);
 }
 
 void zmq::demux_t::initialise_shutdown ()
@@ -130,3 +148,9 @@ void zmq::demux_t::initialise_shutdown ()
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->terminate_writer ();
 }
+
+bool zmq::demux_t::dead ()
+{
+    return state == demux_dead || state == demux_new; 
+}
+
