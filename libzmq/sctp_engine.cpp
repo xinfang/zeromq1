@@ -29,9 +29,11 @@
 #include <zmq/config.hpp>
 #include <zmq/ip.hpp>
 
-zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_ */) :
+zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, const char *hostname_, 
+      const char *local_object_, const char * /* arguments_ */) :
+    mux (mux_),
+    demux (demux_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)
@@ -74,8 +76,11 @@ zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
-      i_thread *thread_, int listener_, const char *local_object_) :
+zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, int listener_, 
+      const char *local_object_) :
+    mux (mux_),
+    demux (demux_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)
@@ -137,6 +142,9 @@ void zmq::sctp_engine_t::register_event (i_poller *poller_)
 
 void zmq::sctp_engine_t::in_event ()
 {
+
+    zmq_assert (demux);
+
     //  Receive N messages in one go if possible - this way we'll avoid
     //  excessive polling.
     //  TODO: Move the constant to config.hpp
@@ -165,8 +173,10 @@ void zmq::sctp_engine_t::in_event ()
 
 void zmq::sctp_engine_t::out_event ()
 {
+    zmq_assert (mux);
+
     message_t msg;
-    if (!mux.read (&msg)) {
+    if (!mux->read (&msg)) {
 
         //  If there are no messages to send, stop polling for output.
         poller->reset_pollout (handle);
@@ -195,7 +205,7 @@ void zmq::sctp_engine_t::revive (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
-        engine_base_t <true,true>::revive (pipe_);
+        mux->revive (pipe_);
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
@@ -207,12 +217,14 @@ void zmq::sctp_engine_t::revive (pipe_t *pipe_)
 
 void zmq::sctp_engine_t::head (pipe_t *pipe_, int64_t position_)
 {
-    engine_base_t <true,true>::head (pipe_, position_);
     in_event ();
 }
 
 void zmq::sctp_engine_t::send_to (pipe_t *pipe_)
 {
+    
+    zmq_assert (demux);
+
     if (!shutting_down) {
 
         //  If pipe limits are set, POLLIN may be turned off
@@ -222,18 +234,43 @@ void zmq::sctp_engine_t::send_to (pipe_t *pipe_)
             poller->set_pollin (handle);
 
         //  Start sending messages to a pipe.
-        engine_base_t <true,true>::send_to (pipe_);
+        demux->send_to (pipe_);
+
     }
 }
 
 void zmq::sctp_engine_t::receive_from (pipe_t *pipe_)
 {
+    
+    zmq_assert (mux);
+
     //  Start receiving messages from a pipe.
-    engine_base_t <true,true>::receive_from (pipe_);
+    mux->receive_from (pipe_);
     if (shutting_down)
         pipe_->terminate_reader ();
     else
         poller->set_pollout (handle);
 }
 
+const char *zmq::sctp_engine_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::sctp_engine_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    zmq_assert (demux);
+    pipe_->writer_terminated ();
+    demux->release_pipe (pipe_);
+}
+
+void zmq::sctp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    //  Forward the command to the pipe. Drop reference to the pipe.
+    zmq_assert (mux);
+    pipe_->reader_terminated ();
+    mux->release_pipe (pipe_);
+}
 #endif

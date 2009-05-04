@@ -99,13 +99,16 @@ zmq::i_engine *zmq::engine_factory_t::create (
 
 #if defined ZMQ_HAVE_SCTP
     if (transport_type == "sctp") {
-        if (global_)
+        if (global_) {
             engine = new sctp_listener_t (calling_thread_,
                 engine_thread_, transport_args.c_str (), handler_thread_count_,
-                handler_threads_, !sender_, peer_thread_, peer_engine_, name_);
-        else
-            engine = new sctp_engine_t (calling_thread_,
+                handler_threads_, sender_, peer_thread_, peer_engine_, name_);
+        } else {
+            i_demux *demux = new data_distributor_t ();
+            mux_t *mux = new mux_t ();
+            engine = new sctp_engine_t (mux, demux, calling_thread_,
                 engine_thread_, transport_args.c_str (), name_, options_);
+        }
         zmq_assert (engine);
         return engine;
     }

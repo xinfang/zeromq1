@@ -34,10 +34,10 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/mux.hpp>
+#include <zmq/i_demux.hpp>
 #include <zmq/message.hpp>
 
 namespace zmq
@@ -50,9 +50,7 @@ namespace zmq
     //     directly to SCTP messages.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class sctp_engine_t :
-        public engine_base_t <true, true>,
-        public i_pollable
+    class sctp_engine_t : public i_engine, public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -78,14 +76,23 @@ namespace zmq
         void timer_event ();
         void unregister_event ();
 
+    protected:
+        const char *get_arguments ();
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
     private:
 
-        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_,
+        sctp_engine_t (mux_t *mux_, i_demux *demux_, i_thread *calling_thread_, 
+            i_thread *thread_, const char *hostname_, const char *local_object_,
             const char * /* arguments_ */);
-        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            int listener_, const char *local_object_);
+        sctp_engine_t (mux_t *mux_, i_demux *demux_, i_thread *calling_thread_, 
+            i_thread *thread_, int listener_, const char *local_object_);
         ~sctp_engine_t ();
+
+        //  Mux * demux.
+        mux_t *mux;
+        i_demux *demux;
 
         //  Underlying SCTP socket.
         int s;

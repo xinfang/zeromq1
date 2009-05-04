@@ -26,13 +26,15 @@
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/data_distributor.hpp>
 
 zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
-      i_thread **handler_threads_, bool source_,
+      i_thread **handler_threads_, bool sender_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
-    source (source_),
+    sender (sender_),
     thread (thread_),
     peer_thread (peer_thread_),
     peer_engine (peer_engine_)
@@ -133,13 +135,20 @@ void zmq::sctp_listener_t::register_event (i_poller *poller_)
 
 void zmq::sctp_listener_t::in_event ()
 {
+
+    i_demux *demux = new data_distributor_t ();
+    zmq_assert (demux);
+
+    mux_t *mux = new mux_t ();
+    zmq_assert (mux);
+
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
-    sctp_engine_t *engine = new sctp_engine_t (thread,
+    sctp_engine_t *engine = new sctp_engine_t (mux, demux, thread,
         handler_threads [current_handler_thread], s, peer_name);
     zmq_assert (engine);
 
-    if (source) {
+    if (!sender) {
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
@@ -215,4 +224,33 @@ const char *zmq::sctp_listener_t::get_arguments ()
     return arguments;
 }
 
+void zmq::sctp_listener_t::revive (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::sctp_listener_t::head (pipe_t *pipe_, int64_t position_)
+{
+    zmq_assert (false);
+}
+
+void zmq::sctp_listener_t::send_to (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::sctp_listener_t::receive_from (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::sctp_listener_t::terminate_pipe (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::sctp_listener_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
 #endif
