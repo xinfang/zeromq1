@@ -54,8 +54,8 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
 
     //  Set non-blocking flag.
     if (!block_) {
-        flag = 1;
-        rc = ioctlsocket (s, FIONBIO, &flag);
+        u_long flag = 1;
+        int rc = ioctlsocket (s, FIONBIO, &flag);
         wsa_assert (rc != SOCKET_ERROR);
     }
 

@@ -53,8 +53,6 @@ zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
     hostname (""),
     block (block_)
 {
-    //  Accept the socket.
-    s = listener.accept ();
     wsa_assert (s != retired_fd);
  
     //  Set socket properties to non-blocking mode. 
