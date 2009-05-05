@@ -205,16 +205,18 @@ void zmq::pipe_t::terminate_writer ()
 
 void zmq::pipe_t::writer_terminated ()
 {
-    //  Send termination acknowledgement to the pipe reader.
-    command_t cmd;
-    cmd.init_engine_terminate_pipe_ack (destination_engine, this);
-    source_thread->send_command (destination_thread, cmd);
+    i_thread *st = source_thread;
 
     //  Drop the pointers to the writer. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
     //  to fail faster in case of certain synchronisation bugs.
     source_thread = NULL;
     source_engine = NULL;
+
+    //  Send termination acknowledgement to the pipe reader.
+    command_t cmd;
+    cmd.init_engine_terminate_pipe_ack (destination_engine, this);
+    st->send_command (destination_thread, cmd);
 }
 
 void zmq::pipe_t::terminate_reader ()
