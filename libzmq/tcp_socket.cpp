@@ -105,8 +105,8 @@ zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_):
 
 zmq::tcp_socket_t::~tcp_socket_t ()
 {
-    int rc = closesocket (s);
-    wsa_assert (rc != SOCKET_ERROR);
+    if (s != retired_fd)
+        close ();
 }
 
 void zmq::tcp_socket_t::close ()
