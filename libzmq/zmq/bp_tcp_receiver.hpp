@@ -89,9 +89,9 @@ namespace zmq
         bp_tcp_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
             i_thread *thread_, const char *hostname_, 
             const char *local_object_, const char * /* options_*/);
+
         bp_tcp_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
-            i_thread *thread_, tcp_listener_t &listener_, 
-            const char *local_object_);
+            i_thread *thread_, fd_t fd_, const char *local_object_);
 
         ~bp_tcp_receiver_t ();
 

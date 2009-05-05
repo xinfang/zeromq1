@@ -85,6 +85,10 @@ void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 
 void zmq::bp_tcp_listener_t::in_event ()
 {
+    fd_t fd = listener.accept ();
+    if (fd == retired_fd)
+        return;
+
     if (!sender) {
         //  Create demux for receiver engine.
         i_demux *demux = new data_distributor_t ();
@@ -92,7 +96,7 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
         bp_tcp_receiver_t *engine = new bp_tcp_receiver_t (demux, poller,
-            handler_threads [current_handler_thread], listener, peer_name);
+            handler_threads [current_handler_thread], fd, peer_name);
         zmq_assert (engine);
 
         //  The newly created engine serves as a local source of messages
@@ -123,7 +127,7 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
         bp_tcp_sender_t *engine = new bp_tcp_sender_t (mux, poller,
-            handler_threads [current_handler_thread], listener, peer_name);
+            handler_threads [current_handler_thread], fd, peer_name);
         zmq_assert (engine);
 
         //  The newly created engine serves as a local destination of messages

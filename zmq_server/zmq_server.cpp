@@ -163,7 +163,8 @@ int main (int argc, char *argv [])
 #ifdef ZMQ_TRACE
             printf ("Opening connection.\n");
 #endif
-	    socket_list.push_back (new tcp_socket_t (listening_socket, true));           
+	    socket_list.push_back (
+                new tcp_socket_t (listening_socket.accept (), true));
             fd_t s = socket_list.back ()->get_fd ();
             FD_SET (s, &source_set_fds);
             

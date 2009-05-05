@@ -51,8 +51,7 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
 }
 
 zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
-      i_thread *thread_, tcp_listener_t &listener_,
-      const char *local_object_) :
+      i_thread *thread_, fd_t fd_, const char *local_object_) :
     mux (mux_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
@@ -62,7 +61,7 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
     local_object (local_object_),
     reconnect_flag (false),
     state (engine_connected),
-    socket (listener_)
+    socket (fd_)
 {
 
     zmq_assert (mux);

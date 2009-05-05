@@ -51,7 +51,7 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
 }
 
 zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, tcp_listener_t &listener_,
+      i_thread *calling_thread_, i_thread *thread_, fd_t fd_,
       const char *local_object_) :
     demux (demux_),
     readbuf_size (bp_in_batch_size),
@@ -62,9 +62,8 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
     local_object (local_object_),
     reconnect_flag (false),
     state (engine_connected),
-    socket (listener_)
+    socket (fd_)
 {
-
     zmq_assert (demux);
 
     //  Allocate read buffer.
