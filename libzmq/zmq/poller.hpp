@@ -34,7 +34,7 @@
 namespace zmq
 {
 
-    template <class T> class poller_t : public i_thread
+    template <class T> class poller_t : public i_thread, public i_pollable
     {
     public:
 
@@ -46,9 +46,12 @@ namespace zmq
         void stop ();
         void destroy ();
 
-        //  Callback functions called by event_monitor. Returns false if the
-        //  is to be shut down.
-        bool process_commands ();
+        //  i_pollable implementation.
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void timer_event ();
+        void unregister_event ();
 
     private:
 
@@ -61,9 +64,8 @@ namespace zmq
         //  Main routine (non-static) - called from worker_routine.
         void loop ();
 
-        //  Processes individual command. Returns false if the thread should
-        //  terminate.
-        bool process_command (const command_t &command_);
+        //  Processes individual command.
+        void process_command (const command_t &command_);
 
         //  Pointer to dispatcher.
         dispatcher_t *dispatcher;
@@ -83,6 +85,9 @@ namespace zmq
 
         //  We perform I/O multiplexing using event monitor.
         T *event_monitor;
+
+        //  If true, thread is supposed to stop. Exit the loop.
+        bool stopping;
 
         //  List of all registered engines.
         typedef std::vector <i_engine*> engines_t;
@@ -116,12 +121,13 @@ void zmq::poller_t <T>::destroy ()
 
 template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_)
+    dispatcher (dispatcher_),
+    stopping (false)
 {
     event_monitor = new T;
     zmq_assert (event_monitor);
 
-    signaler_handle = event_monitor->add_fd (signaler.get_fd (), NULL);
+    signaler_handle = event_monitor->add_fd (signaler.get_fd (), this);
     event_monitor->set_pollin (signaler_handle);
 
     //  Register the thread with command dispatcher.
@@ -175,10 +181,8 @@ template <class T>
 void zmq::poller_t <T>::loop ()
 {
     //  Main event loop.
-    while (true) {
-        if (!event_monitor->process_events (this))
-           break;
-    }
+    while (!stopping)
+        event_monitor->process_events ();
 
     //  Unregister all the registered engines.
     for (engines_t::iterator it = engines.begin (); it != engines.end (); it ++)
@@ -186,31 +190,7 @@ void zmq::poller_t <T>::loop ()
 }
 
 template <class T>
-bool zmq::poller_t <T>::process_commands ()
-{
-    //  Find out which threads are sending us commands.
-    uint32_t signals = signaler.check ();
-    zmq_assert (signals);
-
-    //  Iterate through all the threads in the process and find out
-    //  which of them sent us commands.
-    for (int source_thread_id = 0;
-          source_thread_id != dispatcher->get_thread_count ();
-          source_thread_id ++) {
-        if (signals & (1 << source_thread_id)) {
-
-            //  Read all the commands from particular thread.
-            command_t command;
-            while (dispatcher->read (source_thread_id, thread_id, &command))
-                if (!process_command (command))
-                    return false;
-        }
-    }
-    return true;
-}
-
-template <class T>
-bool zmq::poller_t <T>::process_command (const command_t &command_)
+void zmq::poller_t <T>::process_command (const command_t &command_)
 {
     i_engine *engine;
     pipe_t *pipe;
@@ -219,6 +199,7 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 
     //  Exit the working thread.
     case command_t::stop:
+        stopping = true;
         break;
 
     case command_t::revive_reader:
@@ -284,10 +265,57 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
     default:
         zmq_assert (false);
     }
+}
 
-    if (command_.type == command_t::stop)
-        return false;
-    return true;
+template <class T>
+void zmq::poller_t <T>::register_event (i_poller*)
+{
+    //  This is not an engine. This function is never called.
+    zmq_assert (false);
+}
+
+template <class T>
+void zmq::poller_t <T>::in_event ()
+{
+    //  Find out which threads are sending us commands.
+    uint32_t signals = signaler.check ();
+    zmq_assert (signals);
+
+    //  Iterate through all the threads in the process and find out
+    //  which of them sent us commands.
+    for (int source_thread_id = 0;
+          source_thread_id != dispatcher->get_thread_count ();
+          source_thread_id ++) {
+        if (signals & (1 << source_thread_id)) {
+
+            //  Read all the commands from particular thread.
+            command_t command;
+            while (dispatcher->read (source_thread_id, thread_id, &command))
+                process_command (command);
+        }
+    }
+}
+
+template <class T>
+void zmq::poller_t <T>::out_event ()
+{
+    //  We are never polling for POLLOUT here. This function is never called.
+    zmq_assert (false);
+}
+
+template <class T>
+void zmq::poller_t <T>::timer_event ()
+{
+    //  No timers here. This function is never called.
+    zmq_assert (false);
+}
+
+template <class T>
+void zmq::poller_t <T>::unregister_event ()
+{
+    //  This is not an engine. This function is never called.
+    zmq_assert (false);
+
 }
 
 #endif

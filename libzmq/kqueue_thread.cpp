@@ -129,7 +129,7 @@ void zmq::kqueue_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
-bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
+void zmq::kqueue_t::process_events ()
 {
     struct kevent ev_buf [max_io_events];
 
@@ -160,7 +160,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return true;
+        return;
     }
 
     for (int i = 0; i < n; i ++) {
@@ -177,11 +177,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].filter == EVFILT_READ)
-            if (pe->engine)
-                pe->engine->in_event ();
-            else
-                if (!poller_->process_commands ())
-                    return false;
+            pe->engine->in_event ();
     }
 
     //  Destroy retired event sources.
@@ -189,8 +185,6 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
           it ++)
         delete *it;
     retired.clear ();
-
-    return true;
 }
 
 #endif

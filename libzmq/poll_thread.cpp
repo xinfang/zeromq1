@@ -109,7 +109,7 @@ void zmq::poll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
-bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
+void zmq::poll_t::process_events ()
 {
     //  Wait for events.
     int rc;
@@ -134,7 +134,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return true;
+        return;
     }
 
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
@@ -153,13 +153,8 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
             engine->out_event ();
         if (pollset [i].fd == retired_fd)
            continue;
-        if (pollset [i].revents & POLLIN) {
-            if (engine)
-                engine->in_event ();
-            else
-                if (!poller_->process_commands ())
-                    return false;
-        }
+        if (pollset [i].revents & POLLIN)
+           engine->in_event ();
     }
 
     //  Clean up the pollset and update the fd_table accordingly.
@@ -176,8 +171,6 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
 
         retired = false;
     }
-
-    return true;
 }
 
 #endif

@@ -53,7 +53,7 @@ namespace zmq
         void add_timer (i_pollable *engine_);
         void cancel_timer (i_pollable *engine_);
 
-        bool process_events (poller_t <devpoll_t> *poller_);
+        void process_events ();
 
     private:
 

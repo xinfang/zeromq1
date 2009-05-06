@@ -134,7 +134,7 @@ void zmq::select_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
-bool zmq::select_t::process_events (poller_t <select_t> *poller_)
+void zmq::select_t::process_events ()
 {
     //  Intialise the pollsets.
     memcpy (&readfds, &source_set_in, sizeof source_set_in);
@@ -175,10 +175,10 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
             std::swap (timers, t);
 
             //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+            for (timers_t::iterator it = t.begin (); it != t.end (); it++)
                 (*it)->timer_event ();
 
-            return true;
+            return;
         }
 
         //  TODO: Select sometimes returns 0 even though no event have occured
@@ -187,20 +187,15 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
             break;
     }
 
-    for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
+    for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &writefds))
             fds [i].engine->out_event ();
         if (fds [i].fd == retired_fd)
             continue;
-        if (FD_ISSET (fds [i].fd, &readfds)) {
-            if (fds [i].engine)
-                fds [i].engine->in_event ();
-            else
-                if (!poller_->process_commands ())
-                    return false;
-        }
+        if (FD_ISSET (fds [i].fd, &readfds))
+            fds [i].engine->in_event ();
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
@@ -209,14 +204,12 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
 
     //  Destroy retired event sources.
     if (retired) {
-        for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
+        for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
             if (fds [i].fd == retired_fd) {
                 fds.erase (fds.begin () + i);
-                i --;
+                i--;
             }
         }
         retired = false;
     }
-
-    return true;
 }

@@ -134,7 +134,7 @@ void zmq::devpoll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
-bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
+void zmq::devpoll_t::process_events ()
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
@@ -175,7 +175,7 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return true;
+        return;
     }
 
     for (int i = 0; i < n; i ++) {
@@ -193,14 +193,8 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & POLLIN)
-            if (engine)
-                engine->in_event ();
-            else
-                if (!poller_->process_commands ())
-                    return false;
+            engine->in_event ();
     }
-
-    return true;
 }
 
 #endif

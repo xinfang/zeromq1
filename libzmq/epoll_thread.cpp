@@ -113,7 +113,7 @@ void zmq::epoll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
-bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
+void zmq::epoll_t::process_events ()
 {
     epoll_event ev_buf [max_io_events];
 
@@ -140,7 +140,7 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return true;
+        return;
     }
 
     for (int i = 0; i < n; i ++) {
@@ -156,13 +156,8 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
             pe->engine->out_event ();
         if (pe->fd == retired_fd)
             continue;
-        if (ev_buf [i].events & EPOLLIN) {
-            if (pe->engine)
-                pe->engine->in_event ();
-            else
-                if (!poller_->process_commands ())
-                    return false;
-        }
+        if (ev_buf [i].events & EPOLLIN)
+            pe->engine->in_event ();
     }
 
     //  Destroy retired event sources.
@@ -170,8 +165,6 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
           it ++)
         delete *it;
     retired.clear ();
-
-    return true;
 }
 
 #endif

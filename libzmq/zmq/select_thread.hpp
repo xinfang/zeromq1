@@ -62,7 +62,7 @@ namespace zmq
         ZMQ_EXPORT void add_timer (i_pollable *engine_);
         ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
 
-        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_);
+        ZMQ_EXPORT void process_events ();
 
     private:
 
