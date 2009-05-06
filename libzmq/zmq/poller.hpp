@@ -34,13 +34,6 @@
 namespace zmq
 {
 
-    enum event_t
-    {
-        event_in,
-        event_out,
-        event_err
-    };
-
     template <class T> class poller_t : public i_poller
     {
     public:
@@ -97,7 +90,7 @@ namespace zmq
         thread_t worker;
 
         //  We perform I/O multiplexing using event monitor.
-        T event_monitor;
+        T *event_monitor;
 
         //  List of all registered engines.
         typedef std::vector <i_engine*> engines_t;
@@ -133,8 +126,11 @@ template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_)
 {
-    signaler_handle = event_monitor.add_fd (signaler.get_fd (), NULL);
-    event_monitor.set_pollin (signaler_handle);
+    event_monitor = new T;
+    zmq_assert (event_monitor);
+
+    signaler_handle = event_monitor->add_fd (signaler.get_fd (), NULL);
+    event_monitor->set_pollin (signaler_handle);
 
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (this, &signaler);
@@ -143,7 +139,9 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 template <class T>
 zmq::poller_t <T>::~poller_t ()
 {
-    event_monitor.rm_fd (signaler_handle);
+    event_monitor->rm_fd (signaler_handle);
+
+    delete event_monitor;
 }
 
 template <class T>
@@ -177,49 +175,49 @@ void zmq::poller_t <T>::stop ()
 template <class T>
 zmq::handle_t zmq::poller_t <T>::add_fd (fd_t fd_, i_pollable *engine_)
 {
-    return event_monitor.add_fd (fd_, engine_);
+    return event_monitor->add_fd (fd_, engine_);
 }
 
 template <class T>
 void zmq::poller_t <T>::rm_fd (handle_t handle_)
 {
-    event_monitor.rm_fd (handle_);
+    event_monitor->rm_fd (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollin (handle_t handle_)
 {
-    event_monitor.set_pollin (handle_);
+    event_monitor->set_pollin (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollin (handle_t handle_)
 {
-    event_monitor.reset_pollin (handle_);
+    event_monitor->reset_pollin (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::set_pollout (handle_t handle_)
 {
-    event_monitor.set_pollout (handle_);
+    event_monitor->set_pollout (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 {
-    event_monitor.reset_pollout (handle_);
+    event_monitor->reset_pollout (handle_);
 }
 
 template <class T>
 void zmq::poller_t <T>::add_timer (struct i_pollable *engine_)
 {
-    event_monitor.add_timer (engine_);
+    event_monitor->add_timer (engine_);
 }
 
 template <class T>
 void zmq::poller_t <T>::cancel_timer (struct i_pollable *engine_)
 {
-    event_monitor.cancel_timer (engine_);
+    event_monitor->cancel_timer (engine_);
 }
 
 template <class T>
@@ -234,7 +232,7 @@ void zmq::poller_t <T>::loop ()
 {
     //  Main event loop.
     while (true) {
-        if (event_monitor.process_events (this))
+        if (event_monitor->process_events (this))
            break;
     }
 
