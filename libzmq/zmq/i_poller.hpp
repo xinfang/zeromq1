@@ -57,6 +57,9 @@ namespace zmq
 
         //  Stop polling for availability of the socket for writing.
         virtual void reset_pollout (handle_t handle_) = 0;
+
+        //  Remove engine from engines list.
+        virtual void rm_engine (i_engine *engine_) = 0;
     };
 
 }

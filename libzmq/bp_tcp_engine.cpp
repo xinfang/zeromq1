@@ -365,8 +365,10 @@ void zmq::bp_tcp_engine_t::terminate_pipe (pipe_t *pipe_)
 
     //  If there is no pipe in the mux and demux and we have processed
     //  send_to or recv_from command delete engine object.
-    if (mux.dead () && demux.dead ())
+    if (mux.dead () && demux.dead ()) {
+        poller->rm_engine (this);
         delete this;
+    }
 }
 
 void zmq::bp_tcp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
@@ -375,6 +377,8 @@ void zmq::bp_tcp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
 
     //  If there is no pipe in the mux and demux and we have processed
     //  send_to or recv_from command delete engine object.
-    if (mux.dead () && demux.dead ())
+    if (mux.dead () && demux.dead ()) {
+        poller->rm_engine (this);
         delete this;
+    }
 }

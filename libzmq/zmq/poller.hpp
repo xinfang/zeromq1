@@ -21,6 +21,7 @@
 #define __ZMQ_POLLER_HPP_INCLUDED__
 
 #include <vector>
+#include <algorithm>
 #include <cstdlib>
 
 #include <zmq/i_poller.hpp>
@@ -62,6 +63,7 @@ namespace zmq
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
+        void rm_engine (i_engine *engine_);
 
         //  Callback function called by event_monitor.
         bool process_event (i_pollable *engine_, event_t event_);
@@ -209,6 +211,19 @@ template <class T>
 void zmq::poller_t <T>::reset_pollout (handle_t handle_)
 {
     event_monitor.reset_pollout (handle_);
+}
+
+template <class T>
+void zmq::poller_t <T>::rm_engine (i_engine *engine_)
+{
+    //  Find engine in engines vector.
+    engines_t::iterator it = find (engines.begin (), engines.end (), 
+        engine_);
+
+    assert (it != engines.end ());
+    
+    //  Remove engine pointer from the vector.
+    engines.erase (it);
 }
 
 template <class T>
