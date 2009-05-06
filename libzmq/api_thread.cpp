@@ -141,7 +141,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         exchange_engine = eit->second;
     }
     else {
-        dispatcher->get (locator, this, true, exchange_name_, &exchange_thread,
+        //  Proxy engine for global exchange is receiver /sender_ = false/.
+        dispatcher->get (locator, this, false, exchange_name_, &exchange_thread,
             &exchange_engine, exchange_thread_, queue_name_, exchange_options_);
     }
 
@@ -157,7 +158,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         queue_engine = qit->second;
     }
     else {
-        dispatcher->get (locator, this, false, queue_name_, &queue_thread,
+        //  Proxy engine for global queue is sender /sender_ = true/.
+        dispatcher->get (locator, this, true, queue_name_, &queue_thread,
             &queue_engine, queue_thread_, exchange_name_, queue_options_);
     }
 

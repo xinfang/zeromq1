@@ -66,14 +66,14 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 handler_threads_, sender_, peer_thread_, peer_engine_,
                 name_);
         } else if (sender_) {
-            //  Create demux for receiver engine.
-            i_demux *demux = new data_distributor_t ();
-            engine = new bp_tcp_receiver_t (demux, calling_thread_, engine_thread_,
-                transport_args.c_str (), name_, options_);
-        } else {
             //  Create mux for sender engine.
             mux_t *mux = new mux_t ();
             engine = new bp_tcp_sender_t (mux, calling_thread_, engine_thread_,
+                transport_args.c_str (), name_, options_);
+        } else {
+            //  Create demux for receiver engine.
+            i_demux *demux = new data_distributor_t ();
+            engine = new bp_tcp_receiver_t (demux, calling_thread_, engine_thread_,
                 transport_args.c_str (), name_, options_);
         }
 
