@@ -131,7 +131,7 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_)
     //  Destroy retired event sources.
     for (retired_t::iterator it = retired.begin (); it != retired.end ();
           it ++)
-        delete *it;
+        free (*it);
     retired.clear ();
 
     return false;
