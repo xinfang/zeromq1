@@ -36,6 +36,7 @@
 #include <sys/select.h>
 #endif
 
+#include <zmq/i_poller.hpp>
 #include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
 
@@ -43,15 +44,15 @@ namespace zmq
 {
 
     //  Implements socket polling mechanism using POSIX.1-2001 select()
-    //  function. The class is used to instatntiate the poller template
-    //  to generate the select_thread_t class.
+    //  function.
 
-    class select_t
+    class select_t : public i_poller
     {
     public:
 
         ZMQ_EXPORT select_t ();
 
+        //  i_poller implementation.
         ZMQ_EXPORT handle_t add_fd (fd_t fd_, i_pollable *engine_);
         ZMQ_EXPORT void rm_fd (handle_t handle_);
         ZMQ_EXPORT void set_pollin (handle_t handle_);
@@ -60,6 +61,7 @@ namespace zmq
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
         ZMQ_EXPORT void add_timer (i_pollable *engine_);
         ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
+
         ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_);
 
     private:

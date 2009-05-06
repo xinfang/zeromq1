@@ -26,6 +26,7 @@
 
 #include <vector>
 
+#include <zmq/i_poller.hpp>
 #include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
 
@@ -33,16 +34,16 @@ namespace zmq
 {
 
     //  Implements socket polling mechanism using the Solaris-specific
-    //  "/dev/poll" interface. The class is used when instantiating the poller
-    //  template to generate the devpoll_thread_t class.
+    //  "/dev/poll" interface.
 
-    class devpoll_t
+    class devpoll_t : public i_poller
     {
     public:
 
         devpoll_t ();
         ~devpoll_t ();
 
+        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
@@ -51,6 +52,7 @@ namespace zmq
         void reset_pollout (handle_t handle_);
         void add_timer (i_pollable *engine_);
         void cancel_timer (i_pollable *engine_);
+
         bool process_events (poller_t <devpoll_t> *poller_);
 
     private:

@@ -25,6 +25,7 @@
 #if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
     defined (ZMQ_HAVE_OSX)
 
+#include <zmq/i_poller.hpp>
 #include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
 
@@ -32,16 +33,16 @@ namespace zmq
 {
 
     //  Implements socket polling mechanism using the BSD-specific
-    //  kqueue interface. This class is used to instantiate the poller
-    //  template to generate the kqueue_thread_t class.
+    //  kqueue interface.
 
-    class kqueue_t
+    class kqueue_t : public i_poller
     {
     public:
 
         kqueue_t ();
         ~kqueue_t ();
 
+        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
@@ -50,6 +51,7 @@ namespace zmq
         void reset_pollout (handle_t handle_);
         void add_timer (i_pollable *engine_);
         void cancel_timer (i_pollable *engine_);
+
         bool process_events (poller_t <kqueue_t> *poller_);
 
     private:

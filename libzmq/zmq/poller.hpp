@@ -24,7 +24,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <zmq/i_poller.hpp>
+#include <zmq/i_thread.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/ysocketpair.hpp>
@@ -34,7 +34,7 @@
 namespace zmq
 {
 
-    template <class T> class poller_t : public i_poller, public i_thread
+    template <class T> class poller_t : public i_thread
     {
     public:
 
@@ -45,16 +45,6 @@ namespace zmq
         void send_command (i_thread *destination_, const command_t &command_);
         void stop ();
         void destroy ();
-
-        //  i_poller implementation.
-        handle_t add_fd (fd_t fd_, i_pollable *engine_);
-        void rm_fd (handle_t handle_);
-        void set_pollin (handle_t handle_);
-        void reset_pollin (handle_t handle_);
-        void set_pollout (handle_t handle_);
-        void reset_pollout (handle_t handle_);
-        void add_timer (struct i_pollable *engine_);
-        void cancel_timer (struct i_pollable *engine_);
 
         //  Callback functions called by event_monitor. Returns false if the
         //  is to be shut down.
@@ -175,54 +165,6 @@ void zmq::poller_t <T>::stop ()
 }
 
 template <class T>
-zmq::handle_t zmq::poller_t <T>::add_fd (fd_t fd_, i_pollable *engine_)
-{
-    return event_monitor->add_fd (fd_, engine_);
-}
-
-template <class T>
-void zmq::poller_t <T>::rm_fd (handle_t handle_)
-{
-    event_monitor->rm_fd (handle_);
-}
-
-template <class T>
-void zmq::poller_t <T>::set_pollin (handle_t handle_)
-{
-    event_monitor->set_pollin (handle_);
-}
-
-template <class T>
-void zmq::poller_t <T>::reset_pollin (handle_t handle_)
-{
-    event_monitor->reset_pollin (handle_);
-}
-
-template <class T>
-void zmq::poller_t <T>::set_pollout (handle_t handle_)
-{
-    event_monitor->set_pollout (handle_);
-}
-
-template <class T>
-void zmq::poller_t <T>::reset_pollout (handle_t handle_)
-{
-    event_monitor->reset_pollout (handle_);
-}
-
-template <class T>
-void zmq::poller_t <T>::add_timer (struct i_pollable *engine_)
-{
-    event_monitor->add_timer (engine_);
-}
-
-template <class T>
-void zmq::poller_t <T>::cancel_timer (struct i_pollable *engine_)
-{
-    event_monitor->cancel_timer (engine_);
-}
-
-template <class T>
 void zmq::poller_t <T>::worker_routine (void *arg_)
 {
     poller_t <T> *self = (poller_t <T>*) arg_;
@@ -304,7 +246,7 @@ bool zmq::poller_t <T>::process_command (const command_t &command_)
 
         //  Ask engine to register itself.
         engine = command_.args.register_engine.engine;
-        engine->cast_to_pollable ()->register_event (this);
+        engine->cast_to_pollable ()->register_event (event_monitor);
         engines.push_back (engine);
         break;
 
