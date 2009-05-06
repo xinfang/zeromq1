@@ -160,7 +160,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return false;
+        return true;
     }
 
     for (int i = 0; i < n; i ++) {
@@ -181,7 +181,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
                 pe->engine->in_event ();
             else
                 if (!poller_->process_commands ())
-                    return true;
+                    return false;
     }
 
     //  Destroy retired event sources.
@@ -190,7 +190,7 @@ bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_)
         delete *it;
     retired.clear ();
 
-    return false;
+    return true;
 }
 
 #endif

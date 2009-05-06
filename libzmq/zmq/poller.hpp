@@ -232,7 +232,7 @@ void zmq::poller_t <T>::loop ()
 {
     //  Main event loop.
     while (true) {
-        if (event_monitor->process_events (this))
+        if (!event_monitor->process_events (this))
            break;
     }
 

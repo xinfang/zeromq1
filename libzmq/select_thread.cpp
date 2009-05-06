@@ -178,7 +178,7 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
             for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
                 (*it)->timer_event ();
 
-            return false;
+            return true;
         }
 
         //  TODO: Select sometimes returns 0 even though no event have occured
@@ -199,7 +199,7 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
                 fds [i].engine->in_event ();
             else
                 if (!poller_->process_commands ())
-                    return true;
+                    return false;
         }
         if (fds [i].fd == retired_fd)
             continue;
@@ -218,5 +218,5 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_)
         retired = false;
     }
 
-    return false;
+    return true;
 }

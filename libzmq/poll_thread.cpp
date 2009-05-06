@@ -134,7 +134,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return false;
+        return true;
     }
 
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
@@ -158,7 +158,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
                 engine->in_event ();
             else
                 if (!poller_->process_commands ())
-                    return true;
+                    return false;
         }
     }
 
@@ -177,7 +177,7 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_)
         retired = false;
     }
 
-    return false;
+    return true;
 }
 
 #endif

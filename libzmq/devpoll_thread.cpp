@@ -175,7 +175,7 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
         for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
             (*it)->timer_event ();
 
-        return false;
+        return true;
     }
 
     for (int i = 0; i < n; i ++) {
@@ -197,10 +197,10 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_)
                 engine->in_event ();
             else
                 if (!poller_->process_commands ())
-                    return true;
+                    return false;
     }
 
-    return false;
+    return true;
 }
 
 #endif
