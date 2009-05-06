@@ -201,7 +201,8 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
     fd_t sock = ::accept (s, NULL, NULL);
 
 #if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || \
-     defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_OSX)
+     defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_OSX || \
+     defined ZMQ_HAVE_OPENVMS)
 
     if (sock == -1 && 
         (errno == EAGAIN || errno == EWOULDBLOCK || 
@@ -228,11 +229,8 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
         (errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED))
         return retired_fd;
 
-#elif defined ZMQ_HAVE_OPENVMS
-#error "Undefined non-blocking tcp errno values"
-#else
-#error "Undefined non-blocking tcp errno values"
 #endif
+
 
     errno_assert (sock != -1); 
     return sock;
