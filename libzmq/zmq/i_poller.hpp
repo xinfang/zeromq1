@@ -21,7 +21,6 @@
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
 #include <zmq/fd.hpp>
-#include <zmq/i_thread.hpp>
 
 namespace zmq
 {
@@ -32,10 +31,10 @@ namespace zmq
         void *ptr;
     };
 
-    //  Virtual interface to be exposed by file-descriptor-oriented engines
+    //  Virtual interface to be used by file-descriptor-oriented engines
     //  for communication with I/O threads.
 
-    struct i_poller : public i_thread
+    struct i_poller
     {
         virtual ~i_poller () {};
 

@@ -83,6 +83,9 @@ namespace zmq
         //  Associated poller object.
         i_poller *poller;
 
+        //  Thread the engine runs within.
+        i_thread *thread;
+
         //  Determine the engine and the object (either exchange or queue)
         //  within the engine to serve as a peer to this engine.
         i_thread *peer_thread;

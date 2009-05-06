@@ -34,17 +34,19 @@
 namespace zmq
 {
 
-    template <class T> class poller_t : public i_poller
+    template <class T> class poller_t : public i_poller, public i_thread
     {
     public:
 
         static i_thread *create (dispatcher_t *dispatcher_);
         
-        //  i_poller implementation.
+        //  i_thread implementation.
         int get_thread_id ();
         void send_command (i_thread *destination_, const command_t &command_);
         void stop ();
         void destroy ();
+
+        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
