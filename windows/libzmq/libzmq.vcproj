@@ -229,7 +229,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\devpoll_thread.cpp"
+				RelativePath="..\..\libzmq\devpoll.cpp"
 				>
 			</File>
 			<File
@@ -241,7 +241,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\epoll_thread.cpp"
+				RelativePath="..\..\libzmq\epoll.cpp"
 				>
 			</File>
 			<File
@@ -261,7 +261,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\kqueue_thread.cpp"
+				RelativePath="..\..\libzmq\kqueue.cpp"
 				>
 			</File>
 			<File
@@ -289,7 +289,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\poll_thread.cpp"
+				RelativePath="..\..\libzmq\poll.cpp"
 				>
 			</File>
 			<File
@@ -301,7 +301,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\select_thread.cpp"
+				RelativePath="..\..\libzmq\select.cpp"
 				>
 			</File>
 			<File
@@ -427,7 +427,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\devpoll_thread.hpp"
+				RelativePath="..\..\libzmq\zmq\devpoll.hpp"
 				>
 			</File>
 			<File
@@ -447,7 +447,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\epoll_thread.hpp"
+				RelativePath="..\..\libzmq\zmq\epoll.hpp"
 				>
 			</File>
 			<File
@@ -511,7 +511,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\kqueue_thread.hpp"
+				RelativePath="..\..\libzmq\zmq\kqueue.hpp"
 				>
 			</File>
 			<File
@@ -551,7 +551,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\poll_thread.hpp"
+				RelativePath="..\..\libzmq\zmq\poll.hpp"
 				>
 			</File>
 			<File
@@ -571,7 +571,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\select_thread.hpp"
+				RelativePath="..\..\libzmq\zmq\select.hpp"
 				>
 			</File>
 			<File
