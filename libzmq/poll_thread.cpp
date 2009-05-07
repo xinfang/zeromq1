@@ -110,6 +110,11 @@ void zmq::poll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::poll_t::start ()
+{
+    worker.start (worker_routine, this);
+}
+
 void zmq::poll_t::initialise_shutdown ()
 {
     stopping = true;
@@ -117,9 +122,10 @@ void zmq::poll_t::initialise_shutdown ()
 
 void zmq::poll_t::terminate_shutdown ()
 {
+    worker.stop ();
 }
 
-void zmq::poll_t::process_events ()
+void zmq::poll_t::loop ()
 {
     while (!stopping) {
 
@@ -183,6 +189,11 @@ void zmq::poll_t::process_events ()
             retired = false;
         }
     }
+}
+
+void zmq::poll_t::worker_routine (void *arg_)
+{
+    ((poll_t*) arg_)->loop ();
 }
 
 #endif

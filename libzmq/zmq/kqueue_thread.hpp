@@ -51,12 +51,17 @@ namespace zmq
         void reset_pollout (handle_t handle_);
         void add_timer (i_pollable *engine_);
         void cancel_timer (i_pollable *engine_);
+        void start ();
         void initialise_shutdown ();
         void terminate_shutdown ();
 
-        bool process_events (poller_t <kqueue_t> *poller_);
-
     private:
+
+        //  Main worker thread routine.
+        static void worker_routine (void *arg_);
+
+        //  Main event loop.
+        void loop ();
 
         //  Adds the event to the kqueue.
         void kevent_add (fd_t fd_, short filter_, void *udata_);
@@ -85,6 +90,9 @@ namespace zmq
 
         //  If true, thread is in the process of shutting down.
         bool stopping;
+
+        //  Handle of the physical thread doing the I/O work.
+        thread_t worker;
 
         kqueue_t (const kqueue_t&);
         void operator = (const kqueue_t&);

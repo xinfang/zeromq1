@@ -39,6 +39,7 @@
 #include <zmq/i_poller.hpp>
 #include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/thread.hpp>
 
 namespace zmq
 {
@@ -61,12 +62,17 @@ namespace zmq
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
         ZMQ_EXPORT void add_timer (i_pollable *engine_);
         ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
+        ZMQ_EXPORT void start ();
         ZMQ_EXPORT void initialise_shutdown ();
         ZMQ_EXPORT void terminate_shutdown ();
 
-        ZMQ_EXPORT void process_events ();
-
     private:
+
+        //  Main worker thread routine.
+        static void worker_routine (void *arg_);
+
+        //  Main event loop.
+        void loop ();
 
         struct fd_entry_t
         {
@@ -99,6 +105,9 @@ namespace zmq
 
         //  If true, thread is in the process of shutting down.
         bool stopping;
+
+        //  Handle of the physical thread doing the I/O work.
+        thread_t worker;
 
         select_t (const select_t&);
         void operator = (const select_t&);

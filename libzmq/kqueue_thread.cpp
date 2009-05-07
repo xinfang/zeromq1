@@ -130,6 +130,11 @@ void zmq::kqueue_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::kqueue_t::start ()
+{
+    worker.start (worker_routine, this);
+}
+
 void zmq::kqueue_t::initialise_shutdown ()
 {
     stopping = true;
@@ -137,9 +142,10 @@ void zmq::kqueue_t::initialise_shutdown ()
 
 void zmq::kqueue_t::terminate_shutdown ()
 {
+    worker.stop ();
 }
 
-void zmq::kqueue_t::process_events ()
+void zmq::kqueue_t::loop ()
 {
     struct kevent ev_buf [max_io_events];
 
@@ -198,6 +204,11 @@ void zmq::kqueue_t::process_events ()
             delete *it;
         retired.clear ();
     }
+}
+
+void zmq::kqueue_t::worker_routine (void *arg_)
+{
+    ((kqueue_t*) arg_)->loop ();
 }
 
 #endif

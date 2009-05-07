@@ -68,6 +68,9 @@ namespace zmq
         //  Following methods are to be used by I/O thread owenr. Please
         //  don't invoke them from individual engines.
 
+        //  Start the execution of the underlying I/O thread.
+        virtual void start () = 0;
+
         //  First function start asynchronous shutdown of the poller, second
         //  one waits till the shutdown is finished. If particular API thread
         //  allows only for synchronous shutdown, initialise_shutdown should

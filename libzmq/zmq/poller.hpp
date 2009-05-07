@@ -58,12 +58,6 @@ namespace zmq
         poller_t (dispatcher_t *dispatcher_);
         ~poller_t ();
 
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main routine (non-static) - called from worker_routine.
-        void loop ();
-
         //  Processes individual command.
         void process_command (const command_t &command_);
 
@@ -79,9 +73,6 @@ namespace zmq
 
         //  Handle associated with signaler's file descriptor.
         handle_t signaler_handle;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
 
         //  We perform I/O multiplexing using event monitor.
         T *event_monitor;
@@ -100,17 +91,14 @@ zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
     poller_t <T> *poller = new poller_t <T> (dispatcher_);
     zmq_assert (poller);
 
-    //  Start the thread.
-    poller->worker.start (worker_routine, poller);
-
     return poller;
 }
 
 template <class T>
 void zmq::poller_t <T>::destroy ()
 {
-    //  Stop the thread.
-    worker.stop ();
+    //  Wait for termination of the underlying I/O thread.
+    event_monitor->terminate_shutdown ();
 
     //  TODO: At this point terminal handshaking should be done.
     //  Afterwards 'delete this' can be executed. 
@@ -128,6 +116,9 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
 
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (this, &signaler);
+
+    //  Start the underlying I/O thread.
+    event_monitor->start ();
 }
 
 template <class T>
@@ -164,20 +155,6 @@ void zmq::poller_t <T>::stop ()
     command_t cmd;
     cmd.init_stop ();
     dispatcher->write (thread_id, thread_id, cmd);
-}
-
-template <class T>
-void zmq::poller_t <T>::worker_routine (void *arg_)
-{
-    poller_t <T> *self = (poller_t <T>*) arg_;
-    self->loop ();
-}
-
-template <class T>
-void zmq::poller_t <T>::loop ()
-{
-    //  Main event loop.
-    event_monitor->process_events ();
 }
 
 template <class T>

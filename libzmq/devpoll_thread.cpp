@@ -135,6 +135,11 @@ void zmq::devpoll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::devpoll_t::start ()
+{
+    worker.start (worker_routine, this);
+}
+
 void zmq::devpoll_t::initialise_shutdown ()
 {
     stopping = true;
@@ -142,9 +147,10 @@ void zmq::devpoll_t::initialise_shutdown ()
 
 void zmq::devpoll_t::terminate_shutdown ()
 {
+    worker.stop ();
 }
 
-void zmq::devpoll_t::process_events ()
+void zmq::devpoll_t::loop ()
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
@@ -208,6 +214,11 @@ void zmq::devpoll_t::process_events ()
                 engine->in_event ();
         }
     }
+}
+
+void zmq::devpoll_t::worker_routine (void *arg_)
+{
+    ((devpoll_t*) arg_)->loop ();
 }
 
 #endif
