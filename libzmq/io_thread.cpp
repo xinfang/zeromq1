@@ -18,11 +18,12 @@
 */
 
 #include <zmq/io_thread.hpp>
-#include <zmq/select_thread.hpp>
-#include <zmq/poll_thread.hpp>
-#include <zmq/epoll_thread.hpp>
-#include <zmq/devpoll_thread.hpp>
-#include <zmq/kqueue_thread.hpp>
+#include <zmq/select.hpp>
+#include <zmq/poll.hpp>
+#include <zmq/epoll.hpp>
+#include <zmq/devpoll.hpp>
+#include <zmq/kqueue.hpp>
+#include <zmq/err.hpp>
 
 zmq::i_thread *zmq::io_thread_t::create (dispatcher_t *dispatcher_)
 {
@@ -36,7 +37,7 @@ zmq::i_thread *zmq::io_thread_t::create (dispatcher_t *dispatcher_)
 void zmq::io_thread_t::destroy ()
 {
     //  Wait for termination of the underlying I/O thread.
-    event_monitor->terminate_shutdown ();
+    poller->terminate_shutdown ();
 
     //  TODO: At this point terminal handshaking should be done.
     //  Afterwards 'delete this' can be executed. 
@@ -45,46 +46,48 @@ void zmq::io_thread_t::destroy ()
 zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_)
 {
+    //  TODO: It would be nice to allow user to specify what kind of
+    //  polling mechanism to use.
+
 #if defined (ZMQ_HAVE_LINUX)
-    event_monitor = new epoll_t;
+    poller = new epoll_t;
 #elif defined (ZMQ_HAVE_WINDOWS)
-    event_monitor = new select_t;
+    poller = new select_t;
 #elif defined (ZMQ_HAVE_FREEBSD)
-    event_monitor = new kqueue_t;
+    poller = new kqueue_t;
 #elif defined(ZMQ_HAVE_OPENBSD)
-    event_monitor = new kqueue_t;
+    poller = new kqueue_t;
 #elif defined (ZMQ_HAVE_SOLARIS)
-    event_monitor = new devpoll_t;
+    poller = new devpoll_t;
 #elif defined (ZMQ_HAVE_OSX)
-    event_monitor = new kqueue_t;
+    poller = new kqueue_t;
 #elif defined (ZMQ_HAVE_QNXNTO)
-    event_monitor = new poll_t;
+    poller = new poll_t;
 #elif defined (ZMQ_HAVE_AIX)
-    event_monitor = new poll_t;
+    poller = new poll_t;
 #elif defined (ZMQ_HAVE_HPUX)
-    event_monitor = new devpoll_t;
+    poller = new devpoll_t;
 #elif defined (ZMQ_HAVE_OPENVMS)
-    event_monitor = new select_t;
+    poller = new select_t;
 #else
 #error "Unsupported platform"
 #endif
-    zmq_assert (event_monitor);
+    zmq_assert (poller);
 
-    signaler_handle = event_monitor->add_fd (signaler.get_fd (), this);
-    event_monitor->set_pollin (signaler_handle);
+    signaler_handle = poller->add_fd (signaler.get_fd (), this);
+    poller->set_pollin (signaler_handle);
 
     //  Register the thread with command dispatcher.
     thread_id = dispatcher->allocate_thread_id (this, &signaler);
 
     //  Start the underlying I/O thread.
-    event_monitor->start ();
+    poller->start ();
 }
 
 zmq::io_thread_t::~io_thread_t ()
 {
-    event_monitor->rm_fd (signaler_handle);
-
-    delete event_monitor;
+    poller->rm_fd (signaler_handle);
+    delete poller;
 }
 
 int zmq::io_thread_t::get_thread_id ()
@@ -119,7 +122,6 @@ void zmq::io_thread_t::process_command (const command_t &command_)
 
     switch (command_.type) {
 
-    //  Exit the working thread.
     case command_t::stop:
         {
             //  Unregister all the registered engines.
@@ -127,7 +129,8 @@ void zmq::io_thread_t::process_command (const command_t &command_)
                   it != engines.end (); it ++)
                 (*it)->cast_to_pollable ()->unregister_event ();
 
-            event_monitor->initialise_shutdown ();
+            //  Start shutdown process.
+            poller->initialise_shutdown ();
         }
         break;
 
@@ -156,7 +159,7 @@ void zmq::io_thread_t::process_command (const command_t &command_)
 
         //  Ask engine to register itself.
         engine = command_.args.register_engine.engine;
-        engine->cast_to_pollable ()->register_event (event_monitor);
+        engine->cast_to_pollable ()->register_event (poller);
         engines.push_back (engine);
         break;
 

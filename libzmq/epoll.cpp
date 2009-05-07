@@ -27,7 +27,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/epoll_thread.hpp>
+#include <zmq/epoll.hpp>
 #include <zmq/fd.hpp>
 
 zmq::epoll_t::epoll_t () :

@@ -17,14 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
-#define __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_EPOLL_HPP_INCLUDED__
+#define __ZMQ_EPOLL_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_SOLARIS || ZMQ_HAVE_HPUX
+#ifdef ZMQ_HAVE_LINUX
 
+#include <sys/epoll.h>
 #include <vector>
+#include <algorithm>
 
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
@@ -34,15 +36,15 @@
 namespace zmq
 {
 
-    //  Implements socket polling mechanism using the Solaris-specific
-    //  "/dev/poll" interface.
+    //  Implements socket polling mechanism using the Linux-specific
+    //  epoll mechanism.
 
-    class devpoll_t : public i_poller
+    class epoll_t : public i_poller
     {
     public:
 
-        devpoll_t ();
-        ~devpoll_t ();
+        epoll_t ();
+        virtual ~epoll_t ();
 
         //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
@@ -65,21 +67,19 @@ namespace zmq
         //  Main event loop.
         void loop ();
 
-        //  File descriptor referring to "/dev/poll" pseudo-device.
-        fd_t devpoll_fd;
+        // Epoll file descriptor
+        fd_t epoll_fd;
 
-        struct fd_entry_t
+        struct poll_entry_t
         {
-            short events;
+            fd_t fd;
+            epoll_event ev;
             i_pollable *engine;
-            bool in_use;
-            bool adopted;
         };
 
-        std::vector <fd_entry_t> fd_table;
-
-        typedef std::vector <fd_t> pending_list_t;
-        pending_list_t pending_list;
+        //  List of retired event sources.
+        typedef std::vector <poll_entry_t*> retired_t;
+        retired_t retired;
 
         //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
@@ -91,11 +91,8 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         thread_t worker;
 
-        //  Pollset manipulation function.
-        void devpoll_ctl (fd_t fd_, short events_);
-
-        devpoll_t (const devpoll_t&);
-        void operator = (const devpoll_t&);
+        epoll_t (const epoll_t&);
+        void operator = (const epoll_t&);
     };
 
 }

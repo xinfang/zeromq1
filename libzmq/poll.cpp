@@ -30,7 +30,7 @@
 #include <poll.h>
 
 #include <zmq/err.hpp>
-#include <zmq/poll_thread.hpp>
+#include <zmq/poll.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/config.hpp>
 

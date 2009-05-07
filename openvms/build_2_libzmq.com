@@ -23,10 +23,10 @@ $ compit err.cpp
 $ compit bp_decoder.cpp
 $ compit bp_encoder.cpp
 $ compit api_thread.cpp
-$ compit poll_thread.cpp
-$ compit epoll_thread.cpp
-$ compit devpoll_thread.cpp
-$ compit kqueue_thread.cpp
+$ compit poll.cpp
+$ compit epoll.cpp
+$ compit devpoll.cpp
+$ compit kqueue.cpp
 $ compit bp_tcp_engine.cpp
 $ compit mux.cpp
 $ compit data_distributor.cpp
@@ -37,7 +37,7 @@ $ compit locator.cpp
 $ compit tcp_listener.cpp
 $ compit ip.cpp
 $ compit thread.cpp
-$ compit select_thread.cpp
+$ compit select.cpp
 $ compit out_engine.cpp
 $ compit in_engine.cpp
 $ compit engine_factory.cpp

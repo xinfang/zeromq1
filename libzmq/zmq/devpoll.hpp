@@ -17,30 +17,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
-#define __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_DEVPOLL_HPP_INCLUDED__
+#define __ZMQ_DEVPOLL_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
-#if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
-    defined (ZMQ_HAVE_OSX)
+#if defined ZMQ_HAVE_SOLARIS || ZMQ_HAVE_HPUX
+
+#include <vector>
 
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/thread.hpp>
 
 namespace zmq
 {
 
-    //  Implements socket polling mechanism using the BSD-specific
-    //  kqueue interface.
+    //  Implements socket polling mechanism using the Solaris-specific
+    //  "/dev/poll" interface.
 
-    class kqueue_t : public i_poller
+    class devpoll_t : public i_poller
     {
     public:
 
-        kqueue_t ();
-        ~kqueue_t ();
+        devpoll_t ();
+        ~devpoll_t ();
 
         //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
@@ -63,26 +65,21 @@ namespace zmq
         //  Main event loop.
         void loop ();
 
-        //  Adds the event to the kqueue.
-        void kevent_add (fd_t fd_, short filter_, void *udata_);
+        //  File descriptor referring to "/dev/poll" pseudo-device.
+        fd_t devpoll_fd;
 
-        //  Deletes the event from the kqueue.
-        void kevent_delete (fd_t fd_, short filter_);
-
-        //  File descriptor referring to the kernel event queue.
-        fd_t kqueue_fd;
-
-        struct poll_entry_t
+        struct fd_entry_t
         {
-            fd_t fd;
-            bool flag_pollin;
-            bool flag_pollout;
+            short events;
             i_pollable *engine;
+            bool in_use;
+            bool adopted;
         };
 
-        //  List of retired event sources.
-        typedef std::vector <poll_entry_t*> retired_t;
-        retired_t retired;
+        std::vector <fd_entry_t> fd_table;
+
+        typedef std::vector <fd_t> pending_list_t;
+        pending_list_t pending_list;
 
         //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
@@ -94,8 +91,11 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         thread_t worker;
 
-        kqueue_t (const kqueue_t&);
-        void operator = (const kqueue_t&);
+        //  Pollset manipulation function.
+        void devpoll_ctl (fd_t fd_, short events_);
+
+        devpoll_t (const devpoll_t&);
+        void operator = (const devpoll_t&);
     };
 
 }

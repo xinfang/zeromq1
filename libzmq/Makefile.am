@@ -19,10 +19,10 @@ pkginclude_HEADERS = \
     ./zmq/ysemaphore.hpp \
     ./zmq/ysocketpair.hpp \
     ./zmq/io_thread.hpp \
-    ./zmq/poll_thread.hpp \
-    ./zmq/epoll_thread.hpp \
-    ./zmq/devpoll_thread.hpp \
-    ./zmq/kqueue_thread.hpp \
+    ./zmq/poll.hpp \
+    ./zmq/epoll.hpp \
+    ./zmq/devpoll.hpp \
+    ./zmq/kqueue.hpp \
     ./zmq/bp_encoder.hpp \
     ./zmq/encoder.hpp \
     ./zmq/stdint.hpp \
@@ -52,7 +52,7 @@ pkginclude_HEADERS = \
     ./zmq/mutex.hpp \
     ./zmq/platform.hpp \
     ./zmq/formatting.hpp \
-    ./zmq/select_thread.hpp \
+    ./zmq/select.hpp \
     ./zmq/export.hpp \
     ./zmq/server_protocol.hpp \
     ./zmq/windows.hpp \
@@ -87,10 +87,10 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     bp_decoder.cpp \
     bp_encoder.cpp \
     api_thread.cpp \
-    poll_thread.cpp \
-    epoll_thread.cpp \
-    devpoll_thread.cpp \
-    kqueue_thread.cpp \
+    poll.cpp \
+    epoll.cpp \
+    devpoll.cpp \
+    kqueue.cpp \
     bp_tcp_sender.cpp \
     bp_tcp_receiver.cpp \
     mux.cpp \
@@ -102,7 +102,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_listener.cpp \
     ip.cpp \
     thread.cpp \
-    select_thread.cpp \
+    select.cpp \
     out_engine.cpp \
     in_engine.cpp \
     engine_factory.cpp \

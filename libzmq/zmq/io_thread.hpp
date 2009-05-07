@@ -21,8 +21,6 @@
 #define __ZMQ_IO_THREAD_HPP_INCLUDED__
 
 #include <vector>
-#include <cstdlib>
-#include <algorithm>
 
 #include <zmq/i_thread.hpp>
 #include <zmq/i_pollable.hpp>
@@ -77,8 +75,8 @@ namespace zmq
         //  Handle associated with signaler's file descriptor.
         handle_t signaler_handle;
 
-        //  We perform I/O multiplexing using event monitor.
-        i_poller *event_monitor;
+        //  We perform I/O multiplexing using a poller object.
+        i_poller *poller;
 
         //  List of all registered engines.
         typedef std::vector <i_engine*> engines_t;

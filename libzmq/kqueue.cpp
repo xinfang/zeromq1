@@ -30,7 +30,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/kqueue_thread.hpp>
+#include <zmq/kqueue.hpp>
 #include <zmq/fd.hpp>
 
 zmq::kqueue_t::kqueue_t () :

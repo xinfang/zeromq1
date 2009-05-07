@@ -36,7 +36,7 @@
 #endif
 
 #include <zmq/err.hpp>
-#include <zmq/select_thread.hpp>
+#include <zmq/select.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/config.hpp>
 

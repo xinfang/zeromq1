@@ -34,12 +34,12 @@ set(libzmq_headers
   zmq/i_demux.hpp
   zmq/data_distributor.hpp
   zmq/load_balancer.hpp
-  zmq/devpoll_thread.hpp
+  zmq/devpoll.hpp
   zmq/dispatcher.hpp
   zmq/encoder.hpp
   zmq/engine_base.hpp
   zmq/engine_factory.hpp
-  zmq/epoll_thread.hpp
+  zmq/epoll.hpp
   zmq/err.hpp
   zmq/export.hpp
   zmq/fd.hpp
@@ -54,7 +54,7 @@ set(libzmq_headers
   zmq/i_poller.hpp
   zmq/i_signaler.hpp
   zmq/i_thread.hpp
-  zmq/kqueue_thread.hpp
+  zmq/kqueue.hpp
   zmq/locator.hpp
   zmq/message.hpp
   zmq/mutex.hpp
@@ -62,10 +62,10 @@ set(libzmq_headers
   zmq/out_engine.hpp
   zmq/pgm_socket.hpp
   zmq/pipe.hpp
-  zmq/poll_thread.hpp
+  zmq/poll.hpp
   zmq/raw_message.hpp
   zmq/scope.hpp
-  zmq/select_thread.hpp
+  zmq/select.hpp
   zmq/server_protocol.hpp
   zmq/stdint.hpp
   zmq/tcp_listener.hpp
@@ -103,21 +103,21 @@ set(libzmq_sources
   bp_tcp_listener.cpp
   data_distributor.cpp
   load_balancer.cpp
-  devpoll_thread.cpp
+  devpoll.cpp
   dispatcher.cpp
   engine_factory.cpp
-  epoll_thread.cpp
+  epoll.cpp
   err.cpp
   in_engine.cpp
   ip.cpp
-  kqueue_thread.cpp
+  kqueue.cpp
   locator.cpp
   mux.cpp
   out_engine.cpp
   pgm_socket.cpp
   pipe.cpp
-  poll_thread.cpp
-  select_thread.cpp
+  poll.cpp
+  select.cpp
   tcp_listener.cpp
   tcp_socket.cpp
   thread.cpp

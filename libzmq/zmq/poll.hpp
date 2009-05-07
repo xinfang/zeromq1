@@ -17,16 +17,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_EPOLL_THREAD_HPP_INCLUDED__
-#define __ZMQ_EPOLL_THREAD_HPP_INCLUDED__
+#ifndef __ZMQ_POLL_HPP_INCLUDED__
+#define __ZMQ_POLL_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
-#ifdef ZMQ_HAVE_LINUX
+#if defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
+    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
+    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO ||\
+    defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_AIX
 
-#include <sys/epoll.h>
-#include <vector>
 #include <algorithm>
+#include <poll.h>
+#include <stddef.h>
+#include <vector>
 
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
@@ -36,15 +40,15 @@
 namespace zmq
 {
 
-    //  Implements socket polling mechanism using the Linux-specific
-    //  epoll mechanism.
+    //  Implements socket polling mechanism using the POSIX.1-2001
+    //  poll() system call.
 
-    class epoll_t : public i_poller
+    class poll_t : public i_poller
     {
     public:
 
-        epoll_t ();
-        virtual ~epoll_t ();
+        poll_t ();
+        virtual ~poll_t () {}
 
         //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
@@ -67,19 +71,21 @@ namespace zmq
         //  Main event loop.
         void loop ();
 
-        // Epoll file descriptor
-        fd_t epoll_fd;
-
-        struct poll_entry_t
+        struct fd_entry_t
         {
-            fd_t fd;
-            epoll_event ev;
+            fd_t index;
             i_pollable *engine;
         };
 
-        //  List of retired event sources.
-        typedef std::vector <poll_entry_t*> retired_t;
-        retired_t retired;
+        //  This table stores data for registered descriptors.
+        std::vector <fd_entry_t> fd_table;
+
+        //  Pollset to pass to the poll function.
+        typedef std::vector <pollfd> pollset_t;
+        pollset_t pollset;
+
+        //  If true, there's at least one retired event source.
+        bool retired;
 
         //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
@@ -91,8 +97,8 @@ namespace zmq
         //  Handle of the physical thread doing the I/O work.
         thread_t worker;
 
-        epoll_t (const epoll_t&);
-        void operator = (const epoll_t&);
+        poll_t (const poll_t&);
+        void operator = (const poll_t&);
     };
 
 }

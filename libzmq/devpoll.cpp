@@ -33,7 +33,7 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/devpoll_thread.hpp>
+#include <zmq/devpoll.hpp>
 #include <zmq/fd.hpp>
 
 zmq::devpoll_t::devpoll_t () :
