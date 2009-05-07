@@ -34,7 +34,8 @@
 #include <zmq/fd.hpp>
 
 zmq::poll_t::poll_t () :
-    retired (false)
+    retired (false),
+    stopping (false)
 {
     //  Get the limit on open file descriptors. Resize fds so that it
     //  can hold all descriptors.
@@ -109,67 +110,78 @@ void zmq::poll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::poll_t::initialise_shutdown ()
+{
+    stopping = true;
+}
+
+void zmq::poll_t::terminate_shutdown ()
+{
+}
+
 void zmq::poll_t::process_events ()
 {
-    //  Wait for events.
-    int rc;
-    while (true) {
-        rc = poll (&pollset [0], pollset.size (),
-            timers.empty () ? -1 : max_timer_period);
-        if (!(rc == -1 && errno == EINTR)) {
-            errno_assert (rc != -1);
-            break;
-        }
-    }
+    while (!stopping) {
 
-    //  Handle timer expiration.
-    if (!rc) {
-
-        //  Use local list of timers as timer handlers may fill new timers
-        //  into the original array.
-        timers_t t;
-        std::swap (timers, t);
-
-        //  Trigger all the timers.
-        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-            (*it)->timer_event ();
-
-        return;
-    }
-
-    for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
-        zmq_assert (!(pollset [i].revents & POLLNVAL));
-
-        fd_t fd = pollset [i].fd;
-        i_pollable *engine = fd_table [fd].engine;
-
-        if (pollset [i].fd == retired_fd)
-           continue;
-        if (pollset [i].revents & (POLLERR | POLLHUP))
-            engine->in_event ();
-        if (pollset [i].fd == retired_fd)
-           continue;
-        if (pollset [i].revents & POLLOUT)
-            engine->out_event ();
-        if (pollset [i].fd == retired_fd)
-           continue;
-        if (pollset [i].revents & POLLIN)
-           engine->in_event ();
-    }
-
-    //  Clean up the pollset and update the fd_table accordingly.
-    if (retired) {
-        pollset_t::size_type i = 0;
-        while (i < pollset.size ()) {
-            if (pollset [i].fd == retired_fd)
-                pollset.erase (pollset.begin () + i);
-            else {
-                fd_table [pollset [i].fd].index = i;
-                i ++;
+        //  Wait for events.
+        int rc;
+        while (true) {
+            rc = poll (&pollset [0], pollset.size (),
+                timers.empty () ? -1 : max_timer_period);
+            if (!(rc == -1 && errno == EINTR)) {
+                errno_assert (rc != -1);
+                break;
             }
         }
 
-        retired = false;
+        //  Handle timer expiration.
+        if (!rc) {
+
+            //  Use local list of timers as timer handlers may fill new timers
+            //  into the original array.
+            timers_t t;
+            std::swap (timers, t);
+
+            //  Trigger all the timers.
+            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+                (*it)->timer_event ();
+
+            return;
+        }
+
+        for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
+
+            zmq_assert (!(pollset [i].revents & POLLNVAL));
+            fd_t fd = pollset [i].fd;
+            i_pollable *engine = fd_table [fd].engine;
+
+            if (pollset [i].fd == retired_fd)
+                continue;
+            if (pollset [i].revents & (POLLERR | POLLHUP))
+                engine->in_event ();
+            if (pollset [i].fd == retired_fd)
+                continue;
+            if (pollset [i].revents & POLLOUT)
+                engine->out_event ();
+            if (pollset [i].fd == retired_fd)
+                continue;
+            if (pollset [i].revents & POLLIN)
+                engine->in_event ();
+        }
+
+        //  Clean up the pollset and update the fd_table accordingly.
+        if (retired) {
+            pollset_t::size_type i = 0;
+            while (i < pollset.size ()) {
+                if (pollset [i].fd == retired_fd)
+                    pollset.erase (pollset.begin () + i);
+                else {
+                    fd_table [pollset [i].fd].index = i;
+                    i++;
+                }
+            }
+            retired = false;
+        }
     }
 }
 

@@ -30,7 +30,8 @@
 #include <zmq/epoll_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::epoll_t::epoll_t ()
+zmq::epoll_t::epoll_t () :
+    stopping (false)
 {
     epoll_fd = epoll_create (1);
     errno_assert (epoll_fd != -1);
@@ -113,58 +114,70 @@ void zmq::epoll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::epoll_t::initialise_shutdown ()
+{
+    stopping = true;
+}
+
+void zmq::epoll_t::terminate_shutdown ()
+{
+}
+
 void zmq::epoll_t::process_events ()
 {
     epoll_event ev_buf [max_io_events];
 
-    //  Wait for events.
-    int n;
-    while (true) {
-        n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
-            timers.empty () ? -1 : max_timer_period);
-        if (!(n == -1 && errno == EINTR)) {
-            errno_assert (n != -1);
-            break;
+    while (!stopping) {
+
+        //  Wait for events.
+        int n;
+        while (true) {
+            n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
+                timers.empty () ? -1 : max_timer_period);
+            if (!(n == -1 && errno == EINTR)) {
+                errno_assert (n != -1);
+                break;
+            }
         }
+
+        //  Handle timer.
+        if (!n) {
+
+            //  Use local list of timers as timer handlers may fill new timers
+            //  into the original array.
+            timers_t t;
+            std::swap (timers, t);
+
+            //  Trigger all the timers.
+            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+                (*it)->timer_event ();
+
+            return;
+        }
+
+        for (int i = 0; i < n; i ++) {
+            poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
+
+            if (pe->fd == retired_fd)
+                continue;
+            if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
+                pe->engine->in_event ();
+            if (pe->fd == retired_fd)
+               continue;
+            if (ev_buf [i].events & EPOLLOUT)
+                pe->engine->out_event ();
+            if (pe->fd == retired_fd)
+                continue;
+            if (ev_buf [i].events & EPOLLIN)
+                pe->engine->in_event ();
+        }
+
+        //  Destroy retired event sources.
+        for (retired_t::iterator it = retired.begin (); it != retired.end ();
+              it ++)
+            delete *it;
+        retired.clear ();
     }
-
-    //  Handle timer.
-    if (!n) {
-
-        //  Use local list of timers as timer handlers may fill new timers
-        //  into the original array.
-        timers_t t;
-        std::swap (timers, t);
-
-        //  Trigger all the timers.
-        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-            (*it)->timer_event ();
-
-        return;
-    }
-
-    for (int i = 0; i < n; i ++) {
-        poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
-
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-            pe->engine->in_event ();
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].events & EPOLLOUT)
-            pe->engine->out_event ();
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].events & EPOLLIN)
-            pe->engine->in_event ();
-    }
-
-    //  Destroy retired event sources.
-    for (retired_t::iterator it = retired.begin (); it != retired.end ();
-          it ++)
-        delete *it;
-    retired.clear ();
 }
 
 #endif

@@ -51,6 +51,8 @@ namespace zmq
         void reset_pollout (handle_t handle_);
         void add_timer (i_pollable *engine_);
         void cancel_timer (i_pollable *engine_);
+        void initialise_shutdown ();
+        void terminate_shutdown ();
 
         bool process_events (poller_t <kqueue_t> *poller_);
 
@@ -80,6 +82,9 @@ namespace zmq
         //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
         timers_t timers;
+
+        //  If true, thread is in the process of shutting down.
+        bool stopping;
 
         kqueue_t (const kqueue_t&);
         void operator = (const kqueue_t&);

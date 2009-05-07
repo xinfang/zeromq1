@@ -36,7 +36,8 @@
 #include <zmq/devpoll_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::devpoll_t::devpoll_t ()
+zmq::devpoll_t::devpoll_t () :
+    stopping (false)
 {
     struct rlimit rl;
 
@@ -134,66 +135,78 @@ void zmq::devpoll_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::devpoll_t::initialise_shutdown ()
+{
+    stopping = true;
+}
+
+void zmq::devpoll_t::terminate_shutdown ()
+{
+}
+
 void zmq::devpoll_t::process_events ()
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
 
-    for (pending_list_t::size_type i = 0; i < pending_list.size (); i ++)
-        fd_table [pending_list [i]].adopted = true;
-    pending_list.clear ();
+    while (!stopping) {
 
-    //  According to the poll(7d) manpage, we can retrieve no more then
-    //  (OPEN_MAX - 1) events.
-    int nfds = max_io_events;
-    if (nfds >= OPEN_MAX)
-        nfds = OPEN_MAX - 1;
+        for (pending_list_t::size_type i = 0; i < pending_list.size (); i ++)
+            fd_table [pending_list [i]].adopted = true;
+        pending_list.clear ();
 
-    poll_req.dp_fds = &ev_buf [0];
-    poll_req.dp_nfds = nfds;
-    poll_req.dp_timeout = timers.empty () ? -1 : max_timer_period;
+        //  According to the poll(7d) manpage, we can retrieve no more then
+        //  (OPEN_MAX - 1) events.
+        int nfds = max_io_events;
+        if (nfds >= OPEN_MAX)
+            nfds = OPEN_MAX - 1;
 
-    //  Wait for events.
-    int n;
-    while (true) {
-        n = ioctl (devpoll_fd, DP_POLL, &poll_req);
-        if (!(n == -1 && errno == EINTR)) {
-            errno_assert (n != -1);
-            break;
+        poll_req.dp_fds = &ev_buf [0];
+        poll_req.dp_nfds = nfds;
+        poll_req.dp_timeout = timers.empty () ? -1 : max_timer_period;
+
+        //  Wait for events.
+        int n;
+        while (true) {
+            n = ioctl (devpoll_fd, DP_POLL, &poll_req);
+            if (!(n == -1 && errno == EINTR)) {
+                errno_assert (n != -1);
+                break;
+            }
         }
-    }
 
-    //  Handle timer.
-    if (!n) {
+        //  Handle timer.
+        if (!n) {
 
-        //  Use local list of timers as timer handlers may fill new timers
-        //  into the original array.
-        timers_t t;
-        std::swap (timers, t);
+            //  Use local list of timers as timer handlers may fill new timers
+            //  into the original array.
+            timers_t t;
+            std::swap (timers, t);
 
-        //  Trigger all the timers.
-        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-            (*it)->timer_event ();
+            //  Trigger all the timers.
+            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+                (*it)->timer_event ();
 
-        return;
-    }
+            return;
+        }
 
-    for (int i = 0; i < n; i ++) {
-        fd_t fd = ev_buf [i].fd;
-        i_pollable *engine = fd_table [fd].engine;
+        for (int i = 0; i < n; i ++) {
+            fd_t fd = ev_buf [i].fd;
+            i_pollable *engine = fd_table [fd].engine;
 
-        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-            continue;
-        if (ev_buf [i].revents & (POLLERR | POLLHUP))
-            engine->in_event ();
-        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-            continue;
-        if (ev_buf [i].revents & POLLOUT)
-            engine->out_event ();
-        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-            continue;
-        if (ev_buf [i].revents & POLLIN)
-            engine->in_event ();
+            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+                continue;
+            if (ev_buf [i].revents & (POLLERR | POLLHUP))
+                engine->in_event ();
+            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+                continue;
+            if (ev_buf [i].revents & POLLOUT)
+                engine->out_event ();
+            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+                continue;
+            if (ev_buf [i].revents & POLLIN)
+                engine->in_event ();
+        }
     }
 }
 

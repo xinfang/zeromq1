@@ -33,7 +33,8 @@
 #include <zmq/kqueue_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::kqueue_t::kqueue_t ()
+zmq::kqueue_t::kqueue_t () :
+    stopping (false);
 {
     //  Create event queue
     kqueue_fd = kqueue ();
@@ -129,62 +130,74 @@ void zmq::kqueue_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::kqueue_t::initialise_shutdown ()
+{
+    stopping = true;
+}
+
+void zmq::kqueue_t::terminate_shutdown ()
+{
+}
+
 void zmq::kqueue_t::process_events ()
 {
     struct kevent ev_buf [max_io_events];
 
-    //  Compute time interval to wait.
-    timespec timeout = {max_timer_period / 1000, 
-        (max_timer_period % 1000) * 1000000};
+    while (!stopping) {
 
-    //  Wait for events.
-    int n;
-    while (true) {
-        n = kevent (kqueue_fd, NULL, 0,
-             &ev_buf [0], max_io_events, timers.empty () ? NULL : &timeout);
-        if (!(n == -1 && errno == EINTR)) {
-            errno_assert (n != -1);
-            break;
+        //  Compute time interval to wait.
+        timespec timeout = {max_timer_period / 1000, 
+            (max_timer_period % 1000) * 1000000};
+
+        //  Wait for events.
+        int n;
+        while (true) {
+            n = kevent (kqueue_fd, NULL, 0,
+                &ev_buf [0], max_io_events, timers.empty () ? NULL : &timeout);
+            if (!(n == -1 && errno == EINTR)) {
+                errno_assert (n != -1);
+                break;
+            }
         }
+
+        //  Handle timer.
+        if (!n) {
+
+            //  Use local list of timers as timer handlers may fill new timers
+            //  into the original array.
+            timers_t t;
+            std::swap (timers, t);
+
+            //  Trigger all the timers.
+            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
+                (*it)->timer_event ();
+
+            return;
+        }
+
+        for (int i = 0; i < n; i ++) {
+            poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
+
+            if (pe->fd == retired_fd)
+                continue;
+            if (ev_buf [i].flags & EV_EOF)
+                pe->engine->in_event ();
+            if (pe->fd == retired_fd)
+                continue;
+            if (ev_buf [i].filter == EVFILT_WRITE)
+                pe->engine->out_event ();
+            if (pe->fd == retired_fd)
+                continue;
+            if (ev_buf [i].filter == EVFILT_READ)
+                pe->engine->in_event ();
+        }
+
+        //  Destroy retired event sources.
+        for (retired_t::iterator it = retired.begin (); it != retired.end ();
+              it ++)
+            delete *it;
+        retired.clear ();
     }
-
-    //  Handle timer.
-    if (!n) {
-
-        //  Use local list of timers as timer handlers may fill new timers
-        //  into the original array.
-        timers_t t;
-        std::swap (timers, t);
-
-        //  Trigger all the timers.
-        for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-            (*it)->timer_event ();
-
-        return;
-    }
-
-    for (int i = 0; i < n; i ++) {
-        poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
-
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].flags & EV_EOF)
-            pe->engine->in_event ();
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].filter == EVFILT_WRITE)
-            pe->engine->out_event ();
-        if (pe->fd == retired_fd)
-            continue;
-        if (ev_buf [i].filter == EVFILT_READ)
-            pe->engine->in_event ();
-    }
-
-    //  Destroy retired event sources.
-    for (retired_t::iterator it = retired.begin (); it != retired.end ();
-          it ++)
-        delete *it;
-    retired.clear ();
 }
 
 #endif

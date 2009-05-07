@@ -41,7 +41,8 @@
 
 zmq::select_t::select_t () :
     maxfd (retired_fd),
-    retired (false)
+    retired (false),
+    stopping (false)
 {
     //  Clear file descriptor sets.
     FD_ZERO (&source_set_in);
@@ -134,82 +135,95 @@ void zmq::select_t::cancel_timer (i_pollable *engine_)
     timers.erase (it);
 }
 
+void zmq::select_t::initialise_shutdown ()
+{
+    stopping = true;
+}
+
+void zmq::select_t::terminate_shutdown ()
+{
+}
+
 void zmq::select_t::process_events ()
 {
-    //  Intialise the pollsets.
-    memcpy (&readfds, &source_set_in, sizeof source_set_in);
-    memcpy (&writefds, &source_set_out, sizeof source_set_out);
-    memcpy (&exceptfds, &source_set_err, sizeof source_set_err);
+    while (!stopping) {
 
-    //  Wait for events.
-    while (true) {
-
-        //  Compute the timout interval. Select is free to overwrite the
-        //  value so have to compute it each time anew.
-        timeval timeout = {max_timer_period / 1000,
-            (max_timer_period % 1000) * 1000};
+        //  Intialise the pollsets.
+        memcpy (&readfds, &source_set_in, sizeof source_set_in);
+        memcpy (&writefds, &source_set_out, sizeof source_set_out);
+        memcpy (&exceptfds, &source_set_err, sizeof source_set_err);
 
         //  Wait for events.
-        int rc;
         while (true) {
-            rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
-                timers.empty () ? NULL : &timeout);
+
+            //  Compute the timout interval. Select is free to overwrite the
+            //  value so have to compute it each time anew.
+            timeval timeout = {max_timer_period / 1000,
+                (max_timer_period % 1000) * 1000};
+
+            //  Wait for events.
+            int rc;
+            while (true) {
+                rc = select (maxfd + 1, &readfds, &writefds, &exceptfds,
+                    timers.empty () ? NULL : &timeout);
 
 #ifdef ZMQ_HAVE_WINDOWS
-            wsa_assert (rc != SOCKET_ERROR);
-            break;
-#else
-            if (!(rc == -1 && errno == EINTR)) {
-                errno_assert (rc != -1);
+                wsa_assert (rc != SOCKET_ERROR);
                 break;
-            }
+#else
+                if (!(rc == -1 && errno == EINTR)) {
+                    errno_assert (rc != -1);
+                    break;
+                }
 #endif
-        }
-
-        //  Handle timer.
-        if (!timers.empty () && !rc) {
-
-            //  Use local list of timers as timer handlers may fill new timers
-            //  into the original array.
-            timers_t t;
-            std::swap (timers, t);
-
-            //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it++)
-                (*it)->timer_event ();
-
-            return;
-        }
-
-        //  TODO: Select sometimes returns 0 even though no event have occured
-        //  and no timeout was set. Document this situation in detail...
-        if (rc > 0)
-            break;
-    }
-
-    for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
-        if (fds [i].fd == retired_fd)
-            continue;
-        if (FD_ISSET (fds [i].fd, &writefds))
-            fds [i].engine->out_event ();
-        if (fds [i].fd == retired_fd)
-            continue;
-        if (FD_ISSET (fds [i].fd, &readfds))
-            fds [i].engine->in_event ();
-        if (fds [i].fd == retired_fd)
-            continue;
-        if (FD_ISSET (fds [i].fd, &exceptfds))
-            fds [i].engine->in_event ();
-    }
-
-    //  Destroy retired event sources.
-    if (retired) {
-        for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
-            if (fds [i].fd == retired_fd) {
-                fds.erase (fds.begin () + i);
-                i--;
             }
+
+            //  Handle timer.
+            if (!timers.empty () && !rc) {
+
+                //  Use local list of timers as timer handlers may fill
+                //  new timers into the original array.
+                timers_t t;
+                std::swap (timers, t);
+
+                //  Trigger all the timers.
+                for (timers_t::iterator it = t.begin (); it != t.end (); it++)
+                    (*it)->timer_event ();
+
+                return;
+            }
+
+            //  TODO: Select sometimes returns 0 even though no event have
+            //  occured and no timeout was set. Document this situation
+            //  in detail...
+            if (rc > 0)
+                break;
         }
-        retired = false;
+
+        for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
+            if (fds [i].fd == retired_fd)
+                continue;
+            if (FD_ISSET (fds [i].fd, &writefds))
+                fds [i].engine->out_event ();
+            if (fds [i].fd == retired_fd)
+                continue;
+            if (FD_ISSET (fds [i].fd, &readfds))
+                fds [i].engine->in_event ();
+            if (fds [i].fd == retired_fd)
+                continue;
+            if (FD_ISSET (fds [i].fd, &exceptfds))
+                fds [i].engine->in_event ();
+        }
+
+        //  Destroy retired event sources.
+        if (retired) {
+            for (fd_set_t::size_type i = 0; i < fds.size (); i++) {
+                if (fds [i].fd == retired_fd) {
+                    fds.erase (fds.begin () + i);
+                    i--;
+                }
+            }
+            retired = false;
+        }
     }
 }

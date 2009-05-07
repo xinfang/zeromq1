@@ -86,9 +86,6 @@ namespace zmq
         //  We perform I/O multiplexing using event monitor.
         T *event_monitor;
 
-        //  If true, thread is supposed to stop. Exit the loop.
-        bool stopping;
-
         //  List of all registered engines.
         typedef std::vector <i_engine*> engines_t;
         engines_t engines;
@@ -121,8 +118,7 @@ void zmq::poller_t <T>::destroy ()
 
 template <class T>
 zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
-    dispatcher (dispatcher_),
-    stopping (false)
+    dispatcher (dispatcher_)
 {
     event_monitor = new T;
     zmq_assert (event_monitor);
@@ -181,12 +177,7 @@ template <class T>
 void zmq::poller_t <T>::loop ()
 {
     //  Main event loop.
-    while (!stopping)
-        event_monitor->process_events ();
-
-    //  Unregister all the registered engines.
-    for (engines_t::iterator it = engines.begin (); it != engines.end (); it ++)
-        (*it)->cast_to_pollable ()->unregister_event ();
+    event_monitor->process_events ();
 }
 
 template <class T>
@@ -199,7 +190,14 @@ void zmq::poller_t <T>::process_command (const command_t &command_)
 
     //  Exit the working thread.
     case command_t::stop:
-        stopping = true;
+        {
+            //  Unregister all the registered engines.
+            for (engines_t::iterator it = engines.begin ();
+                  it != engines.end (); it ++)
+                (*it)->cast_to_pollable ()->unregister_event ();
+
+            event_monitor->initialise_shutdown ();
+        }
         break;
 
     case command_t::revive_reader:

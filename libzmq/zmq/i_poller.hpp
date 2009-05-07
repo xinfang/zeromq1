@@ -64,6 +64,16 @@ namespace zmq
 
         //  Cancel the timer set by add_timer method.
         virtual void cancel_timer (struct i_pollable *engine_) = 0;
+
+        //  Following methods are to be used by I/O thread owenr. Please
+        //  don't invoke them from individual engines.
+
+        //  First function start asynchronous shutdown of the poller, second
+        //  one waits till the shutdown is finished. If particular API thread
+        //  allows only for synchronous shutdown, initialise_shutdown should
+        //  be left empty and terminate_shutdown should contain actual code.
+        virtual void initialise_shutdown () = 0;
+        virtual void terminate_shutdown () = 0;
     };
 
 }

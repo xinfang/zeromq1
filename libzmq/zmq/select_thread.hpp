@@ -61,6 +61,8 @@ namespace zmq
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
         ZMQ_EXPORT void add_timer (i_pollable *engine_);
         ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
+        ZMQ_EXPORT void initialise_shutdown ();
+        ZMQ_EXPORT void terminate_shutdown ();
 
         ZMQ_EXPORT void process_events ();
 
@@ -94,6 +96,9 @@ namespace zmq
         //  List of all the engines waiting for the timer event.
         typedef std::vector <i_pollable*> timers_t;
         timers_t timers;
+
+        //  If true, thread is in the process of shutting down.
+        bool stopping;
 
         select_t (const select_t&);
         void operator = (const select_t&);
