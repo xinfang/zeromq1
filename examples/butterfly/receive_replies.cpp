@@ -63,6 +63,4 @@ int main (int argc, char *argv [])
         message_t sync (1);
         api->send (eid, sync);
     }
-
-    return 0;
 }
