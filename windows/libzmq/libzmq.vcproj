@@ -253,6 +253,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\io_thread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\ip.cpp"
 				>
 			</File>
@@ -548,10 +552,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\poll_thread.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\poller.hpp"
 				>
 			</File>
 			<File
