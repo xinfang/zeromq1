@@ -29,7 +29,7 @@
 #include <algorithm>
 
 #include <zmq/i_poller.hpp>
-#include <zmq/poller.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/thread.hpp>
 
@@ -94,8 +94,6 @@ namespace zmq
         epoll_t (const epoll_t&);
         void operator = (const epoll_t&);
     };
-
-    typedef poller_t <epoll_t> epoll_thread_t;
 
 }
 

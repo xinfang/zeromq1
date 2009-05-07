@@ -62,7 +62,6 @@ set(libzmq_headers
   zmq/out_engine.hpp
   zmq/pgm_socket.hpp
   zmq/pipe.hpp
-  zmq/poller.hpp
   zmq/poll_thread.hpp
   zmq/raw_message.hpp
   zmq/scope.hpp
@@ -129,6 +128,7 @@ set(libzmq_sources
   sctp_listener.cpp
   xmlParser.cpp
   swap.cpp
+  io_thread.cpp
 )
 
 set(libzmq_libraries

@@ -26,7 +26,7 @@
     defined (ZMQ_HAVE_OSX)
 
 #include <zmq/i_poller.hpp>
-#include <zmq/poller.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
 
 namespace zmq
@@ -97,8 +97,6 @@ namespace zmq
         kqueue_t (const kqueue_t&);
         void operator = (const kqueue_t&);
     };
-
-    typedef poller_t <kqueue_t> kqueue_thread_t;
 
 }
 

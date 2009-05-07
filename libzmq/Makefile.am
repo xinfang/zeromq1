@@ -19,7 +19,6 @@ pkginclude_HEADERS = \
     ./zmq/ysemaphore.hpp \
     ./zmq/ysocketpair.hpp \
     ./zmq/io_thread.hpp \
-    ./zmq/poller.hpp \
     ./zmq/poll_thread.hpp \
     ./zmq/epoll_thread.hpp \
     ./zmq/devpoll_thread.hpp \
@@ -118,7 +117,8 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_marshaller.cpp \
     amqp_unmarshaller.cpp \
     xmlParser.cpp \
-    swap.cpp
+    swap.cpp \
+    io_thread.cpp
 
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@

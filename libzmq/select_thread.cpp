@@ -38,6 +38,7 @@
 #include <zmq/err.hpp>
 #include <zmq/select_thread.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/config.hpp>
 
 zmq::select_t::select_t () :
     maxfd (retired_fd),

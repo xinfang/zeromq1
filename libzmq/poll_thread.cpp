@@ -32,6 +32,7 @@
 #include <zmq/err.hpp>
 #include <zmq/poll_thread.hpp>
 #include <zmq/fd.hpp>
+#include <zmq/config.hpp>
 
 zmq::poll_t::poll_t () :
     retired (false),

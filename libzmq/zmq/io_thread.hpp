@@ -20,49 +20,70 @@
 #ifndef __ZMQ_IO_THREAD_HPP_INCLUDED__
 #define __ZMQ_IO_THREAD_HPP_INCLUDED__
 
-#include <zmq/platform.hpp>
-#include <zmq/poll_thread.hpp>
-#include <zmq/select_thread.hpp>
-#include <zmq/epoll_thread.hpp>
-#include <zmq/devpoll_thread.hpp>
-#include <zmq/kqueue_thread.hpp>
+#include <vector>
+#include <cstdlib>
+#include <algorithm>
+
+#include <zmq/i_thread.hpp>
+#include <zmq/i_pollable.hpp>
+#include <zmq/dispatcher.hpp>
+#include <zmq/ysocketpair.hpp>
+#include <zmq/thread.hpp>
+#include <zmq/fd.hpp>
 
 namespace zmq
 {
 
-#if defined (ZMQ_HAVE_LINUX)
-    typedef epoll_thread_t io_thread_t;
+    //  Generic part of the I/O thread. Polling-mechanism-specific features
+    //  are implemented in separate "polling objects".
 
-#elif defined (ZMQ_HAVE_WINDOWS)
-    typedef select_thread_t io_thread_t;
+    class io_thread_t : public i_thread, public i_pollable
+    {
+    public:
 
-#elif defined (ZMQ_HAVE_FREEBSD)
-    typedef kqueue_thread_t io_thread_t;
+        static i_thread *create (dispatcher_t *dispatcher_);
+        
+        //  i_thread implementation.
+        int get_thread_id ();
+        void send_command (i_thread *destination_, const command_t &command_);
+        void stop ();
+        void destroy ();
 
-#elif defined(ZMQ_HAVE_OPENBSD)
-    typedef kqueue_thread_t io_thread_t;
+        //  i_pollable implementation.
+        void register_event (i_poller *poller_);
+        void in_event ();
+        void out_event ();
+        void timer_event ();
+        void unregister_event ();
 
-#elif defined (ZMQ_HAVE_SOLARIS)
-    typedef devpoll_thread_t io_thread_t;
+    private:
 
-#elif defined (ZMQ_HAVE_OSX)
-    typedef kqueue_thread_t io_thread_t;
+        io_thread_t (dispatcher_t *dispatcher_);
+        ~io_thread_t ();
 
-#elif defined (ZMQ_HAVE_QNXNTO)
-    typedef poll_thread_t io_thread_t;
+        //  Processes individual command.
+        void process_command (const command_t &command_);
 
-#elif defined (ZMQ_HAVE_AIX)
-    typedef poll_thread_t io_thread_t;
+        //  Pointer to dispatcher.
+        dispatcher_t *dispatcher;
 
-#elif defined (ZMQ_HAVE_HPUX)
-    typedef devpoll_thread_t io_thread_t;
+        //  Thread ID allocated for the poll thread by dispatcher.
+        int thread_id;
 
-#elif defined (ZMQ_HAVE_OPENVMS)
-    typedef select_thread_t io_thread_t;
+        //  Poll thread gets notifications about incoming commands using
+        //  this socketpair.
+        ysocketpair_t signaler;
 
-#else
-#error "Unsupported platform"
-#endif
+        //  Handle associated with signaler's file descriptor.
+        handle_t signaler_handle;
+
+        //  We perform I/O multiplexing using event monitor.
+        i_poller *event_monitor;
+
+        //  List of all registered engines.
+        typedef std::vector <i_engine*> engines_t;
+        engines_t engines;
+    };
 
 }
 

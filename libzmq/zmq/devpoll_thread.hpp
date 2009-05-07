@@ -27,7 +27,7 @@
 #include <vector>
 
 #include <zmq/i_poller.hpp>
-#include <zmq/poller.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/thread.hpp>
 
@@ -97,8 +97,6 @@ namespace zmq
         devpoll_t (const devpoll_t&);
         void operator = (const devpoll_t&);
     };
-
-    typedef poller_t <devpoll_t> devpoll_thread_t;
 
 }
 

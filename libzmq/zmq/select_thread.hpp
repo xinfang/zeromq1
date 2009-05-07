@@ -37,7 +37,7 @@
 #endif
 
 #include <zmq/i_poller.hpp>
-#include <zmq/poller.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/thread.hpp>
 
@@ -112,8 +112,6 @@ namespace zmq
         select_t (const select_t&);
         void operator = (const select_t&);
     };
-
-    typedef poller_t <select_t> select_thread_t;
 
 }
 

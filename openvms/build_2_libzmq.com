@@ -53,6 +53,7 @@ $ compit amqp_marshaller.cpp
 $ compit amqp_unmarshaller.cpp
 $ compit xmlParser.cpp
 $ compit swap.cpp
+$ compit io_thread.cpp
 $!
 $ lib/create libzmq.olb
 $ lib/repl/nolog libzmq.olb *.obj;

@@ -33,7 +33,7 @@
 #include <vector>
 
 #include <zmq/i_poller.hpp>
-#include <zmq/poller.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/thread.hpp>
 
@@ -100,8 +100,6 @@ namespace zmq
         poll_t (const poll_t&);
         void operator = (const poll_t&);
     };
-
-    typedef poller_t <poll_t> poll_thread_t;
 
 }
 

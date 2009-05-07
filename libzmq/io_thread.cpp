@@ -17,85 +17,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_POLLER_HPP_INCLUDED__
-#define __ZMQ_POLLER_HPP_INCLUDED__
+#include <zmq/io_thread.hpp>
+#include <zmq/select_thread.hpp>
+#include <zmq/poll_thread.hpp>
+#include <zmq/epoll_thread.hpp>
+#include <zmq/devpoll_thread.hpp>
+#include <zmq/kqueue_thread.hpp>
 
-#include <vector>
-#include <cstdlib>
-#include <algorithm>
-
-#include <zmq/i_thread.hpp>
-#include <zmq/i_pollable.hpp>
-#include <zmq/dispatcher.hpp>
-#include <zmq/ysocketpair.hpp>
-#include <zmq/thread.hpp>
-#include <zmq/fd.hpp>
-
-namespace zmq
-{
-
-    template <class T> class poller_t : public i_thread, public i_pollable
-    {
-    public:
-
-        static i_thread *create (dispatcher_t *dispatcher_);
-        
-        //  i_thread implementation.
-        int get_thread_id ();
-        void send_command (i_thread *destination_, const command_t &command_);
-        void stop ();
-        void destroy ();
-
-        //  i_pollable implementation.
-        void register_event (i_poller *poller_);
-        void in_event ();
-        void out_event ();
-        void timer_event ();
-        void unregister_event ();
-
-    private:
-
-        poller_t (dispatcher_t *dispatcher_);
-        ~poller_t ();
-
-        //  Processes individual command.
-        void process_command (const command_t &command_);
-
-        //  Pointer to dispatcher.
-        dispatcher_t *dispatcher;
-
-        //  Thread ID allocated for the poll thread by dispatcher.
-        int thread_id;
-
-        //  Poll thread gets notifications about incoming commands using
-        //  this socketpair.
-        ysocketpair_t signaler;
-
-        //  Handle associated with signaler's file descriptor.
-        handle_t signaler_handle;
-
-        //  We perform I/O multiplexing using event monitor.
-        T *event_monitor;
-
-        //  List of all registered engines.
-        typedef std::vector <i_engine*> engines_t;
-        engines_t engines;
-    };
-
-}
-
-template <class T>
-zmq::i_thread *zmq::poller_t <T>::create (dispatcher_t *dispatcher_)
+zmq::i_thread *zmq::io_thread_t::create (dispatcher_t *dispatcher_)
 {
     //  Create the object.
-    poller_t <T> *poller = new poller_t <T> (dispatcher_);
-    zmq_assert (poller);
+    io_thread_t *thread = new io_thread_t (dispatcher_);
+    zmq_assert (thread);
 
-    return poller;
+    return thread;
 }
 
-template <class T>
-void zmq::poller_t <T>::destroy ()
+void zmq::io_thread_t::destroy ()
 {
     //  Wait for termination of the underlying I/O thread.
     event_monitor->terminate_shutdown ();
@@ -104,11 +42,32 @@ void zmq::poller_t <T>::destroy ()
     //  Afterwards 'delete this' can be executed. 
 }
 
-template <class T>
-zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
+zmq::io_thread_t::io_thread_t (dispatcher_t *dispatcher_) :
     dispatcher (dispatcher_)
 {
-    event_monitor = new T;
+#if defined (ZMQ_HAVE_LINUX)
+    event_monitor = new epoll_t;
+#elif defined (ZMQ_HAVE_WINDOWS)
+    event_monitor = new select_t;
+#elif defined (ZMQ_HAVE_FREEBSD)
+    event_monitor = new kqueue_t;
+#elif defined(ZMQ_HAVE_OPENBSD)
+    event_monitor = new kqueue_t;
+#elif defined (ZMQ_HAVE_SOLARIS)
+    event_monitor = new devpoll_t;
+#elif defined (ZMQ_HAVE_OSX)
+    event_monitor = new kqueue_t;
+#elif defined (ZMQ_HAVE_QNXNTO)
+    event_monitor = new poll_t;
+#elif defined (ZMQ_HAVE_AIX)
+    event_monitor = new poll_t;
+#elif defined (ZMQ_HAVE_HPUX)
+    event_monitor = new devpoll_t;
+#elif defined (ZMQ_HAVE_OPENVMS)
+    event_monitor = new select_t;
+#else
+#error "Unsupported platform"
+#endif
     zmq_assert (event_monitor);
 
     signaler_handle = event_monitor->add_fd (signaler.get_fd (), this);
@@ -121,22 +80,19 @@ zmq::poller_t <T>::poller_t (dispatcher_t *dispatcher_) :
     event_monitor->start ();
 }
 
-template <class T>
-zmq::poller_t <T>::~poller_t ()
+zmq::io_thread_t::~io_thread_t ()
 {
     event_monitor->rm_fd (signaler_handle);
 
     delete event_monitor;
 }
 
-template <class T>
-int zmq::poller_t <T>::get_thread_id ()
+int zmq::io_thread_t::get_thread_id ()
 {
     return thread_id;
 }
 
-template <class T>
-void zmq::poller_t <T>::send_command (i_thread *destination_,
+void zmq::io_thread_t::send_command (i_thread *destination_,
     const command_t &command_)
 {
     if (destination_ == (i_thread*) this)
@@ -146,8 +102,7 @@ void zmq::poller_t <T>::send_command (i_thread *destination_,
             destination_->get_thread_id (), command_);
 }
 
-template <class T>
-void zmq::poller_t <T>::stop ()
+void zmq::io_thread_t::stop ()
 {
     //  'to-self' command pipe is used solely for the 'stop' command.
     //  This way there's no danger of 2 threads accessing the pipe
@@ -157,8 +112,7 @@ void zmq::poller_t <T>::stop ()
     dispatcher->write (thread_id, thread_id, cmd);
 }
 
-template <class T>
-void zmq::poller_t <T>::process_command (const command_t &command_)
+void zmq::io_thread_t::process_command (const command_t &command_)
 {
     i_engine *engine;
     pipe_t *pipe;
@@ -242,15 +196,13 @@ void zmq::poller_t <T>::process_command (const command_t &command_)
     }
 }
 
-template <class T>
-void zmq::poller_t <T>::register_event (i_poller*)
+void zmq::io_thread_t::register_event (i_poller*)
 {
     //  This is not an engine. This function is never called.
     zmq_assert (false);
 }
 
-template <class T>
-void zmq::poller_t <T>::in_event ()
+void zmq::io_thread_t::in_event ()
 {
     //  Find out which threads are sending us commands.
     uint32_t signals = signaler.check ();
@@ -271,26 +223,21 @@ void zmq::poller_t <T>::in_event ()
     }
 }
 
-template <class T>
-void zmq::poller_t <T>::out_event ()
+void zmq::io_thread_t::out_event ()
 {
     //  We are never polling for POLLOUT here. This function is never called.
     zmq_assert (false);
 }
 
-template <class T>
-void zmq::poller_t <T>::timer_event ()
+void zmq::io_thread_t::timer_event ()
 {
     //  No timers here. This function is never called.
     zmq_assert (false);
 }
 
-template <class T>
-void zmq::poller_t <T>::unregister_event ()
+void zmq::io_thread_t::unregister_event ()
 {
     //  This is not an engine. This function is never called.
     zmq_assert (false);
 
 }
-
-#endif
