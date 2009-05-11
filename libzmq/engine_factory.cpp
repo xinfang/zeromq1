@@ -85,14 +85,17 @@ zmq::i_engine *zmq::engine_factory_t::create (
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
     if (transport_type == "zmq.pgm") {
         assert (global_ == sender_);
-        if (global_)
-            engine = new bp_pgm_sender_t (calling_thread_,
+        if (global_) {
+            mux_t *mux = new mux_t ();
+            engine = new bp_pgm_sender_t (mux, calling_thread_,
                 engine_thread_, transport_args.c_str (), peer_thread_,
                 peer_engine_);
-        else
-            engine = new bp_pgm_receiver_t (calling_thread_,
+        } else {
+            i_demux *demux = new data_distributor_t ();
+            engine = new bp_pgm_receiver_t (demux, calling_thread_,
                 engine_thread_, transport_args.c_str (), pgm_in_batch_size,
                 options_);
+        }
         zmq_assert (engine);
         return engine;
     }

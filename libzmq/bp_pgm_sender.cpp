@@ -44,19 +44,21 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
+zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
       i_engine *peer_engine_) :
+    mux (mux_),
     shutting_down (false),
-    encoder (&mux),
+    encoder (mux_),
     pgm_socket (false, interface_),
     out_buffer (NULL),
     out_buffer_size (0),
     write_size (0),
     write_pos (0), 
     first_message_offset (-1)
-
 {
+    zmq_assert (mux_);
+
     //  Store interface. Note that interface name is not stored in locator.
     char *delim = strchr (interface_, ';');
     zmq_assert (delim);
@@ -223,8 +225,8 @@ void zmq::bp_pgm_sender_t::unregister_event ()
 }
 
 void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
-{    
-    engine_base_t <false, true>::receive_from (pipe_);
+{
+    mux->receive_from (pipe_);
 
     if (shutting_down)
         pipe_->terminate_reader ();
@@ -238,7 +240,7 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
     if (!shutting_down) {
                 
         //  Forward the revive command to the pipe. 
-        engine_base_t <false, true>::revive (pipe_);
+        mux->revive (pipe_);
 
         //  There is at least one engine (that one which sent revive) that 
         //  has messages ready. Try to write data to the socket, thus 
@@ -255,6 +257,26 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
 const char *zmq::bp_pgm_sender_t::get_arguments ()
 {
     return arguments;
+}
+
+void zmq::bp_pgm_sender_t::head (pipe_t *pipe_, int64_t position_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_pgm_sender_t::send_to (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_pgm_sender_t::terminate_pipe (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_pgm_sender_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    mux->release_pipe (pipe_);
 }
 
 size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_, 

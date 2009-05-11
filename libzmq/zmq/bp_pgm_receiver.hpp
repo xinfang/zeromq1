@@ -29,14 +29,13 @@
 #include <zmq/pgm_socket.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 
 namespace zmq
 {
 
     class bp_pgm_receiver_t :
-        public engine_base_t <true, false>,
+        public i_engine,
         public i_pollable
     {
     
@@ -63,11 +62,22 @@ namespace zmq
 
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
         //  using network_ parameter.
-        bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *network_, size_t readbuf_size_, 
+        bp_pgm_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
+            i_thread *thread_, const char *network_, size_t readbuf_size_, 
             const char *arguments_);
 
         ~bp_pgm_receiver_t ();
+
+        //  i_engine interface implementation.
+        const char *get_arguments ();
+        void head (pipe_t *pipe_, int64_t position_);
+        void revive (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  Demux.
+        i_demux *demux;
 
         //  Read exactly iov_len_ count APDUs, function returns number
         //  of bytes received. Note that if we did not join message stream 

@@ -30,14 +30,13 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/pgm_socket.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 
 namespace zmq
 {
 
     class bp_pgm_sender_t :
-        public engine_base_t <false, true>,
+        public i_engine,
         public i_pollable
     {
 
@@ -63,10 +62,10 @@ namespace zmq
 
     private:
 
-        bp_pgm_sender_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *interface_, i_thread *peer_thread_, 
+        bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_, 
+            i_thread *thread_, const char *interface_, i_thread *peer_thread_,
             i_engine *peer_engine_);
-    
+
         ~bp_pgm_sender_t ();
 
         //  Send one APDU with first message offset information. 
@@ -74,6 +73,15 @@ namespace zmq
         //  and thus user data has to start at data_ + sizeof (uint16_t).
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_,
             uint16_t offset_);
+
+        //  i_engine interface implementation.
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
+        //  Mux.
+        mux_t *mux;
 
         //  Arguments string for this listener.
         char arguments [256];

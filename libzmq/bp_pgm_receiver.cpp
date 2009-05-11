@@ -41,14 +41,17 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
-      i_thread *thread_, const char *network_, size_t readbuf_size_, 
-      const char *arguments_) :
+zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, const char *network_, 
+      size_t readbuf_size_, const char *arguments_) :
+    demux (demux_),
     joined (false),
     shutting_down (false),
     decoder (demux),
     pgm_socket (NULL)
 {
+    zmq_assert (demux_);
+
     //  If UDP encapsulation is used network_ parameter contain 
     //  "udp:mcast_address:port". Interface name is comming from bind api
     //  argument in arguments_ variable. 
@@ -218,7 +221,39 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
     }
 
     //  Start sending messages to a pipe.
-    engine_base_t <true, false>::send_to (pipe_);
+    demux->send_to (pipe_);
+}
+
+const char *zmq::bp_pgm_receiver_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::bp_pgm_receiver_t::revive (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_pgm_receiver_t::head (pipe_t *pipe_, int64_t position_)
+{
+}
+
+void zmq::bp_pgm_receiver_t::receive_from (pipe_t *pipe_)
+{
+    zmq_assert (false);
+}
+
+void zmq::bp_pgm_receiver_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Drop reference to the pipe.
+    demux->release_pipe (pipe_);
+}
+
+void zmq::bp_pgm_receiver_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    //  Drop reference to the pipe.
+    zmq_assert (false);
 }
 
 ssize_t zmq::bp_pgm_receiver_t::receive_with_offset 
