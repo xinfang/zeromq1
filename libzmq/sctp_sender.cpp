@@ -22,18 +22,21 @@
 #if defined ZMQ_HAVE_SCTP
 
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/sctp.h>
 
-#include <zmq/sctp_engine.hpp>
-#include <zmq/dispatcher.hpp>
+#include <zmq/sctp_sender.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 #include <zmq/ip.hpp>
 
-zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, const char *hostname_, 
+zmq::sctp_sender_t::sctp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
+      i_thread *thread_, const char *hostname_, 
       const char *local_object_, const char * /* arguments_ */) :
     mux (mux_),
-    demux (demux_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)
@@ -76,15 +79,15 @@ zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, int listener_, 
-      const char *local_object_) :
+zmq::sctp_sender_t::sctp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
+      i_thread *thread_, int listener_, const char *local_object_) :
     mux (mux_),
-    demux (demux_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)
 {
+    zmq_assert (mux);
+
     //  Accept the incoming connection.
     s = accept (listener_, NULL, NULL);
     errno_assert (s != -1);
@@ -107,30 +110,30 @@ zmq::sctp_engine_t::sctp_engine_t (mux_t *mux_, i_demux *demux_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::sctp_engine_t::~sctp_engine_t ()
+zmq::sctp_sender_t::~sctp_sender_t ()
 {
     //  Cleanup the socket.
     int rc = ::close (s);
     errno_assert (rc == 0);
 }
 
-zmq::i_pollable *zmq::sctp_engine_t::cast_to_pollable ()
+zmq::i_pollable *zmq::sctp_sender_t::cast_to_pollable ()
 {
     return this;
 }
 
-void zmq::sctp_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
+void zmq::sctp_sender_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     *hwm_ = bp_hwm;
     *lwm_ = bp_lwm;
 }
 
-int64_t zmq::sctp_engine_t::get_swap_size ()
+int64_t zmq::sctp_sender_t::get_swap_size ()
 {
     return 0;
 }
 
-void zmq::sctp_engine_t::register_event (i_poller *poller_)
+void zmq::sctp_sender_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -140,40 +143,13 @@ void zmq::sctp_engine_t::register_event (i_poller *poller_)
     poller->set_pollin (handle);
 }
 
-void zmq::sctp_engine_t::in_event ()
+void zmq::sctp_sender_t::in_event ()
 {
-
-    zmq_assert (demux);
-
-    //  Receive N messages in one go if possible - this way we'll avoid
-    //  excessive polling.
-    //  TODO: Move the constant to config.hpp
-    int msg_nbr;
-    for (msg_nbr = 0; msg_nbr != 1; msg_nbr ++) {
-
-        unsigned char buffer [max_sctp_message_size]; 
-        int msg_flags;
-        ssize_t nbytes = sctp_recvmsg (s, buffer, sizeof (buffer),
-            NULL, 0, NULL, &msg_flags);
-        errno_assert (nbytes != -1);
-
-        //  Create 0MQ message from the data.
-        message_t msg (nbytes);
-        memcpy (msg.data (), buffer, nbytes);
-
-        //  TODO: Implement queue-full handling.
-        bool ok = demux->write (msg);
-        zmq_assert (ok);
-    }
-
-    //  Flash the messages to system, if there are any.
-    if (msg_nbr > 0)
-        demux->flush ();
+    zmq_assert (false);
 }
 
-void zmq::sctp_engine_t::out_event ()
+void zmq::sctp_sender_t::out_event ()
 {
-    zmq_assert (mux);
 
     message_t msg;
     if (!mux->read (&msg)) {
@@ -190,18 +166,18 @@ void zmq::sctp_engine_t::out_event ()
     zmq_assert (nbytes == (ssize_t) msg.size ());
 }
 
-void zmq::sctp_engine_t::timer_event ()
+void zmq::sctp_sender_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
     zmq_assert (false);
 }
 
-void zmq::sctp_engine_t::unregister_event ()
+void zmq::sctp_sender_t::unregister_event ()
 {
     //  TODO: Implement this. For now we'll do nothing here.
 }
 
-void zmq::sctp_engine_t::revive (pipe_t *pipe_)
+void zmq::sctp_sender_t::revive (pipe_t *pipe_)
 {
     if (!shutting_down) {
 
@@ -215,35 +191,18 @@ void zmq::sctp_engine_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::sctp_engine_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::sctp_sender_t::head (pipe_t *pipe_, int64_t position_)
 {
-    in_event ();
+    zmq_assert (false);
 }
 
-void zmq::sctp_engine_t::send_to (pipe_t *pipe_)
+void zmq::sctp_sender_t::send_to (pipe_t *pipe_)
 {
-    
-    zmq_assert (demux);
-
-    if (!shutting_down) {
-
-        //  If pipe limits are set, POLLIN may be turned off
-        //  because there are no pipes to send messages to.
-        //  So, if this is the first pipe in demux, start polling.
-        if (demux->no_pipes ())
-            poller->set_pollin (handle);
-
-        //  Start sending messages to a pipe.
-        demux->send_to (pipe_);
-
-    }
+    zmq_assert (false);
 }
 
-void zmq::sctp_engine_t::receive_from (pipe_t *pipe_)
+void zmq::sctp_sender_t::receive_from (pipe_t *pipe_)
 {
-    
-    zmq_assert (mux);
-
     //  Start receiving messages from a pipe.
     mux->receive_from (pipe_);
     if (shutting_down)
@@ -252,23 +211,20 @@ void zmq::sctp_engine_t::receive_from (pipe_t *pipe_)
         poller->set_pollout (handle);
 }
 
-const char *zmq::sctp_engine_t::get_arguments ()
+const char *zmq::sctp_sender_t::get_arguments ()
 {
     zmq_assert (false);
     return NULL;
 }
 
-void zmq::sctp_engine_t::terminate_pipe (pipe_t *pipe_)
+void zmq::sctp_sender_t::terminate_pipe (pipe_t *pipe_)
 {
-    //  Drop reference to the pipe.
-    zmq_assert (demux);
-    demux->release_pipe (pipe_);
+    zmq_assert (false);
 }
 
-void zmq::sctp_engine_t::terminate_pipe_ack (pipe_t *pipe_)
+void zmq::sctp_sender_t::terminate_pipe_ack (pipe_t *pipe_)
 {
-    //  Drop reference to the pipe.
-    zmq_assert (mux);
+    //  Forward the command to the pipe. Drop reference to the pipe.
     mux->release_pipe (pipe_);
 }
 #endif

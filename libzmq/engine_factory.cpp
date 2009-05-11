@@ -26,7 +26,8 @@
 #include <zmq/bp_tcp_sender.hpp>
 #include <zmq/bp_tcp_receiver.hpp>
 #include <zmq/sctp_listener.hpp>
-#include <zmq/sctp_engine.hpp>
+#include <zmq/sctp_sender.hpp>
+#include <zmq/sctp_receiver.hpp>
 #include <zmq/bp_pgm_sender.hpp>
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/amqp_client.hpp>
@@ -103,10 +104,13 @@ zmq::i_engine *zmq::engine_factory_t::create (
             engine = new sctp_listener_t (calling_thread_,
                 engine_thread_, transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_, name_);
+        } else if (sender_) {
+            mux_t *mux = new mux_t ();
+            engine = new sctp_sender_t (mux, calling_thread_,
+                engine_thread_, transport_args.c_str (), name_, options_);
         } else {
             i_demux *demux = new data_distributor_t ();
-            mux_t *mux = new mux_t ();
-            engine = new sctp_engine_t (mux, demux, calling_thread_,
+            engine = new sctp_receiver_t (demux, calling_thread_,
                 engine_thread_, transport_args.c_str (), name_, options_);
         }
         zmq_assert (engine);

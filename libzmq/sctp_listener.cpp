@@ -22,7 +22,8 @@
 #if defined ZMQ_HAVE_SCTP
 
 #include <zmq/sctp_listener.hpp>
-#include <zmq/sctp_engine.hpp>
+#include <zmq/sctp_sender.hpp>
+#include <zmq/sctp_receiver.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
@@ -136,19 +137,16 @@ void zmq::sctp_listener_t::register_event (i_poller *poller_)
 void zmq::sctp_listener_t::in_event ()
 {
 
-    i_demux *demux = new data_distributor_t ();
-    zmq_assert (demux);
-
-    mux_t *mux = new mux_t ();
-    zmq_assert (mux);
-
-    //  Create the engine to take care of the connection.
-    //  TODO: make buffer size configurable by user
-    sctp_engine_t *engine = new sctp_engine_t (mux, demux, thread,
-        handler_threads [current_handler_thread], s, peer_name);
-    zmq_assert (engine);
-
     if (!sender) {
+        //  Create demux for receiver engine.
+        i_demux *demux = new data_distributor_t ();
+        zmq_assert (demux);
+
+        //  Create the engine to take care of the connection.
+        //  TODO: make buffer size configurable by user
+        sctp_receiver_t *engine = new sctp_receiver_t (demux, thread,
+            handler_threads [current_handler_thread], s, peer_name);
+        zmq_assert (engine);
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
@@ -170,8 +168,17 @@ void zmq::sctp_listener_t::in_event ()
         command_t cmd_receive_from;
         cmd_receive_from.init_engine_receive_from (peer_engine, pipe);
         thread->send_command (peer_thread, cmd_receive_from);
-    }
-    else {
+
+    } else {
+        //  Create mux for sender engine.
+        mux_t *mux = new mux_t ();
+        zmq_assert (mux);
+
+        //  Create the engine to take care of the connection.
+        //  TODO: make buffer size configurable by user
+        sctp_sender_t *engine = new sctp_sender_t (mux, thread,
+            handler_threads [current_handler_thread], s, peer_name);
+        zmq_assert (engine);
 
         //  The newly created engine serves as a local destination of messages
         //  I.e. it sends messages received from the peer engine to the socket.
