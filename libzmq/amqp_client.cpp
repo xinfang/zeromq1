@@ -55,9 +55,9 @@ zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_,
     zmq_assert (readbuf);
 
     decoder = new amqp_decoder_t (demux, this);
-    errno_assert (decoder);
+    zmq_assert (decoder);
     encoder = new amqp_encoder_t (mux, arguments_);
-    errno_assert (encoder);
+    zmq_assert (encoder);
 
     //  Register AMQP engine with the I/O thread.
     command_t command;
