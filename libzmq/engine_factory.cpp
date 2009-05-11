@@ -82,7 +82,7 @@ zmq::i_engine *zmq::engine_factory_t::create (
         return engine;
     }
 
-#if defined ZMQ_HAVE_OPENPGM
+#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
     if (transport_type == "zmq.pgm") {
         assert (global_ == sender_);
         if (global_)
