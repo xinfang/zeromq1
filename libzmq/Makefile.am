@@ -72,7 +72,6 @@ pkginclude_HEADERS = \
     ./zmq/amqp_marshaller.hpp \
     ./zmq/amqp_unmarshaller.hpp \
     ./zmq/i_amqp.hpp \
-    ./zmq/engine_base.hpp \
     ./zmq/xmlParser.hpp \
     ./zmq/swap.hpp
 

@@ -443,10 +443,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\engine_base.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\zmq\engine_factory.hpp"
 				>
 			</File>
