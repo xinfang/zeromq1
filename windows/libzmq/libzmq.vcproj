@@ -293,11 +293,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\sctp_engine.cpp"
+				RelativePath="..\..\libzmq\sctp_listener.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\sctp_listener.cpp"
+				RelativePath="..\..\libzmq\sctp_receiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\sctp_sender.cpp"
 				>
 			</File>
 			<File
@@ -563,11 +567,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\sctp_engine.hpp"
+				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
+				RelativePath="..\..\libzmq\zmq\sctp_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\sctp_sender.hpp"
 				>
 			</File>
 			<File
