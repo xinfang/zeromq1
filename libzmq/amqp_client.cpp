@@ -28,9 +28,11 @@
 #include <zmq/config.hpp>
 #include <zmq/err.hpp>
 
-zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char *arguments_) :
+zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_, 
+      i_thread *calling_thread_, i_thread *thread_, const char *hostname_, 
+      const char *local_object_, const char *arguments_) :
+    mux (mux_),
+    demux (demux_),
     state (state_connecting),
     writebuf_size (bp_out_batch_size),
     write_size (0),
@@ -43,6 +45,9 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
     local_object (local_object_),
     arguments (arguments_)
 {
+    zmq_assert (mux);
+    zmq_assert (demux);
+
     //  Allocate read and write buffers.
     writebuf = (unsigned char*) malloc (writebuf_size);
     errno_assert (writebuf);
@@ -51,7 +56,7 @@ zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
 
     decoder = new amqp_decoder_t (demux, this);
     errno_assert (decoder);
-    encoder = new amqp_encoder_t (&mux, arguments_);
+    encoder = new amqp_encoder_t (mux, arguments_);
     errno_assert (encoder);
 
     //  Register AMQP engine with the I/O thread.
@@ -91,7 +96,7 @@ void zmq::amqp_client_t::revive (pipe_t *pipe_)
 {
     if (state != state_connecting && state != state_shutting_down) {
 
-        engine_base_t <true, true>::revive (pipe_);
+        mux->revive (pipe_);
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
@@ -107,7 +112,6 @@ void zmq::amqp_client_t::head (pipe_t *pipe_, int64_t position_)
 {
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {
-        engine_base_t <true, true>::head (pipe_, position_);
         in_event ();
     }
 }
@@ -121,13 +125,13 @@ void zmq::amqp_client_t::send_to (pipe_t *pipe_)
         poller->set_pollin (handle);
 
     //  Start sending messages to a pipe.
-    engine_base_t <true, true>::send_to (pipe_);
+    demux->send_to (pipe_);
 }
 
 void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
 {
     //  Start receiving messages from a pipe.
-    engine_base_t <true, true>::receive_from (pipe_);
+    mux->receive_from (pipe_);
 
     if (state == state_shutting_down)
         pipe_->terminate_reader ();
@@ -482,4 +486,21 @@ void zmq::amqp_client_t::reconnect ()
     state = state_connecting;
 }
 
+const char *zmq::amqp_client_t::get_arguments ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+void zmq::amqp_client_t::terminate_pipe (pipe_t *pipe_)
+{
+    //  Drop reference to the pipe.
+    demux->release_pipe (pipe_);
+}
+
+void zmq::amqp_client_t::terminate_pipe_ack (pipe_t *pipe_)
+{
+    //  Drop reference to the pipe.
+    mux->release_pipe (pipe_);
+}
 #endif

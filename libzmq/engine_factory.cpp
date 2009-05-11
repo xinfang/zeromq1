@@ -120,8 +120,11 @@ zmq::i_engine *zmq::engine_factory_t::create (
 
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp") {
-        engine = new amqp_client_t (calling_thread_, engine_thread_,
-            transport_args.c_str (), name_, options_);
+        mux_t *mux = new mux_t ();
+        i_demux *demux = new data_distributor_t ();
+
+        engine = new amqp_client_t (mux, demux, calling_thread_, 
+            engine_thread_, transport_args.c_str (), name_, options_);
         zmq_assert (engine);
         return engine;
     }

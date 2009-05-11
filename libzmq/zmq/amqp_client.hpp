@@ -30,7 +30,6 @@
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
 #include <zmq/i_pollable.hpp>
-#include <zmq/engine_base.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/amqp_decoder.hpp>
@@ -39,7 +38,7 @@ namespace zmq
 {
 
     class amqp_client_t :
-        public engine_base_t <true, true>,
+        public i_engine,
         public i_pollable,
         private i_amqp
     {
@@ -66,9 +65,9 @@ namespace zmq
 
     private:
 
-        amqp_client_t (i_thread *calling_thread_, i_thread *thread_,
-            const char *hostname_, const char *local_object_,
-            const char *arguments_);
+        amqp_client_t (mux_t *mux_, i_demux *demux_, i_thread *calling_thread_,
+            i_thread *thread_, const char *hostname_, 
+            const char *local_object_, const char *arguments_);
         ~amqp_client_t ();
 
         void connection_start (
@@ -120,6 +119,11 @@ namespace zmq
         void error ();
         void reconnect ();
         
+        //  i_engine interface implementation.
+        const char *get_arguments ();
+        void terminate_pipe (pipe_t *pipe_);
+        void terminate_pipe_ack (pipe_t *pipe_);
+
         enum state_t
         {
             state_connecting,
@@ -133,6 +137,10 @@ namespace zmq
             state_waiting_for_reconnect,
             state_shutting_down
         };
+        
+        //  Mux & demux.
+        mux_t *mux;
+        i_demux *demux;
 
         //  State of AMQP connection.
         state_t state;
