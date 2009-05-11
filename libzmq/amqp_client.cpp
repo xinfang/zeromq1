@@ -49,10 +49,10 @@ zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_,
     zmq_assert (demux);
 
     //  Allocate read and write buffers.
-    writebuf = (unsigned char*) malloc (writebuf_size);
-    errno_assert (writebuf);
-    readbuf = (unsigned char*) malloc (readbuf_size);
-    errno_assert (readbuf);
+    writebuf = new unsigned char[writebuf_size];
+    zmq_assert (writebuf);
+    readbuf = new unsigned char[readbuf_size];
+    zmq_assert (readbuf);
 
     decoder = new amqp_decoder_t (demux, this);
     errno_assert (decoder);
@@ -70,8 +70,8 @@ zmq::amqp_client_t::~amqp_client_t ()
     delete encoder;
     delete decoder;
 
-    free (readbuf);
-    free (writebuf);
+    delete readbuf;
+    delete writebuf;
 }
 
 zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
