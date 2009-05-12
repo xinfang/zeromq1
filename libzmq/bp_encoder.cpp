@@ -20,7 +20,7 @@
 #include <zmq/bp_encoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::bp_encoder_t::bp_encoder_t (mux_t *mux_) :
+zmq::bp_encoder_t::bp_encoder_t (i_mux *mux_) :
     mux (mux_)
 {
     //  Write 0 bytes to the batch and go to message_ready state.

@@ -32,6 +32,7 @@ set(libzmq_headers
   zmq/config.hpp
   zmq/decoder.hpp
   zmq/i_demux.hpp
+  zmq/i_mux.hpp
   zmq/data_distributor.hpp
   zmq/load_balancer.hpp
   zmq/devpoll.hpp

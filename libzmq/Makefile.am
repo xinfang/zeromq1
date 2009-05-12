@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
     ./zmq/i_demux.hpp \
+    ./zmq/i_mux.hpp \
     ./zmq/data_distributor.hpp \
     ./zmq/load_balancer.hpp \
     ./zmq/i_thread.hpp \

@@ -23,29 +23,28 @@
 #include <vector>
 #include <algorithm>
 
-#include <zmq/message.hpp>
-#include <zmq/pipe.hpp>
+#include <zmq/i_mux.hpp>
 
 namespace zmq
 {
 
     //  Object to aggregate messages from inbound pipes.
 
-    class mux_t
+    class mux_t : public i_mux
     {
     public:
 
         mux_t ();
         ~mux_t ();
 
+        //  i_mux implementation.
+        bool read (message_t *msg_);
+
         //  Adds a pipe to receive messages from.
         void receive_from (pipe_t *pipe_);
 
         //  Revives a stalled pipe.
         void revive (pipe_t *pipe_);
-
-        //  Returns a message, if available. If not, returns false.
-        bool read (message_t *msg_);
 
         //  Returns true if there are no pipes attached.
         bool empty ();
