@@ -43,10 +43,8 @@ namespace zmq
     {
     public:
 
-        //  Creates the local locator and connects it to the global locator.
-        //  If hostname_ is NULL, no global locator is used. Objects not found
-        //  on process level are reported as unknown in that case.
-        ZMQ_EXPORT locator_t (const char *hostname_ = NULL);
+        //  Creates the locator.
+        ZMQ_EXPORT locator_t ();
 
         //  Destroys the locator.
         ZMQ_EXPORT ~locator_t ();
@@ -61,8 +59,8 @@ namespace zmq
         //  Gets the engine that handles specified object.
         //  Returns false if the object is unknown.
         bool get (i_thread *calling_thread_, 
-            unsigned char type_id_, const char *object_, i_thread **thread_, 
-            i_engine **engine_, i_thread *handler_thread_, 
+            unsigned char type_id_, const char *object_, const char *iface_,
+            i_thread **thread_, i_engine **engine_, i_thread *handler_thread_, 
             const char *local_object_, const char *engine_arguments_);
 
     private:
@@ -86,9 +84,6 @@ namespace zmq
         //  passed through the system). The blocking occurs only in the
         //  application threads as they are creating wiring.
         mutex_t sync;
-
-        //  Connection to the global locator.
-        tcp_socket_t *global_locator;
 
         locator_t (const locator_t&);
         void operator = (const locator_t&);

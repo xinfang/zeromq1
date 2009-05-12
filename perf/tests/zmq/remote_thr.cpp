@@ -29,17 +29,19 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 5) { 
-        cerr << "Usage: remote_thr <hostname> <message size> <message count> "
+    if (argc != 6) { 
+        cerr << "Usage: remote_thr <exchange interface> "
+            "<queue interface> <message size> <message count> "
             "<number of threads>" << endl; 
         return 1;
     }
 
     //  Parse & print command line arguments.
-    const char *host = argv [1];
-    size_t msg_size = atoi (argv [2]);
-    int msg_count = atoi (argv [3]);
-    int thread_count = atoi (argv [4]);
+    const char *exchange_interface = argv [1];
+    const char *queue_interface = argv [2];
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
+    int thread_count = atoi (argv [5]);
 
     cout << "threads: " << thread_count << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
@@ -65,8 +67,9 @@ int main (int argc, char *argv [])
         //  and created local queue will be binded to global exchange EX. 
         //  Global queue and exchange have to be created before
         //  by the local_thr.
-        transports [thread_nbr] = new perf::zmq_t (host, true,
-            exchange_name.c_str (), queue_name.c_str (), NULL, NULL);
+        transports [thread_nbr] = new perf::zmq_t (true,
+            exchange_name.c_str (), queue_name.c_str (),
+            exchange_interface, queue_interface);
     }
 
     //  Do the job, for more detailed info refer to ../scenarios/thr.hpp.

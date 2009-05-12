@@ -101,7 +101,9 @@ int zmq::api_thread_t::create_queue (const char *queue_, scope_t scope_,
     return queues.size ();
 }
 
-void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
+void zmq::api_thread_t::bind (
+    const char *exchange_, const char *exchange_location_,
+    const char *queue_, const char *queue_location_,
     i_thread *exchange_thread_, i_thread *queue_thread_,
     const char *exchange_arguments_, const char *queue_arguments_)
 {
@@ -117,7 +119,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         exchange_engine = eit->second;
     }
     else {
-        if (!(locator->get (this, exchange_type_id, exchange_,
+        if (!(locator->get (this, exchange_type_id, exchange_, exchange_location_,
               &exchange_thread, &exchange_engine, exchange_thread_, queue_,
                 exchange_arguments_))) {
 
@@ -143,7 +145,7 @@ void zmq::api_thread_t::bind (const char *exchange_, const char *queue_,
         queue_engine = qit->second;
     }
     else {
-        if (!(locator->get (this, queue_type_id, queue_,
+        if (!(locator->get (this, queue_type_id, queue_, queue_location_,
               &queue_thread, &queue_engine, queue_thread_, exchange_,
                 queue_arguments_))) {
 

@@ -31,20 +31,19 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 7) {
-        cerr << "Usage: local_thr <hostname> <exchange interface> "
+    if (argc != 6) {
+        cerr << "Usage: local_thr <exchange interface> "
             "<queue interface> <message size> "
             "<message count> <number of threads>" << endl;
         return 1;
     }
 
     //  Parse & print command line arguments.
-    const char *host = argv [1];
-    const char *exchange_interface = argv [2];
-    const char *queue_interface = argv [3];
-    size_t msg_size = atoi (argv [4]);
-    int msg_count = atoi (argv [5]);
-    int thread_count = atoi (argv [6]);
+    const char *exchange_interface = argv [1];
+    const char *queue_interface = argv [2];
+    size_t msg_size = atoi (argv [3]);
+    int msg_count = atoi (argv [4]);
+    int thread_count = atoi (argv [5]);
 
     //  Check if port numbers are speciffied.
     uint16_t exchange_base_port = 0;
@@ -100,7 +99,7 @@ int main (int argc, char *argv [])
         
         //  Create zmq transport with bind = false. It means that global queue
         //  QX and global exchange EX will be created without any bindings.
-        transports [thread_nbr] = new perf::zmq_t (host, false,
+        transports [thread_nbr] = new perf::zmq_t (false,
             exchange_name.c_str (), queue_name.c_str (), exchange_iface.c_str (), 
             queue_iface.c_str ());
     }

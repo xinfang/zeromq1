@@ -66,7 +66,9 @@ namespace zmq
             int64_t hwm_ = -1, int64_t lwm_ = -1);
 
         //  Binds an exchange to a queue.
-        ZMQ_EXPORT void bind (const char *exchange_, const char *queue_,
+        ZMQ_EXPORT void bind (
+            const char *exchange_, const char *exchange_location_,
+            const char *queue_, const char *queue_location_,
             i_thread *exchange_thread_, i_thread *queue_thread_,
             const char *exchange_arguments_ = NULL,
             const char *queue_arguments_ = NULL);

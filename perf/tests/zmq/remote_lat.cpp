@@ -28,22 +28,25 @@ using namespace std;
 
 int main (int argc, char *argv [])
 {
-    if (argc != 4) {
-        cerr << "Usage: remote <hostname> <message size> <roundtrip count>"
+    if (argc != 5) {
+        cerr << "Usage: remote_lat <exchange interface> "
+            "<queue interface> <message size> <roundtrip count>"
             << endl;
         return 1;
     }
 
     //  Parse & print command line arguments.
-    const char *host = argv [1];
-    size_t msg_size = atoi (argv [2]);
-    int roundtrip_count = atoi (argv [3]);
+    const char *exchange_interface = argv [1];
+    const char *queue_interface = argv [2];
+    size_t msg_size = atoi (argv [3]);
+    int roundtrip_count = atoi (argv [4]);
 
     cout << "message size: " << msg_size << " [B]" << endl;
     cout << "roundtrip count: " << roundtrip_count << endl << endl;
 
     //  Create zmq transport.
-    perf::zmq_t transport (host, true, "EOUT", "QIN", NULL, NULL);
+    perf::zmq_t transport (true, "EOUT", "QIN",
+        exchange_interface, queue_interface);
 
     //  Do the job, for more detailed info refer to ../scenarios/lat.hpp.
     perf::remote_lat (&transport, msg_size, roundtrip_count); 

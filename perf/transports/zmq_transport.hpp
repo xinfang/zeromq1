@@ -37,11 +37,10 @@ namespace perf
     class zmq_t : public i_transport
     {
     public:
-        zmq_t (const char *host_, bool bind_, const char *exchange_name_,
+        zmq_t (bool bind_, const char *exchange_name_,
               const char *queue_name_, const char *exchange_interface_,
               const char *queue_interface_) :
-            dispatcher (2),
-            locator (host_)
+            dispatcher (2)
         {
 
             api = zmq::api_thread_t::create (&dispatcher, &locator);
@@ -49,16 +48,15 @@ namespace perf
 
             if (bind_) {
 
-                assert (!exchange_interface_);
-                assert (!queue_interface_);
-
                 //  Create & bind local exchange.
                 exchange_id = api->create_exchange ("E_LOCAL");
-                api->bind ("E_LOCAL", queue_name_, worker, worker);
+                api->bind ("E_LOCAL", NULL, queue_name_, queue_interface_,
+                    worker, worker);
                 
                 //  Create & bind local queue.
                 api->create_queue ("Q_LOCAL");
-                api->bind (exchange_name_, "Q_LOCAL", worker, worker);
+                api->bind (exchange_name_, exchange_interface_, "Q_LOCAL", NULL,
+                    worker, worker);
 
             } else {
                 assert (exchange_interface_);
