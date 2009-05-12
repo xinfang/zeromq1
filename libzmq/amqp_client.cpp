@@ -140,7 +140,8 @@ void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
     if (state == state_shutting_down)
         pipe_->terminate_reader ();
 
-    if (state != state_connecting && state != state_shutting_down)
+    if (state != state_connecting && state != state_shutting_down &&
+          state != state_waiting_for_reconnect)
         poller->set_pollout (handle);
 }
 
