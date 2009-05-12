@@ -31,6 +31,8 @@ pkginclude_HEADERS = \
     ./zmq/i_pollable.hpp \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
+    ./zmq/i_destination.hpp \
+    ./zmq/i_source.hpp \
     ./zmq/i_demux.hpp \
     ./zmq/i_mux.hpp \
     ./zmq/data_distributor.hpp \

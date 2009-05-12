@@ -20,21 +20,32 @@
 #ifndef __ZMQ_I_MUX_HPP_INCLUDED__
 #define __ZMQ_I_MUX_HPP_INCLUDED__
 
-#include <zmq/message.hpp>
+#include <zmq/i_source.hpp>
 #include <zmq/pipe.hpp>
 
 namespace zmq
 {
 
-    class i_mux
+    class i_mux : public i_source
     {
     public:
 
         virtual ~i_mux () {};
 
-        //  Returns a message, if available. If not, returns false.
-        virtual bool read (message_t *msg_) = 0;
+        //  Adds a pipe to receive messages from.
+        virtual void receive_from (pipe_t *pipe_) = 0;
 
+        //  Revives a stalled pipe.
+        virtual void revive (pipe_t *pipe_) = 0;
+
+        //  Returns true if there are no pipes attached.
+        virtual bool empty () = 0;
+
+        //  Drop references to the specified pipe.
+        virtual void release_pipe (pipe_t *pipe_) = 0;
+
+        //  Initiate shutdown of all associated pipes.
+        virtual void initialise_shutdown () = 0;
     };
 
 }

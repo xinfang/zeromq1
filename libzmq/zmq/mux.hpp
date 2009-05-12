@@ -39,20 +39,10 @@ namespace zmq
 
         //  i_mux implementation.
         bool read (message_t *msg_);
-
-        //  Adds a pipe to receive messages from.
         void receive_from (pipe_t *pipe_);
-
-        //  Revives a stalled pipe.
         void revive (pipe_t *pipe_);
-
-        //  Returns true if there are no pipes attached.
         bool empty ();
-
-        //  Drop references to the specified pipe.
         void release_pipe (pipe_t *pipe_);
-
-        //  Initiate shutdown of all associated pipes.
         void initialise_shutdown ();
 
     private:

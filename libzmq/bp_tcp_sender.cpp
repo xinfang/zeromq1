@@ -21,9 +21,8 @@
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/mux.hpp>
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_,
       const char *local_object_, const char * /* options_*/) :
     mux (mux_),
@@ -37,7 +36,6 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
     state (engine_connecting),
     socket (hostname_)
 {
-
     zmq_assert (mux);
 
     //  Allocate write buffer.
@@ -50,7 +48,7 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
     calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
       i_thread *thread_, fd_t fd_, const char *local_object_) :
     mux (mux_),
     writebuf_size (bp_out_batch_size),
@@ -63,7 +61,6 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
     state (engine_connected),
     socket (fd_)
 {
-
     zmq_assert (mux);
 
     //  Allocate write buffer.

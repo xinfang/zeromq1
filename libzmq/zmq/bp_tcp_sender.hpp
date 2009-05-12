@@ -28,7 +28,7 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/tcp_socket.hpp>
-#include <zmq/mux.hpp>
+#include <zmq/i_mux.hpp>
 
 namespace zmq
 {
@@ -85,11 +85,11 @@ namespace zmq
         //  Creates bp_tcp_sender. Underlying TCP connection is initialised
         //  using hostname parameter. Local object name is simply stored
         //  and passed to error handler function when connection breaks.
-        bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
+        bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_, 
             i_thread *thread_, const char *hostname_, 
             const char *local_object_, const char * /* options_*/);
 
-        bp_tcp_sender_t (mux_t *mux_, i_thread *calling_thread_,
+        bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
             i_thread *thread_, fd_t fd_, const char *local_object_);
 
         ~bp_tcp_sender_t ();
@@ -111,7 +111,7 @@ namespace zmq
         void terminate_pipe_ack (pipe_t *pipe_);
 
         //  Mux.
-        mux_t *mux;
+        i_mux *mux;
 
         //  Buffer to be written to the underlying socket.
         unsigned char *writebuf;

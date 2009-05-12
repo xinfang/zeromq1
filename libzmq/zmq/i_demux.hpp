@@ -20,7 +20,7 @@
 #ifndef __ZMQ_I_DEMUX_HPP_INCLUDED__
 #define __ZMQ_I_DEMUX_HPP_INCLUDED__
 
-#include <zmq/message.hpp>
+#include <zmq/i_destination.hpp>
 #include <zmq/pipe.hpp>
 
 namespace zmq
@@ -31,7 +31,7 @@ namespace zmq
     //  messages among its pipes. Also, a message can be sent
     //  to more then one pipe.
 
-    class i_demux
+    class i_demux : public i_destination
     {
     public:
 
@@ -39,13 +39,6 @@ namespace zmq
 
         //  Starts sending messages to this pipe.
         virtual void send_to (pipe_t *pipe_) = 0;
-
-        //  Distributes the message among attached pipes. The message
-        //  is no delivered until the distributor is flushed. If the message
-        //  has been successfully sent to all appropriate pipes, the message
-        //  is cleared and the function returns true. Otherwise, the false
-        //  is returned.
-        virtual bool write (message_t &msg_) = 0;
 
         //  Flushes all messages.
         virtual void flush () = 0;

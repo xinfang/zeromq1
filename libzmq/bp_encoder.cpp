@@ -20,8 +20,8 @@
 #include <zmq/bp_encoder.hpp>
 #include <zmq/wire.hpp>
 
-zmq::bp_encoder_t::bp_encoder_t (i_mux *mux_) :
-    mux (mux_)
+zmq::bp_encoder_t::bp_encoder_t (i_source *source_) :
+    source (source_)
 {
     //  Write 0 bytes to the batch and go to message_ready state.
     next_step (NULL, 0, &bp_encoder_t::message_ready, true);
@@ -50,7 +50,7 @@ bool zmq::bp_encoder_t::message_ready ()
     //  Note that new state is set only if write is successful. That way
     //  unsuccessful write will cause retry on the next state machine
     //  invocation.
-    if (!mux->read (&message))
+    if (!source->read (&message))
         return false;
 
     //  For messages less than 255 bytes long, write one byte of message size.

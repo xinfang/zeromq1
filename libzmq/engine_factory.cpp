@@ -32,6 +32,7 @@
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/amqp_client.hpp>
 #include <zmq/data_distributor.hpp>
+#include <zmq/mux.hpp>
 #include <zmq/err.hpp>
 
 zmq::i_engine *zmq::engine_factory_t::create (

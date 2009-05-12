@@ -17,41 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef __ZMQ_I_SOURCE_HPP_INCLUDED__
+#define __ZMQ_I_SOURCE_HPP_INCLUDED__
 
-#ifndef __ZMQ_BP_ENCODER_HPP_INCLUDED__
-#define __ZMQ_BP_ENCODER_HPP_INCLUDED__
-
-#include <stddef.h>
-
-#include <zmq/i_source.hpp>
-#include <zmq/encoder.hpp>
 #include <zmq/message.hpp>
 
 namespace zmq
 {
-    //  Encoder for 0MQ backend protocol. Converts messages into data batches.
 
-    class bp_encoder_t : public encoder_t <bp_encoder_t>
+    class i_source
     {
     public:
 
-        bp_encoder_t (i_source *source_);
+        virtual ~i_source () {};
 
-        //  Clears any partially encoded messages.
-        void reset ();
+        //  Returns a message, if available. If not, returns false.
+        virtual bool read (message_t *msg_) = 0;
 
-    private:
-
-        bool size_ready ();
-        bool message_ready ();
-
-        i_source *source;
-        message_t message;
-        unsigned char tmpbuf [9];
-
-        bp_encoder_t (const bp_encoder_t&);
-        void operator = (const bp_encoder_t&);
     };
+
 }
 
 #endif

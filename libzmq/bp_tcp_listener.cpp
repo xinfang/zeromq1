@@ -24,6 +24,7 @@
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/err.hpp>
+#include <zmq/mux.hpp>
 
 zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, int handler_thread_count_,
