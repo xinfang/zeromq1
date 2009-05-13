@@ -144,7 +144,15 @@ void zmq::poll_thread_t::loop ()
         //  100 messages or so). If there are no messages, poll immediately.
 
         //  Wait for events.
+
         int rc = poll (&pollset [0], pollset.size (), -1);
+
+        //  On Linux, the poll (2) call can fail with the error EINTR
+        //  after the process is stopped and then resumed via SIGCONT signal.
+        while (rc == -1 && errno == EINTR) {
+            rc = poll (&pollset [0], pollset.size (), -1);
+        }
+
         errno_assert (rc != -1);
 
         //  First of all, process socket errors.
