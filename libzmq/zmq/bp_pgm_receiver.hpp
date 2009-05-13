@@ -30,6 +30,7 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
 #include <zmq/i_pollable.hpp>
+#include <zmq/i_demux.hpp>
 
 namespace zmq
 {

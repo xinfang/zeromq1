@@ -31,6 +31,7 @@
 #include <zmq/bp_encoder.hpp>
 #include <zmq/pgm_socket.hpp>
 #include <zmq/i_pollable.hpp>
+#include <zmq/mux.hpp>
 
 namespace zmq
 {
