@@ -74,17 +74,15 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
 
     //  Fill in the interface name and port.
     //  TODO: This string should be stored in the locator rather than here.
-    const char *rcp;
-    size_t isz;
     zmq_strncpy (arguments, "sctp://", sizeof (arguments));
-    isz = strlen (arguments); 
+    size_t isz = strlen (arguments);
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (arguments + isz, sizeof (arguments) - isz);
         zmq_assert (rc == 0);
     }
     else {
-        rcp = inet_ntop (AF_INET, &ip_address.sin_addr, arguments + isz,
-            sizeof (arguments) - isz);
+        const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr,
+            arguments + isz, sizeof (arguments) - isz);
         errno_assert (rcp);
     }
     isz = strlen (arguments);
