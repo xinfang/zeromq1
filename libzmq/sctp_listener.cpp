@@ -78,7 +78,7 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
     size_t isz = strlen (arguments);
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (arguments + isz, sizeof (arguments) - isz);
-        zmq_assert (rc == 0);
+        errno_assert (rc == 0);
     }
     else {
         const char *rcp = inet_ntop (AF_INET, &ip_address.sin_addr,
