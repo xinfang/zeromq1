@@ -105,6 +105,16 @@ int64_t zmq::amqp_client_t::get_swap_size ()
     return 0;
 }
 
+zmq::i_demux *zmq::amqp_client_t::get_demux ()
+{
+    return demux;
+}
+
+zmq::i_mux *zmq::amqp_client_t::get_mux ()
+{
+    return mux;
+}
+
 void zmq::amqp_client_t::revive (pipe_t *pipe_)
 {
     if (state != state_connecting && state != state_shutting_down) {
@@ -532,15 +542,4 @@ const char *zmq::amqp_client_t::get_arguments ()
     return NULL;
 }
 
-void zmq::amqp_client_t::terminate_pipe (pipe_t *pipe_)
-{
-    //  Drop reference to the pipe.
-    demux->release_pipe (pipe_);
-}
-
-void zmq::amqp_client_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    //  Drop reference to the pipe.
-    mux->release_pipe (pipe_);
-}
 #endif

@@ -174,6 +174,17 @@ int64_t zmq::bp_tcp_sender_t::get_swap_size ()
     return 0;
 }
 
+zmq::i_demux *zmq::bp_tcp_sender_t::get_demux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+zmq::i_mux *zmq::bp_tcp_sender_t::get_mux ()
+{
+    return mux;
+}
+
 void zmq::bp_tcp_sender_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
@@ -320,15 +331,3 @@ void zmq::bp_tcp_sender_t::send_to (pipe_t *pipe_)
 {
     zmq_assert (false);
 }
-
-void zmq::bp_tcp_sender_t::terminate_pipe (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_sender_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    //  Drop reference to the pipe.
-    mux->release_pipe (pipe_);
-}
-

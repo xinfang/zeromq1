@@ -133,6 +133,17 @@ int64_t zmq::sctp_sender_t::get_swap_size ()
     return 0;
 }
 
+zmq::i_demux *zmq::sctp_sender_t::get_demux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+zmq::i_mux *zmq::sctp_sender_t::get_mux ()
+{
+    return mux;
+}
+
 void zmq::sctp_sender_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
@@ -217,14 +228,4 @@ const char *zmq::sctp_sender_t::get_arguments ()
     return NULL;
 }
 
-void zmq::sctp_sender_t::terminate_pipe (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::sctp_sender_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    //  Forward the command to the pipe. Drop reference to the pipe.
-    mux->release_pipe (pipe_);
-}
 #endif

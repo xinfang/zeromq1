@@ -165,7 +165,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
 
     //  Create the pipe.
     pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
-        queue_thread, queue_engine);
+        exchange_engine->get_demux (),
+        queue_thread, queue_engine, queue_engine->get_mux ());
     zmq_assert (pipe);
 
     //  Bind the source end of the pipe.

@@ -86,7 +86,8 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
 
     //  Create the pipe to the newly created engine.
     pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
-        thread_, destination_engine);
+        peer_engine_->get_demux (),
+        thread_, destination_engine, mux);
     zmq_assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
@@ -122,6 +123,17 @@ void zmq::bp_pgm_sender_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 int64_t zmq::bp_pgm_sender_t::get_swap_size ()
 {
     return 0;
+}
+
+zmq::i_demux *zmq::bp_pgm_sender_t::get_demux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+zmq::i_mux *zmq::bp_pgm_sender_t::get_mux ()
+{
+    return mux;
 }
 
 void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
@@ -267,16 +279,6 @@ void zmq::bp_pgm_sender_t::head (pipe_t *pipe_, int64_t position_)
 void zmq::bp_pgm_sender_t::send_to (pipe_t *pipe_)
 {
     zmq_assert (false);
-}
-
-void zmq::bp_pgm_sender_t::terminate_pipe (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_pgm_sender_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    mux->release_pipe (pipe_);
 }
 
 size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_, 

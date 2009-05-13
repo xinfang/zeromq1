@@ -20,14 +20,20 @@
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
 #include <zmq/err.hpp>
+#include <zmq/i_mux.hpp>
+#include <zmq/i_demux.hpp>
 
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
-      i_thread *destination_thread_, i_engine *destination_engine_) :
+      i_demux *demux_,
+      i_thread *destination_thread_, i_engine *destination_engine_,
+      i_mux *mux_) :
     pipe (false),
     source_thread (source_thread_),
     source_engine (source_engine_),
+    demux (demux_),
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
+    mux (mux_),
     mux_index (0),
     head (0),
     last_head_position (0),
@@ -222,7 +228,7 @@ void zmq::pipe_t::terminate_pipe_req ()
 {
     i_thread *st = source_thread;
 
-    source_engine->terminate_pipe (this);
+    demux->release_pipe (this);
 
     //  Drop the pointers to the writer. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
@@ -250,7 +256,7 @@ void zmq::pipe_t::terminate_reader ()
 
 void zmq::pipe_t::terminate_pipe_ack ()
 {
-    destination_engine->terminate_pipe_ack (this);
+    mux->release_pipe (this);
 
     //  Drop the pointers to the reader. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ

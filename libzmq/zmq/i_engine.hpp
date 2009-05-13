@@ -45,6 +45,16 @@ namespace zmq
         //  Returns the size of the swap file.
         virtual int64_t get_swap_size () = 0;
 
+        //  Returns the engine's demux or fails if the engine doesn't
+        //  use one. This is temporary function. It should pass away before
+        //  the core refactoring is done.
+        virtual class i_demux *get_demux () = 0;
+
+        //  Returns the engine's mux or fails if the engine doesn't
+        //  use one. This is a temporary function. It should pass away before
+        //  the core refactoring is done.
+        virtual class i_mux *get_mux () = 0;
+
         //  Returns modified arguments string.
         //  This function will be obsoleted with the shift to centralised
         //  management of configuration.
@@ -55,8 +65,6 @@ namespace zmq
         virtual void head (class pipe_t *pipe_, int64_t position_) = 0;
         virtual void send_to (class pipe_t *pipe_) = 0;
         virtual void receive_from (class pipe_t *pipe_) = 0;
-        virtual void terminate_pipe (class pipe_t *pipe_) = 0;
-        virtual void terminate_pipe_ack (class pipe_t *pipe_) = 0;
     };
 
 }

@@ -78,6 +78,18 @@ int64_t zmq::bp_tcp_listener_t::get_swap_size ()
     return 0;
 }
 
+zmq::i_demux *zmq::bp_tcp_listener_t::get_demux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+zmq::i_mux *zmq::bp_tcp_listener_t::get_mux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
 void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 {
     poller = poller_;
@@ -108,8 +120,8 @@ void zmq::bp_tcp_listener_t::in_event ()
         i_engine *source_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        pipe_t *pipe = new pipe_t (source_thread, source_engine,
-            peer_thread, peer_engine);
+        pipe_t *pipe = new pipe_t (source_thread, source_engine, demux,
+            peer_thread, peer_engine, peer_engine->get_mux ());
         zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
@@ -140,7 +152,8 @@ void zmq::bp_tcp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
-            destination_thread, destination_engine);
+            peer_engine->get_demux (),
+            destination_thread, destination_engine, mux);
         zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
@@ -204,16 +217,6 @@ void zmq::bp_tcp_listener_t::receive_from (pipe_t *pipe_)
 }
 
 void zmq::bp_tcp_listener_t::send_to (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_listener_t::terminate_pipe (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_listener_t::terminate_pipe_ack (pipe_t *pipe_)
 {
     zmq_assert (false);
 }

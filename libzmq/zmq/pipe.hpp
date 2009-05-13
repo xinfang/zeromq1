@@ -42,8 +42,10 @@ namespace zmq
         //  Initialise the pipe.
         pipe_t (struct i_thread *source_thread_,
             struct i_engine *source_engine_,
+            class i_demux *demux_,
             struct i_thread *destination_thread_,
-            struct i_engine *destination_engine_);
+            struct i_engine *destination_engine_,
+            class i_mux *mux_);
         ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether
@@ -113,10 +115,12 @@ namespace zmq
         //  Identification of the engine sending the messages to the pipe.
         i_thread *source_thread;
         i_engine *source_engine;
+        i_demux *demux;
 
         //  Identification of the engine receiving the messages from the pipe.
         i_thread *destination_thread;
         i_engine *destination_engine;
+        i_mux *mux;
 
         //  Index of this pipe in the mux object containing it.
         //  It is redundant information, however, it allows the schedular to

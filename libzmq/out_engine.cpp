@@ -59,6 +59,17 @@ int64_t zmq::out_engine_t::get_swap_size ()
     return 0;
 }
 
+zmq::i_demux *zmq::out_engine_t::get_demux ()
+{
+    return demux;
+}
+
+zmq::i_mux *zmq::out_engine_t::get_mux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
 zmq::i_pollable *zmq::out_engine_t::cast_to_pollable ()
 {
     zmq_assert (false);
@@ -90,15 +101,3 @@ void zmq::out_engine_t::receive_from (pipe_t *pipe_)
 {
     zmq_assert (false);
 }
-
-void zmq::out_engine_t::terminate_pipe (pipe_t *pipe_)
-{
-    //  Drop reference to the pipe.
-    demux->release_pipe (pipe_);
-}
-
-void zmq::out_engine_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-

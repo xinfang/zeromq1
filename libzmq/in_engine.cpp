@@ -61,6 +61,17 @@ int64_t zmq::in_engine_t::get_swap_size ()
     return swap_size;
 }
 
+zmq::i_demux *zmq::in_engine_t::get_demux ()
+{
+    zmq_assert (false);
+    return NULL;
+}
+
+zmq::i_mux *zmq::in_engine_t::get_mux ()
+{
+    return mux;
+}
+
 zmq::i_pollable *zmq::in_engine_t::cast_to_pollable ()
 {
     zmq_assert (false);
@@ -95,15 +106,3 @@ void zmq::in_engine_t::receive_from (pipe_t *pipe_)
     //  Start receiving messages from a pipe.
     mux->receive_from (pipe_);
 }
-
-void zmq::in_engine_t::terminate_pipe (pipe_t *pipe_)
-{
-    zmq_assert (false);
-}
-
-void zmq::in_engine_t::terminate_pipe_ack (pipe_t *pipe_)
-{
-    //  Drop reference to the pipe.
-    mux->release_pipe (pipe_);
-}
-
