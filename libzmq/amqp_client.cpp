@@ -55,13 +55,22 @@ zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_,
 
     decoder = new amqp_decoder_t (demux, this);
     zmq_assert (decoder);
-    encoder = new amqp_encoder_t (mux, arguments_);
-    zmq_assert (encoder);
 
     // Parse the configuration string.
     config = XMLNode::parseString (arguments_);
     assert (!config.isEmpty ());
     assert (strcmp (config.getName (), "connection") == 0);
+
+    //  Get exchange and routing key attributes from XML.
+    const char *exchange = config.getAttribute ("exchange");
+    zmq_assert (exchange);
+
+    const char *routing_key = config.getAttribute ("routing-key");
+    zmq_assert (routing_key);
+    
+    //  Create AMQP encoder.
+    encoder = new amqp_encoder_t (mux, exchange, routing_key);
+    zmq_assert (encoder);
 
     //  Register AMQP engine with the I/O thread.
     command_t command;
@@ -350,7 +359,7 @@ void zmq::amqp_client_t::connection_open_ok (
     zmq_assert (channel_ == 0);
     zmq_assert (state == state_waiting_for_connection_open_ok);
 
-    encoder->channel_open (0, "");
+    encoder->channel_open (1, "");
 
     state = state_waiting_for_channel_open_ok;
 

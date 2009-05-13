@@ -73,7 +73,7 @@ bool zmq::amqp_decoder_t::method_frame_header_ready ()
 bool zmq::amqp_decoder_t::method_payload_ready ()
 {
     //  Method payload is read. Retrieve class and method id. 
-    zmq_assert (bytes_read >= 5);
+    zmq_assert (bytes_read >= 4);
     uint16_t class_id = get_uint16 (framebuf);
     uint16_t method_id = get_uint16 (framebuf + 2);
 

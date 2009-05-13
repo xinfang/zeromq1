@@ -27,16 +27,18 @@
 #include <zmq/wire.hpp>
 #include <zmq/err.hpp>
 
-zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *queue_) :
+zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *exchange_, 
+      const char *routing_key_) :
     mux (mux_),
-    queue (queue_),
+    exchange (exchange_),
+    routing_key (routing_key_),
     flow_on (false),
     message_channel (0)
 {
     command.args = NULL;
 
-    //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
-    const char *protocol_header = "AMQP\x00\x00\x09\x01";
+    //  Encode the protocol header (AMQP/1-1-0-9) and start the normal workflow.
+    const char *protocol_header = "AMQP\x01\x01\x00\x09";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
 }
@@ -62,7 +64,7 @@ void zmq::amqp_encoder_t::reset ()
         free (command.args);
 
     //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
-    const char *protocol_header = "AMQP\x00\x00\x09\x01";
+    const char *protocol_header = "AMQP\x01\x01\x00\x09";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
 }
@@ -147,16 +149,19 @@ bool zmq::amqp_encoder_t::message_ready ()
 
     //  Default exchange.
     zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, 0);
+    put_uint8 (framebuf + offset, (uint8_t) exchange.size ());
     offset += sizeof (uint8_t);
+    zmq_assert (offset + exchange.size () <= framebuf_size);
+    memcpy (framebuf + offset, exchange.c_str (), exchange.size ());
+    offset += exchange.size ();
 
     //  Routing key.
     zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, (uint8_t) queue.size ());
+    put_uint8 (framebuf + offset, (uint8_t) routing_key.size ());
     offset += sizeof (uint8_t);
-    zmq_assert (offset + queue.size () <= framebuf_size);
-    memcpy (framebuf + offset, queue.c_str (), queue.size ());
-    offset += queue.size ();
+    zmq_assert (offset + routing_key.size () <= framebuf_size);
+    memcpy (framebuf + offset, routing_key.c_str (), routing_key.size ());
+    offset += routing_key.size ();
 
     //  Mandatory = false, immediate = false.
     zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
