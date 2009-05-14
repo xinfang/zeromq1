@@ -41,6 +41,8 @@ zmq::sctp_sender_t::sctp_sender_t (mux_t *mux_, i_thread *calling_thread_,
     local_object (local_object_),
     shutting_down (false)
 {
+    zmq_assert (mux);
+
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
     resolve_ip_hostname (&ip_address, hostname_);
