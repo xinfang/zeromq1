@@ -43,10 +43,7 @@ end
 	rb_zmq.bind("E", "Q", "", "")
 	    
     #  Create message data to send.
-	out_buf = String.new();
-	for i in 0...message_size.to_i do
-		out_buf [i.to_i] = '1'
-	end
+	out_buf = Array.new(message_size.to_i, "1")
 	
 	#  The message loop.
     for i in 0...roundtrip_count.to_i + 1 do

@@ -50,11 +50,7 @@ end
     rb_zmq.bind("EG", "QL", "", "")
 	    
     #  Create message data to send.
-	#out_buf = Array.new(message_size.to_i, "1")
-	out_buf = String.new();
-	for i in 0...message_size.to_i do
-		out_buf [i.to_i] = '1'
-	end
+	out_buf = Array.new(message_size.to_i, "1")
 		
    	#  Get initial timestamp.
     start_time = Time.now

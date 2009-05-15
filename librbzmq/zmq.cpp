@@ -163,6 +163,7 @@ static VALUE rb_receive (VALUE self_, VALUE block_)
 	return rb_struct_new (rb_data, rb_msg, rb_type, rb_qid, NULL);
 }
 
+extern "C"
 void Init_librbzmq() {
 	
 	rb_zmq = rb_define_class ("Zmq", rb_cObject);
