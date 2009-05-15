@@ -1,3 +1,21 @@
+#
+#    Copyright (c) 2007-2009 FastMQ Inc.
+#
+#    This file is part of 0MQ.
+#
+#    0MQ is free software; you can redistribute it and/or modify it under
+#    the terms of the Lesser GNU General Public License as published by
+#    the Free Software Foundation; either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    0MQ is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    Lesser GNU General Public License for more details.
+#
+#    You should have received a copy of the Lesser GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 require 'librbzmq'
 
 class AssertionFailure < StandardError
@@ -8,8 +26,7 @@ def assert(bool, message = 'assertion failure')
 end
 
 	if ARGV.length != 3
-		puts "usage: rb_local_lat <hostname> <message-size> "
-            "<roundtrip-count>"
+		puts "usage: rb_local_lat <hostname> <message-size> <roundtrip-count>"
 		Process.exit
     end
         
@@ -22,7 +39,7 @@ end
     puts "roundtrip count: #{roundtrip_count}"
 
 	#  Create 0MQ transport.
-    rb_zmq = Zmq.new(host);
+    rb_zmq = Zmq.new(host.to_s);
 	    
     #  Create the wiring.
     eid = rb_zmq.create_exchange("EL", ZMQ_SCOPE_LOCAL, "",
@@ -33,9 +50,12 @@ end
     rb_zmq.bind("EG", "QL", "", "")
 	    
     #  Create message data to send.
-	out_buf = Array.new(message_size.to_i, "1")
+	#out_buf = Array.new(message_size.to_i, "1")
+	out_buf = String.new();
+	for i in 0...message_size.to_i do
+		out_buf [i.to_i] = '1'
+	end
 		
-
    	#  Get initial timestamp.
     start_time = Time.now
 
