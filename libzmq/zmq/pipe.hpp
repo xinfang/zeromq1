@@ -87,11 +87,11 @@ namespace zmq
         }
 
         //  Wake up the message consumer.
-        void revive_reader ();
+        ZMQ_EXPORT void revive_reader ();
 
         //  Inform the message producer about the number of messages
         //  consumed so far.
-        void notify_writer (uint64_t position_);
+        ZMQ_EXPORT void notify_writer (uint64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
