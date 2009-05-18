@@ -32,6 +32,9 @@ namespace zmq
 
         virtual ~i_mux () {};
 
+        //  Associate the specified engine with the mux.
+        virtual void register_engine (class i_engine *engine_) = 0;
+
         //  Adds a pipe to receive messages from.
         virtual void receive_from (pipe_t *pipe_) = 0;
 

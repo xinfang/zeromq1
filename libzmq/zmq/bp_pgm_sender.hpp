@@ -47,6 +47,7 @@ namespace zmq
     public:
 
         //  i_engine interface implemtation.
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
@@ -54,7 +55,7 @@ namespace zmq
         class i_mux *get_mux ();
         const char *get_arguments ();
         void receive_from (pipe_t *pipe_);
-        void revive (pipe_t *pipe_);
+        void revive ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -78,7 +79,7 @@ namespace zmq
             uint16_t offset_);
 
         //  i_engine interface implementation.
-        void head (pipe_t *pipe_, int64_t position_);
+        void head ();
         void send_to (pipe_t *pipe_);
 
         //  Mux.

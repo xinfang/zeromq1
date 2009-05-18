@@ -22,8 +22,7 @@
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
-      i_thread *thread_, const char *hostname_,
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, const char *hostname_,
       const char *local_object_, const char * /* options_*/) :
     mux (mux_),
     writebuf_size (bp_out_batch_size),
@@ -41,15 +40,10 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
     //  Allocate write buffer.
     writebuf = new unsigned char [writebuf_size];
     zmq_assert (writebuf);
-
-    //  Register BP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
-      i_thread *thread_, fd_t fd_, const char *local_object_) :
+zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, fd_t fd_,
+      const char *local_object_) :
     mux (mux_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
@@ -66,11 +60,6 @@ zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, i_thread *calling_thread_,
     //  Allocate write buffer.
     writebuf = new unsigned char [writebuf_size];
     zmq_assert (writebuf);
-
-    //  Register BP/TCP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_tcp_sender_t::~bp_tcp_sender_t ()
@@ -78,6 +67,17 @@ zmq::bp_tcp_sender_t::~bp_tcp_sender_t ()
     delete [] writebuf;
     //  TODO: For engines with identity mux should not be deleted.
     delete mux;
+}
+
+void zmq::bp_tcp_sender_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    mux->register_engine (this);
+
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 void zmq::bp_tcp_sender_t::error ()
@@ -285,11 +285,8 @@ void zmq::bp_tcp_sender_t::unregister_event ()
     }
 }
 
-void zmq::bp_tcp_sender_t::revive (pipe_t *pipe_)
+void zmq::bp_tcp_sender_t::revive ()
 {
-    //  Mark pipe as alive.
-    mux->revive (pipe_);
-
     //  Don't start polling for output if you are not connected.
     if (state == engine_connected) {
 
@@ -322,7 +319,7 @@ const char *zmq::bp_tcp_sender_t::get_arguments ()
     return NULL;
 }
 
-void zmq::bp_tcp_sender_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::bp_tcp_sender_t::head ()
 {
     zmq_assert (false);
 }

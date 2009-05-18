@@ -42,15 +42,14 @@
 #endif
 
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, const char *network_, 
-      size_t readbuf_size_, const char *arguments_) :
+      const char *network_, size_t readbuf_size_, const char *arguments_) :
     demux (demux_),
     joined (false),
     shutting_down (false),
     decoder (demux),
     pgm_socket (NULL)
 {
-    zmq_assert (demux_);
+    zmq_assert (demux);
 
     //  If UDP encapsulation is used network_ parameter contain 
     //  "udp:mcast_address:port". Interface name is comming from bind api
@@ -81,17 +80,23 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_demux *demux_,
 
     //  Create epgm_socket object
     pgm_socket = new pgm_socket_t (true, network.c_str (), readbuf_size_);
-
-    //  Register PGM engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 {
     //  Cleanup.
     delete pgm_socket;
+}
+
+void zmq::bp_pgm_receiver_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    demux->register_engine (this);
+
+    //  Register PGM engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
@@ -241,12 +246,12 @@ const char *zmq::bp_pgm_receiver_t::get_arguments ()
     return NULL;
 }
 
-void zmq::bp_pgm_receiver_t::revive (pipe_t *pipe_)
+void zmq::bp_pgm_receiver_t::revive ()
 {
     zmq_assert (false);
 }
 
-void zmq::bp_pgm_receiver_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::bp_pgm_receiver_t::head ()
 {
 }
 

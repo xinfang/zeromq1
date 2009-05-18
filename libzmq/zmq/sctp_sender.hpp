@@ -51,13 +51,14 @@ namespace zmq
     public:
 
         //  i_engine interface implementation.
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
         class i_demux *get_demux ();
         class i_mux *get_mux ();
-        void revive (pipe_t *pipe_);
-        void head (pipe_t *pipe_, int64_t position_);
+        void revive ();
+        void head ();
         void send_to (pipe_t *pipe_);
         void receive_from (pipe_t *pipe_);
 
@@ -73,11 +74,10 @@ namespace zmq
 
     private:
 
-        sctp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
-            i_thread *thread_, const char *hostname_, const char *local_object_,
-            const char * /* arguments_ */);
-        sctp_sender_t (mux_t *mux_, i_thread *calling_thread_, 
-            i_thread *thread_, int listener_, const char *local_object_);
+        sctp_sender_t (mux_t *mux_, const char *hostname_,
+            const char *local_object_, const char * /* arguments_ */);
+        sctp_sender_t (mux_t *mux_,
+            int listener_, const char *local_object_);
         
         ~sctp_sender_t ();
 

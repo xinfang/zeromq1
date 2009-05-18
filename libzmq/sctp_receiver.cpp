@@ -35,14 +35,15 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/ip.hpp>
 
-zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, const char *hostname_, 
+zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_, const char *hostname_,
       const char *local_object_, const char * /* arguments_ */) :
     demux (demux_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)
 {
+    zmq_assert (demux);
+
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
     resolve_ip_hostname (&ip_address, hostname_);
@@ -74,16 +75,10 @@ zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_,
         flags = 0;
     rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
     errno_assert (rc != -1);
-
-    //  Register the engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
-zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, int listener_, 
-      const char *local_object_):
+zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_,
+      int listener_, const char *local_object_):
     demux (demux_),
     poller (NULL),
     local_object (local_object_),
@@ -106,15 +101,21 @@ zmq::sctp_receiver_t::sctp_receiver_t (i_demux *demux_,
         flags = 0;
     rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
     errno_assert (rc != -1);
-
-    //  Register SCTP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::sctp_receiver_t::~sctp_receiver_t ()
 {
+}
+
+void zmq::sctp_receiver_t::start (i_thread *current_thread,
+    i_thread *engine_thread_)
+{
+    demux->register_engine (this);
+
+    //  Register the engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread->send_command (engine_thread_, command);
 }
 
 zmq::i_pollable *zmq::sctp_receiver_t::cast_to_pollable ()
@@ -198,12 +199,12 @@ void zmq::sctp_receiver_t::unregister_event ()
     //  TODO: Implement this. For now we'll do nothing here.
 }
 
-void zmq::sctp_receiver_t::revive (pipe_t *pipe_)
+void zmq::sctp_receiver_t::revive ()
 {
     zmq_assert (false);
 }
 
-void zmq::sctp_receiver_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::sctp_receiver_t::head ()
 {
     in_event ();
 }

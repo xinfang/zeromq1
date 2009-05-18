@@ -45,6 +45,11 @@ zmq::in_engine_t::~in_engine_t ()
     delete mux;
 }
 
+void zmq::in_engine_t::start (i_thread *, i_thread *)
+{
+    mux->register_engine (this);
+}
+
 bool zmq::in_engine_t::read (message_t *msg_)
 {
     return mux->read (msg_);
@@ -84,14 +89,11 @@ const char *zmq::in_engine_t::get_arguments ()
     return NULL;
 }
 
-void zmq::in_engine_t::revive (pipe_t *pipe_)
+void zmq::in_engine_t::revive ()
 {
-    //  Notify the reader of the pipe that there are messages
-    //  available in the pipe.
-    mux->revive (pipe_);
 }
 
-void zmq::in_engine_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::in_engine_t::head ()
 {
     zmq_assert (false);
 }

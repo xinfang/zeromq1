@@ -38,6 +38,11 @@ zmq::out_engine_t::~out_engine_t ()
     delete demux;
 }
 
+void zmq::out_engine_t::start (i_thread *, i_thread *)
+{
+    demux->register_engine (this);
+}
+
 bool zmq::out_engine_t::write (message_t &msg_)
 {
     return demux->write (msg_);
@@ -82,12 +87,12 @@ const char *zmq::out_engine_t::get_arguments ()
     return NULL;
 }
 
-void zmq::out_engine_t::revive (pipe_t *pipe_)
+void zmq::out_engine_t::revive ()
 {
     zmq_assert (false);
 }
 
-void zmq::out_engine_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::out_engine_t::head ()
 {
 }
 

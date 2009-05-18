@@ -46,6 +46,7 @@ namespace zmq
     public:
 
         //  i_engine interface implemtation.
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
@@ -65,16 +66,15 @@ namespace zmq
 
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
         //  using network_ parameter.
-        bp_pgm_receiver_t (i_demux *demux_, i_thread *calling_thread_, 
-            i_thread *thread_, const char *network_, size_t readbuf_size_, 
-            const char *arguments_);
+        bp_pgm_receiver_t (i_demux *demux_, const char *network_,
+            size_t readbuf_size_, const char *arguments_);
 
         ~bp_pgm_receiver_t ();
 
         //  i_engine interface implementation.
         const char *get_arguments ();
-        void head (pipe_t *pipe_, int64_t position_);
-        void revive (pipe_t *pipe_);
+        void head ();
+        void revive ();
         void receive_from (pipe_t *pipe_);
 
         //  Demux.

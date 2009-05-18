@@ -23,8 +23,8 @@
 #include <zmq/config.hpp>
 #include <zmq/i_demux.hpp>
 
-zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, const char *hostname_,
+zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
+      const char *hostname_,
       const char *local_object_, const char * /* options_*/) :
     demux (demux_),
     readbuf_size (bp_in_batch_size),
@@ -37,22 +37,15 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
     state (engine_connecting),
     socket (hostname_)
 {
-
     zmq_assert (demux);
 
     //  Allocate read buffer.
     readbuf = new unsigned char [readbuf_size];
     zmq_assert (readbuf);
-
-    //  Register BP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, fd_t fd_,
-      const char *local_object_) :
+zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
+      fd_t fd_, const char *local_object_) :
     demux (demux_),
     readbuf_size (bp_in_batch_size),
     read_size (0),
@@ -69,11 +62,6 @@ zmq::bp_tcp_receiver_t::bp_tcp_receiver_t (i_demux *demux_,
     //  Allocate read buffer.
     readbuf = new unsigned char [readbuf_size];
     zmq_assert (readbuf);
-
-    //  Register BP/TCP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_tcp_receiver_t::~bp_tcp_receiver_t ()
@@ -81,6 +69,17 @@ zmq::bp_tcp_receiver_t::~bp_tcp_receiver_t ()
     delete [] readbuf;
     //  TODO: For engines with identity demux should not be deleted.
     delete demux;
+}
+
+void zmq::bp_tcp_receiver_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    demux->register_engine (this);
+
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 void zmq::bp_tcp_receiver_t::error ()
@@ -286,7 +285,7 @@ void zmq::bp_tcp_receiver_t::unregister_event ()
     }
 }
 
-void zmq::bp_tcp_receiver_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::bp_tcp_receiver_t::head ()
 {
     if (read_pos < read_size) {
 
@@ -332,7 +331,7 @@ const char *zmq::bp_tcp_receiver_t::get_arguments ()
     return NULL;
 }
 
-void zmq::bp_tcp_receiver_t::revive (pipe_t *pipe_)
+void zmq::bp_tcp_receiver_t::revive ()
 {
     zmq_assert (false);
 }

@@ -37,11 +37,17 @@ namespace zmq
 
         virtual ~i_demux () {};
 
+        //  Associate the specified engine with the demux.
+        virtual void register_engine (class i_engine *engine_) = 0;
+
         //  Starts sending messages to this pipe.
         virtual void send_to (pipe_t *pipe_) = 0;
 
         //  Flushes all messages.
         virtual void flush () = 0;
+
+        //  Inform the demux that the pipe can accept more messages now.
+        virtual void pipe_ready (pipe_t *pipe_) = 0;
 
         //  Writes the gap notification to all attached pipes.
         virtual void gap () = 0;

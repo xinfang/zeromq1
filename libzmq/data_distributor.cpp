@@ -19,13 +19,21 @@
 
 #include <algorithm>
 #include <zmq/data_distributor.hpp>
+#include <zmq/i_engine.hpp>
 
-zmq::data_distributor_t::data_distributor_t ()
+zmq::data_distributor_t::data_distributor_t () :
+    engine (NULL)
 {
 }
 
 zmq::data_distributor_t::~data_distributor_t ()
 {
+}
+
+void zmq::data_distributor_t::register_engine (i_engine *engine_)
+{
+    zmq_assert (engine == NULL);
+    engine = engine_;
 }
 
 void zmq::data_distributor_t::send_to (pipe_t *pipe_)
@@ -99,6 +107,12 @@ void zmq::data_distributor_t::flush ()
     //  Flush all the present messages to the pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->flush ();
+}
+
+void zmq::data_distributor_t::pipe_ready (pipe_t *pipe_)
+{
+    if (engine)
+        engine->head ();
 }
 
 void zmq::data_distributor_t::gap ()

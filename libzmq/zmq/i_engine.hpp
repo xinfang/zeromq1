@@ -32,6 +32,10 @@ namespace zmq
     {
         virtual ~i_engine () {};
 
+        //  Put the engine into operation.
+        virtual void start (struct i_thread *current_thread_,
+            struct i_thread *engine_thread_) = 0;
+
         //  Returns i_pollable interface of the engine. If the engine is not
         //  pollable, it fails.
         virtual struct i_pollable *cast_to_pollable () = 0;
@@ -61,8 +65,8 @@ namespace zmq
         virtual const char *get_arguments () = 0;
 
         //  Inter-thread commands.
-        virtual void revive (class pipe_t *pipe_) = 0;
-        virtual void head (class pipe_t *pipe_, int64_t position_) = 0;
+        virtual void revive () = 0;
+        virtual void head () = 0;
         virtual void send_to (class pipe_t *pipe_) = 0;
         virtual void receive_from (class pipe_t *pipe_) = 0;
     };

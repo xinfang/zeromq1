@@ -122,6 +122,11 @@ namespace zmq
         i_engine *destination_engine;
         i_mux *mux;
 
+        //  When the writer hits the pipe's hwm limit, the flag is set
+        //  to true. When the pipe gets ready to accept another message,
+        //  both the writer is notified and the flag is cleared.
+        bool pipe_full;
+
         //  Index of this pipe in the mux object containing it.
         //  It is redundant information, however, it allows the schedular to
         //  achieve O(1) complexity. Value of 0 means invalid index.

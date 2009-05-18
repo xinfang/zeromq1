@@ -38,6 +38,7 @@ namespace zmq
         ~mux_t ();
 
         //  i_mux implementation.
+        void register_engine (class i_engine *engine_);
         bool read (message_t *msg_);
         void receive_from (pipe_t *pipe_);
         void revive (pipe_t *pipe_);
@@ -46,6 +47,10 @@ namespace zmq
         void initialise_shutdown ();
 
     private:
+
+        //  Engine associated with the mux. At most one engine
+        //  can be associated.
+        class i_engine *engine;
 
         //  The list of inbound pipes. The active pipes are occupying indices
         //  from 0 to active-1. Suspended pipes occupy indices from 'active'

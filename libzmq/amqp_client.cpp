@@ -29,7 +29,7 @@
 #include <zmq/err.hpp>
 
 zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_, 
-      i_thread *calling_thread_, i_thread *thread_, const char *hostname_, 
+      const char *hostname_,
       const char *local_object_, const char *arguments_) :
     mux (mux_),
     demux (demux_),
@@ -71,11 +71,6 @@ zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_,
     //  Create AMQP encoder.
     encoder = new amqp_encoder_t (mux, exchange, routing_key);
     zmq_assert (encoder);
-
-    //  Register AMQP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::amqp_client_t::~amqp_client_t ()
@@ -85,6 +80,18 @@ zmq::amqp_client_t::~amqp_client_t ()
 
     delete readbuf;
     delete writebuf;
+}
+
+void zmq::amqp_client_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    mux->register_engine (this);
+    demux->register_engine (this);
+
+    //  Register AMQP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
@@ -115,11 +122,9 @@ zmq::i_mux *zmq::amqp_client_t::get_mux ()
     return mux;
 }
 
-void zmq::amqp_client_t::revive (pipe_t *pipe_)
+void zmq::amqp_client_t::revive ()
 {
     if (state != state_connecting && state != state_shutting_down) {
-
-        mux->revive (pipe_);
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
@@ -131,7 +136,7 @@ void zmq::amqp_client_t::revive (pipe_t *pipe_)
     }
 }
 
-void zmq::amqp_client_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::amqp_client_t::head ()
 {
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {

@@ -50,6 +50,7 @@ namespace zmq
     public:
 
         //  i_engine implementation.
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         int64_t get_swap_size ();
@@ -66,8 +67,8 @@ namespace zmq
 
     protected:
         //  i_engine interface implementation.
-        void revive (pipe_t *pipe_);
-        void head (pipe_t *pipe_, int64_t position_);
+        void revive ();
+        void head ();
         void send_to (pipe_t *pipe_);
         void receive_from (pipe_t *pipe_);
 
@@ -75,7 +76,7 @@ namespace zmq
 
         //  Creates a SCTP listener. Handler thread array determines
         //  the threads that will serve newly-created SCTP engines.
-        sctp_listener_t (i_thread *calling_thread_, i_thread *thread_,
+        sctp_listener_t (i_thread *thread_,
             const char *interface_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,

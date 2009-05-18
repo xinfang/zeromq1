@@ -41,12 +41,14 @@ namespace zmq
         class i_demux *get_demux ();
         class i_mux *get_mux ();
 
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
+
     protected:
         //  i_engine implementation.
         i_pollable *cast_to_pollable ();
         const char *get_arguments ();
-        void revive (pipe_t *pipe_);
-        void head (pipe_t *pipe_, int64_t position_);
+        void revive ();
+        void head ();
         void send_to (pipe_t *pipe_);
         void receive_from (pipe_t *pipe_);
 

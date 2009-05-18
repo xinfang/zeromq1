@@ -34,6 +34,7 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
     destination_thread (destination_thread_),
     destination_engine (destination_engine_),
     mux (mux_),
+    pipe_full (false),
     mux_index (0),
     head (0),
     last_head_position (0),
@@ -96,6 +97,7 @@ bool zmq::pipe_t::check_write (raw_message_t *msg_)
     if (swap && swap->check_capacity (msg_))
         return true;
 
+    pipe_full = true;
     return false;
 }
 
@@ -137,7 +139,7 @@ void zmq::pipe_t::gap ()
 
 void zmq::pipe_t::revive_reader ()
 {
-    destination_engine->revive (this);
+    mux->revive (this);
 }
 
 void zmq::pipe_t::notify_writer (uint64_t position_)
@@ -162,7 +164,10 @@ void zmq::pipe_t::notify_writer (uint64_t position_)
         }
     }
 
-    source_engine->head (this, position_);
+    if (pipe_full) {
+        demux->pipe_ready (this);
+        pipe_full = false;
+    }
 }
 
 void zmq::pipe_t::flush ()

@@ -20,8 +20,10 @@
 #include <zmq/mux.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/err.hpp>
+#include <zmq/i_engine.hpp>
 
 zmq::mux_t::mux_t () :
+    engine (NULL),
     active (0),
     current (0)
 {
@@ -29,6 +31,12 @@ zmq::mux_t::mux_t () :
 
 zmq::mux_t::~mux_t ()
 {
+}
+
+void zmq::mux_t::register_engine (i_engine *engine_)
+{
+    zmq_assert (engine == NULL);
+    engine = engine_;
 }
 
 void zmq::mux_t::receive_from (pipe_t *pipe_)
@@ -45,6 +53,9 @@ void zmq::mux_t::revive (pipe_t *pipe_)
     //  Revive an idle pipe.
     swap_pipes (pipe_->index (), active);
     ++active;
+
+    if (engine)
+        engine->revive ();
 }
 
 bool zmq::mux_t::read (message_t *msg_)

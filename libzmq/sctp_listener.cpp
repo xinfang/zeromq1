@@ -30,8 +30,8 @@
 #include <zmq/mux.hpp>
 #include <zmq/data_distributor.hpp>
 
-zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
-      i_thread *thread_, const char *interface_, int handler_thread_count_,
+zmq::sctp_listener_t::sctp_listener_t (i_thread *thread_,
+      const char *interface_, int handler_thread_count_,
       i_thread **handler_threads_, bool sender_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
@@ -92,11 +92,6 @@ zmq::sctp_listener_t::sctp_listener_t (i_thread *calling_thread_,
     //  Listen for incomming connections.
     rc = listen (s, 10);
     errno_assert (rc == 0);
-
-    //  Register SCTP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
 }
 
 zmq::sctp_listener_t::~sctp_listener_t ()
@@ -104,6 +99,17 @@ zmq::sctp_listener_t::~sctp_listener_t ()
     //  Cleanup the socket.
     int rc = ::close (s);
     errno_assert (rc == 0);
+}
+
+void zmq::sctp_listener_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    zmq_assert (thread == engine_thread_);
+
+    //  Register SCTP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 zmq::i_pollable *zmq::sctp_listener_t::cast_to_pollable ()
@@ -154,9 +160,9 @@ void zmq::sctp_listener_t::in_event ()
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
-        sctp_receiver_t *engine = new sctp_receiver_t (demux, thread,
-            handler_threads [current_handler_thread], s, peer_name);
+        sctp_receiver_t *engine = new sctp_receiver_t (demux, s, peer_name);
         zmq_assert (engine);
+        engine->start (thread, handler_threads [current_handler_thread]);
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
@@ -186,9 +192,9 @@ void zmq::sctp_listener_t::in_event ()
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
-        sctp_sender_t *engine = new sctp_sender_t (mux, thread,
-            handler_threads [current_handler_thread], s, peer_name);
+        sctp_sender_t *engine = new sctp_sender_t (mux, s, peer_name);
         zmq_assert (engine);
+        engine->start (thread, handler_threads [current_handler_thread]);
 
         //  The newly created engine serves as a local destination of messages
         //  I.e. it sends messages received from the peer engine to the socket.
@@ -242,12 +248,12 @@ const char *zmq::sctp_listener_t::get_arguments ()
     return arguments;
 }
 
-void zmq::sctp_listener_t::revive (pipe_t *pipe_)
+void zmq::sctp_listener_t::revive ()
 {
     zmq_assert (false);
 }
 
-void zmq::sctp_listener_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::sctp_listener_t::head ()
 {
     zmq_assert (false);
 }

@@ -75,11 +75,6 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
         sprintf (arguments, "zmq.pgm://%s", delim);
     }
 
-    //  Register BP engine with the I/O thread.
-    command_t command;
-    command.init_register_engine (this);
-    calling_thread_->send_command (thread_, command);
-
     //  The newly created engine serves as a local destination of messages
     //  I.e. it sends messages received from the peer engine to the socket.
     i_engine *destination_engine = this;
@@ -107,6 +102,17 @@ zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
     if (out_buffer) {
         pgm_socket.free_buffer (out_buffer);
     }
+}
+
+void zmq::bp_pgm_sender_t::start (i_thread *current_thread_,
+    i_thread *engine_thread_)
+{
+    mux->register_engine (this);
+
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    current_thread_->send_command (engine_thread_, command);
 }
 
 zmq::i_pollable *zmq::bp_pgm_sender_t::cast_to_pollable ()
@@ -246,13 +252,10 @@ void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
         poller->set_pollout (handle);
 }
 
-void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
+void zmq::bp_pgm_sender_t::revive ()
 {
     //  We have some messages in encoder.
     if (!shutting_down) {
-                
-        //  Forward the revive command to the pipe. 
-        mux->revive (pipe_);
 
         //  There is at least one engine (that one which sent revive) that 
         //  has messages ready. Try to write data to the socket, thus 
@@ -271,7 +274,7 @@ const char *zmq::bp_pgm_sender_t::get_arguments ()
     return arguments;
 }
 
-void zmq::bp_pgm_sender_t::head (pipe_t *pipe_, int64_t position_)
+void zmq::bp_pgm_sender_t::head ()
 {
     zmq_assert (false);
 }

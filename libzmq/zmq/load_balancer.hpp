@@ -37,15 +37,21 @@ namespace zmq
 
         //  i_demux interface implementation.
         ~load_balancer_t ();
+        void register_engine (class i_engine *engine_);
         void send_to (pipe_t *pipe_);
         bool write (message_t &msg_);
         void flush ();
+        void pipe_ready (pipe_t *pipe_);
         void gap ();
         bool empty ();
         void release_pipe (pipe_t *pipe_);
         void initialise_shutdown ();
 
     private:
+
+        //  Engine associated with the load balancer. At most one engine
+        //  can be associated.
+        class i_engine *engine;
 
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;

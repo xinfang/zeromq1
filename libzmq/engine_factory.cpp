@@ -63,23 +63,24 @@ zmq::i_engine *zmq::engine_factory_t::create (
     i_engine *engine;
     if (transport_type == "zmq.tcp") {
         if (global_) {
-            engine = new bp_tcp_listener_t (calling_thread_,
-                engine_thread_, transport_args.c_str (), handler_thread_count_,
+            engine = new bp_tcp_listener_t (engine_thread_,
+                transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_,
                 name_);
         } else if (sender_) {
             //  Create mux for sender engine.
             mux_t *mux = new mux_t ();
-            engine = new bp_tcp_sender_t (mux, calling_thread_, engine_thread_,
+            engine = new bp_tcp_sender_t (mux,
                 transport_args.c_str (), name_, options_);
         } else {
             //  Create demux for receiver engine.
             i_demux *demux = new data_distributor_t ();
-            engine = new bp_tcp_receiver_t (demux, calling_thread_, engine_thread_,
+            engine = new bp_tcp_receiver_t (demux,
                 transport_args.c_str (), name_, options_);
         }
 
         zmq_assert (engine);
+        engine->start (calling_thread_, engine_thread_);
         return engine;
     }
 
@@ -93,11 +94,12 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 peer_engine_);
         } else {
             i_demux *demux = new data_distributor_t ();
-            engine = new bp_pgm_receiver_t (demux, calling_thread_,
-                engine_thread_, transport_args.c_str (), pgm_in_batch_size,
+            engine = new bp_pgm_receiver_t (demux,
+                transport_args.c_str (), pgm_in_batch_size,
                 options_);
         }
         zmq_assert (engine);
+        engine->start (calling_thread_, engine_thread_);
         return engine;
     }
 #endif
@@ -105,19 +107,20 @@ zmq::i_engine *zmq::engine_factory_t::create (
 #if defined ZMQ_HAVE_SCTP
     if (transport_type == "sctp") {
         if (global_) {
-            engine = new sctp_listener_t (calling_thread_,
-                engine_thread_, transport_args.c_str (), handler_thread_count_,
+            engine = new sctp_listener_t (engine_thread_,
+                transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_, name_);
         } else if (sender_) {
             mux_t *mux = new mux_t ();
-            engine = new sctp_sender_t (mux, calling_thread_,
-                engine_thread_, transport_args.c_str (), name_, options_);
+            engine = new sctp_sender_t (mux,
+                transport_args.c_str (), name_, options_);
         } else {
             i_demux *demux = new data_distributor_t ();
-            engine = new sctp_receiver_t (demux, calling_thread_,
-                engine_thread_, transport_args.c_str (), name_, options_);
+            engine = new sctp_receiver_t (demux,
+                transport_args.c_str (), name_, options_);
         }
         zmq_assert (engine);
+        engine->start (calling_thread_, engine_thread_);
         return engine;
     }
 #endif
@@ -127,9 +130,10 @@ zmq::i_engine *zmq::engine_factory_t::create (
         mux_t *mux = new mux_t ();
         i_demux *demux = new data_distributor_t ();
 
-        engine = new amqp_client_t (mux, demux, calling_thread_, 
-            engine_thread_, transport_args.c_str (), name_, options_);
+        engine = new amqp_client_t (mux, demux,
+            transport_args.c_str (), name_, options_);
         zmq_assert (engine);
+        engine->start (calling_thread_, engine_thread_);
         return engine;
     }
 #endif
