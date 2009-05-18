@@ -58,6 +58,11 @@ zmq::dispatcher_t::~dispatcher_t ()
           it != threads.end (); it ++)
         (*it)->destroy ();
 
+    //  Now all threads are stopped so we can delete them.
+    for (std::vector <i_thread*>::iterator it = threads.begin ();
+          it != threads.end (); it ++)
+        delete *it;
+   
     //  Deallocate the pipe matrix.
     delete [] pipes;
 
