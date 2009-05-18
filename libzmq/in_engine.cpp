@@ -23,19 +23,17 @@
 #include <zmq/mux.hpp>
 
 zmq::in_engine_t *zmq::in_engine_t::create (mux_t *mux_, int64_t hwm_, 
-    int64_t lwm_, uint64_t swap_size_)
+    int64_t lwm_)
 {
-    in_engine_t *instance = new in_engine_t (mux_, hwm_, lwm_, swap_size_);
+    in_engine_t *instance = new in_engine_t (mux_, hwm_, lwm_);
     zmq_assert (instance);
     return instance;
 }
 
-zmq::in_engine_t::in_engine_t (mux_t *mux_, int64_t hwm_, int64_t lwm_,
-      int64_t swap_size_) :
+zmq::in_engine_t::in_engine_t (mux_t *mux_, int64_t hwm_, int64_t lwm_) :
     mux (mux_),
     hwm (hwm_),
-    lwm (lwm_),
-    swap_size (swap_size_)
+    lwm (lwm_)
 {
     zmq_assert (mux);
 }
@@ -59,11 +57,6 @@ void zmq::in_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
     *hwm_ = hwm;
     *lwm_ = lwm;
-}
-
-int64_t zmq::in_engine_t::get_swap_size ()
-{
-    return swap_size;
 }
 
 zmq::i_demux *zmq::in_engine_t::get_demux ()

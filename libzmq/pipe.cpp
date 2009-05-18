@@ -26,7 +26,7 @@
 zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
       i_demux *demux_,
       i_thread *destination_thread_, i_engine *destination_engine_,
-      i_mux *mux_) :
+      i_mux *mux_, int64_t swap_size_) :
     pipe (false),
     source_thread (source_thread_),
     source_engine (source_engine_),
@@ -64,12 +64,9 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
         lwm = slwm + dlwm;
     }
 
-    int64_t swap_size = source_engine->get_swap_size () +
-        destination_engine->get_swap_size ();
-
     //  Create a swap file if necessary.
-    if (swap_size > 0) {
-        swap = new swap_t (swap_size);
+    if (swap_size_ > 0) {
+        swap = new swap_t (swap_size_);
         zmq_assert (swap);
     }
 }

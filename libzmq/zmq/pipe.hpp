@@ -45,7 +45,7 @@ namespace zmq
             class i_demux *demux_,
             struct i_thread *destination_thread_,
             struct i_engine *destination_engine_,
-            class i_mux *mux_);
+            class i_mux *mux_, int64_t swap_size_);
         ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether

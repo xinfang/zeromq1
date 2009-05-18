@@ -52,7 +52,6 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_pollable *cast_to_pollable ();
         void get_watermarks (int64_t *hwm_, int64_t *lwm_);
-        int64_t get_swap_size ();
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         void revive ();

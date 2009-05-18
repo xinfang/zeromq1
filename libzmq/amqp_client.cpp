@@ -107,11 +107,6 @@ void zmq::amqp_client_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = bp_lwm;
 }
 
-int64_t zmq::amqp_client_t::get_swap_size ()
-{
-    return 0;
-}
-
 zmq::i_demux *zmq::amqp_client_t::get_demux ()
 {
     return demux;

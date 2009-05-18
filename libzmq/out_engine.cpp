@@ -59,11 +59,6 @@ void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = 0;
 }
 
-int64_t zmq::out_engine_t::get_swap_size ()
-{
-    return 0;
-}
-
 zmq::i_demux *zmq::out_engine_t::get_demux ()
 {
     return demux;

@@ -76,14 +76,6 @@ void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */,
     zmq_assert (false);
 }
 
-int64_t zmq::bp_tcp_listener_t::get_swap_size ()
-{
-    zmq_assert (false);
-
-    //  Some C++ compilers require this.
-    return 0;
-}
-
 zmq::i_demux *zmq::bp_tcp_listener_t::get_demux ()
 {
     zmq_assert (false);
@@ -127,8 +119,9 @@ void zmq::bp_tcp_listener_t::in_event ()
         i_engine *source_engine = engine;
 
         //  Create the pipe to the newly created engine.
+        i_mux *mux = peer_engine->get_mux ();
         pipe_t *pipe = new pipe_t (source_thread, source_engine, demux,
-            peer_thread, peer_engine, peer_engine->get_mux ());
+            peer_thread, peer_engine, mux, mux->get_swap_size ());
         zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
@@ -159,8 +152,8 @@ void zmq::bp_tcp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
-            peer_engine->get_demux (),
-            destination_thread, destination_engine, mux);
+            peer_engine->get_demux (), destination_thread,
+            destination_engine, mux, mux->get_swap_size ());
         zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.

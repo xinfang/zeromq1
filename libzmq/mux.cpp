@@ -22,8 +22,9 @@
 #include <zmq/err.hpp>
 #include <zmq/i_engine.hpp>
 
-zmq::mux_t::mux_t () :
+zmq::mux_t::mux_t (int64_t swap_size_) :
     engine (NULL),
+    swap_size (swap_size_),
     active (0),
     current (0)
 {
@@ -31,6 +32,11 @@ zmq::mux_t::mux_t () :
 
 zmq::mux_t::~mux_t ()
 {
+}
+
+int64_t zmq::mux_t::get_swap_size ()
+{
+    return swap_size;
 }
 
 void zmq::mux_t::register_engine (i_engine *engine_)

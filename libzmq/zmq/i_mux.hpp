@@ -32,6 +32,9 @@ namespace zmq
 
         virtual ~i_mux () {};
 
+        //  Returns the swap size.
+        virtual int64_t get_swap_size () = 0;
+
         //  Associate the specified engine with the mux.
         virtual void register_engine (class i_engine *engine_) = 0;
 

@@ -107,9 +107,9 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
         zmq_assert (it->first != name_);
 
     //  Create mux object for in_engine.
-    mux_t *mux = new mux_t ();
+    mux_t *mux = new mux_t (swap_);
 
-    in_engine_t *engine = in_engine_t::create (mux, hwm_, lwm_, swap_);
+    in_engine_t *engine = in_engine_t::create (mux, hwm_, lwm_);
     engine->start (this, this);
     queues.push_back (queues_t::value_type (name_, engine));
 
@@ -166,9 +166,10 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     }
 
     //  Create the pipe.
+    i_mux *mux = queue_engine->get_mux ();
     pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
         exchange_engine->get_demux (),
-        queue_thread, queue_engine, queue_engine->get_mux ());
+        queue_thread, queue_engine, mux, mux->get_swap_size ());
     zmq_assert (pipe);
 
     //  Bind the source end of the pipe.

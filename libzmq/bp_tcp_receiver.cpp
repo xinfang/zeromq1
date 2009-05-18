@@ -174,11 +174,6 @@ void zmq::bp_tcp_receiver_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
     *lwm_ = bp_lwm;
 }
 
-int64_t zmq::bp_tcp_receiver_t::get_swap_size ()
-{
-    return 0;
-}
-
 zmq::i_demux *zmq::bp_tcp_receiver_t::get_demux ()
 {
     return demux;
