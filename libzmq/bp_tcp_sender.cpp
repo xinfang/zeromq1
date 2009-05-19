@@ -76,7 +76,7 @@ void zmq::bp_tcp_sender_t::start (i_thread *current_thread_,
 
     //  Register BP engine with the I/O thread.
     command_t command;
-    command.init_register_engine (this);
+    command.init_register_pollable (this);
     current_thread_->send_command (engine_thread_, command);
 }
 
@@ -156,11 +156,6 @@ void zmq::bp_tcp_sender_t::shutdown ()
     mux->initialise_shutdown ();
 
     state = engine_shutting_down;
-}
-
-zmq::i_pollable *zmq::bp_tcp_sender_t::cast_to_pollable ()
-{
-    return this;
 }
 
 zmq::i_demux *zmq::bp_tcp_sender_t::get_demux ()

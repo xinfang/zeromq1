@@ -36,10 +36,6 @@ namespace zmq
         virtual void start (struct i_thread *current_thread_,
             struct i_thread *engine_thread_) = 0;
 
-        //  Returns i_pollable interface of the engine. If the engine is not
-        //  pollable, it fails.
-        virtual struct i_pollable *cast_to_pollable () = 0;
-
         //  Returns the engine's demux or fails if the engine doesn't
         //  use one. This is temporary function. It should pass away before
         //  the core refactoring is done.

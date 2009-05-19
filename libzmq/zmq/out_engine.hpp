@@ -44,7 +44,6 @@ namespace zmq
     
     protected:
         //  i_engine interface implementation.
-        i_pollable *cast_to_pollable ();
         const char *get_arguments ();
         void revive ();
         void head ();

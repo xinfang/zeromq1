@@ -78,9 +78,9 @@ namespace zmq
         //  We perform I/O multiplexing using a poller object.
         i_poller *poller;
 
-        //  List of all registered engines.
-        typedef std::vector <i_engine*> engines_t;
-        engines_t engines;
+        //  List of all registered pollables.
+        typedef std::vector <i_pollable*> pollables_t;
+        pollables_t pollables;
     };
 
 }

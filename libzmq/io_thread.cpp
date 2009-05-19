@@ -117,17 +117,17 @@ void zmq::io_thread_t::stop ()
 
 void zmq::io_thread_t::process_command (const command_t &command_)
 {
-    i_engine *engine;
+    i_pollable *pollable;
     pipe_t *pipe;
 
     switch (command_.type) {
 
     case command_t::stop:
         {
-            //  Unregister all the registered engines.
-            for (engines_t::iterator it = engines.begin ();
-                  it != engines.end (); it ++)
-                (*it)->cast_to_pollable ()->unregister_event ();
+            //  Unregister all registered pollables.
+            for (pollables_t::iterator it = pollables.begin ();
+                  it != pollables.end (); it ++)
+                (*it)->unregister_event ();
 
             //  Start shutdown process.
             poller->initialise_shutdown ();
@@ -154,28 +154,29 @@ void zmq::io_thread_t::process_command (const command_t &command_)
         pipe->terminate_pipe_ack ();
         break;
 
-    //  Register the engine supplied with the poll thread.
-    case command_t::register_engine:
+    //  Register the pollable object supplied with the poll thread.
+    case command_t::register_pollable:
 
-        //  Ask engine to register itself.
-        engine = command_.args.register_engine.engine;
-        engine->cast_to_pollable ()->register_event (poller);
-        engines.push_back (engine);
+        //  Ask pollable to register itself.
+        pollable = command_.args.register_pollable.pollable;
+        pollable->register_event (poller);
+        pollables.push_back (pollable);
         break;
 
-    //  Unregister the engine.
-    case command_t::unregister_engine:
+    //  Unregister the pollable object.
+    case command_t::unregister_pollable:
 
-        //  Ask engine to unregister itself.
-        engine = command_.args.unregister_engine.engine;
-        engine->cast_to_pollable ()->unregister_event ();
+        //  Ask pollable to unregister itself.
+        //  TODO: The pollable should be removed from the pollables list too.
+        pollable = command_.args.unregister_pollable.pollable;
+        pollable->unregister_event ();
         break;
 
     //  Forward the command to the specified engine.
     case command_t::engine_command:
         {
             //  Forward the command to the engine.
-            engine = command_.args.engine_command.engine;
+            i_engine *engine = command_.args.engine_command.engine;
             const engine_command_t &engcmd =
                 command_.args.engine_command.command;
             switch (engcmd.type) {

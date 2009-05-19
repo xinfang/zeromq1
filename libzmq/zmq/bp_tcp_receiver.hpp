@@ -52,7 +52,6 @@ namespace zmq
 
         //  i_engine interface implementation.
         void start (i_thread *current_thread_, i_thread *engine_thread_);
-        i_pollable *cast_to_pollable ();
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         void head ();

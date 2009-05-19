@@ -61,12 +61,6 @@ zmq::i_mux *zmq::in_engine_t::get_mux ()
     return mux;
 }
 
-zmq::i_pollable *zmq::in_engine_t::cast_to_pollable ()
-{
-    zmq_assert (false);
-    return NULL;
-}
-
 const char *zmq::in_engine_t::get_arguments ()
 {
     zmq_assert (false);

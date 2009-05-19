@@ -24,6 +24,7 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/i_engine.hpp>
+#include <zmq/i_pollable.hpp>
 #include <zmq/pipe.hpp>
 #include <zmq/formatting.hpp>
 
@@ -64,8 +65,8 @@ namespace zmq
             notify_writer,
             terminate_pipe_req,
             terminate_pipe_ack,
-            register_engine,
-            unregister_engine,
+            register_pollable,
+            unregister_pollable,
             engine_command
         } type;
 
@@ -87,11 +88,11 @@ namespace zmq
                 class pipe_t *pipe;
             } terminate_pipe_ack;
             struct {
-                i_engine *engine;
-            } register_engine;
+                i_pollable *pollable;
+            } register_pollable;
             struct {
-                i_engine *engine;
-            } unregister_engine;
+                i_pollable *pollable;
+            } unregister_pollable;
             struct {
                 i_engine *engine;
                 engine_command_t command;
@@ -128,16 +129,16 @@ namespace zmq
             args.terminate_pipe_ack.pipe = pipe_;
         }
 
-        inline void init_register_engine (i_engine *engine_)
+        inline void init_register_pollable (i_pollable *pollable_)
         {
-            type = register_engine;
-            args.register_engine.engine = engine_;
+            type = register_pollable;
+            args.register_pollable.pollable = pollable_;
         }
 
-        inline void init_unregister_engine (i_engine *engine_)
+        inline void init_unregister_pollable (i_pollable *pollable_)
         {
-            type = unregister_engine;
-            args.unregister_engine.engine = engine_;
+            type = unregister_pollable;
+            args.unregister_pollable.pollable = pollable_;
         }
 
         inline void init_engine_send_to (i_engine *engine_, pipe_t *pipe_)

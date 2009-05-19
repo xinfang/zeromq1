@@ -114,13 +114,8 @@ void zmq::sctp_receiver_t::start (i_thread *current_thread,
 
     //  Register the engine with the I/O thread.
     command_t command;
-    command.init_register_engine (this);
+    command.init_register_pollable (this);
     current_thread->send_command (engine_thread_, command);
-}
-
-zmq::i_pollable *zmq::sctp_receiver_t::cast_to_pollable ()
-{
-    return this;
 }
 
 zmq::i_demux *zmq::sctp_receiver_t::get_demux ()
