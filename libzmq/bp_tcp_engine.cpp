@@ -151,6 +151,14 @@ void zmq::bp_tcp_engine_t::reconnect ()
     //  Destroy the existing socket and create a new one. This
     //  initiates the TCP connection establishment.
     delete socket;
+
+    //  Wait 1s before reconnecting.
+#ifdef ZMQ_HAVE_WINDOWS
+    Sleep (1000);
+#else
+    sleep (1);
+#endif
+
     socket = new tcp_socket_t (hostname.c_str ());
     assert (socket);
 
