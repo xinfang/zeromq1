@@ -1,7 +1,8 @@
 $! BUILD_41_C_WRAPPERS.COM
 $! 2009-03-24
 $! Modified:
-$!  
+$!  2009-05-04 ja - added .OBJ to the vmszmq input file name for the linker
+$!                  there is a logical name vmszmq pointing to the shareable image
 $!+
 $! Build the C wrapper for high-level languages such as COBOL, FORTRAN
 $!-
@@ -13,7 +14,7 @@ $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $ ccompit vmszmq.c
 $!
-$ linkit/share=vmszmq.exe vmszmq, sys$input/opt
+$ linkit/share=vmszmq.exe vmszmq.obj, sys$input/opt
 libczmq:libczmq.olb/lib
 libzmq:libzmq.olb/lib
 !

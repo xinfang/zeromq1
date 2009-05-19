@@ -6,11 +6,12 @@ $!  2009-03-12 ja - check for Java
 $!  2009-03-25 pm - dir names to lower case
 $!  2009-03-30 pm - changed include dirs for libcmzq and lijzmq
 $!  2009-04-07 pm - added homeDir variable
-$!+
+$!  2009-05-04 ja - added homeDisk variable and moved the java_include
+$!                  logical name into the OPEN/READ section
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
 $!-
-$ baseLevel == "zmq-dev" 	! change this where required
+$ baseLevel == "zmq-061" 	! change this where required
 $!
 $ if p1 .eqs. ""
 $ then
@@ -20,6 +21,17 @@ $ 	baseLevel == "''p1'"
 $ endif
 $!
 $ write sys$output "You are using base level ''baseLevel'"
+$!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$! Change the following line to reflect your home device.
+$!------------------------------------------------------------
+$ homeDisk == "disk$ods5disk"
+$!
+$ if homeDisk .eqs. ""
+$ then
+$       write sys$output "No home device given!"
+$       write sys$output "Please edit this script and provide valid homeDisk variable."
+$       Exit
+$ endif
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! Change the following line to reflect your home directory.
 $!------------------------------------------------------------
@@ -34,20 +46,13 @@ $ endif
 $!
 $ CALL setUPODS5	! set up for ODS-5 disk
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-$! Change the following line to reflect the disk and directory
+$! This should now reflect the device and directory
 $! of the installation.
 $!------------------------------------------------------------
 $ define/translation=(terminal,concealed)/job zmqRoot -
-	"''f$trnlnm("disk$ods5disk")'[''homeDir'.''baseLevel'.]"
+	"''f$trnlnm(homeDisk)'[''homeDir'.''baseLevel'.]"
 $!
 $ write sys$output "zmqRoot defined to [''homeDir'.''baseLevel'.]"
-$!
-$!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-$! Change the line above to reflect the disk and directory
-$! of the installation.
-$!------------------------------------------------------------
-$ part1 = ""	! for setuting up the Java include directory
-$ part2 = ""	! ...
 $!
 $! If Java 5 is on the machine, let's use it
 $! 
@@ -60,13 +65,13 @@ $!
 $    part1 = "''f$trnlnm("JAVA$JRE_HOME_VMS")'" - ".jre]" + ".include]"
 $    part2 = "''f$trnlnm("JAVA$JRE_HOME_VMS")'" - ".jre]" + ".include.vms]"
 $!
+$    def/job java_include  "''part1'", "''part2'" ! has the Java include dirs
 $ close java_file
 $!
-$ def/job java_include  "''part1'", "''part2'"	! has the Java include dirs
 $ noJava:
 $!
 $ def/job zmqBase	zmqRoot:[000000]    ! home...
-$ def/job libzmq	zmqRoot:[libzmq]    ! is where the OLB is
+$ def/job libzmq	zmqRoot:[libzmq]    ! is where the main OLB is
 $ def/job libczmq	zmqRoot:[libczmq]   ! is where the C OLB is
 $ def/job libjzmq	zmqRoot:[libjzmq]   ! is where Java code lives
 $ def/job libvmszmq	zmqRoot:[libvmszmq] ! is where OpenVMS wrapper lives
@@ -78,13 +83,14 @@ $ def/job zmq   	zmqRoot:[openvms],   - ! where the include
 $
 $ def/job zmqOpenVMS	zmqRoot:[openvms]	! saves typing...
 $
-$ def/job lnk$library   libzmq:libzmq.olb, -		! Tell the linker
-			libczmq:libczmq.olb		! .. where the LIBs are
+$ def/job lnk$library   libzmq:libzmq.olb, -	!Tell the linker
+			libczmq:libczmq.olb	! .. where the LIBs are
+$ def/job vmszmq	libvmszmq:vmszmq.exe	! Wrapper image
 $
-$ def/job zmqExamples	zmqRoot:[examples]		! Lots of nice stuff
-$ def/job zmqPerf	zmqRoot:[perf]			! Top perf dir
-$ def/job zmqTestsZMQ	zmqRoot:[perf.tests.zmq]	! ..ZMQ
-$ def/job zmqTestsTCP	zmqRoot:[perf.tests.tcp]	! ..TCP
+$ def/job zmqExamples	zmqRoot:[examples]	! Lots of nice stuff
+$ def/job zmqPerf	zmqRoot:[perf]		! Top perf dir
+$ def/job zmqTestsZMQ	zmqRoot:[perf.tests.zmq]! ..ZMQ
+$ def/job zmqTestsTCP	zmqRoot:[perf.tests.tcp]! ..TCP
 $!
 $! This COM defines DCL symbols for compiling and linking,
 $! with and without debug.

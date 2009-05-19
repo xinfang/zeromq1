@@ -1,0 +1,23 @@
+* zmq.lib
+*+
+* Created: 2009-04-23
+* COBOL copy library for 0MQ parameters and definitions.
+* The names and values are taken from the zmq.h file.
+*-
+01 0MQ_Paramaters.
+   05  ZMQ_SCOPE_LOCAL			pic s9(9) comp value 1.
+   05  ZMQ_SCOPE_PROCESS		pic s9(9) comp value 2.
+   05  ZMQ_SCOPE_GLOBAL			pic s9(9) comp value 3.
+
+   05  ZMQ_MESSAGE_DATA			pic s9(9) comp value 1.
+   05  ZMQ_MESSAGE_GAP			pic s9(9) comp value 2.
+
+   05  ZMQ_STYLE_DATA_DISTRIBUTION	pic s9(9) comp value 1.
+   05  ZMQ_STYLE_LOAD_BALANCING		pic s9(9) comp value 2.
+
+   05  ZMQ_NO_LIMIT			pic s9(9) comp value -1.
+   05  ZMQ_NO_SWAP			pic s9(9) comp value 0.
+
+   05  ZMQ_TRUE				pic s9(9) comp value 1.
+   05  ZMQ_FALSE			pic s9(9) comp value 0.
+*
