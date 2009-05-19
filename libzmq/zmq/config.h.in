@@ -70,6 +70,9 @@
 /* Define to 1 if you have the <pgm/pgm.h> header file. */
 #undef HAVE_PGM_PGM_H
 
+/* Define to 1 if you have the <ruby.h> header file. */
+#undef HAVE_RUBY_H
+
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
@@ -147,6 +150,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Force to use mutexes */
+#undef ZMQ_FORCE_MUTEXES
 
 /* Have AIX OS */
 #undef ZMQ_HAVE_AIX

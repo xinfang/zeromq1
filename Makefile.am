@@ -26,10 +26,14 @@ if BUILD_CLRZMQ
 DIR_CLR = mono/clrzmq/clrzmq
 endif
 
+if BUILD_RUBY
+DIR_RUBY = librbzmq
+endif
+
 SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
-examples $(DIR_MAN) $(DIR_CLR)
+examples $(DIR_MAN) $(DIR_CLR) $(DIR_RUBY)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
-mono/clrzmq/clrzmq
+mono/clrzmq/clrzmq librbzmq
 
 EXTRA_DIST = \
     $(top_srcdir)/examples/exchange/graph.pl \
@@ -37,9 +41,11 @@ EXTRA_DIST = \
     $(top_srcdir)/perf/tests/zmq/f_*.for \
     $(top_srcdir)/perf/tests/zmq/cs_*.cs \
     $(top_srcdir)/perf/tests/zmq/cob_*.cob \
+    $(top_srcdir)/perf/tests/zmq/rb_*.rb \
     $(top_srcdir)/perf/tests/zmq/zmq.lib \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
-    $(top_srcdir)/libvmszmq/vmszmq.c
+    $(top_srcdir)/libvmszmq/vmszmq.c \
+    $(top_srcdir)/librbzmq/extconf.rb
 

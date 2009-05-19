@@ -44,6 +44,19 @@ case "${host_os}" in
         AC_CHECK_LIB(nsl, main)
         AC_CHECK_LIB(rt, main)
         CPPFLAGS="-D_REENTRANT -D_PTHREADS $CPPFLAGS"
+        AC_MSG_CHECKING([wheter atomic operations can be used])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+            [[#include <atomic.h>]],
+            [[uint32_t value;
+              atomic_cas_32 (&value, 0, 0);
+              return 0;]])],
+            [solaris_has_atomic=yes],
+            [solaris_has_atomic=no])
+        AC_MSG_RESULT([$solaris_has_atomic])
+        # Solaris 8 does not have atomic operations exported to user space.
+        if test "x$solaris_has_atomic" = "xno"; then
+            AC_DEFINE(ZMQ_FORCE_MUTEXES, 1, [Force to use mutexes])
+        fi
         ;;
     *freebsd*)
         AC_DEFINE(ZMQ_HAVE_FREEBSD, 1, [Have FreeBSD OS])
@@ -271,6 +284,7 @@ AC_ARG_WITH([java], [AS_HELP_STRING([--with-java], [build Java language binding 
 if test "x$with_java" != "xno"; then
     AC_PATH_PROG(JAVAC, javac, "no")
     AC_PATH_PROG(JAVAH, javah, "no")
+    AC_PATH_PROG(JAR, jar, "no")
 
     if test "x$JAVA_HOME" = "x"; then
         AC_MSG_ERROR([To run configure with --with-java, please set the JAVA_HOME variable to your JDK environment.]);
@@ -305,6 +319,7 @@ else
 # Workaround to be able to run make dist without real JAVAH
     JAVAH=true
     JAVAC=true
+    JAR=true
 fi
 
 clrzmq="no"
@@ -323,6 +338,47 @@ if test "x$with_clr" != "xno"; then
         AC_MSG_ERROR([To run configure with --with-clr option, gmcs has to be installed.]);
     fi
     clrzmq="yes"
+fi
+
+AC_ARG_WITH([clrdir], [AS_HELP_STRING([--with-clrdir],
+    [CLR dll install dir [default=EPREFIX/lib/clrzmq]])],
+    [clrdir="$withval"], [clrdir="_default_"])
+
+if test "$clrdir" = "_default_"; then
+    clrdir=$libdir/clrzmq
+fi
+
+CLRDIR="$clrdir"
+AC_SUBST([CLRDIR])
+
+# RUBY
+rbzmq="no"
+
+AC_ARG_WITH(ruby_headersdir,
+    AC_HELP_STRING([--with-ruby-headersdir], [ruby.h header file location]),
+        [ruby_headersdir="$withval"], [ruby_headersdir="no"])
+
+if test "x$ruby_headersdir" != "xno"; then
+    CPPFLAGS="${CPPFLAGS} -I${ruby_headersdir}"
+fi
+
+AC_ARG_WITH(ruby_libdir,
+    AC_HELP_STRING([--with-ruby-libdir],[libruby library file location]),
+        [ruby_libdir="$withval"], [ruby_libdir="no"])
+
+if test "x$ruby_libdir" != "xno"; then
+    LDFLAGS="${LDFLAGS} -L${ruby_libdir}"
+fi
+
+AC_ARG_WITH([ruby], [AS_HELP_STRING([--with-ruby], [build ruby language binding [default=no]])], [with_ruby=yes], [with_ruby=no])
+if test "x$with_ruby" != "xno"; then
+    AC_CHECK_HEADERS([ruby.h], [], 
+        [AC_MSG_ERROR([Could not find Ruby header files, Please specify their location with --with-ruby-headersdir.])])
+
+    AC_SEARCH_LIBS(ruby_init,[ruby ruby1.8 ruby18],, 
+        [AC_MSG_ERROR([Could not link with Ruby library. Please specify their location with --with-ruby-libdir.])])
+   
+    rbzmq="yes"
 fi
 
 #  zmq_server
@@ -378,6 +434,9 @@ if test "x$with_pgm_ext" != "xno"; then
 
      case "${host_os}" in
         *linux*)
+            LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} -Wno-variadic-macros -Wno-long-long "
+        ;;
+        *solaris*)
         ;;
         *)
             AC_MSG_ERROR([PGM extesion is not supported on this platform $host.])
@@ -386,10 +445,10 @@ if test "x$with_pgm_ext" != "xno"; then
 
     #  Check for OpenPGM
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
-    LIBZMQ_EXTRA_CXXFLAGS+=" -Wno-variadic-macros -Wno-long-long "
-    CPPFLAGS+=" "
-    CPPFLAGS+=$GLIB_CFLAGS
-    LIBS+=$GLIB_LIBS
+
+    CPPFLAGS="${CPPFLAGS} ${GLIB_CFLAGS}"
+
+    LIBS="${LIBS} ${GLIB_LIBS}"
 
     AC_CHECK_HEADERS([pgm/pgm.h], [], 
         [AC_MSG_ERROR([Could not find OpenPGM header files, Set CPPFLAGS to OpenPGM include directory.])])
@@ -398,7 +457,7 @@ if test "x$with_pgm_ext" != "xno"; then
         [openpgm_link=yes],
         [AC_MSG_ERROR([Could not link with pgm-pic library. Set LDFLAGS to OpenPGM lib directory.])])
 
-    LIBS+=-lpgm-pic
+    LIBS="${LIBS} -lpgm-pic"
 
     AC_DEFINE(ZMQ_HAVE_OPENPGM, 1, [Have OpenPGM extension.])
     pgm_name="OpenPGM"
@@ -424,13 +483,11 @@ AM_CONDITIONAL(BUILD_CHAT, test "x$chat" = "xyes")
 AM_CONDITIONAL(BUILD_C, test "x$czmq" = "xyes")
 AM_CONDITIONAL(BUILD_PYTHON, test "x$pyzmq" = "xyes")
 AM_CONDITIONAL(BUILD_JAVA, test "x$jzmq" = "xyes")
+AM_CONDITIONAL(BUILD_RUBY, test "x$rbzmq" = "xyes")
 AM_CONDITIONAL(BUILD_ZMQ_SERVER, test "x$zmq_server" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_PGM, test "x$pgm_ext" = "xyes")
 AM_CONDITIONAL(BUILD_CLRZMQ, test "x$clrzmq" = "xyes")
-#  Conditionals for clr builds.
-AM_CONDITIONAL(ENABLE_DEBUG, test "a" = "b")
-AM_CONDITIONAL(ENABLE_RELEASE, test "a" = "a")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -470,7 +527,8 @@ libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
-mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc)
+mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
+librbzmq/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -506,7 +564,11 @@ AC_MSG_RESULT([   butterfly example: $butterfly])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
+AC_MSG_RESULT([   Ruby language binding: $rbzmq])
 AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([   CLR binding: $clrzmq])
+if test "x$clrzmq" = "xyes"; then
+AC_MSG_RESULT([   CLR ldd install dir: $clrdir])
+fi
 AC_MSG_RESULT([])
 
