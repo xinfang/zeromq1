@@ -47,5 +47,8 @@ EXTRA_DIST = \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
     $(top_srcdir)/libvmszmq/vmszmq.c \
-    $(top_srcdir)/librbzmq/extconf.rb
+    $(top_srcdir)/librbzmq/extconf.rb \
+    $(top_srcdir)/libclrzmq/zmq.cs \
+    $(top_srcdir)/mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs \
+    $(top_srcdir)/mono/clrzmq/clrzmq/zmq_strong_name.snk
 
