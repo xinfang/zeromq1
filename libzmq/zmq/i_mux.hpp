@@ -32,6 +32,11 @@ namespace zmq
 
         virtual ~i_mux () {};
 
+        //  Returns high and low watermarks for a specified mux. These are
+        //  used to derive high and low watermarks for pipes attached to
+        //  the mux. When hwm is zero, the pipe will be of infinite capacity.
+        virtual void get_watermarks (int64_t &hwm_, int64_t &lwm_) = 0;
+
         //  Returns the swap size.
         virtual int64_t get_swap_size () = 0;
 

@@ -104,12 +104,6 @@ zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::bp_pgm_receiver_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
-{
-    *hwm_ = bp_hwm;
-    *lwm_ = bp_lwm;
-}
-
 zmq::i_demux *zmq::bp_pgm_receiver_t::get_demux ()
 {
     return demux;

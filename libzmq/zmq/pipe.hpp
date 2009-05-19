@@ -40,12 +40,9 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        pipe_t (struct i_thread *source_thread_,
-            struct i_engine *source_engine_,
-            class i_demux *demux_,
-            struct i_thread *destination_thread_,
-            struct i_engine *destination_engine_,
-            class i_mux *mux_, int64_t swap_size_);
+        pipe_t (struct i_thread *source_thread_, class i_demux *demux_,
+            struct i_thread *destination_thread_, class i_mux *mux_,
+            int64_t swap_size_);
         ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether
@@ -112,14 +109,12 @@ namespace zmq
             underlying_pipe_t;
         underlying_pipe_t pipe;
 
-        //  Identification of the engine sending the messages to the pipe.
+        //  Identification of the demux sending the messages to the pipe.
         i_thread *source_thread;
-        i_engine *source_engine;
         i_demux *demux;
 
-        //  Identification of the engine receiving the messages from the pipe.
+        //  Identification of the mux receiving the messages from the pipe.
         i_thread *destination_thread;
-        i_engine *destination_engine;
         i_mux *mux;
 
         //  When the writer hits the pipe's hwm limit, the flag is set

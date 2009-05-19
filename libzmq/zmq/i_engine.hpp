@@ -40,12 +40,6 @@ namespace zmq
         //  pollable, it fails.
         virtual struct i_pollable *cast_to_pollable () = 0;
 
-        //  Returns high and low watermarks for the specified engine. High and
-        //  low watermarks for a pipe are computed by adding high and low
-        //  watermarks of the engines the pipe is connecting. hwm equal to -1
-        //  means that there should be unlimited storage space for the engine.
-        virtual void get_watermarks (int64_t *hwm_, int64_t *lwm_) = 0;
-
         //  Returns the engine's demux or fails if the engine doesn't
         //  use one. This is temporary function. It should pass away before
         //  the core refactoring is done.

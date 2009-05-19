@@ -33,11 +33,12 @@ namespace zmq
     {
     public:
 
-        data_distributor_t ();
+        data_distributor_t (int64_t hwm_ = 0, int64_t lwm_ = 0);
 
         //  i_demux interface implementation.
         ~data_distributor_t ();
         void register_engine (class i_engine *engine_);
+        void get_watermarks (int64_t &hwm_, int64_t &lwm_);
         void send_to (pipe_t *pipe_);
         bool write (message_t &msg_);
         void flush ();
@@ -52,6 +53,10 @@ namespace zmq
         //  Engine associated with the data distributor. At most one engine
         //  can be associated.
         class i_engine *engine;
+
+        // High and low watermark.
+        int64_t hwm;
+        int64_t lwm;
 
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;

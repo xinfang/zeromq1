@@ -99,14 +99,6 @@ zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::amqp_client_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
-{
-    //  TODO: Rename bp_hwm & bp_lwm to generic "connection_hwm" &
-    //  "connection_lwm" it is not tied strictly to the backend protocol.
-    *hwm_ = bp_hwm;
-    *lwm_ = bp_lwm;
-}
-
 zmq::i_demux *zmq::amqp_client_t::get_demux ()
 {
     return demux;

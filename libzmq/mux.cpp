@@ -22,8 +22,10 @@
 #include <zmq/err.hpp>
 #include <zmq/i_engine.hpp>
 
-zmq::mux_t::mux_t (int64_t swap_size_) :
+zmq::mux_t::mux_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_) :
     engine (NULL),
+    hwm (hwm_),
+    lwm (lwm_),
     swap_size (swap_size_),
     active (0),
     current (0)
@@ -43,6 +45,12 @@ void zmq::mux_t::register_engine (i_engine *engine_)
 {
     zmq_assert (engine == NULL);
     engine = engine_;
+}
+
+void zmq::mux_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
+{
+    hwm_ = hwm;
+    lwm_ = lwm;
 }
 
 void zmq::mux_t::receive_from (pipe_t *pipe_)

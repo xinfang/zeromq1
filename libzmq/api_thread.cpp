@@ -27,7 +27,6 @@ zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     return new api_thread_t (dispatcher_, locator_);
 }
 
-
 zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
       i_locator *locator_) :
     ticks (0),
@@ -68,7 +67,7 @@ int zmq::api_thread_t::create_exchange (const char *name_,
         zmq_assert (it->first != name_);
 
     //  Create demux for out_engine.
-    i_demux *demux = NULL;
+    i_demux *demux;
 
     if (style_ == style_load_balancing)
         demux = new load_balancer_t ();
@@ -107,9 +106,9 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
         zmq_assert (it->first != name_);
 
     //  Create mux object for in_engine.
-    mux_t *mux = new mux_t (swap_);
+    mux_t *mux = new mux_t (hwm_, lwm_, swap_);
 
-    in_engine_t *engine = in_engine_t::create (mux, hwm_, lwm_);
+    in_engine_t *engine = in_engine_t::create (mux);
     engine->start (this, this);
     queues.push_back (queues_t::value_type (name_, engine));
 
@@ -167,9 +166,8 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
 
     //  Create the pipe.
     i_mux *mux = queue_engine->get_mux ();
-    pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
-        exchange_engine->get_demux (),
-        queue_thread, queue_engine, mux, mux->get_swap_size ());
+    pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine->get_demux (),
+        queue_thread, mux, mux->get_swap_size ());
     zmq_assert (pipe);
 
     //  Bind the source end of the pipe.

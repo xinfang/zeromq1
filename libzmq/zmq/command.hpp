@@ -32,6 +32,8 @@ namespace zmq
 
     //  This structure defines all the commands that can be sent to an engine.
 
+    class i_engine;
+
     struct engine_command_t
     {
         enum type_t

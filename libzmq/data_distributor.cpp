@@ -21,8 +21,10 @@
 #include <zmq/data_distributor.hpp>
 #include <zmq/i_engine.hpp>
 
-zmq::data_distributor_t::data_distributor_t () :
-    engine (NULL)
+zmq::data_distributor_t::data_distributor_t (int64_t hwm_, int64_t lwm_) :
+    engine (NULL),
+    hwm (hwm_),
+    lwm (lwm_)
 {
 }
 
@@ -34,6 +36,12 @@ void zmq::data_distributor_t::register_engine (i_engine *engine_)
 {
     zmq_assert (engine == NULL);
     engine = engine_;
+}
+
+void zmq::data_distributor_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
+{
+    hwm_ = hwm;
+    lwm_ = lwm;
 }
 
 void zmq::data_distributor_t::send_to (pipe_t *pipe_)

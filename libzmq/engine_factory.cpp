@@ -69,12 +69,12 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 name_);
         } else if (sender_) {
             //  Create mux for sender engine.
-            mux_t *mux = new mux_t ();
+            mux_t *mux = new mux_t (bp_hwm, bp_lwm);
             engine = new bp_tcp_sender_t (mux,
                 transport_args.c_str (), name_, options_);
         } else {
             //  Create demux for receiver engine.
-            i_demux *demux = new data_distributor_t ();
+            i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new bp_tcp_receiver_t (demux,
                 transport_args.c_str (), name_, options_);
         }
@@ -88,12 +88,12 @@ zmq::i_engine *zmq::engine_factory_t::create (
     if (transport_type == "zmq.pgm") {
         assert (global_ == sender_);
         if (global_) {
-            mux_t *mux = new mux_t ();
+            mux_t *mux = new mux_t (bp_hwm, bp_lwm);
             engine = new bp_pgm_sender_t (mux, calling_thread_,
                 engine_thread_, transport_args.c_str (), peer_thread_,
                 peer_engine_);
         } else {
-            i_demux *demux = new data_distributor_t ();
+            i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new bp_pgm_receiver_t (demux,
                 transport_args.c_str (), pgm_in_batch_size,
                 options_);
@@ -111,11 +111,11 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_, name_);
         } else if (sender_) {
-            mux_t *mux = new mux_t ();
+            mux_t *mux = new mux_t (bp_hwm, bp_lwm);
             engine = new sctp_sender_t (mux,
                 transport_args.c_str (), name_, options_);
         } else {
-            i_demux *demux = new data_distributor_t ();
+            i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new sctp_receiver_t (demux,
                 transport_args.c_str (), name_, options_);
         }
@@ -127,8 +127,8 @@ zmq::i_engine *zmq::engine_factory_t::create (
 
 #if defined ZMQ_HAVE_AMQP
     if (transport_type == "amqp") {
-        mux_t *mux = new mux_t ();
-        i_demux *demux = new data_distributor_t ();
+        mux_t *mux = new mux_t (bp_hwm, bp_lwm);
+        i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
 
         engine = new amqp_client_t (mux, demux,
             transport_args.c_str (), name_, options_);

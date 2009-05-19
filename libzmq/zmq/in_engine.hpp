@@ -30,12 +30,11 @@ namespace zmq
     {
     public:
 
-        static in_engine_t *create (mux_t *mux_, int64_t hwm_, int64_t lwm_);
+        static in_engine_t *create (mux_t *mux_);
 
         bool read (message_t *msg_);
 
         //  i_engine implementation.
-        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
 
@@ -52,12 +51,10 @@ namespace zmq
 
     private:
 
-        in_engine_t (mux_t *mux_, int64_t hwm_, int64_t lwm_);
+        in_engine_t (mux_t *mux_);
         ~in_engine_t ();
 
         mux_t *mux;
-        int64_t hwm;
-        int64_t lwm;
     };
 }
 #endif

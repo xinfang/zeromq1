@@ -53,12 +53,6 @@ void zmq::out_engine_t::flush ()
     demux->flush ();
 }
 
-void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
-{
-    *hwm_ = 0;
-    *lwm_ = 0;
-}
-
 zmq::i_demux *zmq::out_engine_t::get_demux ()
 {
     return demux;

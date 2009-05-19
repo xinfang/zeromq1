@@ -68,14 +68,6 @@ zmq::i_pollable *zmq::bp_tcp_listener_t::cast_to_pollable ()
     return this;
 }
 
-void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */, 
-    int64_t * /* lwm_ */)
-{
-    //  There are never pipes created to/from listener engine.
-    //  Thus, watermarks have no meaning.
-    zmq_assert (false);
-}
-
 zmq::i_demux *zmq::bp_tcp_listener_t::get_demux ()
 {
     zmq_assert (false);
@@ -103,7 +95,7 @@ void zmq::bp_tcp_listener_t::in_event ()
 
     if (!sender) {
         //  Create demux for receiver engine.
-        i_demux *demux = new data_distributor_t ();
+        i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
@@ -120,8 +112,8 @@ void zmq::bp_tcp_listener_t::in_event ()
 
         //  Create the pipe to the newly created engine.
         i_mux *mux = peer_engine->get_mux ();
-        pipe_t *pipe = new pipe_t (source_thread, source_engine, demux,
-            peer_thread, peer_engine, mux, mux->get_swap_size ());
+        pipe_t *pipe = new pipe_t (source_thread, demux,
+            peer_thread, mux, mux->get_swap_size ());
         zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
@@ -136,7 +128,7 @@ void zmq::bp_tcp_listener_t::in_event ()
     }
     else {
         //  Create mux for the sender_engine
-        mux_t *mux = new mux_t ();
+        mux_t *mux = new mux_t (bp_hwm, bp_lwm);
 
         //  Create the engine to take care of the connection.
         //  TODO: make buffer size configurable by user
@@ -151,9 +143,8 @@ void zmq::bp_tcp_listener_t::in_event ()
         i_engine *destination_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
-            peer_engine->get_demux (), destination_thread,
-            destination_engine, mux, mux->get_swap_size ());
+        pipe_t *pipe = new pipe_t (peer_thread, peer_engine->get_demux (),
+            destination_thread, mux, mux->get_swap_size ());
         zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.

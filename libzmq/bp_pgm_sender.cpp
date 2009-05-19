@@ -80,9 +80,8 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
     i_engine *destination_engine = this;
 
     //  Create the pipe to the newly created engine.
-    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
-        peer_engine_->get_demux (),
-        thread_, destination_engine, mux, mux->get_swap_size ());
+    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_->get_demux (),
+        thread_, mux, mux->get_swap_size ());
     zmq_assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
@@ -118,12 +117,6 @@ void zmq::bp_pgm_sender_t::start (i_thread *current_thread_,
 zmq::i_pollable *zmq::bp_pgm_sender_t::cast_to_pollable ()
 {
     return this;
-}
-
-void zmq::bp_pgm_sender_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
-{
-    *hwm_ = bp_hwm;
-    *lwm_ = bp_lwm;
 }
 
 zmq::i_demux *zmq::bp_pgm_sender_t::get_demux ()

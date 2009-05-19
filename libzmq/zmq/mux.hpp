@@ -34,12 +34,13 @@ namespace zmq
     {
     public:
 
-        mux_t (int64_t swap_size_ = 0);
+        mux_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_ = 0);
         ~mux_t ();
 
         //  i_mux implementation.
         int64_t get_swap_size ();
         void register_engine (class i_engine *engine_);
+        void get_watermarks (int64_t &hwm_, int64_t &lwm_);
         bool read (message_t *msg_);
         void receive_from (pipe_t *pipe_);
         void revive (pipe_t *pipe_);
@@ -52,6 +53,10 @@ namespace zmq
         //  Engine associated with the mux. At most one engine
         //  can be associated.
         class i_engine *engine;
+
+        //  High and low watermark.
+        int64_t hwm;
+        int64_t lwm;
 
         //  Size, in bytes, of swap file the pipe creates when
         //  attaching to the mux. Zeromenas no swap file is created.

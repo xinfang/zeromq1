@@ -23,8 +23,10 @@
 #include <zmq/err.hpp>
 #include <zmq/i_engine.hpp>
 
-zmq::load_balancer_t::load_balancer_t () :
+zmq::load_balancer_t::load_balancer_t (int64_t hwm_, int64_t lwm_) :
     engine (NULL),
+    hwm (hwm_),
+    lwm (lwm_),
     current (0)
 {
 }
@@ -37,6 +39,12 @@ void zmq::load_balancer_t::register_engine (i_engine *engine_)
 {
     zmq_assert (engine == NULL);
     engine = engine_;
+}
+
+void zmq::load_balancer_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
+{
+    hwm_ = hwm;
+    lwm_ = lwm;
 }
 
 void zmq::load_balancer_t::send_to (pipe_t *pipe_)
