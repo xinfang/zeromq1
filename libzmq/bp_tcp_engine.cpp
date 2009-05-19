@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/platform.hpp>
 #include <zmq/bp_tcp_engine.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
