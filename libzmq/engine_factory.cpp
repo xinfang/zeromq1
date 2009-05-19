@@ -67,12 +67,14 @@ zmq::i_engine *zmq::engine_factory_t::create (
                 transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_,
                 name_);
-        } else if (sender_) {
+        }
+        else if (sender_) {
             //  Create mux for sender engine.
             mux_t *mux = new mux_t (bp_hwm, bp_lwm);
             engine = new bp_tcp_sender_t (mux,
                 transport_args.c_str (), name_, options_);
-        } else {
+        }
+        else {
             //  Create demux for receiver engine.
             i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new bp_tcp_receiver_t (demux,
@@ -92,7 +94,8 @@ zmq::i_engine *zmq::engine_factory_t::create (
             engine = new bp_pgm_sender_t (mux, calling_thread_,
                 engine_thread_, transport_args.c_str (), peer_thread_,
                 peer_engine_);
-        } else {
+        }
+        else {
             i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new bp_pgm_receiver_t (demux,
                 transport_args.c_str (), pgm_in_batch_size,
@@ -110,11 +113,13 @@ zmq::i_engine *zmq::engine_factory_t::create (
             engine = new sctp_listener_t (engine_thread_,
                 transport_args.c_str (), handler_thread_count_,
                 handler_threads_, sender_, peer_thread_, peer_engine_, name_);
-        } else if (sender_) {
+        }
+        else if (sender_) {
             mux_t *mux = new mux_t (bp_hwm, bp_lwm);
             engine = new sctp_sender_t (mux,
                 transport_args.c_str (), name_, options_);
-        } else {
+        }
+        else {
             i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
             engine = new sctp_receiver_t (demux,
                 transport_args.c_str (), name_, options_);
