@@ -181,6 +181,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "butterfly_receive_replies",
 		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "librbzmq", "librbzmq\librbzmq.vcproj", "{F7C895B6-1BBA-4C98-8D3B-61B239794493}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D26E69B-A2D9-4F37-BFF2-101AB9B605C0} = {9D26E69B-A2D9-4F37-BFF2-101AB9B605C0}
+		{095B75FC-D1E5-451D-B5FF-244EFF98DB3E} = {095B75FC-D1E5-451D-B5FF-244EFF98DB3E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -392,6 +398,12 @@ Global
 		{81EBA921-1A6B-4164-A550-D08F8417BF0F}.Release|Any CPU.ActiveCfg = Release|Win32
 		{81EBA921-1A6B-4164-A550-D08F8417BF0F}.Release|Win32.ActiveCfg = Release|Win32
 		{81EBA921-1A6B-4164-A550-D08F8417BF0F}.Release|Win32.Build.0 = Release|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Debug|Win32.Build.0 = Debug|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Release|Any CPU.ActiveCfg = Release|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Release|Win32.ActiveCfg = Release|Win32
+		{F7C895B6-1BBA-4C98-8D3B-61B239794493}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
