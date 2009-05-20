@@ -253,44 +253,25 @@ int zmq::api_thread_t::receive (message_t *message_, bool block_)
     bool retrieved = false;
     int qid = 0;
 
-    //  Remember the original current queue position. We'll use this value
-    //  as a marker for identifying whether we've inspected all the queues.
-    queues_t::size_type start = current_queue;
-
     //  Big loop - iteration happens each time after new commands
     //  are processed (thus new messages may be available).
     while (true) {
 
-        //  Small loop doesn't make sense if there are no queues.
-        if (!queues.empty ()) {
+        //  Scan queues and find one with message available.
+        for (queues_t::size_type i = 0;
+            i < queues.size () && !retrieved; i ++) {
 
-            //  Small loop - we are iterating over the array of queues
-            //  checking whether any of them has messages available.
-            while (true) {
+            //  Get message or notification that the user is subscribed for.
+            retrieved = queues [current_queue].second->read (message_);
+            while (retrieved && (message_->type () & message_mask) == 0)
+                retrieved = queues [current_queue].second->read (message_);
 
-               //  Get a message or notification that user is subscribed for.
-               while (true) {
-                   retrieved = queues [current_queue].second->read (message_);
-                   if (!retrieved || (message_->type () & message_mask))
-                       break;
-               }
+            //  Remember this queue ID.
+            if (retrieved)
+                qid = current_queue + 1;
 
-               if (retrieved)
-                   qid = current_queue + 1;
-
-               //  Move to the next queue.
-               current_queue ++;
-               if (current_queue == queues.size ())
-                   current_queue = 0;
-
-               //  If we have a message exit the small loop.
-               if (retrieved)
-                   break;
-
-               //  If we've iterated over all the queues exit the loop.
-               if (current_queue == start)
-                   break;
-            }
+            //  Move to the next queue.
+            current_queue = (current_queue + 1) % queues.size ();
         }
 
         //  If we have a message exit the big loop.
