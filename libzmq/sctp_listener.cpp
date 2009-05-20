@@ -163,8 +163,8 @@ void zmq::sctp_listener_t::in_event ()
         command_t mux_cmd;
         mux_cmd.init_attach_pipe_to_mux (mux, pipe);
         thread->send_command (peer_thread, mux_cmd);
-
-    } else {
+    }
+    else {
         //  Create mux for sender engine.
         mux_t *mux = new mux_t (bp_hwm, bp_lwm);
         zmq_assert (mux);
