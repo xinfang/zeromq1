@@ -76,13 +76,11 @@ void zmq::in_engine_t::head ()
     zmq_assert (false);
 }
 
-void zmq::in_engine_t::send_to (pipe_t *pipe_)
+void zmq::in_engine_t::send_to ()
 {
     zmq_assert (false);
 }
 
-void zmq::in_engine_t::receive_from (pipe_t *pipe_)
+void zmq::in_engine_t::receive_from ()
 {
-    //  Start receiving messages from a pipe.
-    mux->receive_from (pipe_);
 }

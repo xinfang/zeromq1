@@ -55,7 +55,7 @@ namespace zmq
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         void head ();
-        void send_to (pipe_t *pipe_);
+        void send_to ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -69,7 +69,7 @@ namespace zmq
         //  i_engine interface implementation.
         const char *get_arguments ();
         void revive ();
-        void receive_from (pipe_t *pipe_);
+        void receive_from ();
 
     private:
         sctp_receiver_t (i_demux *demux_, const char *hostname_,

@@ -191,18 +191,15 @@ void zmq::sctp_sender_t::head ()
     zmq_assert (false);
 }
 
-void zmq::sctp_sender_t::send_to (pipe_t *pipe_)
+void zmq::sctp_sender_t::send_to ()
 {
     zmq_assert (false);
 }
 
-void zmq::sctp_sender_t::receive_from (pipe_t *pipe_)
+void zmq::sctp_sender_t::receive_from ()
 {
     //  Start receiving messages from a pipe.
-    mux->receive_from (pipe_);
-    if (shutting_down)
-        pipe_->terminate_reader ();
-    else
+    if (!shutting_down)
         poller->set_pollout (handle);
 }
 

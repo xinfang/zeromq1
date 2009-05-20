@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <zmq/stdint.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/tcp_listener.hpp>
@@ -58,8 +59,8 @@ namespace zmq
         //  i_engine interface implementation.
         void revive ();
         void head ();
-        void receive_from (pipe_t *pipe_);
-        void send_to (pipe_t *pipe_);
+        void receive_from ();
+        void send_to ();
 
     private:
 

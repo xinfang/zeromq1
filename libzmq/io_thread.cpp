@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <zmq/i_mux.hpp>
+#include <zmq/i_demux.hpp>
 #include <zmq/io_thread.hpp>
 #include <zmq/select.hpp>
 #include <zmq/poll.hpp>
@@ -134,6 +136,16 @@ void zmq::io_thread_t::process_command (const command_t &command_)
         }
         break;
 
+    case command_t::attach_pipe_to_demux:
+        pipe = command_.args.attach_pipe_to_demux.pipe;
+        command_.args.attach_pipe_to_demux.demux->send_to (pipe);
+        break;
+
+    case command_t::attach_pipe_to_mux:
+        pipe = command_.args.attach_pipe_to_mux.pipe;
+        command_.args.attach_pipe_to_mux.mux->receive_from (pipe);
+        break;
+
     case command_t::revive_reader:
         pipe = command_.args.revive_reader.pipe;
         pipe->revive_reader ();
@@ -171,28 +183,6 @@ void zmq::io_thread_t::process_command (const command_t &command_)
         pollable = command_.args.unregister_pollable.pollable;
         pollable->unregister_event ();
         break;
-
-    //  Forward the command to the specified engine.
-    case command_t::engine_command:
-        {
-            //  Forward the command to the engine.
-            i_engine *engine = command_.args.engine_command.engine;
-            const engine_command_t &engcmd =
-                command_.args.engine_command.command;
-            switch (engcmd.type) {
-            case engine_command_t::send_to:
-                engine->send_to (engcmd.args.send_to.pipe);
-                break;
-            case engine_command_t::receive_from:
-                engine->receive_from (engcmd.args.receive_from.pipe);
-                break;
-            default:
-
-                //  Unknown engine command.
-                zmq_assert (false);
-            }
-            break;
-        }
 
     //  Unknown command.
     default:

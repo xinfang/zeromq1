@@ -210,7 +210,7 @@ void zmq::bp_pgm_receiver_t::unregister_event ()
     // TODO: Implement this. For now we just ignore the event.
 }
 
-void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
+void zmq::bp_pgm_receiver_t::send_to ()
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
@@ -219,9 +219,6 @@ void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
         poller->set_pollin (socket_handle);
         poller->set_pollin (pipe_handle);      
     }
-
-    //  Start sending messages to a pipe.
-    demux->send_to (pipe_);
 }
 
 const char *zmq::bp_pgm_receiver_t::get_arguments ()
@@ -239,7 +236,7 @@ void zmq::bp_pgm_receiver_t::head ()
 {
 }
 
-void zmq::bp_pgm_receiver_t::receive_from (pipe_t *pipe_)
+void zmq::bp_pgm_receiver_t::receive_from ()
 {
     zmq_assert (false);
 }

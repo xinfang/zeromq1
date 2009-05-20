@@ -24,6 +24,7 @@
 #include <string>
 
 #include <zmq/stdint.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
@@ -54,7 +55,7 @@ namespace zmq
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         void revive ();
-        void receive_from (pipe_t *pipe_);
+        void receive_from ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -105,7 +106,7 @@ namespace zmq
         //  i_engine interface implementation.
         const char *get_arguments ();
         void head ();
-        void send_to (pipe_t *pipe_);
+        void send_to ();
 
         //  Mux.
         i_mux *mux;

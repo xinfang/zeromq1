@@ -193,9 +193,8 @@ void zmq::sctp_receiver_t::head ()
     in_event ();
 }
 
-void zmq::sctp_receiver_t::send_to (pipe_t *pipe_)
+void zmq::sctp_receiver_t::send_to ()
 {
-    
     if (!shutting_down) {
 
         //  If pipe limits are set, POLLIN may be turned off
@@ -203,13 +202,10 @@ void zmq::sctp_receiver_t::send_to (pipe_t *pipe_)
         //  So, if this is the first pipe in demux, start polling.
         if (demux->no_pipes ())
             poller->set_pollin (handle);
-
-        //  Start sending messages to a pipe.
-        demux->send_to (pipe_);
     }
 }
 
-void zmq::sctp_receiver_t::receive_from (pipe_t *pipe_)
+void zmq::sctp_receiver_t::receive_from ()
 {
     zmq_assert (false);
 }

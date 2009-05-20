@@ -126,26 +126,17 @@ void zmq::amqp_client_t::head ()
     }
 }
 
-void zmq::amqp_client_t::send_to (pipe_t *pipe_)
+void zmq::amqp_client_t::send_to ()
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
     if (state != state_shutting_down && demux->no_pipes ())
         poller->set_pollin (handle);
-
-    //  Start sending messages to a pipe.
-    demux->send_to (pipe_);
 }
 
-void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
+void zmq::amqp_client_t::receive_from ()
 {
-    //  Start receiving messages from a pipe.
-    mux->receive_from (pipe_);
-
-    if (state == state_shutting_down)
-        pipe_->terminate_reader ();
-
     if (state != state_connecting && state != state_shutting_down &&
           state != state_waiting_for_reconnect)
         poller->set_pollout (handle);

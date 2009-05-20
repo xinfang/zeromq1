@@ -54,8 +54,8 @@ namespace zmq
         //  Inter-thread commands.
         virtual void revive () = 0;
         virtual void head () = 0;
-        virtual void send_to (class pipe_t *pipe_) = 0;
-        virtual void receive_from (class pipe_t *pipe_) = 0;
+        virtual void send_to () = 0;
+        virtual void receive_from () = 0;
     };
 
 }

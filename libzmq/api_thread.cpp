@@ -165,20 +165,21 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     }
 
     //  Create the pipe.
+    i_demux *demux = exchange_engine->get_demux ();
     i_mux *mux = queue_engine->get_mux ();
-    pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine->get_demux (),
+    pipe_t *pipe = new pipe_t (exchange_thread, demux,
         queue_thread, mux, mux->get_swap_size ());
     zmq_assert (pipe);
 
     //  Bind the source end of the pipe.
-    command_t cmd_send_to;
-    cmd_send_to.init_engine_send_to (exchange_engine, pipe);
-    send_command (exchange_thread, cmd_send_to);
+    command_t demux_cmd;
+    demux_cmd.init_attach_pipe_to_demux (demux, pipe);
+    send_command (exchange_thread, demux_cmd);
 
     //  Bind the destination end of the pipe.
-    command_t cmd_receive_from;
-    cmd_receive_from.init_engine_receive_from (queue_engine, pipe);
-    send_command (queue_thread, cmd_receive_from);
+    command_t mux_cmd;
+    mux_cmd.init_attach_pipe_to_mux (mux, pipe);
+    send_command (queue_thread, mux_cmd);
 }
 
 bool zmq::api_thread_t::send (int exchange_, message_t &message_, bool block_)
@@ -361,6 +362,16 @@ void zmq::api_thread_t::process_command (const command_t &command_)
 
     switch (command_.type) {
 
+    case command_t::attach_pipe_to_demux:
+        pipe = command_.args.attach_pipe_to_demux.pipe;
+        command_.args.attach_pipe_to_demux.demux->send_to (pipe);
+        break;
+
+    case command_t::attach_pipe_to_mux:
+        pipe = command_.args.attach_pipe_to_mux.pipe;
+        command_.args.attach_pipe_to_mux.mux->receive_from (pipe);
+        break;
+
     case command_t::revive_reader:
         pipe = command_.args.revive_reader.pipe;
         pipe->revive_reader ();
@@ -380,28 +391,6 @@ void zmq::api_thread_t::process_command (const command_t &command_)
         pipe = command_.args.terminate_pipe_ack.pipe;
         pipe->terminate_pipe_ack ();
         break;
-
-    //  Forward engine command to appropriate engine.
-    case command_t::engine_command:
-        {
-            //  Forward the command to the engine.
-            i_engine *engine = command_.args.engine_command.engine;
-            const engine_command_t &engcmd =
-                command_.args.engine_command.command;
-            switch (engcmd.type) {
-            case engine_command_t::send_to:
-                engine->send_to (engcmd.args.send_to.pipe);
-                break;
-            case engine_command_t::receive_from:
-                engine->receive_from (engcmd.args.receive_from.pipe);
-                break;
-            default:
-
-                //  Unknown engine command.
-                zmq_assert (false);
-            }
-            break;
-        }
 
     //  Unsupported/unknown command.
     default:

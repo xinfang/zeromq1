@@ -45,8 +45,8 @@ namespace zmq
         const char *get_arguments ();
         void revive ();
         void head ();
-        void send_to (pipe_t *pipe_);
-        void receive_from (pipe_t *pipe_);
+        void send_to ();
+        void receive_from ();
 
     private:
 

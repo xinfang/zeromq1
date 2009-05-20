@@ -23,35 +23,12 @@
 #include <string.h>
 
 #include <zmq/stdint.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/pipe.hpp>
 #include <zmq/formatting.hpp>
 
 namespace zmq
 {
-
-    //  This structure defines all the commands that can be sent to an engine.
-
-    class i_engine;
-
-    struct engine_command_t
-    {
-        enum type_t
-        {
-            send_to,
-            receive_from
-        } type;
-
-        union {
-            struct {
-                class pipe_t *pipe;
-            } send_to;
-            struct {
-                class pipe_t *pipe;
-            } receive_from;
-        } args;   
-    };
 
     //  This structure defines all the commands that can be sent to a thread.
     //  It also provides 'constructors' for all the commands.
@@ -61,6 +38,8 @@ namespace zmq
         enum type_t
         {
             stop,
+            attach_pipe_to_demux,
+            attach_pipe_to_mux,
             revive_reader,
             notify_writer,
             terminate_pipe_req,
@@ -74,6 +53,14 @@ namespace zmq
         {
             struct {
             } stop;
+            struct {
+                class pipe_t *pipe;
+                class i_demux *demux;
+            } attach_pipe_to_demux;
+            struct {
+                class pipe_t *pipe;
+                class i_mux *mux;
+            } attach_pipe_to_mux;
             struct {
                 class pipe_t *pipe;
             } revive_reader;
@@ -93,15 +80,27 @@ namespace zmq
             struct {
                 i_pollable *pollable;
             } unregister_pollable;
-            struct {
-                i_engine *engine;
-                engine_command_t command;
-            } engine_command;
         } args;
 
         inline void init_stop ()
         {
             type = stop;
+        }
+
+        inline void init_attach_pipe_to_demux (class i_demux *demux_,
+            class pipe_t *pipe_)
+        {
+            type = attach_pipe_to_demux;
+            args.attach_pipe_to_demux.pipe = pipe_;
+            args.attach_pipe_to_demux.demux = demux_;
+        }
+
+        inline void init_attach_pipe_to_mux (class i_mux *mux_,
+            class pipe_t *pipe_)
+        {
+            type = attach_pipe_to_mux;
+            args.attach_pipe_to_mux.pipe = pipe_;
+            args.attach_pipe_to_mux.mux = mux_;
         }
 
         inline void init_revive_reader (class pipe_t *pipe_)
@@ -139,22 +138,6 @@ namespace zmq
         {
             type = unregister_pollable;
             args.unregister_pollable.pollable = pollable_;
-        }
-
-        inline void init_engine_send_to (i_engine *engine_, pipe_t *pipe_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::send_to;
-            args.engine_command.command.args.send_to.pipe = pipe_;
-        }
-
-        inline void init_engine_receive_from (i_engine *engine_, pipe_t *pipe_)
-        {
-            type = engine_command;
-            args.engine_command.engine = engine_;
-            args.engine_command.command.type = engine_command_t::receive_from;
-            args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
     };

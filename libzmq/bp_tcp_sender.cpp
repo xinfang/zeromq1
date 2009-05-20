@@ -284,15 +284,8 @@ void zmq::bp_tcp_sender_t::revive ()
     }
 }
 
-void zmq::bp_tcp_sender_t::receive_from (pipe_t *pipe_)
+void zmq::bp_tcp_sender_t::receive_from ()
 {
-    mux->receive_from (pipe_);
-
-    //  If we are already in shut down phase, initiate shut down of the pipe
-    //  immediately.
-    if (state == engine_shutting_down)
-        pipe_->terminate_reader ();
-
     if (state == engine_connected)
         poller->set_pollout (handle);
 }
@@ -308,7 +301,7 @@ void zmq::bp_tcp_sender_t::head ()
     zmq_assert (false);
 }
 
-void zmq::bp_tcp_sender_t::send_to (pipe_t *pipe_)
+void zmq::bp_tcp_sender_t::send_to ()
 {
     zmq_assert (false);
 }

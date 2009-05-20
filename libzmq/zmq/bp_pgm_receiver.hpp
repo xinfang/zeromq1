@@ -29,6 +29,7 @@
 #include <zmq/pgm_socket.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_demux.hpp>
 
@@ -49,7 +50,7 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_demux *get_demux ();
         class i_mux *get_mux ();
-        void send_to (pipe_t *pipe_);
+        void send_to ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -72,7 +73,7 @@ namespace zmq
         const char *get_arguments ();
         void head ();
         void revive ();
-        void receive_from (pipe_t *pipe_);
+        void receive_from ();
 
         //  Demux.
         i_demux *demux;

@@ -29,6 +29,7 @@
 #include <zmq/export.hpp>
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
@@ -54,8 +55,8 @@ namespace zmq
         class i_mux *get_mux ();
         void revive ();
         void head ();
-        void send_to (pipe_t *pipe_);
-        void receive_from (pipe_t *pipe_);
+        void send_to ();
+        void receive_from ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);

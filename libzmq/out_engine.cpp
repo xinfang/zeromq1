@@ -79,13 +79,11 @@ void zmq::out_engine_t::head ()
 {
 }
 
-void zmq::out_engine_t::send_to (pipe_t *pipe_)
+void zmq::out_engine_t::send_to ()
 {
-    //  Start sending messages to a pipe.
-    demux->send_to (pipe_);
 }
 
-void zmq::out_engine_t::receive_from (pipe_t *pipe_)
+void zmq::out_engine_t::receive_from ()
 {
     zmq_assert (false);
 }

@@ -77,23 +77,22 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
 
     //  The newly created engine serves as a local destination of messages
     //  I.e. it sends messages received from the peer engine to the socket.
-    i_engine *destination_engine = this;
 
     //  Create the pipe to the newly created engine.
-    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_->get_demux (),
+    i_demux *demux = peer_engine_->get_demux ();
+    pipe_t *pipe = new pipe_t (peer_thread_, demux,
         thread_, mux, mux->get_swap_size ());
     zmq_assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
-    command_t cmd_receive_from;
-    cmd_receive_from.init_engine_receive_from (
-        destination_engine, pipe);
-    calling_thread_->send_command (thread_, cmd_receive_from);
+    command_t mux_cmd;
+    mux_cmd.init_attach_pipe_to_mux (mux, pipe);
+    calling_thread_->send_command (thread_, mux_cmd);
 
     //  Bind the peer to the source end of the pipe.
-    command_t cmd_send_to;
-    cmd_send_to.init_engine_send_to (peer_engine_, pipe);
-    calling_thread_->send_command (peer_thread_, cmd_send_to);
+    command_t demux_cmd;
+    demux_cmd.init_attach_pipe_to_demux (demux, pipe);
+    calling_thread_->send_command (peer_thread_, demux_cmd);
 }
 
 zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
@@ -225,13 +224,9 @@ void zmq::bp_pgm_sender_t::unregister_event ()
     // TODO: Implement this. For now we just ignore the event.
 }
 
-void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
+void zmq::bp_pgm_sender_t::receive_from ()
 {
-    mux->receive_from (pipe_);
-
-    if (shutting_down)
-        pipe_->terminate_reader ();
-    else
+    if (!shutting_down)
         poller->set_pollout (handle);
 }
 
@@ -262,7 +257,7 @@ void zmq::bp_pgm_sender_t::head ()
     zmq_assert (false);
 }
 
-void zmq::bp_pgm_sender_t::send_to (pipe_t *pipe_)
+void zmq::bp_pgm_sender_t::send_to ()
 {
     zmq_assert (false);
 }

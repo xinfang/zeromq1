@@ -51,6 +51,9 @@ void zmq::load_balancer_t::send_to (pipe_t *pipe_)
 {
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
+
+    if (engine)
+        engine->send_to ();
 }
 
 bool zmq::load_balancer_t::write (message_t &msg_)

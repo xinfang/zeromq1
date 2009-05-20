@@ -30,6 +30,7 @@
 #include <zmq/i_thread.hpp>
 #include <zmq/bp_encoder.hpp>
 #include <zmq/pgm_socket.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/mux.hpp>
 
@@ -51,7 +52,7 @@ namespace zmq
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         const char *get_arguments ();
-        void receive_from (pipe_t *pipe_);
+        void receive_from ();
         void revive ();
 
         //  i_pollable interface implementation.
@@ -77,7 +78,7 @@ namespace zmq
 
         //  i_engine interface implementation.
         void head ();
-        void send_to (pipe_t *pipe_);
+        void send_to ();
 
         //  Mux.
         mux_t *mux;

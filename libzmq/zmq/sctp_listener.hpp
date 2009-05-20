@@ -33,6 +33,7 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 
@@ -66,8 +67,8 @@ namespace zmq
         //  i_engine interface implementation.
         void revive ();
         void head ();
-        void send_to (pipe_t *pipe_);
-        void receive_from (pipe_t *pipe_);
+        void send_to ();
+        void receive_from ();
 
     private:
 

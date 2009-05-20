@@ -298,15 +298,13 @@ void zmq::bp_tcp_receiver_t::head ()
     }
 }
 
-void zmq::bp_tcp_receiver_t::send_to (pipe_t *pipe_)
+void zmq::bp_tcp_receiver_t::send_to ()
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
     if (state == engine_connected && demux->no_pipes ())
         poller->set_pollin (handle);
-
-    demux->send_to (pipe_);
 }
 
 const char *zmq::bp_tcp_receiver_t::get_arguments ()
@@ -320,7 +318,7 @@ void zmq::bp_tcp_receiver_t::revive ()
     zmq_assert (false);
 }
 
-void zmq::bp_tcp_receiver_t::receive_from (pipe_t *pipe_)
+void zmq::bp_tcp_receiver_t::receive_from ()
 {
     zmq_assert (false);
 }

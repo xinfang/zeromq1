@@ -103,7 +103,6 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  I.e. it reads messages from the socket and passes them on to
         //  the peer engine.
         i_thread *source_thread = handler_threads [current_handler_thread];
-        i_engine *source_engine = engine;
 
         //  Create the pipe to the newly created engine.
         i_mux *mux = peer_engine->get_mux ();
@@ -112,14 +111,14 @@ void zmq::bp_tcp_listener_t::in_event ()
         zmq_assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
-        command_t cmd_send_to;
-        cmd_send_to.init_engine_send_to (source_engine, pipe);
-        thread->send_command (source_thread, cmd_send_to);
+        command_t demux_cmd;
+        demux_cmd.init_attach_pipe_to_demux (demux, pipe);
+        thread->send_command (source_thread, demux_cmd);
 
         //  Bind the peer to the destination end of the pipe.
-        command_t cmd_receive_from;
-        cmd_receive_from.init_engine_receive_from (peer_engine, pipe);
-        thread->send_command (peer_thread, cmd_receive_from);
+        command_t mux_cmd;
+        mux_cmd.init_attach_pipe_to_mux (mux, pipe);
+        thread->send_command (peer_thread, mux_cmd);
     }
     else {
         //  Create mux for the sender_engine
@@ -135,23 +134,22 @@ void zmq::bp_tcp_listener_t::in_event ()
         //  I.e. it sends messages received from the peer engine to the socket.
         i_thread *destination_thread =
             handler_threads [current_handler_thread];
-        i_engine *destination_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        pipe_t *pipe = new pipe_t (peer_thread, peer_engine->get_demux (),
+        i_demux *demux = peer_engine->get_demux ();
+        pipe_t *pipe = new pipe_t (peer_thread, demux,
             destination_thread, mux, mux->get_swap_size ());
         zmq_assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
-        command_t cmd_receive_from;
-        cmd_receive_from.init_engine_receive_from (
-            destination_engine, pipe);
-        thread->send_command (destination_thread, cmd_receive_from);
+        command_t mux_cmd;
+        mux_cmd.init_attach_pipe_to_mux (mux, pipe);
+        thread->send_command (destination_thread, mux_cmd);
 
         //  Bind the peer to the source end of the pipe.
-        command_t cmd_send_to;
-        cmd_send_to.init_engine_send_to (peer_engine, pipe);
-        thread->send_command (peer_thread, cmd_send_to);
+        command_t demux_cmd;
+        demux_cmd.init_attach_pipe_to_demux (demux, pipe);
+        thread->send_command (peer_thread, demux_cmd);
     }
 
     //  Move to the next thread to get round-robin balancing of engines.
@@ -197,12 +195,12 @@ void zmq::bp_tcp_listener_t::head ()
     zmq_assert (false);
 }
 
-void zmq::bp_tcp_listener_t::receive_from (pipe_t *pipe_)
+void zmq::bp_tcp_listener_t::receive_from ()
 {
     zmq_assert (false);
 }
 
-void zmq::bp_tcp_listener_t::send_to (pipe_t *pipe_)
+void zmq::bp_tcp_listener_t::send_to ()
 {
     zmq_assert (false);
 }

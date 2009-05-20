@@ -60,6 +60,9 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
     ++active;
     if (pipes.size () > active)
         swap_pipes (pipes.size () - 1, active - 1);
+
+    if (engine)
+        engine->receive_from ();
 }
 
 void zmq::mux_t::revive (pipe_t *pipe_)
