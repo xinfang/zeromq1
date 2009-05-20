@@ -26,7 +26,7 @@
 namespace zmq
 {
 
-    class in_engine_t : public i_engine
+    class in_engine_t :public i_engine, public i_consumer
     {
     public:
 
@@ -35,18 +35,17 @@ namespace zmq
         bool read (message_t *msg_);
 
         //  i_engine implementation.
+        void start (i_thread *current_thread_, i_thread *engine_thread_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
 
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
+        //  i_consumer implementation.
+        void revive ();
+        void receive_from ();
 
     protected:
         //  i_engine implementation.
         const char *get_arguments ();
-        void revive ();
-        void head ();
-        void send_to ();
-        void receive_from ();
 
     private:
 

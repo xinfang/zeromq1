@@ -20,10 +20,9 @@
 #include <zmq/mux.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/err.hpp>
-#include <zmq/i_engine.hpp>
 
 zmq::mux_t::mux_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_) :
-    engine (NULL),
+    consumer (NULL),
     hwm (hwm_),
     lwm (lwm_),
     swap_size (swap_size_),
@@ -41,10 +40,10 @@ int64_t zmq::mux_t::get_swap_size ()
     return swap_size;
 }
 
-void zmq::mux_t::register_engine (i_engine *engine_)
+void zmq::mux_t::register_consumer (i_consumer *consumer_)
 {
-    zmq_assert (engine == NULL);
-    engine = engine_;
+    zmq_assert (consumer == NULL);
+    consumer = consumer_;
 }
 
 void zmq::mux_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
@@ -61,8 +60,8 @@ void zmq::mux_t::receive_from (pipe_t *pipe_)
     if (pipes.size () > active)
         swap_pipes (pipes.size () - 1, active - 1);
 
-    if (engine)
-        engine->receive_from ();
+    if (consumer)
+        consumer->receive_from ();
 }
 
 void zmq::mux_t::revive (pipe_t *pipe_)
@@ -71,8 +70,8 @@ void zmq::mux_t::revive (pipe_t *pipe_)
     swap_pipes (pipe_->index (), active);
     ++active;
 
-    if (engine)
-        engine->revive ();
+    if (consumer)
+        consumer->revive ();
 }
 
 bool zmq::mux_t::read (message_t *msg_)

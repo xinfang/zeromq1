@@ -42,7 +42,7 @@ zmq::in_engine_t::~in_engine_t ()
 
 void zmq::in_engine_t::start (i_thread *, i_thread *)
 {
-    mux->register_engine (this);
+    mux->register_consumer (this);
 }
 
 bool zmq::in_engine_t::read (message_t *msg_)
@@ -69,16 +69,6 @@ const char *zmq::in_engine_t::get_arguments ()
 
 void zmq::in_engine_t::revive ()
 {
-}
-
-void zmq::in_engine_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::in_engine_t::send_to ()
-{
-    zmq_assert (false);
 }
 
 void zmq::in_engine_t::receive_from ()

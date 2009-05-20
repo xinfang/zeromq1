@@ -72,7 +72,7 @@ zmq::bp_tcp_sender_t::~bp_tcp_sender_t ()
 void zmq::bp_tcp_sender_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    mux->register_engine (this);
+    mux->register_consumer (this);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -294,14 +294,4 @@ const char *zmq::bp_tcp_sender_t::get_arguments ()
 {
     zmq_assert (false);
     return NULL;
-}
-
-void zmq::bp_tcp_sender_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_sender_t::send_to ()
-{
-    zmq_assert (false);
 }

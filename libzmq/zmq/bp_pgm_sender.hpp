@@ -31,6 +31,7 @@
 #include <zmq/bp_encoder.hpp>
 #include <zmq/pgm_socket.hpp>
 #include <zmq/i_engine.hpp>
+#include <zmq/i_consumer.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/mux.hpp>
 
@@ -39,6 +40,7 @@ namespace zmq
 
     class bp_pgm_sender_t :
         public i_engine,
+        public i_consumer,
         public i_pollable
     {
 
@@ -52,6 +54,8 @@ namespace zmq
         class i_demux *get_demux ();
         class i_mux *get_mux ();
         const char *get_arguments ();
+
+        //  i_consumer interface implementation.
         void receive_from ();
         void revive ();
 
@@ -75,10 +79,6 @@ namespace zmq
         //  and thus user data has to start at data_ + sizeof (uint16_t).
         size_t write_one_pkt_with_offset (unsigned char *data_, size_t size_,
             uint16_t offset_);
-
-        //  i_engine interface implementation.
-        void head ();
-        void send_to ();
 
         //  Mux.
         mux_t *mux;

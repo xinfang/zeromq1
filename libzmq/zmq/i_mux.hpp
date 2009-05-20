@@ -22,6 +22,7 @@
 
 #include <zmq/i_source.hpp>
 #include <zmq/pipe.hpp>
+#include <zmq/i_consumer.hpp>
 
 namespace zmq
 {
@@ -41,7 +42,7 @@ namespace zmq
         virtual int64_t get_swap_size () = 0;
 
         //  Associate the specified engine with the mux.
-        virtual void register_engine (class i_engine *engine_) = 0;
+        virtual void register_consumer (i_consumer *consumer_) = 0;
 
         //  Adds a pipe to receive messages from.
         virtual void receive_from (pipe_t *pipe_) = 0;

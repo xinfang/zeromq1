@@ -29,6 +29,7 @@
 #include <zmq/bp_decoder.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/i_engine.hpp>
+#include <zmq/i_producer.hpp>
 #include <zmq/i_demux.hpp>
 
 namespace zmq
@@ -40,7 +41,10 @@ namespace zmq
     //  2. Wire-level protocol is 0MQ backend protocol.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class bp_tcp_receiver_t : public i_engine, public i_pollable
+    class bp_tcp_receiver_t :
+        public i_engine,
+        public i_producer,
+        public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -54,6 +58,8 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
+
+        //  i_producer interface implementation.
         void head ();
         void send_to ();
 

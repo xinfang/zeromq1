@@ -111,7 +111,7 @@ zmq::sctp_sender_t::~sctp_sender_t ()
 void zmq::sctp_sender_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    mux->register_engine (this);
+    mux->register_consumer (this);
 
     //  Register the engine with the I/O thread.
     command_t command;
@@ -184,16 +184,6 @@ void zmq::sctp_sender_t::revive ()
         poller->set_pollout (handle);
         out_event ();
     }
-}
-
-void zmq::sctp_sender_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::sctp_sender_t::send_to ()
-{
-    zmq_assert (false);
 }
 
 void zmq::sctp_sender_t::receive_from ()

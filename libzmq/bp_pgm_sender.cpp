@@ -105,7 +105,7 @@ zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
 void zmq::bp_pgm_sender_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    mux->register_engine (this);
+    mux->register_consumer (this);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -250,16 +250,6 @@ void zmq::bp_pgm_sender_t::revive ()
 const char *zmq::bp_pgm_sender_t::get_arguments ()
 {
     return arguments;
-}
-
-void zmq::bp_pgm_sender_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_pgm_sender_t::send_to ()
-{
-    zmq_assert (false);
 }
 
 size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_, 

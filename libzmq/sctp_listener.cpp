@@ -225,24 +225,4 @@ const char *zmq::sctp_listener_t::get_arguments ()
     return arguments;
 }
 
-void zmq::sctp_listener_t::revive ()
-{
-    zmq_assert (false);
-}
-
-void zmq::sctp_listener_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::sctp_listener_t::send_to ()
-{
-    zmq_assert (false);
-}
-
-void zmq::sctp_listener_t::receive_from ()
-{
-    zmq_assert (false);
-}
-
 #endif

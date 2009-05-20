@@ -40,7 +40,7 @@ zmq::out_engine_t::~out_engine_t ()
 
 void zmq::out_engine_t::start (i_thread *, i_thread *)
 {
-    demux->register_engine (this);
+    demux->register_producer (this);
 }
 
 bool zmq::out_engine_t::write (message_t &msg_)
@@ -70,20 +70,10 @@ const char *zmq::out_engine_t::get_arguments ()
     return NULL;
 }
 
-void zmq::out_engine_t::revive ()
-{
-    zmq_assert (false);
-}
-
 void zmq::out_engine_t::head ()
 {
 }
 
 void zmq::out_engine_t::send_to ()
 {
-}
-
-void zmq::out_engine_t::receive_from ()
-{
-    zmq_assert (false);
 }

@@ -30,6 +30,8 @@
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
 #include <zmq/i_engine.hpp>
+#include <zmq/i_producer.hpp>
+#include <zmq/i_consumer.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
@@ -41,6 +43,8 @@ namespace zmq
 
     class amqp_client_t :
         public i_engine,
+        public i_producer,
+        public i_consumer,
         public i_pollable,
         private i_amqp
     {
@@ -53,9 +57,13 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
-        void revive ();
+
+        //  i_producer interface implementation.
         void head ();
         void send_to ();
+
+        //  i_consumer interface implementation.
+        void revive ();
         void receive_from ();
 
         //  i_pollable interface implementation.

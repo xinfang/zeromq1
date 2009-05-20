@@ -28,6 +28,7 @@
 #include <zmq/i_demux.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/i_engine.hpp>
+#include <zmq/i_producer.hpp>
 #include <zmq/i_pollable.hpp>
 
 namespace zmq
@@ -40,7 +41,10 @@ namespace zmq
     //     directly to SCTP messages.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class sctp_receiver_t : public i_engine, public i_pollable
+    class sctp_receiver_t :
+        public i_engine,
+        public i_producer,
+        public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -54,6 +58,8 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
+
+        //  i_producer interface implementation.
         void head ();
         void send_to ();
 
@@ -68,8 +74,6 @@ namespace zmq
 
         //  i_engine interface implementation.
         const char *get_arguments ();
-        void revive ();
-        void receive_from ();
 
     private:
         sctp_receiver_t (i_demux *demux_, const char *hostname_,

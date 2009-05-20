@@ -63,13 +63,6 @@ namespace zmq
         void timer_event ();
         void unregister_event ();
 
-    protected:
-        //  i_engine interface implementation.
-        void revive ();
-        void head ();
-        void send_to ();
-        void receive_from ();
-
     private:
 
         //  Creates a SCTP listener. Handler thread array determines

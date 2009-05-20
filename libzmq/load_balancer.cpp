@@ -21,10 +21,9 @@
 
 #include <zmq/load_balancer.hpp>
 #include <zmq/err.hpp>
-#include <zmq/i_engine.hpp>
 
 zmq::load_balancer_t::load_balancer_t (int64_t hwm_, int64_t lwm_) :
-    engine (NULL),
+    producer (NULL),
     hwm (hwm_),
     lwm (lwm_),
     current (0)
@@ -35,10 +34,10 @@ zmq::load_balancer_t::~load_balancer_t ()
 {
 }
 
-void zmq::load_balancer_t::register_engine (i_engine *engine_)
+void zmq::load_balancer_t::register_producer (i_producer *producer_)
 {
-    zmq_assert (engine == NULL);
-    engine = engine_;
+    zmq_assert (producer == NULL);
+    producer = producer_;
 }
 
 void zmq::load_balancer_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
@@ -52,8 +51,8 @@ void zmq::load_balancer_t::send_to (pipe_t *pipe_)
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
 
-    if (engine)
-        engine->send_to ();
+    if (producer)
+        producer->send_to ();
 }
 
 bool zmq::load_balancer_t::write (message_t &msg_)
@@ -100,8 +99,8 @@ void zmq::load_balancer_t::flush ()
 
 void zmq::load_balancer_t::pipe_ready (pipe_t *pipe_)
 {
-    if (engine)
-        engine->head ();
+    if (producer)
+        producer->head ();
 }
 
 void zmq::load_balancer_t::gap ()

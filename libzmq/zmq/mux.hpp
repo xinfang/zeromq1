@@ -39,7 +39,7 @@ namespace zmq
 
         //  i_mux implementation.
         int64_t get_swap_size ();
-        void register_engine (class i_engine *engine_);
+        void register_consumer (class i_consumer *consumer_);
         void get_watermarks (int64_t &hwm_, int64_t &lwm_);
         bool read (message_t *msg_);
         void receive_from (pipe_t *pipe_);
@@ -50,9 +50,9 @@ namespace zmq
 
     private:
 
-        //  Engine associated with the mux. At most one engine
+        //  Message consumer associated with the mux. At most one consumer
         //  can be associated.
-        class i_engine *engine;
+        i_consumer *consumer;
 
         //  High and low watermark.
         int64_t hwm;

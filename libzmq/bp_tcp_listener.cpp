@@ -184,23 +184,3 @@ const char *zmq::bp_tcp_listener_t::get_arguments ()
         listener.get_interface ());
     return arguments;
 }
-
-void zmq::bp_tcp_listener_t::revive ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_listener_t::head ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_listener_t::receive_from ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_listener_t::send_to ()
-{
-    zmq_assert (false);
-}

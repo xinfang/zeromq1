@@ -37,7 +37,7 @@ namespace zmq
 
         //  i_demux interface implementation.
         ~data_distributor_t ();
-        void register_engine (class i_engine *engine_);
+        void register_producer (class i_producer *producer_);
         void get_watermarks (int64_t &hwm_, int64_t &lwm_);
         void send_to (pipe_t *pipe_);
         bool write (message_t &msg_);
@@ -50,9 +50,9 @@ namespace zmq
 
     private:
 
-        //  Engine associated with the data distributor. At most one engine
-        //  can be associated.
-        class i_engine *engine;
+        //  Message producer associated with the data distributor. At most
+        //  one producer can be associated.
+        class i_producer *producer;
 
         // High and low watermark.
         int64_t hwm;

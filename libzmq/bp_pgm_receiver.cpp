@@ -91,7 +91,7 @@ zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
 void zmq::bp_pgm_receiver_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    demux->register_engine (this);
+    demux->register_producer (this);
 
     //  Register PGM engine with the I/O thread.
     command_t command;
@@ -227,18 +227,8 @@ const char *zmq::bp_pgm_receiver_t::get_arguments ()
     return NULL;
 }
 
-void zmq::bp_pgm_receiver_t::revive ()
-{
-    zmq_assert (false);
-}
-
 void zmq::bp_pgm_receiver_t::head ()
 {
-}
-
-void zmq::bp_pgm_receiver_t::receive_from ()
-{
-    zmq_assert (false);
 }
 
 ssize_t zmq::bp_pgm_receiver_t::receive_with_offset 

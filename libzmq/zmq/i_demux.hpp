@@ -22,6 +22,7 @@
 
 #include <zmq/i_destination.hpp>
 #include <zmq/pipe.hpp>
+#include <zmq/i_producer.hpp>
 
 namespace zmq
 {
@@ -43,7 +44,7 @@ namespace zmq
         virtual void get_watermarks (int64_t &hwm_, int64_t &lwm_) = 0;
 
         //  Associate the specified engine with the demux.
-        virtual void register_engine (class i_engine *engine_) = 0;
+        virtual void register_producer (i_producer *producer_) = 0;
 
         //  Starts sending messages to this pipe.
         virtual void send_to (pipe_t *pipe_) = 0;

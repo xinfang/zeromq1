@@ -50,12 +50,6 @@ namespace zmq
         //  This function will be obsoleted with the shift to centralised
         //  management of configuration.
         virtual const char *get_arguments () = 0;
-
-        //  Inter-thread commands.
-        virtual void revive () = 0;
-        virtual void head () = 0;
-        virtual void send_to () = 0;
-        virtual void receive_from () = 0;
     };
 
 }

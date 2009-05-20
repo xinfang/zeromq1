@@ -38,6 +38,7 @@ namespace zmq
 
     class bp_pgm_receiver_t :
         public i_engine,
+        public i_producer,
         public i_pollable
     {
     
@@ -50,7 +51,10 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         i_demux *get_demux ();
         class i_mux *get_mux ();
+
+        //  i_producer interface implementation.
         void send_to ();
+        void head ();
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -71,9 +75,6 @@ namespace zmq
 
         //  i_engine interface implementation.
         const char *get_arguments ();
-        void head ();
-        void revive ();
-        void receive_from ();
 
         //  Demux.
         i_demux *demux;

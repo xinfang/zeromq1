@@ -110,7 +110,7 @@ zmq::sctp_receiver_t::~sctp_receiver_t ()
 void zmq::sctp_receiver_t::start (i_thread *current_thread,
     i_thread *engine_thread_)
 {
-    demux->register_engine (this);
+    demux->register_producer (this);
 
     //  Register the engine with the I/O thread.
     command_t command;
@@ -183,11 +183,6 @@ void zmq::sctp_receiver_t::unregister_event ()
     //  TODO: Implement this. For now we'll do nothing here.
 }
 
-void zmq::sctp_receiver_t::revive ()
-{
-    zmq_assert (false);
-}
-
 void zmq::sctp_receiver_t::head ()
 {
     in_event ();
@@ -203,11 +198,6 @@ void zmq::sctp_receiver_t::send_to ()
         if (demux->no_pipes ())
             poller->set_pollin (handle);
     }
-}
-
-void zmq::sctp_receiver_t::receive_from ()
-{
-    zmq_assert (false);
 }
 
 const char *zmq::sctp_receiver_t::get_arguments ()

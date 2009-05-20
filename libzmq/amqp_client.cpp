@@ -85,8 +85,8 @@ zmq::amqp_client_t::~amqp_client_t ()
 void zmq::amqp_client_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    mux->register_engine (this);
-    demux->register_engine (this);
+    mux->register_consumer (this);
+    demux->register_producer (this);
 
     //  Register AMQP engine with the I/O thread.
     command_t command;

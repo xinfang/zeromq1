@@ -74,7 +74,7 @@ zmq::bp_tcp_receiver_t::~bp_tcp_receiver_t ()
 void zmq::bp_tcp_receiver_t::start (i_thread *current_thread_,
     i_thread *engine_thread_)
 {
-    demux->register_engine (this);
+    demux->register_producer (this);
 
     //  Register BP engine with the I/O thread.
     command_t command;
@@ -311,14 +311,4 @@ const char *zmq::bp_tcp_receiver_t::get_arguments ()
 {
     zmq_assert (false);
     return NULL;
-}
-
-void zmq::bp_tcp_receiver_t::revive ()
-{
-    zmq_assert (false);
-}
-
-void zmq::bp_tcp_receiver_t::receive_from ()
-{
-    zmq_assert (false);
 }

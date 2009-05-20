@@ -54,14 +54,6 @@ namespace zmq
         void timer_event ();
         void unregister_event ();
 
-    protected:
-
-        //  i_engine interface implementation.
-        void revive ();
-        void head ();
-        void receive_from ();
-        void send_to ();
-
     private:
 
         //  Creates a BP listener. Handler thread array determines

@@ -21,6 +21,7 @@
 #define __ZMQ_OUT_ENGINE_HPP_INCLUDED__
 
 #include <zmq/i_engine.hpp>
+#include <zmq/i_producer.hpp>
 #include <zmq/i_demux.hpp>
 #include <zmq/data_distributor.hpp>
 #include <zmq/load_balancer.hpp>
@@ -28,7 +29,7 @@
 namespace zmq
 {
 
-    class out_engine_t : public i_engine
+    class out_engine_t : public i_engine, public i_producer
     {
     public:
 
@@ -41,14 +42,14 @@ namespace zmq
         void start (i_thread *current_thread_, i_thread *engine_thread_);
         class i_demux *get_demux ();
         class i_mux *get_mux ();
+
+        //  i_producer interface implementation.
+        void head ();
+        void send_to ();
     
     protected:
         //  i_engine interface implementation.
         const char *get_arguments ();
-        void revive ();
-        void head ();
-        void send_to ();
-        void receive_from ();
 
     private:
 
