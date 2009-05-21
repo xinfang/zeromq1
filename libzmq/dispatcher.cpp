@@ -126,8 +126,8 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
         }
 
         //  Create a listener for the object.
-        i_engine *listener = engine_factory_t::create (object_, true, sender_,
-            location_, NULL, calling_thread_, listener_thread_,
+        i_engine *listener = engine_factory_t::create_listener (object_,
+            sender_, location_, calling_thread_, listener_thread_,
             handler_thread_count_, handler_threads_, thread_, engine_);
 
         //  Regiter the object with the locator.
@@ -159,9 +159,9 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
         locator_->resolve_endpoint (object_, location, sizeof (location));
 
         //  Create the proxy engine for the object.
-        i_engine *engine = engine_factory_t::create (local_object_, false,
+        i_engine *engine = engine_factory_t::create (local_object_,
             sender_, location, engine_arguments_, calling_thread_,
-            handler_thread_, 0, NULL, NULL, NULL);
+            handler_thread_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};
