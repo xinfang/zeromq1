@@ -70,9 +70,9 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
     if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
           interface_ [1] == 'd' && interface_ [2] == 'p' && 
           interface_ [3] == ':') {
-        sprintf (arguments, "zmq.pgm://udp:%s", delim);
+        zmq_snprintf (arguments, sizeof arguments, "zmq.pgm://udp:%s", delim);
     } else {
-        sprintf (arguments, "zmq.pgm://%s", delim);
+        zmq_snprintf (arguments, sizeof arguments, "zmq.pgm://%s", delim);
     }
 
     //  The newly created engine serves as a local destination of messages
