@@ -422,6 +422,23 @@ fi
 #  PGM extension
 pgm_ext="no"
 pgm_name=""
+
+AC_ARG_WITH(pgm_headersdir,
+    AC_HELP_STRING([--with-pgm-headersdir], [pgm.h header file location]),
+        [pgm_headersdir="$withval"], [pgm_headersdir="no"])
+
+if test "x$pgm_headersdir" != "xno"; then
+    CPPFLAGS="${CPPFLAGS} -I${pgm_headersdir}"
+fi
+
+AC_ARG_WITH(pgm_libdir,
+    AC_HELP_STRING([--with-pgm-libdir],[libpgm-plus library file location]),
+        [pgm_libdir="$withval"], [pgm_libdir="no"])
+
+if test "x$pgm_libdir" != "xno"; then
+    LDFLAGS="${LDFLAGS} -L${pgm_libdir}"
+fi
+
 AC_ARG_WITH([pgm], [AS_HELP_STRING([--with-pgm], 
     [build libzmq with PGM extension [default=no]])], 
     [with_pgm_ext=yes], [with_pgm_ext=no])
@@ -451,11 +468,11 @@ if test "x$with_pgm_ext" != "xno"; then
     LIBS="${LIBS} ${GLIB_LIBS}"
 
     AC_CHECK_HEADERS([pgm/pgm.h], [], 
-        [AC_MSG_ERROR([Could not find OpenPGM header files, Set CPPFLAGS to OpenPGM include directory.])])
+        [AC_MSG_ERROR([Could not find OpenPGM header files, Set --with-pgm-headersdir to OpenPGM include directory.])])
 
     AC_CHECK_LIB(pgm-pic, main, 
         [openpgm_link=yes],
-        [AC_MSG_ERROR([Could not link with pgm-pic library. Set LDFLAGS to OpenPGM lib directory.])])
+        [AC_MSG_ERROR([Could not link with pgm-pic library. Set --with-pgm-libdir to OpenPGM lib directory.])])
 
     LIBS="${LIBS} -lpgm-pic"
 
