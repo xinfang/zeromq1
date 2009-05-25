@@ -67,6 +67,5 @@ int main (int argc, char *argv [])
         api->send (eid, msg);
     }
                 
-    return 0;
 }
 

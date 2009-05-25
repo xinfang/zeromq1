@@ -42,11 +42,11 @@ EXTRA_DIST = \
     $(top_srcdir)/perf/tests/zmq/cs_*.cs \
     $(top_srcdir)/perf/tests/zmq/cob_*.cob \
     $(top_srcdir)/perf/tests/zmq/rb_*.rb \
-    $(top_srcdir)/perf/tests/zmq/zmq.lib \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
     $(top_srcdir)/libvmszmq/vmszmq.c \
+    $(top_srcdir)/libvmszmq/zmq.lib \
     $(top_srcdir)/librbzmq/extconf.rb \
     $(top_srcdir)/libclrzmq/zmq.cs \
     $(top_srcdir)/mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs \

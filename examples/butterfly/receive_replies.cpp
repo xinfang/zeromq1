@@ -16,7 +16,6 @@
     You should have received a copy of the Lesser GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <zmq/platform.hpp>
 #include <zmq/stdint.hpp>
 #include <zmq.hpp>
 using namespace zmq;
@@ -64,5 +63,4 @@ int main (int argc, char *argv [])
         api->send (eid, sync);
     }
 
-    return 0;
 }

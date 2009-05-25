@@ -126,8 +126,14 @@ $!
 $! ZMQ tests - the Fortran version
 $! For running Fortran examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
 $!
-$ f_zlocal_lat :== $zmqRoot:[perf.tests.zmq]f_local_lat.exe
+$ f_zlocal_lat  :== $zmqRoot:[perf.tests.zmq]f_local_lat.exe
 $ f_zremote_lat :== $zmqRoot:[perf.tests.zmq]f_remote_lat.exe
+$!
+$! ZMQ tests - the Cobol version
+$! For running Cobol examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
+$!
+$ cob_zlocal_lat  :== $zmqRoot:[perf.tests.zmq]cob_local_lat.exe
+$ cob_zremote_lat :== $zmqRoot:[perf.tests.zmq]cob_remote_lat.exe
 $!
 $!
 $! Go to where it all happens...
