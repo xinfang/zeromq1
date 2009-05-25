@@ -1,7 +1,7 @@
 $! build_33_libjzmq.com
-$! Created 2009-02-26
-$! Modified
-$!  2009-04-13 BRC - Changed optimization to TUNE=HOST (platform-agnostic)
+$! 2009-02-26
+$! Modified:
+$!  2009-05-05 ja - changed Jzmq to Zmq in the linker options
 $!+
 $! Build the API for Java
 $!-
@@ -24,6 +24,7 @@ $ write sys$output -
    "ZMQ - Ignore possible '%CXX-W-CONPTRLOSBIT, conversion from integer to smaller pointer' message"
 $ write sys$output ""
 $ cxx   /define=__USE_STD_IOSTREAM		-
+	/warnings=disable=CONPTRLOSBIT		-
 	/prefix=all/float=ieee/ieee=denorm	-
 	/names=(as_is,shortened)		-
 	/OPTIMIZE=(INLINE=SPEED,LEVEL=4,UNROLL=0,TUNE=HOST) -
@@ -34,20 +35,20 @@ $ write sys$output ""
 $ write sys$output -
    "ZMQ - Ignore possible '%ILINK-W-COMPWARN, compilation warnings' message"
 $ write sys$output ""
-$ link /share=[]zmq.exe zmq.obj, sys$input/opt
+$ linkxxx /share=[]zmq.exe zmq.obj, sys$input/opt
 libzmq:libzmq.olb/lib
 !
 GSMATCH=LEQUAL,1,1
 !
 case_sensitive=YES
 SYMBOL_VECTOR = ( -
-	Java_Jzmq_createExchange = PROCEDURE, -
-	Java_Jzmq_bind           = PROCEDURE, -
-	Java_Jzmq_send           = PROCEDURE, -
-	Java_Jzmq_receive        = PROCEDURE, -
-	Java_Jzmq_construct      = PROCEDURE, -
-	Java_Jzmq_createQueue    = PROCEDURE, -
-	Java_Jzmq_finalize       = PROCEDURE  -
+	Java_Zmq_createExchange = PROCEDURE, -
+	Java_Zmq_bind           = PROCEDURE, -
+	Java_Zmq_send           = PROCEDURE, -
+	Java_Zmq_receive        = PROCEDURE, -
+	Java_Zmq_construct      = PROCEDURE, -
+	Java_Zmq_createQueue    = PROCEDURE, -
+	Java_Zmq_finalize       = PROCEDURE  -
         )
 $!
 $ purge/nolog [...]

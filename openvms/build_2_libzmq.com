@@ -27,7 +27,8 @@ $ compit poll.cpp
 $ compit epoll.cpp
 $ compit devpoll.cpp
 $ compit kqueue.cpp
-$ compit bp_tcp_engine.cpp
+$ compit bp_tcp_sender.cpp
+$ compit bp_tcp_receiver.cpp
 $ compit mux.cpp
 $ compit data_distributor.cpp
 $ compit load_balancer.cpp
@@ -42,7 +43,8 @@ $ compit out_engine.cpp
 $ compit in_engine.cpp
 $ compit engine_factory.cpp
 $ compit sctp_listener.cpp
-$ compit sctp_engine.cpp
+$ compit sctp_sender.cpp
+$ compit sctp_receiver.cpp
 $ compit pgm_socket.cpp
 $ compit bp_pgm_sender.cpp
 $ compit bp_pgm_receiver.cpp

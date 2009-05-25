@@ -16,10 +16,10 @@ $ ccompit c_remote_lat
 $ ccompit c_local_thr
 $ ccompit c_remote_thr
 $!
-$ clinkit c_local_lat,  libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
-$ clinkit c_remote_lat, libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
-$ clinkit c_local_thr,  libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
-$ clinkit c_remote_thr, libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
+$ linkit c_local_lat,  libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
+$ linkit c_remote_lat, libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
+$ linkit c_local_thr,  libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
+$ linkit c_remote_thr, libczmq:libczmq.olb/lib,libzmq:libzmq.olb/lib
 $!
 $ purge/nolog
 $ rename *.* *.*;1

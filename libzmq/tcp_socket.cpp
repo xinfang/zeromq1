@@ -264,7 +264,7 @@ void zmq::tcp_socket_t::reopen ()
     //  Disable delayed acknowledgements.
     flag = 1;
     rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
+    errno_assert (rc == 0);
 #endif
 
     //  Connect to the remote peer.
