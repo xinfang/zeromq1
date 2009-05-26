@@ -3,15 +3,29 @@
 %{!?py_sitearch: %define py_sitearch %(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1,0,'%{_prefix}')")}
 
 %if "%{_vendor}" == "redhat" && 0%{?rhelversion} <= 5
-%define with_mono 0
+%{!?with_java:%define with_java 1}
+%{!?with_mono:%define with_mono 0}
+%{!?with_ruby:%define with_ruby 0}
 %else
-%define with_mono 1
+%{!?with_java:%define with_java 1}
+%{!?with_mono:%define with_mono 1}
+%if "%{_vendor}" == "suse" && 0%{?sles_version} != 0 && 0%{?sles_version} <= 10
+%{!?with_ruby:%define with_ruby 0}
+%else
+%{!?with_ruby:%define with_ruby 1}
+%else
+%endif
+%endif
+
+%if 0%{?with_ruby} == 1
+%{!?rb_archdir: %define rb_archdir %(ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]')}
 %endif
 
 %define java_target 1.5
 
 Name: zeromq
 Summary: ZeroMQ is a thin messaging implementation
+%define major_version 0
 Version: 0.6
 Release: 1
 Group: Development/Libraries
@@ -22,10 +36,14 @@ URL: http://www.zeromq.org
 BuildRequires: gcc-c++
 BuildRequires: pkgconfig
 BuildRequires: python python-devel
+%if 0%{?with_ruby} == 1
+BuildRequires: ruby ruby-devel
+%endif
 BuildRequires: jpackage-utils
+%if 0%{?with_java} == 1
 %if "%{_vendor}" == "suse"
 BuildRequires:  java-devel >= 1.5 update-alternatives
-%if %{sles_version} != 0 && %{sles_version} <= 10
+%if 0%{?sles_version} != 0 && 0%{?sles_version} <= 10
 %ifarch "%{ix86}"
 BuildRequires:  java-1_4_2-sun-alsa
 %endif
@@ -36,6 +54,7 @@ BuildRequires:  java-sdk-openjdk >= 1.5.0
 %else
 BuildRequires:  java-devel >= 1.4
 %define java_target 1.4
+%endif
 %endif
 %endif
 %if "%{_vendor}" == "mandriva"
@@ -75,19 +94,30 @@ Requires: gcc-c++
 %description devel
 Development files for ZeroMQ
 
-%package python
+%package -n python-%{name}
 Summary: Python support for %{name}
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
-%description python
+%description -n python-%{name}
 This package contains the Python modules that are part of %{name}.
 
-%package java
+%if 0%{?with_ruby} == 1
+%package -n librbzmq%{major_version}
+Summary: Ruby support for %{name}
+Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description -n librbzmq%{major_version}
+This package contains the Ruby modules that are part of %{name}.
+%endif
+
+%if 0%{?with_java} == 1
+%package -n libjzmq%{major_version}
 Summary: Development files for using ZeroMQ with Java
 Group: Development/Libraries
 
-%description java
+%description -n libjzmq%{major_version}
 ZeroMQ is a thin messaging implementation.
 ZeroMQ supports different messaging models.
 ZeroMQ is already very fast. We're getting 13.4 microseconds end-to-end
@@ -104,6 +134,7 @@ and LAN nodes.
 ZeroMQ is an extensible framework: kernel-style drivers for custom hardware, protocols or applications.
 This package contains the libraries for building programs which
 use ZeroMQ in Java.
+%endif
 
 %if 0%{?with_mono} == 1
 %package mono
@@ -135,13 +166,25 @@ use ZeroMQ in Mono.
 [ ! -e %SOURCE1 ] || bunzip2 -c < %SOURCE1 > mono/clrzmq/clrzmq/zmq_strong_name.snk
 
 %build
+%if 0%{?with_java} == 1
 [ -n "$JAVA_HOME" ] || export JAVA_HOME=%{java_home}
-%configure --with-c --with-python --with-java --with-sctp --with-amqp \
-%if 0%{?with_mono} == 1
---with-clr --with-clrdir=%{_prefix}/lib/clrzmq
 %endif
+%configure --with-c --with-python \
+%if 0%{?with_java} == 1
+	--with-java \
+%endif
+%if 0%{?with_ruby} == 1
+	--with-ruby --with-ruby-headersdir=%{rb_archdir} \
+%endif
+%if 0%{?with_mono} == 1
+	--with-clr --with-clrdir=%{_prefix}/lib/clrzmq \
+%endif
+	--with-sctp --with-amqp
 
-%{?make:%make}%{!?make:%__make %{?jobs:-j%jobs} IMPORT_CPPFLAGS+="$RPM_OPT_FLAGS"} JAVACFLAGS="-target %{java_target}"
+%{?make:%make}%{!?make:%__make %{?jobs:-j%jobs} IMPORT_CPPFLAGS+="$RPM_OPT_FLAGS"} \
+%if 0%{?with_java} == 1
+	JAVACFLAGS="-target %{java_target}"
+%endif
 
 rm -rf examples/*/.deps/ || :
 
@@ -153,8 +196,10 @@ mkdir %{buildroot}
 %else
 %{?make:%make}%{!?make:make} install DESTDIR=%{buildroot}
 %endif
+%if 0%{?with_java} == 1
 mkdir -p %buildroot%{_javadir}
 cp libjzmq/Zmq.jar %buildroot%{_javadir}
+%endif
 mkdir -p %buildroot%{_datadir}/pkgconfig
 %if 0%{?with_mono} == 1
 cp mono/clrzmq/clrzmq/*.pc %buildroot%{_datadir}/pkgconfig/
@@ -170,30 +215,52 @@ gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_p
 
 %postun -p /sbin/ldconfig
 
+%if 0%{?with_ruby} == 1
+%post -n librbzmq%{major_version} -p /sbin/ldconfig
+
+%postun -n librbzmq%{major_version} -p /sbin/ldconfig
+%endif
+
+%if 0%{?with_java} == 1
+%post -n libjzmq%{major_version} -p /sbin/ldconfig
+
+%postun -n libjzmq%{major_version} -p /sbin/ldconfig
+%endif
+
 %files
 %defattr(-, root, root)
 %doc AUTHORS ChangeLog
-%doc examples
 %{_bindir}/*
-%{_libdir}/*.so.*
+%{_libdir}/libzmq.so.*
+%{_libdir}/libczmq.so.*
 %attr(644,root,man) %{_mandir}/man1/*
 %attr(644,root,man) %{_mandir}/man7/*
 
 %files devel
 %defattr(-,root,root)
+%doc examples
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/*.a
 %{_libdir}/*.la
 %attr(644,root,man) %{_mandir}/man3/*
 
-%files python
+%files -n python-%{name}
 %defattr(-,root,root)
 %{py_sitearch}/*
 
-%files java
+%if 0%{?with_ruby} == 1
+%files -n librbzmq%{major_version}
 %defattr(-,root,root)
+%{_libdir}/librbzmq.so.*
+%endif
+
+%if 0%{?with_java} == 1
+%files -n libjzmq%{major_version}
+%defattr(-,root,root)
+%{_libdir}/libjzmq.so.*
 %{_javadir}/*
+%endif
 
 %if 0%{?with_mono} == 1
 %files mono
@@ -207,3 +274,4 @@ gacutil -i %buildroot%{_prefix}/lib/clrzmq/libclrzmq.dll -f -root %buildroot%{_p
 %changelog
 * Wed Feb 11 2009 Dirk O. Siebnich <dok@dok-net.net>
 - Packaged for RPM
+
