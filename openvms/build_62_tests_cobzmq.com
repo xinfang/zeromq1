@@ -12,7 +12,7 @@ $ set default zmqRoot:[perf.tests.zmq]  ! where the source is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $ cobit cob_local_lat.cob
-$! cobit cob_remote_lat.cob
+$ cobit cob_remote_lat.cob
 $!
 $ linkit cob_local_lat.obj, sys$input/opt
 !
@@ -20,17 +20,12 @@ $ linkit cob_local_lat.obj, sys$input/opt
 !
 libvmszmq:vmszmq/share
 !
-$!
-$! Change this when cob_remote_lat is written!
-$!
-$ goto No_cob_remote_yet
 $ linkit cob_remote_lat.obj, sys$input/opt
 !
 ! This is the shareable image containing the wrappers for ZMQ
 !
 libvmszmq:vmszmq/share
 !
-$ No_cob_remote_yet:
 $!
 $ purge/nolog
 $ rename *.* *.*;1
