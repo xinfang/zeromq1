@@ -147,7 +147,7 @@ PROCEDURE DIVISION GIVING ret_l_status.
 *
 * Turn into microseconds
 *
-    compute zmqLatency = zmqElapsed / (zmqNumMessages * 2) * 1000000.
+    compute zmqLatency = zmqElapsed / (zmqNumMessages * 2) * 1000.
     move zmqLatency to zmqLatencyA.
     display zmqNumMessages with conversion, " messages, with a length of ",
 	     zmqMessageLen with conversion, " processed in ",
