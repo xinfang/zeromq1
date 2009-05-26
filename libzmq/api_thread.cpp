@@ -410,7 +410,7 @@ void zmq::api_thread_t::process_commands ()
     uint64_t current_time = (uint64_t) high << 32 | low;
 #elif defined _MSC_VER
     uint64_t current_time = __rdtsc ();
-#elif
+#else
 #error
 #endif
 
