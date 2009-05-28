@@ -11,13 +11,21 @@ $!                  logical name into the OPEN/READ section
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
 $!-
-$ baseLevel == "zmq-061" 	! change this where required
+$ baseLevel == "zmq-061"       ! change this where required
 $!
 $ if p1 .eqs. ""
 $ then
-$	write sys$output "No baselevel given, using ''baseLevel'"
+$       baseLevel == "''baseLevel'"
 $ else
-$ 	baseLevel == "''p1'"
+$       baseLevel == "''p1'"
+$ endif
+$ if baseLevel .eqs. ""
+$ then
+$       write sys$output "--- No baseLevel present or defined ---"
+$       write sys$output "-- Please pass the baseLevel as a parameter --"
+$       write sys$output "-- or change this file to include an assignment --"
+$       write sys$output "-- to the baseLevel symbol!"
+$       Exit
 $ endif
 $!
 $ write sys$output "You are using base level ''baseLevel'"
@@ -29,7 +37,8 @@ $!
 $ if homeDisk .eqs. ""
 $ then
 $       write sys$output "No home device given!"
-$       write sys$output "Please edit this script and provide valid homeDisk variable."
+$       write sys$output "Please edit this script and provide valid homeDisk var
+iable."
 $       Exit
 $ endif
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -40,25 +49,26 @@ $!
 $ if homeDir .eqs. ""
 $ then
 $       write sys$output "No homeDirectory given!"
-$       write sys$output "Please edit this script and provide valid homeDir variable."
+$       write sys$output "Please edit this script and provide valid homeDir vari
+able."
 $       Exit
 $ endif
 $!
-$ CALL setUPODS5	! set up for ODS-5 disk
+$ CALL setUPODS5        ! set up for ODS-5 disk
 $!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 $! This should now reflect the device and directory
 $! of the installation.
 $!------------------------------------------------------------
 $ define/translation=(terminal,concealed)/job zmqRoot -
-	"''f$trnlnm(homeDisk)'[''homeDir'.''baseLevel'.]"
+        "''f$trnlnm(homeDisk)'[''homeDir'.''baseLevel'.]"
 $!
 $ write sys$output "zmqRoot defined to [''homeDir'.''baseLevel'.]"
 $!
 $! If Java 5 is on the machine, let's use it
-$! 
+$!
 $ open/read/error=noJava java_file sys$startup:java$150_setup.com
 $!
-$    @sys$startup:java$150_setup	! get Java first
+$    @sys$startup:java$150_setup        ! get Java first
 $!
 $!   Do some juggling in order to get to the include directories for Java
 $!
@@ -70,27 +80,27 @@ $ close java_file
 $!
 $ noJava:
 $!
-$ def/job zmqBase	zmqRoot:[000000]    ! home...
-$ def/job libzmq	zmqRoot:[libzmq]    ! is where the main OLB is
-$ def/job libczmq	zmqRoot:[libczmq]   ! is where the C OLB is
-$ def/job libjzmq	zmqRoot:[libjzmq]   ! is where Java code lives
-$ def/job libvmszmq	zmqRoot:[libvmszmq] ! is where OpenVMS wrapper lives
+$ def/job zmqBase       zmqRoot:[000000]    ! home...
+$ def/job libzmq        zmqRoot:[libzmq]    ! is where the main OLB is
+$ def/job libczmq       zmqRoot:[libczmq]   ! is where the C OLB is
+$ def/job libjzmq       zmqRoot:[libjzmq]   ! is where Java code lives
+$ def/job libvmszmq     zmqRoot:[libvmszmq] ! is where OpenVMS wrapper lives
 $
-$ def/job zmq   	zmqRoot:[openvms],   - ! where the include
-			zmqRoot:[libzmq.zmq],- ! files are
-	     		zmqRoot:[libczmq],   - ! C API
-			zmqRoot:[libjzmq]      ! Java
+$ def/job zmq           zmqRoot:[openvms],   - ! where the include
+                        zmqRoot:[libzmq.zmq],- ! files are
+                        zmqRoot:[libczmq],   - ! C API
+                        zmqRoot:[libjzmq]      ! Java
 $
-$ def/job zmqOpenVMS	zmqRoot:[openvms]	! saves typing...
+$ def/job zmqOpenVMS    zmqRoot:[openvms]       ! saves typing...
 $
-$ def/job lnk$library   libzmq:libzmq.olb, -	!Tell the linker
-			libczmq:libczmq.olb	! .. where the LIBs are
-$ def/job vmszmq	libvmszmq:vmszmq.exe	! Wrapper image
+$ def/job lnk$library   libzmq:libzmq.olb, -    !Tell the linker
+                        libczmq:libczmq.olb     ! .. where the LIBs are
+$ def/job vmszmq        libvmszmq:vmszmq.exe    ! Wrapper image
 $
-$ def/job zmqExamples	zmqRoot:[examples]	! Lots of nice stuff
-$ def/job zmqPerf	zmqRoot:[perf]		! Top perf dir
-$ def/job zmqTestsZMQ	zmqRoot:[perf.tests.zmq]! ..ZMQ
-$ def/job zmqTestsTCP	zmqRoot:[perf.tests.tcp]! ..TCP
+$ def/job zmqExamples   zmqRoot:[examples]      ! Lots of nice stuff
+$ def/job zmqPerf       zmqRoot:[perf]          ! Top perf dir
+$ def/job zmqTestsZMQ   zmqRoot:[perf.tests.zmq]! ..ZMQ
+$ def/job zmqTestsTCP   zmqRoot:[perf.tests.tcp]! ..TCP
 $!
 $! This COM defines DCL symbols for compiling and linking,
 $! with and without debug.
@@ -123,22 +133,22 @@ $ c_zlocal_thr  :== $zmqRoot:[perf.tests.zmq]c_local_thr.exe
 $ c_zremote_lat :== $zmqRoot:[perf.tests.zmq]c_remote_lat.exe
 $ c_zremote_thr :== $zmqRoot:[perf.tests.zmq]c_remote_thr.exe
 $!
-$! ZMQ tests - the Fortran version
-$! For running Fortran examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
+$! ZMQ tests - the Fortran versions
+$! When running Fortran examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
 $!
 $ f_zlocal_lat  :== $zmqRoot:[perf.tests.zmq]f_local_lat.exe
 $ f_zremote_lat :== $zmqRoot:[perf.tests.zmq]f_remote_lat.exe
 $!
-$! ZMQ tests - the Cobol version
-$! For running Cobol examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
+$!
+$! ZMQ tests - the COBOL versions
+$! When running COBOL examples: define vmszmq zmqroot:[libvmszmq]vmszmq.exe
 $!
 $ cob_zlocal_lat  :== $zmqRoot:[perf.tests.zmq]cob_local_lat.exe
 $ cob_zremote_lat :== $zmqRoot:[perf.tests.zmq]cob_remote_lat.exe
 $!
-$!
 $! Go to where it all happens...
 $!
-$ set default zmqbase		! Go to base level home directory
+$ set default zmqbase           ! Go to base level home directory
 $ Exit
 $!
 $ setUPODS5: SUBROUTINE
@@ -176,4 +186,4 @@ $ DEFINE/JOB/NOLOG  JAVA$FILE_OPEN_MODE 3
 $ DEFINE/JOB/NOLOG  JAVA$CACHING_INTERVAL 60
 $ DEFINE/JOB/NOLOG  JAVA$CACHING_DIRECTORY TRUE
 $!
-$ ENDSSUBROUTINE	! endsetUPODS5
+$ ENDSSUBROUTINE        ! endsetUPODS5
