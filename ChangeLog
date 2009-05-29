@@ -1,3 +1,10 @@
+Version 0.6.1
+
+ZMQ-254: Race condition in pipe_t::writer_terminated
+ZMQ-255: Python perf tests broken
+ZMQ-257: pgm build fails: various declared errors
+ZMQ-259: Ruby extension for libzmq
+
 Version 0.6
 
 ZMQ-73: Redesign MT throughput test
