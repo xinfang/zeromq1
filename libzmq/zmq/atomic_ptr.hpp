@@ -111,7 +111,7 @@ namespace zmq
             ptr = val_;
             sync.unlock ();
             return old;
-#elif
+#else
 #error
 #endif
         }
@@ -151,7 +151,7 @@ namespace zmq
                 ptr = val_;
             sync.unlock ();
             return old;
-#elif
+#else
 #error
 #endif
         }
