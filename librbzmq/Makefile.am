@@ -1,6 +1,7 @@
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/libzmq -I$(top_builddir)/libzmq
 
-lib_LTLIBRARIES = librbzmq.la
+rblib_LTLIBRARIES = librbzmq.la
+rblibdir = @RUBYDIR@
 
 librbzmq_la_SOURCES = zmq.cpp
 

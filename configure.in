@@ -346,6 +346,8 @@ AC_ARG_WITH([clrdir], [AS_HELP_STRING([--with-clrdir],
 
 if test "$clrdir" = "_default_"; then
     clrdir=$libdir/clrzmq
+else
+    clrdir=$libdir/$clrdir
 fi
 
 CLRDIR="$clrdir"
@@ -380,6 +382,19 @@ if test "x$with_ruby" != "xno"; then
    
     rbzmq="yes"
 fi
+
+AC_ARG_WITH([rubydir], [AS_HELP_STRING([--with-rubydir],
+    [librbzmq install dir [default=EPREFIX/lib]])],
+    [rubydir="$withval"], [rubydir="_default_"])
+
+if test "$rubydir" = "_default_"; then
+    rubydir=$libdir
+else
+    rubydir=$libdir/$rubydir
+fi
+
+RUBYDIR="$rubydir"
+AC_SUBST([RUBYDIR])
 
 #  zmq_server
 zmq_server="yes"
@@ -595,10 +610,13 @@ AC_MSG_RESULT([])
 AC_MSG_RESULT([   C language binding: $czmq])
 AC_MSG_RESULT([   Python language binding: $pyzmq])
 AC_MSG_RESULT([   Ruby language binding: $rbzmq])
+if test "x$rbzmq" = "xyes"; then
+AC_MSG_RESULT([   Ruby library install dir: $rubydir])
+fi
 AC_MSG_RESULT([   Java language binding: $jzmq])
 AC_MSG_RESULT([   CLR binding: $clrzmq])
 if test "x$clrzmq" = "xyes"; then
-AC_MSG_RESULT([   CLR ldd install dir: $clrdir])
+AC_MSG_RESULT([   CLR library install dir: $clrdir])
 fi
 AC_MSG_RESULT([])
 
