@@ -19,8 +19,8 @@
 
 #include <zmq/tcp_socket.hpp>
 
+#include <assert.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <zmq/platform.hpp>
 #ifdef ZMQ_HAVE_WINDOWS
@@ -48,12 +48,14 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     reopen ();
 }
 
-zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
-    s (fd_),
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
+    s (retired_fd),
     hostname (""),
     block (block_)
 {
-    wsa_assert (s != retired_fd);
+    //  Accept the socket.
+    s = listener.accept ();
+    wsa_assert (s != INVALID_SOCKET);
  
     //  Set socket properties to non-blocking mode. 
     if (! block) {
@@ -67,6 +69,13 @@ zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
+
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+#endif
 }
 
 zmq::tcp_socket_t::~tcp_socket_t ()
@@ -77,7 +86,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 void zmq::tcp_socket_t::close ()
 {
-    zmq_assert (s != retired_fd);
+    assert (s != retired_fd);
     int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
     s = retired_fd;
@@ -85,8 +94,8 @@ void zmq::tcp_socket_t::close ()
 
 void zmq::tcp_socket_t::reopen ()
 {
-    zmq_assert (s == retired_fd);
-    zmq_assert (hostname != "");
+    assert (s == retired_fd);
+    assert (hostname != "");
 
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -109,18 +118,19 @@ void zmq::tcp_socket_t::reopen ()
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+#endif
+
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
+    if (block)
+        wsa_assert (rc != SOCKET_ERROR);
 
-    //  Blocking socket is used only for communication with zmq_server.
-    //  Thus it's failure is always a failure to connect to zmq_server.
-    if (block && rc == SOCKET_ERROR) {
-        fprintf (stderr, "Cannot connect to zmq_server at %s.\n",
-            hostname.c_str ());\
-        wsa_assert (false);
-    }
-
-    if (!(rc == 0 || (rc == SOCKET_ERROR &&
+    if (!(rc == 0 || (rc == -1 &&
           (WSAGetLastError () == WSAEINPROGRESS ||
           WSAGetLastError () == WSAEWOULDBLOCK)))) {
         close ();
@@ -159,8 +169,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
     if (nbytes == -1 && (
           WSAGetLastError () == WSAECONNRESET ||
           WSAGetLastError () == WSAECONNREFUSED ||
-          WSAGetLastError () == WSAENOTCONN ||
-		  WSAGetLastError () == WSAECONNABORTED))
+          WSAGetLastError () == WSAENOTCONN))
         return -1;
 
     wsa_assert (nbytes != SOCKET_ERROR);
@@ -193,12 +202,12 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     reopen ();
 }
 
-zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
-    s (fd_),
+zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
     hostname (""),
     block (block_)
 {
-    assert (s != retired_fd);
+    //  Accept the socket.
+    s = listener.accept ();
     
     if (! block) {
 
@@ -225,7 +234,7 @@ zmq::tcp_socket_t::~tcp_socket_t ()
 
 void zmq::tcp_socket_t::close ()
 {
-    zmq_assert (s != retired_fd);
+    assert (s != retired_fd);
     int rc = ::close (s);
     errno_assert (rc == 0);
     s = retired_fd;
@@ -233,8 +242,8 @@ void zmq::tcp_socket_t::close ()
 
 void zmq::tcp_socket_t::reopen ()
 {
-    zmq_assert (s == retired_fd);
-    zmq_assert (hostname != "");
+    assert (s == retired_fd);
+    assert (hostname != "");
 
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -260,23 +269,10 @@ void zmq::tcp_socket_t::reopen ()
         sizeof (int));
     errno_assert (rc == 0);
 
-#ifdef ZMQ_HAVE_OPENVMS
-    //  Disable delayed acknowledgements.
-    flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
-    errno_assert (rc == 0);
-#endif
-
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
-
-    //  Blocking socket is used only for communication with zmq_server.
-    //  Thus it's failure is always a failure to connect to zmq_server.
-    if (block && rc != 0) {
-        fprintf (stderr, "Cannot connect to zmq_server at %s.\n",
-            hostname.c_str ());\
-        errno_assert (false);
-    }
+    if (block)
+        errno_assert (rc == 0);
 
     if (!(rc == 0 || (rc == -1 && errno == EINPROGRESS)))
         close ();
@@ -288,8 +284,7 @@ int zmq::tcp_socket_t::write (const void *data, int size)
 
     //  If not a single byte can be written to the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative write).
-    if (nbytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
-          errno == EINTR))
+    if (nbytes == -1 && (errno == EAGAIN || errno == EINTR))
         return 0;
 
     //  Signalise peer failure.
@@ -306,8 +301,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
 
     //  If not a single byte can be read from the socket in non-blocking mode
     //  we'll get an error (this may happen during the speculative read).
-    if (nbytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
-          errno == EINTR))
+    if (nbytes == -1 && (errno == EAGAIN || errno == EINTR))
         return 0;
 
     //  Signalise peer failure.
@@ -332,7 +326,7 @@ bool zmq::tcp_socket_t::socket_error ()
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
     if (rc == -1)
         err = errno;
-    zmq_assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
+    assert (err == 0 || err == ECONNREFUSED || err == ETIMEDOUT ||
         err == ECONNRESET || err == EADDRNOTAVAIL || err == EHOSTUNREACH);
     return err != 0;
 }

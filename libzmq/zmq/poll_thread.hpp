@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_POLL_HPP_INCLUDED__
-#define __ZMQ_POLL_HPP_INCLUDED__
+#ifndef __ZMQ_POLL_THREAD_HPP_INCLUDED__
+#define __ZMQ_POLL_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -27,49 +27,36 @@
     defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO ||\
     defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_AIX
 
-#include <algorithm>
 #include <poll.h>
 #include <stddef.h>
 #include <vector>
 
-#include <zmq/i_poller.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/thread.hpp>
 
 namespace zmq
 {
 
     //  Implements socket polling mechanism using the POSIX.1-2001
-    //  poll() system call.
+    //  poll() system call. The class is used when instatntiating the poller
+    //  template to generate the poll_thread_t class.
 
-    class poll_t : public i_poller
+    class poll_t
     {
     public:
 
         poll_t ();
         virtual ~poll_t () {}
 
-        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        void add_timer (i_pollable *engine_);
-        void cancel_timer (i_pollable *engine_);
-        void start ();
-        void initialise_shutdown ();
-        void terminate_shutdown ();
+        bool process_events (poller_t <poll_t> *poller_, bool timers_);
 
     private:
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main event loop.
-        void loop ();
 
         struct fd_entry_t
         {
@@ -87,19 +74,11 @@ namespace zmq
         //  If true, there's at least one retired event source.
         bool retired;
 
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
-
-        //  If true, thread is in the process of shutting down.
-        bool stopping;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
-
         poll_t (const poll_t&);
         void operator = (const poll_t&);
     };
+
+    typedef poller_t <poll_t> poll_thread_t;
 
 }
 

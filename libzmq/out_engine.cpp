@@ -18,29 +18,21 @@
 */
 
 #include <zmq/out_engine.hpp>
-#include <zmq/err.hpp>
 
-zmq::out_engine_t *zmq::out_engine_t::create (i_demux *demux_)
+zmq::out_engine_t *zmq::out_engine_t::create (bool load_balancing_)
 {
-    out_engine_t *instance = new out_engine_t (demux_);
-    zmq_assert (instance);
+    out_engine_t *instance = new out_engine_t (load_balancing_);
+    assert (instance);
     return instance;
 }
 
-zmq::out_engine_t::out_engine_t (i_demux *demux_) :
-    demux (demux_)
+zmq::out_engine_t::out_engine_t (bool load_balancing_) :
+    engine_base_t <true, false> (load_balancing_)
 {
-    zmq_assert (demux);
 }
 
 zmq::out_engine_t::~out_engine_t ()
 {
-    delete demux;
-}
-
-void zmq::out_engine_t::start (i_thread *, i_thread *)
-{
-    demux->register_producer (this);
 }
 
 bool zmq::out_engine_t::write (message_t &msg_)
@@ -53,27 +45,13 @@ void zmq::out_engine_t::flush ()
     demux->flush ();
 }
 
-zmq::i_demux *zmq::out_engine_t::get_demux ()
+void zmq::out_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    return demux;
+    *hwm_ = 0;
+    *lwm_ = 0;
 }
 
-zmq::i_mux *zmq::out_engine_t::get_mux ()
+int64_t zmq::out_engine_t::get_swap_size ()
 {
-    zmq_assert (false);
-    return NULL;
-}
-
-const char *zmq::out_engine_t::get_arguments ()
-{
-    zmq_assert (false);
-    return NULL;
-}
-
-void zmq::out_engine_t::head ()
-{
-}
-
-void zmq::out_engine_t::send_to ()
-{
+    return 0;
 }

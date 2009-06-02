@@ -61,12 +61,10 @@ namespace perf
                 //  initiated by the other party.
 
                 //  Create listening socket.
-                tcp_listener = new zmq::tcp_listener_t (iface_or_host_, true);
+                tcp_listener = new zmq::tcp_listener_t (iface_or_host_);
 
                 //  Wait for and accept first incoming connection.
-                tcp_socket = new zmq::tcp_socket_t (tcp_listener->accept (),
-                    true);
-
+                tcp_socket = new zmq::tcp_socket_t (*tcp_listener, true);
             } else {
 
                 //  If 'listen' flag is not set, object actively creates

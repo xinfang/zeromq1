@@ -24,6 +24,7 @@
 #include <zmq/formatting.hpp>
 #include <zmq/fd.hpp>
 
+#include <assert.h>
 #include <string.h>
 #include <string>
 #include <sstream>
@@ -37,12 +38,11 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <fcntl.h>
 #endif
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -51,13 +51,6 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
     //  Create a listening socket.
     s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     wsa_assert (s != INVALID_SOCKET);
-
-    //  Set non-blocking flag.
-    if (!block_) {
-        u_long flag = 1;
-        int rc = ioctlsocket (s, FIONBIO, &flag);
-        wsa_assert (rc != SOCKET_ERROR);
-    }
 
     //  Allow reusing of the address.
     int flag = 1;
@@ -110,18 +103,13 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     fd_t sock = ::accept (s, NULL, NULL);
-
-    if (sock == INVALID_SOCKET && (WSAGetLastError () == WSAEWOULDBLOCK ||
-          WSAGetLastError () == WSAECONNRESET))
-        return retired_fd;
-
     wsa_assert (sock != INVALID_SOCKET);
     return sock;
 }
 
 void zmq::tcp_listener_t::close ()
 {
-    zmq_assert (s != retired_fd);
+    assert (s != retired_fd);
     int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
     s = retired_fd;
@@ -129,7 +117,7 @@ void zmq::tcp_listener_t::close ()
 
 #else
 
-zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -143,15 +131,6 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
     int flag = 1;
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
-
-    //  Set non-blocking flag.
-    if (! block_) {
-        flag = fcntl (s, F_GETFL, 0);
-        if (flag == -1) 
-            flag = 0;
-        rc = fcntl (s, F_SETFL, flag | O_NONBLOCK);
-        errno_assert (rc != -1);
-    }
 
     //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
@@ -174,12 +153,12 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block_)
     size_t isz;
     if (ip_address.sin_addr.s_addr == htonl (INADDR_ANY)) {
         rc = gethostname (iface, sizeof (iface));
-        zmq_assert (rc == 0);
+        assert (rc == 0);
         isz = strlen (iface);
     }
     else {
         rcp = inet_ntop (AF_INET, &ip_address.sin_addr, iface, sizeof (iface));
-        errno_assert (rcp);
+        assert (rcp);
         isz = strlen (iface);
     }
     zmq_snprintf (iface + isz, sizeof (iface) - isz, ":%d",
@@ -199,46 +178,13 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     fd_t sock = ::accept (s, NULL, NULL);
-
-#if (defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || \
-     defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_OSX || \
-     defined ZMQ_HAVE_OPENVMS)
-
-    if (sock == -1 && 
-        (errno == EAGAIN || errno == EWOULDBLOCK || 
-         errno == EINTR || errno == ECONNABORTED))
-        return retired_fd;
-
-#elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_AIX)
-
-    if (sock == -1 && 
-        (errno == EWOULDBLOCK || errno == EINTR || 
-         errno == ECONNABORTED || errno == EPROTO))
-        return retired_fd;
-
-#elif defined ZMQ_HAVE_HPUX
-
-    if (sock == -1 && 
-        (errno == EAGAIN || errno == EWOULDBLOCK || 
-         errno == EINTR || errno == ECONNABORTED || errno == ENOBUFS))
-        return retired_fd;
-
-#elif defined ZMQ_HAVE_QNXNTO 
-
-    if (sock == -1 && 
-        (errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED))
-        return retired_fd;
-
-#endif
-
-
     errno_assert (sock != -1); 
     return sock;
 }
 
 void zmq::tcp_listener_t::close ()
 {
-    zmq_assert (s != retired_fd);
+    assert (s != retired_fd);
     int rc = ::close (s);
     errno_assert (rc == 0);
     s = retired_fd;

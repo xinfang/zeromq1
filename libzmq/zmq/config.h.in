@@ -67,6 +67,9 @@
 /* Define to 1 if you have the `perror' function. */
 #undef HAVE_PERROR
 
+/* Define to 1 if you have the <pgm/pgm.h> header file. */
+#undef HAVE_PGM_PGM_H
+
 /* Define to 1 if you have the <ruby.h> header file. */
 #undef HAVE_RUBY_H
 

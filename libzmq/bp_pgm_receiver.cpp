@@ -21,11 +21,9 @@
 
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
-#include <string>
-
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/wire.hpp>
-#include <zmq/err.hpp>
+#include <string>
 
 //#define PGM_RECEIVER_DEBUG
 //#define PGM_RECEIVER_DEBUG_LEVEL 0
@@ -41,16 +39,14 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_demux *demux_, 
-      const char *network_, size_t readbuf_size_, const char *arguments_) :
-    demux (demux_),
+zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
+      i_thread *thread_, const char *network_, size_t readbuf_size_, 
+      const char *arguments_) :
     joined (false),
     shutting_down (false),
     decoder (demux),
     pgm_socket (NULL)
 {
-    zmq_assert (demux);
-
     //  If UDP encapsulation is used network_ parameter contain 
     //  "udp:mcast_address:port". Interface name is comming from bind api
     //  argument in arguments_ variable. 
@@ -80,6 +76,11 @@ zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_demux *demux_,
 
     //  Create epgm_socket object
     pgm_socket = new pgm_socket_t (true, network.c_str (), readbuf_size_);
+
+    //  Register PGM engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
@@ -88,26 +89,20 @@ zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
     delete pgm_socket;
 }
 
-void zmq::bp_pgm_receiver_t::start (i_thread *current_thread_,
-    i_thread *engine_thread_)
+zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
 {
-    demux->register_producer (this);
-
-    //  Register PGM engine with the I/O thread.
-    command_t command;
-    command.init_register_pollable (this);
-    current_thread_->send_command (engine_thread_, command);
+    return this;
 }
 
-zmq::i_demux *zmq::bp_pgm_receiver_t::get_demux ()
+void zmq::bp_pgm_receiver_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    return demux;
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
 }
 
-class zmq::i_mux *zmq::bp_pgm_receiver_t::get_mux ()
+int64_t zmq::bp_pgm_receiver_t::get_swap_size ()
 {
-    zmq_assert (false);
-    return NULL;
+    return 0;
 }
 
 void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
@@ -196,13 +191,13 @@ void zmq::bp_pgm_receiver_t::in_event ()
 
 void zmq::bp_pgm_receiver_t::out_event ()
 {
-    zmq_assert (false);
+    assert (false);
 }
 
 void zmq::bp_pgm_receiver_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    zmq_assert (false);
+    assert (false);
 }
 
 void zmq::bp_pgm_receiver_t::unregister_event ()
@@ -210,7 +205,7 @@ void zmq::bp_pgm_receiver_t::unregister_event ()
     // TODO: Implement this. For now we just ignore the event.
 }
 
-void zmq::bp_pgm_receiver_t::send_to ()
+void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
@@ -219,16 +214,9 @@ void zmq::bp_pgm_receiver_t::send_to ()
         poller->set_pollin (socket_handle);
         poller->set_pollin (pipe_handle);      
     }
-}
 
-const char *zmq::bp_pgm_receiver_t::get_arguments ()
-{
-    zmq_assert (false);
-    return NULL;
-}
-
-void zmq::bp_pgm_receiver_t::head ()
-{
+    //  Start sending messages to a pipe.
+    engine_base_t <true, false>::send_to (pipe_);
 }
 
 ssize_t zmq::bp_pgm_receiver_t::receive_with_offset 

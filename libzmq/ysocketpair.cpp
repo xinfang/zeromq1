@@ -20,7 +20,6 @@
 #include <zmq/platform.hpp>
 #include <zmq/ysocketpair.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/err.hpp>
 
 #if defined (ZMQ_HAVE_OPENVMS)
 #include <netinet/tcp.h>
@@ -50,7 +49,7 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    zmq_assert (signal_ >= 0 && signal_ < 32);
+    assert (signal_ >= 0 && signal_ < 32);
     uint64_t inc = 1;
     inc <<= signal_;
     ssize_t sz = write (fd, &inc, sizeof (uint64_t));
@@ -61,8 +60,7 @@ uint32_t zmq::ysocketpair_t::check ()
 {
     uint64_t val;
     ssize_t sz = read (fd, &val, sizeof (uint64_t));
-    if (sz == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
-          errno == EINTR))
+    if (sz == -1 && errno == EAGAIN)
         return 0;
     errno_assert (sz != -1);
     return (uint32_t) val;
@@ -128,7 +126,7 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    zmq_assert (signal_ >= 0 && signal_ < 31);
+    assert (signal_ >= 0 && signal_ < 31);
     char c = (char) signal_;
     int rc = send (w, &c, 1, 0);
     win_assert (rc != SOCKET_ERROR);
@@ -142,7 +140,7 @@ uint32_t zmq::ysocketpair_t::check ()
 
     uint32_t signals = 0;
     for (int pos = 0; pos != nbytes; pos++) {
-        zmq_assert (buffer [pos] < 31);
+        assert (buffer [pos] < 31);
         signals |= (1 << (buffer [pos]));
     }
     return signals;
@@ -179,7 +177,7 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    zmq_assert (signal_ >= 0 && signal_ < 31);
+    assert (signal_ >= 0 && signal_ < 31);
     unsigned char c = (unsigned char) signal_;
     ssize_t nbytes = send (w, &c, 1, 0);
     errno_assert (nbytes == 1);
@@ -192,7 +190,7 @@ uint32_t zmq::ysocketpair_t::check ()
     errno_assert (nbytes != -1);
     uint32_t signals = 0;
     for (int pos = 0; pos != nbytes; pos ++) {
-        zmq_assert (buffer [pos] < 31);
+        assert (buffer [pos] < 31);
         signals |= (1 << (buffer [pos]));
     }
     return signals;
@@ -217,7 +215,7 @@ int zmq::ysocketpair_t::socketpair (int domain_, int type_, int protocol_,
     int rc;
     int on = 1;
 
-    zmq_assert (type_ == SOCK_STREAM);
+    assert (type_ == SOCK_STREAM);
 
     //  Fill in the localhost address (127.0.0.1).
     memset (&lcladdr, 0, sizeof (lcladdr));

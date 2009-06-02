@@ -33,15 +33,16 @@ namespace zmq
     public:
 
         static i_engine *create_listener (
-            const char *name_, bool sender_, const char *location_,
-            i_thread *calling_thread_, i_thread *engine_thread_,
-            int handler_thread_count_, i_thread **handler_threads_,
-            i_thread *peer_thread_, i_engine *peer_engine_);
+            i_thread *calling_thread_, i_thread *thread_,
+            const char *location_, int handler_thread_count_,
+            i_thread **handler_threads_, bool source_,
+            i_thread *peer_thread_, i_engine *peer_engine_,
+            const char *peer_name_);
 
-        static i_engine *create (
-            const char *name_, bool sender_,
-            const char *location_, const char *options_,
-            i_thread *calling_thread_, i_thread *engine_thread_);
+        static i_engine *create_engine (
+            i_thread *calling_thread_, i_thread *thread_,
+            const char *location_, const char *local_object_,
+            const char *engine_options_);
     };
 
 }

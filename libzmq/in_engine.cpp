@@ -18,59 +18,39 @@
 */
 
 #include <zmq/in_engine.hpp>
-#include <zmq/err.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/mux.hpp>
 
-zmq::in_engine_t *zmq::in_engine_t::create (mux_t *mux_)
+zmq::in_engine_t *zmq::in_engine_t::create (int64_t hwm_, int64_t lwm_,
+    uint64_t swap_size_)
 {
-    in_engine_t *instance = new in_engine_t (mux_);
-    zmq_assert (instance);
+    in_engine_t *instance = new in_engine_t (hwm_, lwm_, swap_size_);
+    assert (instance);
     return instance;
 }
 
-zmq::in_engine_t::in_engine_t (mux_t *mux_) :
-    mux (mux_)
+zmq::in_engine_t::in_engine_t (int64_t hwm_, int64_t lwm_,
+      int64_t swap_size_) :
+    hwm (hwm_),
+    lwm (lwm_),
+    swap_size (swap_size_)
 {
-    zmq_assert (mux);
 }
 
 zmq::in_engine_t::~in_engine_t ()
 {
-    delete mux;
-}
-
-void zmq::in_engine_t::start (i_thread *, i_thread *)
-{
-    mux->register_consumer (this);
 }
 
 bool zmq::in_engine_t::read (message_t *msg_)
 {
-    return mux->read (msg_);
+    return mux.read (msg_);
 }
 
-zmq::i_demux *zmq::in_engine_t::get_demux ()
+void zmq::in_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    zmq_assert (false);
-    return NULL;
+    *hwm_ = hwm;
+    *lwm_ = lwm;
 }
 
-zmq::i_mux *zmq::in_engine_t::get_mux ()
+int64_t zmq::in_engine_t::get_swap_size ()
 {
-    return mux;
-}
-
-const char *zmq::in_engine_t::get_arguments ()
-{
-    zmq_assert (false);
-    return NULL;
-}
-
-void zmq::in_engine_t::revive ()
-{
-}
-
-void zmq::in_engine_t::receive_from ()
-{
+    return swap_size;
 }

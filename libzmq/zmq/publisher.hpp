@@ -17,25 +17,42 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_I_PRODUCER_HPP_INCLUDED__
-#define __ZMQ_I_PRODUCER_HPP_INCLUDED__
+#ifndef __ZMQ_PUBLISHER_HPP_INCLUDED__
+#define __ZMQ_PUBLISHER_HPP_INCLUDED__
+
+#include <vector>
+
+#include <zmq/i_demux.hpp>
 
 namespace zmq
 {
 
-    //  Interface to be implemented by message producers that
-    //  use the i_demux interface to send messages.
-    class i_producer
+    //  Object to distribute messages to outbound pipes.
+
+    class publisher_t : public i_demux
     {
     public:
 
-        virtual ~i_producer () {};
+        publisher_t ();
 
-        //  Notify the message producer it can try and resume sending messages.
-        virtual void head () = 0;
+        //  i_demux interface implementation.
+        ~publisher_t ();
+        void send_to (pipe_t *pipe_);
+        bool write (message_t &msg_);
+        void flush ();
+        void gap ();
+        bool empty ();
+        void release_pipe (pipe_t *pipe_);
+        void initialise_shutdown ();
 
-        //  Notify the message producer a new pipe was attached to its demux.
-        virtual void send_to () = 0;
+    private:
+
+        //  The list of outbound pipes.
+        typedef std::vector <pipe_t*> pipes_t;
+        pipes_t pipes;
+
+        publisher_t (const publisher_t&);
+        void operator = (const publisher_t&);
     };
 
 }

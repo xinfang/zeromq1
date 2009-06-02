@@ -30,13 +30,11 @@
 #include <poll.h>
 
 #include <zmq/err.hpp>
-#include <zmq/poll.hpp>
+#include <zmq/poll_thread.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/config.hpp>
 
 zmq::poll_t::poll_t () :
-    retired (false),
-    stopping (false)
+    retired (false)
 {
     //  Get the limit on open file descriptors. Resize fds so that it
     //  can hold all descriptors.
@@ -53,7 +51,7 @@ zmq::handle_t zmq::poll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     pollfd pfd = {fd_, 0, 0};
     pollset.push_back (pfd);
-    zmq_assert (fd_table [fd_].index == retired_fd);
+    assert (fd_table [fd_].index == retired_fd);
 
     fd_table [fd_].index = pollset.size() - 1;
     fd_table [fd_].engine = engine_;
@@ -66,7 +64,7 @@ zmq::handle_t zmq::poll_t::add_fd (fd_t fd_, i_pollable *engine_)
 void zmq::poll_t::rm_fd (handle_t handle_)
 {
     fd_t index = fd_table [handle_.fd].index;
-    zmq_assert (index != retired_fd);
+    assert (index != retired_fd);
 
     //  Mark the fd as unused.
     pollset [index].fd = retired_fd;
@@ -98,103 +96,64 @@ void zmq::poll_t::reset_pollout (handle_t handle_)
     pollset [index].events &= ~((short) POLLOUT);
 }
 
-void zmq::poll_t::add_timer (i_pollable *engine_)
+bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
 {
-     timers.push_back (engine_);
-}
-
-void zmq::poll_t::cancel_timer (i_pollable *engine_)
-{
-    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
-    if (it == timers.end ())
-        return;
-    timers.erase (it);
-}
-
-void zmq::poll_t::start ()
-{
-    worker.start (worker_routine, this);
-}
-
-void zmq::poll_t::initialise_shutdown ()
-{
-    stopping = true;
-}
-
-void zmq::poll_t::terminate_shutdown ()
-{
-    worker.stop ();
-}
-
-void zmq::poll_t::loop ()
-{
-    while (!stopping) {
-
-        //  Wait for events.
-        int rc;
-        while (true) {
-            rc = poll (&pollset [0], pollset.size (),
-                timers.empty () ? -1 : max_timer_period);
-            if (!(rc == -1 && errno == EINTR)) {
-                errno_assert (rc != -1);
-                break;
-            }
-        }
-
-        //  Handle timer expiration.
-        if (!rc) {
-
-            //  Use local list of timers as timer handlers may fill new timers
-            //  into the original array.
-            timers_t t;
-            std::swap (timers, t);
-
-            //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-                (*it)->timer_event ();
-
-            return;
-        }
-
-        for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
-
-            zmq_assert (!(pollset [i].revents & POLLNVAL));
-            fd_t fd = pollset [i].fd;
-            i_pollable *engine = fd_table [fd].engine;
-
-            if (pollset [i].fd == retired_fd)
-                continue;
-            if (pollset [i].revents & (POLLERR | POLLHUP))
-                engine->in_event ();
-            if (pollset [i].fd == retired_fd)
-                continue;
-            if (pollset [i].revents & POLLOUT)
-                engine->out_event ();
-            if (pollset [i].fd == retired_fd)
-                continue;
-            if (pollset [i].revents & POLLIN)
-                engine->in_event ();
-        }
-
-        //  Clean up the pollset and update the fd_table accordingly.
-        if (retired) {
-            pollset_t::size_type i = 0;
-            while (i < pollset.size ()) {
-                if (pollset [i].fd == retired_fd)
-                    pollset.erase (pollset.begin () + i);
-                else {
-                    fd_table [pollset [i].fd].index = i;
-                    i++;
-                }
-            }
-            retired = false;
+    //  Wait for events.
+    int rc;
+    while (true) {
+        rc = poll (&pollset [0], pollset.size (),
+            timers_ ? max_timer_period : -1);
+        if (!(rc == -1 && errno == EINTR)) {
+            errno_assert (rc != -1);
+            break;
         }
     }
-}
 
-void zmq::poll_t::worker_routine (void *arg_)
-{
-    ((poll_t*) arg_)->loop ();
+    //  Handle timer.
+    if (!rc) {
+        poller_->timer_event ();
+        return false;
+    }
+
+    for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
+        assert (!(pollset [i].revents & POLLNVAL));
+
+        fd_t fd = pollset [i].fd;
+        i_pollable *engine = fd_table [fd].engine;
+
+        if (pollset [i].fd == retired_fd)
+           continue;
+        if (pollset [i].revents & (POLLERR | POLLHUP))
+            if (poller_->process_event (engine, event_err))
+                return true;
+        if (pollset [i].fd == retired_fd)
+           continue;
+        if (pollset [i].revents & POLLOUT)
+            if (poller_->process_event (engine, event_out))
+                return true;
+        if (pollset [i].fd == retired_fd)
+           continue;
+        if (pollset [i].revents & POLLIN)
+            if (poller_->process_event (engine, event_in))
+                return true;
+    }
+
+    //  Clean up the pollset and update the fd_table accordingly.
+    if (retired) {
+        pollset_t::size_type i = 0;
+        while (i < pollset.size ()) {
+            if (pollset [i].fd == retired_fd)
+                pollset.erase (pollset.begin () + i);
+            else {
+                fd_table [pollset [i].fd].index = i;
+                i ++;
+            }
+        }
+
+        retired = false;
+    }
+
+    return false;
 }
 
 #endif

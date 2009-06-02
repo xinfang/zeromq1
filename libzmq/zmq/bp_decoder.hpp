@@ -21,7 +21,7 @@
 #ifndef __ZMQ_BP_DECODER_HPP_INCLUDED__
 #define __ZMQ_BP_DECODER_HPP_INCLUDED__
 
-#include <zmq/i_destination.hpp>
+#include <zmq/i_demux.hpp>
 #include <zmq/decoder.hpp>
 
 namespace zmq
@@ -32,7 +32,7 @@ namespace zmq
     {
     public:
 
-        bp_decoder_t (i_destination *destination_);
+        bp_decoder_t (i_demux *demux_);
 
         //  Clears any partially decoded messages.
         void reset ();
@@ -43,7 +43,7 @@ namespace zmq
         bool eight_byte_size_ready ();
         bool message_ready ();
 
-        i_destination *destination;
+        i_demux *demux;
         unsigned char tmpbuf [8];
         message_t message;
 

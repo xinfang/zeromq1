@@ -26,13 +26,10 @@
 #include <zmq/amqp_client.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/config.hpp>
-#include <zmq/err.hpp>
 
-zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_, 
-      const char *hostname_,
-      const char *local_object_, const char *arguments_) :
-    mux (mux_),
-    demux (demux_),
+zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *hostname_, const char *local_object_,
+      const char *arguments_) :
     state (state_connecting),
     writebuf_size (bp_out_batch_size),
     write_size (0),
@@ -42,35 +39,24 @@ zmq::amqp_client_t::amqp_client_t (mux_t *mux_, i_demux *demux_,
     read_pos (0),
     socket (hostname_),
     poller (NULL),
-    local_object (local_object_)
+    local_object (local_object_),
+    arguments (arguments_)
 {
-    zmq_assert (mux);
-    zmq_assert (demux);
-
     //  Allocate read and write buffers.
-    writebuf = new unsigned char[writebuf_size];
-    zmq_assert (writebuf);
-    readbuf = new unsigned char[readbuf_size];
-    zmq_assert (readbuf);
+    writebuf = (unsigned char*) malloc (writebuf_size);
+    errno_assert (writebuf);
+    readbuf = (unsigned char*) malloc (readbuf_size);
+    errno_assert (readbuf);
 
     decoder = new amqp_decoder_t (demux, this);
-    zmq_assert (decoder);
+    errno_assert (decoder);
+    encoder = new amqp_encoder_t (&mux, arguments_);
+    errno_assert (encoder);
 
-    // Parse the configuration string.
-    config = XMLNode::parseString (arguments_);
-    assert (!config.isEmpty ());
-    assert (strcmp (config.getName (), "connection") == 0);
-
-    //  Get exchange and routing key attributes from XML.
-    const char *exchange = config.getAttribute ("exchange");
-    zmq_assert (exchange);
-
-    const char *routing_key = config.getAttribute ("routing-key");
-    zmq_assert (routing_key);
-    
-    //  Create AMQP encoder.
-    encoder = new amqp_encoder_t (mux, exchange, routing_key);
-    zmq_assert (encoder);
+    //  Register AMQP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::amqp_client_t::~amqp_client_t ()
@@ -78,35 +64,33 @@ zmq::amqp_client_t::~amqp_client_t ()
     delete encoder;
     delete decoder;
 
-    delete readbuf;
-    delete writebuf;
+    free (readbuf);
+    free (writebuf);
 }
 
-void zmq::amqp_client_t::start (i_thread *current_thread_,
-    i_thread *engine_thread_)
+zmq::i_pollable *zmq::amqp_client_t::cast_to_pollable ()
 {
-    mux->register_consumer (this);
-    demux->register_producer (this);
-
-    //  Register AMQP engine with the I/O thread.
-    command_t command;
-    command.init_register_pollable (this);
-    current_thread_->send_command (engine_thread_, command);
+    return this;
 }
 
-zmq::i_demux *zmq::amqp_client_t::get_demux ()
+void zmq::amqp_client_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    return demux;
+    //  TODO: Rename bp_hwm & bp_lwm to generic "connection_hwm" &
+    //  "connection_lwm" it is not tied strictly to the backend protocol.
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
 }
 
-zmq::i_mux *zmq::amqp_client_t::get_mux ()
+int64_t zmq::amqp_client_t::get_swap_size ()
 {
-    return mux;
+    return 0;
 }
 
-void zmq::amqp_client_t::revive ()
+void zmq::amqp_client_t::revive (pipe_t *pipe_)
 {
     if (state != state_connecting && state != state_shutting_down) {
+
+        engine_base_t <true, true>::revive (pipe_);
 
         //  There is at least one engine that has messages ready. Try to
         //  write data to the socket, thus eliminating one polling
@@ -118,33 +102,42 @@ void zmq::amqp_client_t::revive ()
     }
 }
 
-void zmq::amqp_client_t::head ()
+void zmq::amqp_client_t::head (pipe_t *pipe_, int64_t position_)
 {
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {
+        engine_base_t <true, true>::head (pipe_, position_);
         in_event ();
     }
 }
 
-void zmq::amqp_client_t::send_to ()
+void zmq::amqp_client_t::send_to (pipe_t *pipe_)
 {
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
     if (state != state_shutting_down && demux->no_pipes ())
         poller->set_pollin (handle);
+
+    //  Start sending messages to a pipe.
+    engine_base_t <true, true>::send_to (pipe_);
 }
 
-void zmq::amqp_client_t::receive_from ()
+void zmq::amqp_client_t::receive_from (pipe_t *pipe_)
 {
-    if (state != state_connecting && state != state_shutting_down &&
-          state != state_waiting_for_reconnect)
+    //  Start receiving messages from a pipe.
+    engine_base_t <true, true>::receive_from (pipe_);
+
+    if (state == state_shutting_down)
+        pipe_->terminate_reader ();
+
+    if (state != state_connecting && state != state_shutting_down)
         poller->set_pollout (handle);
 }
 
 void zmq::amqp_client_t::register_event (i_poller *poller_)
 {
-    zmq_assert (state == state_connecting);
+    assert (state == state_connecting);
 
     //  Store the callback.
     poller = poller_;
@@ -161,7 +154,7 @@ void zmq::amqp_client_t::in_event ()
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
     if (state == state_connecting) {
-        zmq_assert (socket.socket_error ());
+        assert (socket.socket_error ());
         error ();
         return;
     }
@@ -264,7 +257,7 @@ void zmq::amqp_client_t::out_event ()
 
 void zmq::amqp_client_t::timer_event ()
 {
-    zmq_assert (state == state_waiting_for_reconnect);
+    assert (state == state_waiting_for_reconnect);
     reconnect ();
 }
 
@@ -287,27 +280,17 @@ void zmq::amqp_client_t::connection_start (
     const i_amqp::longstr_t /* mechanisms_ */,
     const i_amqp::longstr_t /* locales_ */)
 {
-    zmq_assert (channel_ == 0);
-    zmq_assert (state == state_waiting_for_connection_start);
+    assert (channel_ == 0);
+    assert (state == state_waiting_for_connection_start);
 
     //  Check the version info.
-    zmq_assert (version_major_ == 0);
-    zmq_assert (version_minor_ == 9);
+    assert (version_major_ == 0);
+    assert (version_minor_ == 9);
 
-    // Get the login and password from the configuration string.
-    const char *login = config.getAttribute ("login");
-    assert (login);
-    const char *password = config.getAttribute ("password");
-    assert (password);
-
-    // Compose the authentication string for SASL PLAIN mechanism.
-    std::string auth_info ("\x00", 1);
-    auth_info += login;
-    auth_info += std::string ("\x00", 1);
-    auth_info += password;
-
+    //  TODO: Security mechanisms and locales should be checked. Client should
+    //  use user-supplied login/password rather than hard-wired guest/guest.
     encoder->connection_start_ok (0, i_amqp::field_table_t (), "PLAIN",
-        i_amqp::longstr_t (auth_info.c_str (), auth_info.size ()), "en_US");
+        i_amqp::longstr_t ("\x00guest\x00guest", 12), "en_US");
 
     state = state_waiting_for_connection_tune;
 
@@ -321,19 +304,17 @@ void zmq::amqp_client_t::connection_tune (
     uint32_t /* frame_max_ */,
     uint16_t /* heartbeat_ */)
 {
-    zmq_assert (channel_ == 0);
-    zmq_assert (state == state_waiting_for_connection_tune);
+    assert (channel_ == 0);
+    assert (state == state_waiting_for_connection_tune);
 
     //  TODO: Frame size should be adjusted to match server's min size
     //  TODO: Heartbeats are not implemented at the moment
     encoder->connection_tune_ok (0, 1, i_amqp::frame_min_size, 0);
 
-    // Get the virtual host name from the config string.
-    const char *vhost = config.getAttribute ("vhost");
-    if (!vhost)
-        vhost = "/";
-    encoder->connection_open (0, vhost, "", true);
- 
+    //  TODO: Virtual host name should be suplied by client application 
+    //  rather than hardwired
+    encoder->connection_open (0, "/", "", true);
+    
     state = state_waiting_for_connection_open_ok;
 
     //  There are data to send - start polling for output.
@@ -344,10 +325,10 @@ void zmq::amqp_client_t::connection_open_ok (
     uint16_t channel_,
     const i_amqp::shortstr_t /* reserved_1_ */)
 {
-    zmq_assert (channel_ == 0);
-    zmq_assert (state == state_waiting_for_connection_open_ok);
+    assert (channel_ == 0);
+    assert (state == state_waiting_for_connection_open_ok);
 
-    encoder->channel_open (1, "");
+    encoder->channel_open (0, "");
 
     state = state_waiting_for_channel_open_ok;
 
@@ -359,69 +340,55 @@ void zmq::amqp_client_t::channel_open_ok (
     uint16_t channel_,
     const i_amqp::longstr_t /* reserved_1_ */)
 {
-    zmq_assert (state == state_waiting_for_channel_open_ok);
+    assert (state == state_waiting_for_channel_open_ok);
 
     //  Store the ID of the open channel.
     channel = channel_;
 
-    // Set up the wiring according to the configuration string.
-    int n = 0;
-    while (true) {
-        XMLNode node = config.getChildNode (n);
-        if (node.isEmpty ())
-            break;
-        const char *command = node.getName ();
-        assert (command);
-        if (std::string ("exchange") == command) {
-             const char *name = node.getAttribute ("name");
-             assert (name);
-             const char *type = node.getAttribute ("type");
-             assert (type);
-             i_amqp::field_table_t exchange_args;
-             encoder->exchange_declare (channel, 0, name, type, false, false,
-                 false, false, true, exchange_args);
-        }
-        else if (std::string ("queue") == command) {
-            const char *name = node.getAttribute ("name");
-            assert (name);
-            i_amqp::field_table_t queue_args;
-            encoder->queue_declare (channel, 0, name, false, false, false,
-                false, true, queue_args);
-        }
-        else if (std::string ("bind") == command) {
-            const char *exchange = node.getAttribute ("exchange");
-            assert (exchange);
-            const char *queue = node.getAttribute ("queue");
-            assert (queue);
-            const char *routing_key = node.getAttribute ("routing-key");
-            if (!routing_key)
-                routing_key = "";
-            i_amqp::field_table_t bind_args;
-            encoder->queue_bind (channel, 0, queue, exchange, routing_key,
-                true, bind_args);
-        }
-        else if (std::string ("consume") == command) {
-            const char *queue = node.getAttribute ("queue");
-            assert (queue);
-            i_amqp::field_table_t consume_args;
-            encoder->basic_consume (channel, 0, queue, "", true, true, false,
-                true, consume_args);
-        }
-        else
-            assert (false);
+    i_amqp::field_table_t queue_args;
+    encoder->queue_declare (channel, 0, arguments.c_str (),
+        false, false, false, false, false, queue_args);
 
+    state = state_waiting_for_queue_declare_ok;
 
-        n ++;
-    }
-    config = XMLNode::emptyNode ();
+    //  There are data to send - start polling for output.
+    poller->set_pollout (handle);
+}
 
-    //  Start the message flow.
+void zmq::amqp_client_t::queue_declare_ok (
+    uint16_t channel_,
+    const i_amqp::shortstr_t /* queue_ */,
+    uint32_t /* message_count_ */,
+    uint32_t /* consumer_count_ */)
+{
+    assert (channel_ == channel);
+    assert (state == state_waiting_for_queue_declare_ok);
+
+    i_amqp::field_table_t consume_args;
+    encoder->basic_consume (channel, 0, arguments.c_str (), "",
+        true, true, false, false, consume_args);
+
+    state = state_waiting_for_basic_consume_ok;
+
+    //  There are data to send - start polling for output.
+    poller->set_pollout (handle);
+}
+
+void zmq::amqp_client_t::basic_consume_ok (
+    uint16_t channel_,
+    const i_amqp::shortstr_t /* consumer_tag_ */)
+{
+    assert (channel_ == channel);
+    assert (state == state_waiting_for_basic_consume_ok);
+
     encoder->flow (true, channel);
     decoder->flow (true, channel);
     state = state_active;
 
-    //  There are data to send - start polling for output.
-    poller->set_pollout (handle);
+    //  Start polling for out - in case there are messages already prepared
+    //  to be sent via this connection.
+    poller->set_pollout (handle);   
+
 }
 
 void zmq::amqp_client_t::channel_close (
@@ -431,7 +398,7 @@ void zmq::amqp_client_t::channel_close (
     uint16_t /* class_id_ */,
     uint16_t /* method_id_ */)
 {
-    zmq_assert (channel_ == channel);
+    assert (channel_ == channel);
     printf ("AMQP error received: %s\n", reply_text_.data);
     error ();
 }
@@ -443,7 +410,7 @@ void zmq::amqp_client_t::connection_close (
     uint16_t /* class_id_ */,
     uint16_t /* method_id_ */)
 {
-    zmq_assert (channel_ == 0);
+    assert (channel_ == 0);
     printf ("AMQP error received: %s\n", reply_text_.data);
     error ();
 }
@@ -466,7 +433,7 @@ void zmq::amqp_client_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
     if (eh && !eh (local_object.c_str ()))
-        zmq_assert (false);
+        assert (false);
 
     //  Reestablish the connection.
     reconnect ();
@@ -512,12 +479,6 @@ void zmq::amqp_client_t::reconnect ()
     poller->set_pollout (handle);
 
     state = state_connecting;
-}
-
-const char *zmq::amqp_client_t::get_arguments ()
-{
-    zmq_assert (false);
-    return NULL;
 }
 
 #endif

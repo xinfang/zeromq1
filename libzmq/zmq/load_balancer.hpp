@@ -33,30 +33,19 @@ namespace zmq
     {
     public:
 
-        load_balancer_t (int64_t hwm_ = 0, int64_t lwm_ = 0);
+        load_balancer_t ();
 
         //  i_demux interface implementation.
         ~load_balancer_t ();
-        void register_producer (class i_producer *producer_);
-        void get_watermarks (int64_t &hwm_, int64_t &lwm_);
         void send_to (pipe_t *pipe_);
         bool write (message_t &msg_);
         void flush ();
-        void pipe_ready (pipe_t *pipe_);
         void gap ();
         bool empty ();
         void release_pipe (pipe_t *pipe_);
         void initialise_shutdown ();
 
     private:
-
-        //  Engine associated with the load balancer. At most one engine
-        //  can be associated.
-        class i_producer *producer;
-
-        //  High and low watermark;
-        int64_t hwm;
-        int64_t lwm;
 
         //  The list of outbound pipes.
         typedef std::vector <pipe_t*> pipes_t;

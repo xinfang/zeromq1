@@ -17,15 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SELECT_HPP_INCLUDED__
-#define __ZMQ_SELECT_HPP_INCLUDED__
+#ifndef __ZMQ_SELECT_THREAD_HPP_INCLUDED__
+#define __ZMQ_SELECT_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 #include <zmq/export.hpp>
 
 #include <stddef.h>
 #include <vector>
-#include <algorithm>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include "winsock2.h"
@@ -36,43 +35,32 @@
 #include <sys/select.h>
 #endif
 
-#include <zmq/i_poller.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/thread.hpp>
 
 namespace zmq
 {
 
     //  Implements socket polling mechanism using POSIX.1-2001 select()
-    //  function.
+    //  function. The class is used to instatntiate the poller template
+    //  to generate the select_thread_t class.
 
-    class select_t : public i_poller
+    class select_t
     {
     public:
 
         ZMQ_EXPORT select_t ();
 
-        //  i_poller implementation.
         ZMQ_EXPORT handle_t add_fd (fd_t fd_, i_pollable *engine_);
         ZMQ_EXPORT void rm_fd (handle_t handle_);
         ZMQ_EXPORT void set_pollin (handle_t handle_);
         ZMQ_EXPORT void reset_pollin (handle_t handle_);
         ZMQ_EXPORT void set_pollout (handle_t handle_);
         ZMQ_EXPORT void reset_pollout (handle_t handle_);
-        ZMQ_EXPORT void add_timer (i_pollable *engine_);
-        ZMQ_EXPORT void cancel_timer (i_pollable *engine_);
-        ZMQ_EXPORT void start ();
-        ZMQ_EXPORT void initialise_shutdown ();
-        ZMQ_EXPORT void terminate_shutdown ();
+        ZMQ_EXPORT bool process_events (poller_t <select_t> *poller_,
+            bool timers_);
 
     private:
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main event loop.
-        void loop ();
 
         struct fd_entry_t
         {
@@ -99,19 +87,11 @@ namespace zmq
         //  If true, at least one file descriptor is retired.
         bool retired;
 
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
-
-        //  If true, thread is in the process of shutting down.
-        bool stopping;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
-
         select_t (const select_t&);
         void operator = (const select_t&);
     };
+
+    typedef poller_t <select_t> select_thread_t;
 
 }
 

@@ -1,9 +1,9 @@
-$! BUILD_61_TESTS_FOR_ZMQ.COM
-$! 2009-03-23
+$! BUILD_6_TESTS_JZMQ.COM
+$! 2009-0518
 $! Modified:
-$!    
+$!
 $!+
-$! Build the FORTRAN version of the ZMQ test programs.
+$! Build the Java ZMQ test programs.
 $!-
 $ @zmqOpenVMS:BUILD_1_COMP_LINK_SWITCHES! standard compiler switches
 $!
@@ -11,22 +11,14 @@ $ def="''f$environment("DEFAULT")'"	! save default
 $ set default zmqRoot:[perf.tests.zmq]  ! where the source is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
-$ forit f_local_lat.for
-$ forit f_remote_lat.for
+$ define java$classpath libjzmq:, []	! libjzmq: is where zmq.java lives
 $!
-$ linkit f_local_lat.obj, sys$input/opt
-!
-! This is the shareable image containing the wrappers for ZMQ
-!
-libvmszmq:vmszmq/share
-!
+$ javac j_local_lat.java
+$ javac j_remote_lat.java
+$ javac j_local_thr.java
+$ javac j_remote_thr.java
 $!
-$ linkit f_remote_lat.obj, sys$input/opt
-!
-! This is the shareable image containing the wrappers for ZMQ
-!
-libvmszmq:vmszmq/share
-!
+$ deassign java$classpath
 $ purge/nolog
 $ rename *.* *.*;1
 $ write sys$output "Built ''f$environment("DEFAULT")' at ''f$time()'"

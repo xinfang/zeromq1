@@ -26,7 +26,7 @@
 
 #if defined ZMQ_HAVE_AMQP
 
-#include <zmq/err.hpp>
+#include <assert.h>
 #include <map>
 #include <string>
 #include <cstring> 
@@ -145,7 +145,7 @@ namespace zmq
                 data (data_)
             {
                 size_t len = strlen (data);
-                zmq_assert (len <= 0xff);
+                assert (len <= 0xff);
                 size = len;
             }
 
@@ -189,7 +189,7 @@ namespace zmq
             const i_amqp::longstr_t /* mechanisms_ */,
             const i_amqp::longstr_t /* locales_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_start_ok (
@@ -199,21 +199,21 @@ namespace zmq
             const i_amqp::longstr_t /* response_ */,
             const i_amqp::shortstr_t /* locale_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_secure (
             uint16_t /* channel_ */,
             const i_amqp::longstr_t /* challenge_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_secure_ok (
             uint16_t /* channel_ */,
             const i_amqp::longstr_t /* response_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_tune (
@@ -222,7 +222,7 @@ namespace zmq
             uint32_t /* frame_max_ */,
             uint16_t /* heartbeat_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_tune_ok (
@@ -231,7 +231,7 @@ namespace zmq
             uint32_t /* frame_max_ */,
             uint16_t /* heartbeat_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_open (
@@ -240,14 +240,14 @@ namespace zmq
             const i_amqp::shortstr_t /* reserved_1_ */,
             bool /* reserved_2_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_open_ok (
             uint16_t /* channel_ */,
             const i_amqp::shortstr_t /* reserved_1_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_close (
@@ -257,41 +257,41 @@ namespace zmq
             uint16_t /* class_id_ */,
             uint16_t /* method_id_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void connection_close_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_open (
             uint16_t /* channel_ */,
             const i_amqp::shortstr_t /* reserved_1_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_open_ok (
             uint16_t /* channel_ */,
             const i_amqp::longstr_t /* reserved_1_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_flow (
             uint16_t /* channel_ */,
             bool /* active_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_flow_ok (
             uint16_t /* channel_ */,
             bool /* active_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_close (
@@ -301,13 +301,13 @@ namespace zmq
             uint16_t /* class_id_ */,
             uint16_t /* method_id_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void channel_close_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void exchange_declare (
@@ -322,13 +322,13 @@ namespace zmq
             bool /* no_wait_ */,
             const i_amqp::field_table_t &/* arguments_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void exchange_declare_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void exchange_delete (
@@ -338,13 +338,13 @@ namespace zmq
             bool /* if_unused_ */,
             bool /* no_wait_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void exchange_delete_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_declare (
@@ -358,7 +358,7 @@ namespace zmq
             bool /* no_wait_ */,
             const i_amqp::field_table_t &/* arguments_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_declare_ok (
@@ -367,7 +367,7 @@ namespace zmq
             uint32_t /* message_count_ */,
             uint32_t /* consumer_count_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_bind (
@@ -379,13 +379,13 @@ namespace zmq
             bool /* no_wait_ */,
             const i_amqp::field_table_t &/* arguments_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_bind_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_unbind (
@@ -396,13 +396,13 @@ namespace zmq
             const i_amqp::shortstr_t /* routing_key_ */,
             const i_amqp::field_table_t &/* arguments_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_unbind_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_purge (
@@ -411,14 +411,14 @@ namespace zmq
             const i_amqp::shortstr_t /* queue_ */,
             bool /* no_wait_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_purge_ok (
             uint16_t /* channel_ */,
             uint32_t /* message_count_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_delete (
@@ -429,14 +429,14 @@ namespace zmq
             bool /* if_empty_ */,
             bool /* no_wait_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void queue_delete_ok (
             uint16_t /* channel_ */,
             uint32_t /* message_count_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_qos (
@@ -445,13 +445,13 @@ namespace zmq
             uint16_t /* prefetch_count_ */,
             bool /* global_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_qos_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_consume (
@@ -465,14 +465,14 @@ namespace zmq
             bool /* no_wait_ */,
             const i_amqp::field_table_t &/* arguments_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_consume_ok (
             uint16_t /* channel_ */,
             const i_amqp::shortstr_t /* consumer_tag_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_cancel (
@@ -480,14 +480,14 @@ namespace zmq
             const i_amqp::shortstr_t /* consumer_tag_ */,
             bool /* no_wait_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_cancel_ok (
             uint16_t /* channel_ */,
             const i_amqp::shortstr_t /* consumer_tag_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_publish (
@@ -498,7 +498,7 @@ namespace zmq
             bool /* mandatory_ */,
             bool /* immediate_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_return (
@@ -508,7 +508,7 @@ namespace zmq
             const i_amqp::shortstr_t /* exchange_ */,
             const i_amqp::shortstr_t /* routing_key_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_deliver (
@@ -519,7 +519,7 @@ namespace zmq
             const i_amqp::shortstr_t /* exchange_ */,
             const i_amqp::shortstr_t /* routing_key_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_get (
@@ -528,7 +528,7 @@ namespace zmq
             const i_amqp::shortstr_t /* queue_ */,
             bool /* no_ack_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_get_ok (
@@ -539,14 +539,14 @@ namespace zmq
             const i_amqp::shortstr_t /* routing_key_ */,
             uint32_t /* message_count_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_get_empty (
             uint16_t /* channel_ */,
             const i_amqp::shortstr_t /* reserved_1_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_ack (
@@ -554,7 +554,7 @@ namespace zmq
             uint64_t /* delivery_tag_ */,
             bool /* multiple_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_reject (
@@ -562,63 +562,63 @@ namespace zmq
             uint64_t /* delivery_tag_ */,
             bool /* requeue_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_recover_async (
             uint16_t /* channel_ */,
             bool /* requeue_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_recover (
             uint16_t /* channel_ */,
             bool /* requeue_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void basic_recover_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_select (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_select_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_commit (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_commit_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_rollback (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
         inline virtual void tx_rollback_ok (
             uint16_t /* channel_ */)
         {
-            zmq_assert (false);
+            assert (false);
         }
 
     };

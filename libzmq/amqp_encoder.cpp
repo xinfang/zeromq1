@@ -21,24 +21,22 @@
 
 #if defined ZMQ_HAVE_AMQP
 
+#include <assert.h>
 #include <algorithm>
 
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/wire.hpp>
-#include <zmq/err.hpp>
 
-zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *exchange_, 
-      const char *routing_key_) :
+zmq::amqp_encoder_t::amqp_encoder_t (mux_t *mux_, const char *queue_) :
     mux (mux_),
-    exchange (exchange_),
-    routing_key (routing_key_),
+    queue (queue_),
     flow_on (false),
     message_channel (0)
 {
     command.args = NULL;
 
-    //  Encode the protocol header (AMQP/1-1-0-9) and start the normal workflow.
-    const char *protocol_header = "AMQP\x01\x01\x00\x09";
+    //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
+    const char *protocol_header = "AMQP\x00\x00\x09\x01";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
 }
@@ -64,7 +62,7 @@ void zmq::amqp_encoder_t::reset ()
         free (command.args);
 
     //  Encode the protocol header (AMQP/0-9-1) and start the normal workflow.
-    const char *protocol_header = "AMQP\x01\x01\x00\x09";
+    const char *protocol_header = "AMQP\x00\x00\x09\x01";
     next_step ((void*) protocol_header, 8,
         &amqp_encoder_t::message_ready, true);
 }
@@ -78,28 +76,28 @@ bool zmq::amqp_encoder_t::message_ready ()
         size_t offset = 0;
 
         //  Frame type is 'method'.
-        zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+        assert (offset + sizeof (uint8_t) <= framebuf_size);
         put_uint8 (framebuf + offset, i_amqp::frame_method);
         offset += sizeof (uint8_t);
 
         //  Channel ID.
-        zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+        assert (offset + sizeof (uint16_t) <= framebuf_size);
         put_uint16 (framebuf + offset, command.channel);
         offset += sizeof (uint16_t);
 
         //  Length of the frame (class + method + arguments).
-        zmq_assert (offset + sizeof (uint32_t) <= framebuf_size);
+        assert (offset + sizeof (uint32_t) <= framebuf_size);
         put_uint32 (framebuf + offset, command.args_size + sizeof (uint16_t) +
             sizeof (uint16_t));
         offset += sizeof (uint32_t);
 
         //  Class ID.
-        zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+        assert (offset + sizeof (uint16_t) <= framebuf_size);
         put_uint16 (framebuf + offset, command.class_id);
         offset += sizeof (uint16_t);
 
         //  Method ID.
-        zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+        assert (offset + sizeof (uint16_t) <= framebuf_size);
         put_uint16 (framebuf + offset, command.method_id);
         offset += sizeof (uint16_t);
 
@@ -115,18 +113,18 @@ bool zmq::amqp_encoder_t::message_ready ()
     size_t offset = 0;
 
     //  Frame type: method.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, i_amqp::frame_method);
     offset += sizeof (uint8_t);
 
     //  Channel ID.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Leave frame length empty for now. To be filled in later when we know
     //  what the actual size is.
-    zmq_assert (offset + sizeof (uint32_t) <= framebuf_size);
+    assert (offset + sizeof (uint32_t) <= framebuf_size);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
@@ -135,41 +133,38 @@ bool zmq::amqp_encoder_t::message_ready ()
     //  and copying the payload.
 
     //  Basic.Publish
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, i_amqp::basic_id);
     offset += sizeof (uint16_t);
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, i_amqp::basic_publish_id);
     offset += sizeof (uint16_t);
 
     //  Ticket (deprecated).
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, 0);
     offset += sizeof (uint16_t);
 
     //  Default exchange.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, (uint8_t) exchange.size ());
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
+    put_uint8 (framebuf + offset, 0);
     offset += sizeof (uint8_t);
-    zmq_assert (offset + exchange.size () <= framebuf_size);
-    memcpy (framebuf + offset, exchange.c_str (), exchange.size ());
-    offset += exchange.size ();
 
     //  Routing key.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
-    put_uint8 (framebuf + offset, (uint8_t) routing_key.size ());
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
+    put_uint8 (framebuf + offset, (uint8_t) queue.size ());
     offset += sizeof (uint8_t);
-    zmq_assert (offset + routing_key.size () <= framebuf_size);
-    memcpy (framebuf + offset, routing_key.c_str (), routing_key.size ());
-    offset += routing_key.size ();
+    assert (offset + queue.size () <= framebuf_size);
+    memcpy (framebuf + offset, queue.c_str (), queue.size ());
+    offset += queue.size ();
 
     //  Mandatory = false, immediate = false.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, 0);
     offset += sizeof (uint8_t);
 
     //  Encode frame-end octet.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, i_amqp::frame_end);
     offset += sizeof (uint8_t);
 
@@ -208,42 +203,42 @@ bool zmq::amqp_encoder_t::content_header ()
     size_t offset = 0;
 
     //  Frame type: content header.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, i_amqp::frame_header);
     offset += sizeof (uint8_t);
 
     //  Channel ID.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Leave frame size empty. To be filled in later.
-    zmq_assert (offset + sizeof (uint32_t) <= framebuf_size);
+    assert (offset + sizeof (uint32_t) <= framebuf_size);
     size_t size_offset = offset;
     offset += sizeof (uint32_t);
 
     //  Content class: Basic.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, i_amqp::basic_id);
     offset += sizeof (uint16_t);
 
     //  Weight. Unused.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, 0);
     offset += sizeof (uint16_t);
 
     //  Message size.
-    zmq_assert (offset + sizeof (uint64_t) <= framebuf_size);
+    assert (offset + sizeof (uint64_t) <= framebuf_size);
     put_uint64 (framebuf + offset, message.size ());
     offset += sizeof (uint64_t);
 
     //  No properties.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, 0);
     offset += sizeof (uint16_t);
 
     //  Frame-end octet.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, i_amqp::frame_end);
     offset += sizeof (uint8_t);
 
@@ -266,17 +261,17 @@ bool zmq::amqp_encoder_t::content_body_frame_header ()
     size_t offset = 0;
 
     //  Frame type: Message body.
-    zmq_assert (offset + sizeof (uint8_t) <= framebuf_size);
+    assert (offset + sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf + offset, i_amqp::frame_body);
     offset += sizeof (uint8_t);
 
     //  Channel ID.
-    zmq_assert (offset + sizeof (uint16_t) <= framebuf_size);
+    assert (offset + sizeof (uint16_t) <= framebuf_size);
     put_uint16 (framebuf + offset, message_channel);
     offset += sizeof (uint16_t);
 
     //  Frame size.
-    zmq_assert (offset + sizeof (uint32_t) <= framebuf_size);
+    assert (offset + sizeof (uint32_t) <= framebuf_size);
     put_uint32 (framebuf + offset, body_size);
     offset += sizeof (uint32_t);
 
@@ -300,7 +295,7 @@ bool zmq::amqp_encoder_t::content_body ()
 bool zmq::amqp_encoder_t::frame_end ()
 {
     //  Encode frame-end octet for message body frame.
-    zmq_assert (sizeof (uint8_t) <= framebuf_size);
+    assert (sizeof (uint8_t) <= framebuf_size);
     put_uint8 (framebuf, i_amqp::frame_end);
 
     //  If the message is transferred completely, start encoding new

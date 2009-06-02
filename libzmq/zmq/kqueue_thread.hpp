@@ -17,51 +17,40 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_KQUEUE_HPP_INCLUDED__
-#define __ZMQ_KQUEUE_HPP_INCLUDED__
+#ifndef __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
+#define __ZMQ_KQUEUE_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
 #if defined (ZMQ_HAVE_FREEBSD) || defined (ZMQ_HAVE_OPENBSD) ||\
     defined (ZMQ_HAVE_OSX)
 
-#include <zmq/i_poller.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
 
 namespace zmq
 {
 
     //  Implements socket polling mechanism using the BSD-specific
-    //  kqueue interface.
+    //  kqueue interface. This class is used to instantiate the poller
+    //  template to generate the kqueue_thread_t class.
 
-    class kqueue_t : public i_poller
+    class kqueue_t
     {
     public:
 
         kqueue_t ();
         ~kqueue_t ();
 
-        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        void add_timer (i_pollable *engine_);
-        void cancel_timer (i_pollable *engine_);
-        void start ();
-        void initialise_shutdown ();
-        void terminate_shutdown ();
+        bool process_events (poller_t <kqueue_t> *poller_, bool timers_);
 
     private:
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main event loop.
-        void loop ();
 
         //  Adds the event to the kqueue.
         void kevent_add (fd_t fd_, short filter_, void *udata_);
@@ -84,19 +73,11 @@ namespace zmq
         typedef std::vector <poll_entry_t*> retired_t;
         retired_t retired;
 
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
-
-        //  If true, thread is in the process of shutting down.
-        bool stopping;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
-
         kqueue_t (const kqueue_t&);
         void operator = (const kqueue_t&);
     };
+
+    typedef poller_t <kqueue_t> kqueue_thread_t;
 
 }
 

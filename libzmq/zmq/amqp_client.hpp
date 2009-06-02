@@ -29,22 +29,17 @@
 #include <zmq/export.hpp>
 #include <zmq/i_amqp.hpp>
 #include <zmq/i_poller.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/i_producer.hpp>
-#include <zmq/i_consumer.hpp>
 #include <zmq/i_pollable.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/amqp_encoder.hpp>
 #include <zmq/amqp_decoder.hpp>
-#include <zmq/xmlParser.hpp>
 
 namespace zmq
 {
 
     class amqp_client_t :
-        public i_engine,
-        public i_producer,
-        public i_consumer,
+        public engine_base_t <true, true>,
         public i_pollable,
         private i_amqp
     {
@@ -54,17 +49,13 @@ namespace zmq
     public:
 
         //  i_engine interface implementation.
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
-        class i_demux *get_demux ();
-        class i_mux *get_mux ();
-
-        //  i_producer interface implementation.
-        void head ();
-        void send_to ();
-
-        //  i_consumer interface implementation.
-        void revive ();
-        void receive_from ();
+        i_pollable *cast_to_pollable ();
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
+        int64_t get_swap_size ();
+        void revive (pipe_t *pipe_);
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -75,8 +66,9 @@ namespace zmq
 
     private:
 
-        amqp_client_t (mux_t *mux_, i_demux *demux_, const char *hostname_,
-            const char *local_object_, const char *arguments_);
+        amqp_client_t (i_thread *calling_thread_, i_thread *thread_,
+            const char *hostname_, const char *local_object_,
+            const char *arguments_);
         ~amqp_client_t ();
 
         void connection_start (
@@ -101,6 +93,16 @@ namespace zmq
             uint16_t channel_,
             const i_amqp::longstr_t /* reserved_1_ */);
 
+        void queue_declare_ok (
+            uint16_t channel_,
+            const i_amqp::shortstr_t /* queue_ */,
+            uint32_t /* message_count_ */,
+            uint32_t /* consumer_count_ */);
+
+        void basic_consume_ok (
+            uint16_t channel_,
+            const i_amqp::shortstr_t /* consumer_tag_ */);
+
         void channel_close (
             uint16_t channel_,
             uint16_t /* reply_code_ */,
@@ -118,9 +120,6 @@ namespace zmq
         void error ();
         void reconnect ();
         
-        //  i_engine interface implementation.
-        const char *get_arguments ();
-
         enum state_t
         {
             state_connecting,
@@ -128,14 +127,12 @@ namespace zmq
             state_waiting_for_connection_tune,
             state_waiting_for_connection_open_ok,
             state_waiting_for_channel_open_ok,
+            state_waiting_for_queue_declare_ok,
+            state_waiting_for_basic_consume_ok,
             state_active,
             state_waiting_for_reconnect,
             state_shutting_down
         };
-        
-        //  Mux & demux.
-        mux_t *mux;
-        i_demux *demux;
 
         //  State of AMQP connection.
         state_t state;
@@ -172,8 +169,8 @@ namespace zmq
 
         std::string local_object;
 
-        //  Configuration of AMQP environment.
-        XMLNode config;
+        //  Arguments to use to initialise AMQP environment.
+        std::string arguments;
 
         amqp_client_t (const amqp_client_t&);
         void operator = (const amqp_client_t&);

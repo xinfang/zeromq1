@@ -131,5 +131,4 @@ int main (int argc, char *argv [])
         parse_message (&msg, &handler);
     } 
 
-    return 0;
 }

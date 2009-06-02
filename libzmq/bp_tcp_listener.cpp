@@ -18,22 +18,17 @@
 */
 
 #include <zmq/bp_tcp_listener.hpp>
-#include <zmq/bp_tcp_sender.hpp>
-#include <zmq/bp_tcp_receiver.hpp>
-#include <zmq/data_distributor.hpp>
+#include <zmq/bp_tcp_engine.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
-#include <zmq/err.hpp>
-#include <zmq/mux.hpp>
 
-zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *thread_,
-      const char *interface_, int handler_thread_count_,
-      i_thread **handler_threads_, bool sender_,
+zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *interface_, int handler_thread_count_,
+      i_thread **handler_threads_, bool source_,
       i_thread *peer_thread_, i_engine *peer_engine_,
       const char *peer_name_) :
-    sender (sender_),
+    source (source_),
     poller (NULL),
-    thread (thread_),
     peer_thread (peer_thread_),
     peer_engine (peer_engine_),
     listener (interface_)
@@ -42,37 +37,40 @@ zmq::bp_tcp_listener_t::bp_tcp_listener_t (i_thread *thread_,
     zmq_strncpy (peer_name, peer_name_, sizeof (peer_name));
 
     //  Initialise the array of threads to handle new connections.
-    zmq_assert (handler_thread_count_ > 0);
+    assert (handler_thread_count_ > 0);
     for (int thread_nbr = 0; thread_nbr != handler_thread_count_; thread_nbr ++)
         handler_threads.push_back (handler_threads_ [thread_nbr]);
     current_handler_thread = 0;
+
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
 zmq::bp_tcp_listener_t::~bp_tcp_listener_t ()
 {
 }
 
-void zmq::bp_tcp_listener_t::start (i_thread *current_thread_,
-    i_thread *engine_thread_)
+zmq::i_pollable *zmq::bp_tcp_listener_t::cast_to_pollable ()
 {
-    zmq_assert (thread == engine_thread_);
-
-    //  Register BP engine with the I/O thread.
-    command_t command;
-    command.init_register_pollable (this);
-    current_thread_->send_command (engine_thread_, command);
+    return this;
 }
 
-zmq::i_demux *zmq::bp_tcp_listener_t::get_demux ()
+void zmq::bp_tcp_listener_t::get_watermarks (int64_t * /* hwm_ */, 
+    int64_t * /* lwm_ */)
 {
-    zmq_assert (false);
-    return NULL;
+    //  There are never pipes created to/from listener engine.
+    //  Thus, watermarks have no meaning.
+    assert (false);
 }
 
-zmq::i_mux *zmq::bp_tcp_listener_t::get_mux ()
+int64_t zmq::bp_tcp_listener_t::get_swap_size ()
 {
-    zmq_assert (false);
-    return NULL;
+    assert (false);
+
+    //  Some C++ compilers require this.
+    return 0;
 }
 
 void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
@@ -84,72 +82,58 @@ void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
 
 void zmq::bp_tcp_listener_t::in_event ()
 {
-    fd_t fd = listener.accept ();
-    if (fd == retired_fd)
-        return;
+    //  Create the engine to take care of the connection.
+    //  TODO: make buffer size configurable by user
+    bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
+        handler_threads [current_handler_thread], listener, peer_name);
+    assert (engine);
 
-    if (!sender) {
-        //  Create demux for receiver engine.
-        i_demux *demux = new data_distributor_t (bp_hwm, bp_lwm);
-
-        //  Create the engine to take care of the connection.
-        //  TODO: make buffer size configurable by user
-        bp_tcp_receiver_t *engine = new bp_tcp_receiver_t (demux,
-            fd, peer_name);
-        zmq_assert (engine);
-        engine->start (thread, handler_threads [current_handler_thread]);
+    if (source) {
 
         //  The newly created engine serves as a local source of messages
         //  I.e. it reads messages from the socket and passes them on to
         //  the peer engine.
         i_thread *source_thread = handler_threads [current_handler_thread];
+        i_engine *source_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        i_mux *mux = peer_engine->get_mux ();
-        pipe_t *pipe = new pipe_t (source_thread, demux,
-            peer_thread, mux, mux->get_swap_size ());
-        zmq_assert (pipe);
+        pipe_t *pipe = new pipe_t (source_thread, source_engine,
+            peer_thread, peer_engine);
+        assert (pipe);
 
         //  Bind new engine to the source end of the pipe.
-        command_t demux_cmd;
-        demux_cmd.init_attach_pipe_to_demux (demux, pipe);
-        thread->send_command (source_thread, demux_cmd);
+        command_t cmd_send_to;
+        cmd_send_to.init_engine_send_to (source_engine, pipe);
+        poller->send_command (source_thread, cmd_send_to);
 
         //  Bind the peer to the destination end of the pipe.
-        command_t mux_cmd;
-        mux_cmd.init_attach_pipe_to_mux (mux, pipe);
-        thread->send_command (peer_thread, mux_cmd);
+        command_t cmd_receive_from;
+        cmd_receive_from.init_engine_receive_from (peer_engine, pipe);
+        poller->send_command (peer_thread, cmd_receive_from);
     }
     else {
-        //  Create mux for the sender_engine
-        mux_t *mux = new mux_t (bp_hwm, bp_lwm);
-
-        //  Create the engine to take care of the connection.
-        //  TODO: make buffer size configurable by user
-        bp_tcp_sender_t *engine = new bp_tcp_sender_t (mux, fd, peer_name);
-        zmq_assert (engine);
-        engine->start (thread, handler_threads [current_handler_thread]);
 
         //  The newly created engine serves as a local destination of messages
         //  I.e. it sends messages received from the peer engine to the socket.
         i_thread *destination_thread =
             handler_threads [current_handler_thread];
+        i_engine *destination_engine = engine;
 
         //  Create the pipe to the newly created engine.
-        i_demux *demux = peer_engine->get_demux ();
-        pipe_t *pipe = new pipe_t (peer_thread, demux,
-            destination_thread, mux, mux->get_swap_size ());
-        zmq_assert (pipe);
+        pipe_t *pipe = new pipe_t (peer_thread, peer_engine,
+            destination_thread, destination_engine);
+        assert (pipe);
 
         //  Bind new engine to the destination end of the pipe.
-        command_t mux_cmd;
-        mux_cmd.init_attach_pipe_to_mux (mux, pipe);
-        thread->send_command (destination_thread, mux_cmd);
+        command_t cmd_receive_from;
+        cmd_receive_from.init_engine_receive_from (
+            destination_engine, pipe);
+        poller->send_command (destination_thread, cmd_receive_from);
 
         //  Bind the peer to the source end of the pipe.
-        command_t demux_cmd;
-        demux_cmd.init_attach_pipe_to_demux (demux, pipe);
-        thread->send_command (peer_thread, demux_cmd);
+        command_t cmd_send_to;
+        cmd_send_to.init_engine_send_to (peer_engine, pipe);
+        poller->send_command (peer_thread, cmd_send_to);
     }
 
     //  Move to the next thread to get round-robin balancing of engines.
@@ -161,13 +145,13 @@ void zmq::bp_tcp_listener_t::in_event ()
 void zmq::bp_tcp_listener_t::out_event ()
 {
     //  We will never get POLLOUT when listening for incoming connections.
-    zmq_assert (false);
+    assert (false);
 }
 
 void zmq::bp_tcp_listener_t::timer_event ()
 {
     //  This class doesn't use timers.
-    zmq_assert (false);
+    assert (false);
 }
 
 void zmq::bp_tcp_listener_t::unregister_event ()

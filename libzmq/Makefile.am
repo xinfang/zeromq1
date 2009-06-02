@@ -19,23 +19,20 @@ pkginclude_HEADERS = \
     ./zmq/ysemaphore.hpp \
     ./zmq/ysocketpair.hpp \
     ./zmq/io_thread.hpp \
-    ./zmq/poll.hpp \
-    ./zmq/epoll.hpp \
-    ./zmq/devpoll.hpp \
-    ./zmq/kqueue.hpp \
+    ./zmq/poller.hpp \
+    ./zmq/poll_thread.hpp \
+    ./zmq/epoll_thread.hpp \
+    ./zmq/devpoll_thread.hpp \
+    ./zmq/kqueue_thread.hpp \
     ./zmq/bp_encoder.hpp \
     ./zmq/encoder.hpp \
     ./zmq/stdint.hpp \
-    ./zmq/bp_tcp_sender.hpp \
-    ./zmq/bp_tcp_receiver.hpp \
+    ./zmq/bp_tcp_engine.hpp \
     ./zmq/i_pollable.hpp \
     ./zmq/command.hpp \
     ./zmq/mux.hpp \
-    ./zmq/i_destination.hpp \
-    ./zmq/i_source.hpp \
     ./zmq/i_demux.hpp \
-    ./zmq/i_mux.hpp \
-    ./zmq/data_distributor.hpp \
+    ./zmq/publisher.hpp \
     ./zmq/load_balancer.hpp \
     ./zmq/i_thread.hpp \
     ./zmq/pipe.hpp \
@@ -55,7 +52,7 @@ pkginclude_HEADERS = \
     ./zmq/mutex.hpp \
     ./zmq/platform.hpp \
     ./zmq/formatting.hpp \
-    ./zmq/select.hpp \
+    ./zmq/select_thread.hpp \
     ./zmq/export.hpp \
     ./zmq/server_protocol.hpp \
     ./zmq/windows.hpp \
@@ -64,8 +61,7 @@ pkginclude_HEADERS = \
     ./zmq/in_engine.hpp \
     ./zmq/engine_factory.hpp \
     ./zmq/sctp_listener.hpp \
-    ./zmq/sctp_receiver.hpp \
-    ./zmq/sctp_sender.hpp \
+    ./zmq/sctp_engine.hpp \
     ./zmq/pgm_socket.hpp \
     ./zmq/bp_pgm_sender.hpp \
     ./zmq/bp_pgm_receiver.hpp \
@@ -75,10 +71,9 @@ pkginclude_HEADERS = \
     ./zmq/amqp_marshaller.hpp \
     ./zmq/amqp_unmarshaller.hpp \
     ./zmq/i_amqp.hpp \
+    ./zmq/engine_base.hpp \
     ./zmq/xmlParser.hpp \
-    ./zmq/swap.hpp \
-    ./zmq/i_consumer.hpp \
-    ./zmq/i_producer.hpp
+    ./zmq/data_dam.hpp
 
 lib_LTLIBRARIES = libzmq.la
 
@@ -92,14 +87,13 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     bp_decoder.cpp \
     bp_encoder.cpp \
     api_thread.cpp \
-    poll.cpp \
-    epoll.cpp \
-    devpoll.cpp \
-    kqueue.cpp \
-    bp_tcp_sender.cpp \
-    bp_tcp_receiver.cpp \
+    poll_thread.cpp \
+    epoll_thread.cpp \
+    devpoll_thread.cpp \
+    kqueue_thread.cpp \
+    bp_tcp_engine.cpp \
     mux.cpp \
-    data_distributor.cpp \
+    publisher.cpp \
     load_balancer.cpp \
     pipe.cpp \
     bp_tcp_listener.cpp \
@@ -107,13 +101,12 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     tcp_listener.cpp \
     ip.cpp \
     thread.cpp \
-    select.cpp \
+    select_thread.cpp \
     out_engine.cpp \
     in_engine.cpp \
     engine_factory.cpp \
     sctp_listener.cpp \
-    sctp_receiver.cpp \
-    sctp_sender.cpp \
+    sctp_engine.cpp \
     pgm_socket.cpp \
     bp_pgm_sender.cpp \
     bp_pgm_receiver.cpp \
@@ -123,16 +116,10 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     amqp_marshaller.cpp \
     amqp_unmarshaller.cpp \
     xmlParser.cpp \
-    swap.cpp \
-    io_thread.cpp
+    data_dam.cpp
 
-if BUILD_PGM
-libzmq_la_LDFLAGS = -L$(top_srcdir)/third-party/openpgm/build/lib/ -lpgm-pic -version-info 0:0:0 
-libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@
-else
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@
-endif
 
 dist-hook:
 		-rm $(distdir)/zmq/platform.hpp

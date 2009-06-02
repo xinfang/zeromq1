@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_DEVPOLL_HPP_INCLUDED__
-#define __ZMQ_DEVPOLL_HPP_INCLUDED__
+#ifndef __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
+#define __ZMQ_DEVPOLL_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -26,44 +26,32 @@
 
 #include <vector>
 
-#include <zmq/i_poller.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/thread.hpp>
 
 namespace zmq
 {
 
     //  Implements socket polling mechanism using the Solaris-specific
-    //  "/dev/poll" interface.
+    //  "/dev/poll" interface. The class is used when instantiating the poller
+    //  template to generate the devpoll_thread_t class.
 
-    class devpoll_t : public i_poller
+    class devpoll_t
     {
     public:
 
         devpoll_t ();
         ~devpoll_t ();
 
-        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        void add_timer (i_pollable *engine_);
-        void cancel_timer (i_pollable *engine_);
-        void start ();
-        void initialise_shutdown ();
-        void terminate_shutdown ();
+        bool process_events (poller_t <devpoll_t> *poller_, bool timers_);
 
     private:
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main event loop.
-        void loop ();
 
         //  File descriptor referring to "/dev/poll" pseudo-device.
         fd_t devpoll_fd;
@@ -81,22 +69,14 @@ namespace zmq
         typedef std::vector <fd_t> pending_list_t;
         pending_list_t pending_list;
 
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
-
-        //  If true, thread is in the process of shutting down.
-        bool stopping;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
-
         //  Pollset manipulation function.
         void devpoll_ctl (fd_t fd_, short events_);
 
         devpoll_t (const devpoll_t&);
         void operator = (const devpoll_t&);
     };
+
+    typedef poller_t <devpoll_t> devpoll_thread_t;
 
 }
 

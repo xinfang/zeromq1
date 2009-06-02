@@ -46,9 +46,6 @@
 /* Have AMQP extension. */
 #undef ZMQ_HAVE_AMQP
 
-/* Force to use mutexes */
-#undef ZMQ_FORCE_MUTEXES
-
 #ifdef ZMQ_HAVE_HPUX
 #define _XOPEN_SOURCE_EXTENDED 1
 #endif

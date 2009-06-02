@@ -23,8 +23,13 @@
 #include <zmq/locator.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/api_thread.hpp>
-#include <zmq/io_thread.hpp>
+#include <zmq/select_thread.hpp>
 #include <zmq/message.hpp>
+#include <zmq/io_thread.hpp>
+#include <zmq/poll_thread.hpp>
+#include <zmq/epoll_thread.hpp>
+#include <zmq/devpoll_thread.hpp>
+#include <zmq/kqueue_thread.hpp>
 #include <zmq/wire.hpp>
 
 #endif

@@ -43,7 +43,7 @@ namespace zmq
     public:
 
         //  Create the encoder.
-        amqp_encoder_t (mux_t *mux_, const char *exchange_, const char *routing_key_);
+        amqp_encoder_t (mux_t *mux_, const char *queue_);
         ~amqp_encoder_t ();
 
         //  Switch message flow on/off on a particular channel.
@@ -73,11 +73,8 @@ namespace zmq
         message_t message;
         size_t message_offset;
 
-        //  Exchange to send messages to.
-        std::string exchange;
-
-        //  Routing key for all outgoing messages.
-        std::string routing_key;
+        //  Queue to send/receiver messages from.
+        std::string queue;
 
         //  If true, messages may pass through the encoder. If false, only
         //  AMQP commands are passed (e.g. during initial AMQP handshaking).

@@ -27,11 +27,10 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/epoll.hpp>
+#include <zmq/epoll_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::epoll_t::epoll_t () :
-    stopping (false)
+zmq::epoll_t::epoll_t ()
 {
     epoll_fd = epoll_create (1);
     errno_assert (epoll_fd != -1);
@@ -45,7 +44,7 @@ zmq::epoll_t::~epoll_t ()
 zmq::handle_t zmq::epoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     poll_entry_t *pe = new poll_entry_t;
-    zmq_assert (pe != NULL);
+    assert (pe != NULL);
 
     pe->fd = fd_;
     pe->ev.events = 0;
@@ -101,94 +100,54 @@ void zmq::epoll_t::reset_pollout (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::add_timer (i_pollable *engine_)
-{
-     timers.push_back (engine_);
-}
-
-void zmq::epoll_t::cancel_timer (i_pollable *engine_)
-{
-    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
-    if (it == timers.end ())
-        return;
-    timers.erase (it);
-}
-
-void zmq::epoll_t::start ()
-{
-    worker.start (worker_routine, this);
-}
-
-void zmq::epoll_t::initialise_shutdown ()
-{
-    stopping = true;
-}
-
-void zmq::epoll_t::terminate_shutdown ()
-{
-    worker.stop ();
-}
-
-void zmq::epoll_t::loop ()
+bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
 {
     epoll_event ev_buf [max_io_events];
 
-    while (!stopping) {
-
-        //  Wait for events.
-        int n;
-        while (true) {
-            n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
-                timers.empty () ? -1 : max_timer_period);
-            if (!(n == -1 && errno == EINTR)) {
-                errno_assert (n != -1);
-                break;
-            }
+    //  Wait for events.
+    int n;
+    while (true) {
+        n = epoll_wait (epoll_fd, &ev_buf [0], max_io_events,
+            timers_ ? max_timer_period : -1);
+        if (!(n == -1 && errno == EINTR)) {
+           errno_assert (n != -1);
+           break;
         }
-
-        //  Handle timer.
-        if (!n) {
-
-            //  Use local list of timers as timer handlers may fill new timers
-            //  into the original array.
-            timers_t t;
-            std::swap (timers, t);
-
-            //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-                (*it)->timer_event ();
-
-            return;
-        }
-
-        for (int i = 0; i < n; i ++) {
-            poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
-
-            if (pe->fd == retired_fd)
-                continue;
-            if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-                pe->engine->in_event ();
-            if (pe->fd == retired_fd)
-               continue;
-            if (ev_buf [i].events & EPOLLOUT)
-                pe->engine->out_event ();
-            if (pe->fd == retired_fd)
-                continue;
-            if (ev_buf [i].events & EPOLLIN)
-                pe->engine->in_event ();
-        }
-
-        //  Destroy retired event sources.
-        for (retired_t::iterator it = retired.begin (); it != retired.end ();
-              it ++)
-            delete *it;
-        retired.clear ();
     }
-}
 
-void zmq::epoll_t::worker_routine (void *arg_)
-{
-    ((epoll_t*) arg_)->loop ();
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
+
+    for (int i = 0; i < n; i ++) {
+        poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
+
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
+            if (poller_->process_event (pe->engine, event_err))
+                return true;
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].events & EPOLLOUT)
+            if (poller_->process_event (pe->engine, event_out))
+                return true;
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].events & EPOLLIN)
+            if (poller_->process_event (pe->engine, event_in))
+                return true;
+    }
+
+    //  Destroy retired event sources.
+    for (retired_t::iterator it = retired.begin (); it != retired.end ();
+          it ++)
+        delete *it;
+    retired.clear ();
+
+    return false;
 }
 
 #endif

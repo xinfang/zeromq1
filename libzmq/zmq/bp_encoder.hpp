@@ -22,8 +22,9 @@
 #define __ZMQ_BP_ENCODER_HPP_INCLUDED__
 
 #include <stddef.h>
+#include <assert.h>
 
-#include <zmq/i_source.hpp>
+#include <zmq/mux.hpp>
 #include <zmq/encoder.hpp>
 #include <zmq/message.hpp>
 
@@ -35,7 +36,7 @@ namespace zmq
     {
     public:
 
-        bp_encoder_t (i_source *source_);
+        bp_encoder_t (mux_t *mux_);
 
         //  Clears any partially encoded messages.
         void reset ();
@@ -45,7 +46,7 @@ namespace zmq
         bool size_ready ();
         bool message_ready ();
 
-        i_source *source;
+        mux_t *mux;
         message_t message;
         unsigned char tmpbuf [9];
 

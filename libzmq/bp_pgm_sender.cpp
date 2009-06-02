@@ -21,14 +21,12 @@
 
 #if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
 
-#include <iostream>
-
 #include <zmq/bp_pgm_sender.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/wire.hpp>
-#include <zmq/err.hpp>
+#include <iostream>
 
 //#define PGM_SENDER_DEBUG
 //#define PGM_SENDER_DEBUG_LEVEL 4
@@ -44,24 +42,22 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
-zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
+zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
       i_engine *peer_engine_) :
-    mux (mux_),
     shutting_down (false),
-    encoder (mux_),
+    encoder (&mux),
     pgm_socket (false, interface_),
     out_buffer (NULL),
     out_buffer_size (0),
     write_size (0),
     write_pos (0), 
     first_message_offset (-1)
-{
-    zmq_assert (mux_);
 
+{
     //  Store interface. Note that interface name is not stored in locator.
     char *delim = strchr (interface_, ';');
-    zmq_assert (delim);
+    assert (delim);
 
     delim++;
 
@@ -70,29 +66,35 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (mux_t *mux_, i_thread *calling_thread_,
     if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
           interface_ [1] == 'd' && interface_ [2] == 'p' && 
           interface_ [3] == ':') {
-        zmq_snprintf (arguments, sizeof arguments, "zmq.pgm://udp:%s", delim);
+        sprintf (arguments, "zmq.pgm://udp:%s", delim);
     } else {
-        zmq_snprintf (arguments, sizeof arguments, "zmq.pgm://%s", delim);
+        sprintf (arguments, "zmq.pgm://%s", delim);
     }
+
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 
     //  The newly created engine serves as a local destination of messages
     //  I.e. it sends messages received from the peer engine to the socket.
+    i_engine *destination_engine = this;
 
     //  Create the pipe to the newly created engine.
-    i_demux *demux = peer_engine_->get_demux ();
-    pipe_t *pipe = new pipe_t (peer_thread_, demux,
-        thread_, mux, mux->get_swap_size ());
-    zmq_assert (pipe);
+    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
+        thread_, destination_engine);
+    assert (pipe);
 
     //  Bind new engine to the destination end of the pipe.
-    command_t mux_cmd;
-    mux_cmd.init_attach_pipe_to_mux (mux, pipe);
-    calling_thread_->send_command (thread_, mux_cmd);
+    command_t cmd_receive_from;
+    cmd_receive_from.init_engine_receive_from (
+        destination_engine, pipe);
+    calling_thread_->send_command (thread_, cmd_receive_from);
 
     //  Bind the peer to the source end of the pipe.
-    command_t demux_cmd;
-    demux_cmd.init_attach_pipe_to_demux (demux, pipe);
-    calling_thread_->send_command (peer_thread_, demux_cmd);
+    command_t cmd_send_to;
+    cmd_send_to.init_engine_send_to (peer_engine_, pipe);
+    calling_thread_->send_command (peer_thread_, cmd_send_to);
 }
 
 zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
@@ -102,26 +104,20 @@ zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
     }
 }
 
-void zmq::bp_pgm_sender_t::start (i_thread *current_thread_,
-    i_thread *engine_thread_)
+zmq::i_pollable *zmq::bp_pgm_sender_t::cast_to_pollable ()
 {
-    mux->register_consumer (this);
-
-    //  Register BP engine with the I/O thread.
-    command_t command;
-    command.init_register_pollable (this);
-    current_thread_->send_command (engine_thread_, command);
+    return this;
 }
 
-zmq::i_demux *zmq::bp_pgm_sender_t::get_demux ()
+void zmq::bp_pgm_sender_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    zmq_assert (false);
-    return NULL;
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
 }
 
-zmq::i_mux *zmq::bp_pgm_sender_t::get_mux ()
+int64_t zmq::bp_pgm_sender_t::get_swap_size ()
 {
-    return mux;
+    return 0;
 }
 
 void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
@@ -169,7 +165,7 @@ void zmq::bp_pgm_sender_t::out_event ()
                 pgm_socket.get_buffer (&out_buffer_size);
         }
 
-        zmq_assert (out_buffer_size > 0);
+        assert (out_buffer_size > 0);
 
         //  First two bytes /sizeof (uint16_t)/ are used to store message 
         //  offset in following steps.
@@ -196,7 +192,7 @@ void zmq::bp_pgm_sender_t::out_event ()
         if (write_size - write_pos != nbytes && nbytes != 0) {
             zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
                 (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
-            zmq_assert (false);
+            assert (false);
         }
 
         //  PGM rate limit reached nbytes is 0.
@@ -216,7 +212,7 @@ void zmq::bp_pgm_sender_t::out_event ()
 void zmq::bp_pgm_sender_t::timer_event ()
 {
     //  We are setting no timers. We shouldn't get this event.
-    zmq_assert (false);
+    assert (false);
 }
 
 void zmq::bp_pgm_sender_t::unregister_event ()
@@ -224,16 +220,23 @@ void zmq::bp_pgm_sender_t::unregister_event ()
     // TODO: Implement this. For now we just ignore the event.
 }
 
-void zmq::bp_pgm_sender_t::receive_from ()
-{
-    if (!shutting_down && poller)
+void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
+{    
+    engine_base_t <false, true>::receive_from (pipe_);
+
+    if (shutting_down)
+        pipe_->terminate_reader ();
+    else
         poller->set_pollout (handle);
 }
 
-void zmq::bp_pgm_sender_t::revive ()
+void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
 {
     //  We have some messages in encoder.
     if (!shutting_down) {
+                
+        //  Forward the revive command to the pipe. 
+        engine_base_t <false, true>::revive (pipe_);
 
         //  There is at least one engine (that one which sent revive) that 
         //  has messages ready. Try to write data to the socket, thus 

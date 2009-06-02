@@ -19,39 +19,35 @@
 
 #include <zmq/pipe.hpp>
 #include <zmq/command.hpp>
-#include <zmq/err.hpp>
-#include <zmq/i_mux.hpp>
-#include <zmq/i_demux.hpp>
 
-zmq::pipe_t::pipe_t (i_thread *source_thread_, i_demux *demux_,
-      i_thread *destination_thread_, i_mux *mux_, int64_t swap_size_) :
+zmq::pipe_t::pipe_t (i_thread *source_thread_, i_engine *source_engine_,
+      i_thread *destination_thread_, i_engine *destination_engine_) :
     pipe (false),
     source_thread (source_thread_),
-    demux (demux_),
+    source_engine (source_engine_),
     destination_thread (destination_thread_),
-    mux (mux_),
-    pipe_full (false),
-    mux_index (0),
+    destination_engine (destination_engine_),
+    alive (true),
     head (0),
     last_head_position (0),
     delayed_gap (false),
     in_core_msg_cnt (0),
-    swap (NULL),
+    data_dam (NULL),
     swapping (false),
     in_swap_msg_cnt (0),
     writer_terminating (false),
     reader_terminating (false)
 {
-    //  Compute watermarks for the pipe. If any of two endpoints has infinite
-    //  high watermark (hwm = 0), the pipe watermarks will be infinite as well.
-    //  Otherwise pipe watermarks are sum of those two watermarks.
+    //  Compute watermarks for the pipe. If either of engines has infinite
+    //  watermarks (hwm = 0) the pipe watermarks will be infinite as well.
+    //  Otherwise pipe watermarks are sum of exchange and queue watermarks.
     int64_t shwm;
     int64_t slwm;
-    demux->get_watermarks (shwm, slwm);
+    source_engine->get_watermarks (&shwm, &slwm);
     int64_t dhwm;
     int64_t dlwm;
-    mux->get_watermarks (dhwm, dlwm);
-    if (shwm == 0 || dhwm == 0) {
+    destination_engine->get_watermarks (&dhwm, &dlwm);
+    if (shwm == -1 || dhwm == -1) {
         hwm = 0;
         lwm = 0;
     }
@@ -60,18 +56,21 @@ zmq::pipe_t::pipe_t (i_thread *source_thread_, i_demux *demux_,
         lwm = slwm + dlwm;
     }
 
+    int64_t swap_size = source_engine->get_swap_size () +
+        destination_engine->get_swap_size ();
+
     //  Create a swap file if necessary.
-    if (swap_size_ > 0) {
-        swap = new swap_t (swap_size_);
-        zmq_assert (swap);
+    if (swap_size > 0) {
+        data_dam = new data_dam_t (swap_size);
+        assert (data_dam);
     }
 }
 
 zmq::pipe_t::~pipe_t ()
 {
-    //  Purge the associated swap.
-    if (swap)
-        delete swap;
+    //  Purge the associated data dam.
+    if (data_dam)
+        delete data_dam;
 
     //  Destroy the messages in the pipe itself.
     raw_message_t message;
@@ -80,35 +79,28 @@ zmq::pipe_t::~pipe_t ()
         raw_message_destroy (&message);
 }
 
-bool zmq::pipe_t::check_write (raw_message_t *msg_)
+bool zmq::pipe_t::check_write ()
 {
-    //  Never exceed hwm memory limit.
-    if (hwm == 0 || in_core_msg_cnt < (size_t) hwm)
-        return true;
-
-    //  Can we keep the message in file-backed message store?
-    if (swap && swap->check_capacity (msg_))
-        return true;
-
-    pipe_full = true;
-    return false;
+    return (hwm == 0 || in_core_msg_cnt < (size_t) hwm || data_dam);
 }
+
 
 void zmq::pipe_t::write (raw_message_t *msg_)
 {
     //  If we are allowed to write to the pipe, delayed gap notification must
     //  have been written beforehand.
-    zmq_assert (!delayed_gap);
+    assert (!delayed_gap);
 
     //  If we have hit the queue limit, switch into swapping mode.
     if (in_core_msg_cnt == (size_t) hwm && hwm != 0) {
-        zmq_assert (swap);
+        assert (data_dam);
         swapping = true;
     }
 
     //  Write the message into main memory or swap file.
     if (swapping) {
-        swap->store (msg_);
+        bool rc = data_dam->store (msg_);
+        assert (rc);
         in_swap_msg_cnt ++;
     }
     else {
@@ -119,47 +111,38 @@ void zmq::pipe_t::write (raw_message_t *msg_)
 
 void zmq::pipe_t::gap ()
 {
+    if (!check_write ()) {
+        delayed_gap = true;
+        return;
+    }
     raw_message_t msg;
     raw_message_init_notification (&msg, raw_message_t::gap_tag);
-
-    if (check_write (&msg)) {
-        write (&msg);
-        flush ();
-    }
-    else
-        delayed_gap = true;
+    write (&msg);
+    flush ();
 }
 
-void zmq::pipe_t::revive_reader ()
+void zmq::pipe_t::revive ()
 {
-    mux->revive (this);
+    assert (!alive);
+    alive = true;
 }
 
-void zmq::pipe_t::notify_writer (uint64_t position_)
+void zmq::pipe_t::set_head (uint64_t position_)
 {
     //  This may cause the next write to succeed.
     in_core_msg_cnt -= position_ - last_head_position;
     last_head_position = position_;
 
-    //  Transfer messages from the swap into the main memory.
+    //  Transfer messages from the data dam into the main memory.
     if (swapping && in_core_msg_cnt < (size_t) lwm)
         swap_in ();
 
     //  If there's a gap notification waiting, push it into the queue.
-    if (delayed_gap) {
-
+    if (delayed_gap && check_write ()) {
         raw_message_t msg;
         raw_message_init_notification (&msg, raw_message_t::gap_tag);
-
-        if (check_write (&msg)) {
-            write (&msg);
-            delayed_gap = false;
-        }
-    }
-
-    if (pipe_full) {
-        demux->pipe_ready (this);
-        pipe_full = false;
+        write (&msg);
+        delayed_gap = false;
     }
 }
 
@@ -167,16 +150,22 @@ void zmq::pipe_t::flush ()
 {
     if (!pipe.flush ()) {
         command_t cmd;
-        cmd.init_revive_reader (this);
+        cmd.init_engine_revive (destination_engine, this);
         source_thread->send_command (destination_thread, cmd);
     }
 }
 
 bool zmq::pipe_t::read (raw_message_t *msg_)
 {
-    //  Get next message, if there's none, die.
-    if (!pipe.read (msg_))
+    //  If the pipe is dead, there's nothing we can do.
+    if (!alive)
         return false;
+
+    //  Get next message, if it's not there, die.
+    if (!pipe.read (msg_)) {
+        alive = false;
+        return false;
+    }
 
     //  If delimiter is read from the pipe, start the shutdown process.
     //  If 'read' is not called the pipe would hang in the memory for
@@ -199,7 +188,7 @@ bool zmq::pipe_t::read (raw_message_t *msg_)
         //  as a difference between high and low water marks.
         if (head % (hwm - lwm + 1) == 0) {
             command_t cmd;
-            cmd.init_notify_writer (this, head);
+            cmd.init_engine_head (source_engine, this, head);
             destination_thread->send_command (source_thread, cmd);
         }
     }
@@ -222,21 +211,19 @@ void zmq::pipe_t::terminate_writer ()
     }
 }
 
-void zmq::pipe_t::terminate_pipe_req ()
+void zmq::pipe_t::writer_terminated ()
 {
     i_thread *st = source_thread;
-
-    demux->release_pipe (this);
 
     //  Drop the pointers to the writer. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
     //  to fail faster in case of certain synchronisation bugs.
     source_thread = NULL;
-    demux = NULL;
+    source_engine = NULL;
 
     //  Send termination acknowledgement to the pipe reader.
     command_t cmd;
-    cmd.init_terminate_pipe_ack (this);
+    cmd.init_engine_terminate_pipe_ack (destination_engine, this);
     st->send_command (destination_thread, cmd);
 }
 
@@ -246,28 +233,26 @@ void zmq::pipe_t::terminate_reader ()
 
         //  Send termination request to the pipe writer.
         command_t cmd;
-        cmd.init_terminate_pipe_req (this);
+        cmd.init_engine_terminate_pipe (source_engine, this);
         destination_thread->send_command (source_thread, cmd);
         reader_terminating = true;
     }
 }
 
-void zmq::pipe_t::terminate_pipe_ack ()
+void zmq::pipe_t::reader_terminated ()
 {
-    mux->release_pipe (this);
-
     //  Drop the pointers to the reader. This has no real effect and is even
     //  incorrect w.r.t. CPU cache coherency rules, however, it may cause 0MQ
     //  to fail faster in case of certain synchronisation bugs.
     destination_thread = NULL;
-    mux = NULL;
+    destination_engine = NULL;
 }
 
 void zmq::pipe_t::swap_in ()
 {
     while (in_swap_msg_cnt > 0 && in_core_msg_cnt < (size_t) hwm) {
         raw_message_t msg;
-        swap->fetch (&msg);
+        data_dam->fetch (&msg);
         pipe.write (msg);
         in_swap_msg_cnt --;
         in_core_msg_cnt ++;
@@ -277,7 +262,7 @@ void zmq::pipe_t::swap_in ()
     flush ();
 
     if (in_swap_msg_cnt == 0) {
-        zmq_assert (swap->empty ());
+        assert (data_dam->empty ());
         swapping = false;
     }
 }

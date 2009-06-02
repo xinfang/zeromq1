@@ -18,6 +18,7 @@
 */
 
 #include <cstdlib>
+#include <assert.h>
 #include <string.h>
 #include <string>
 #include <stdlib.h>
@@ -44,14 +45,14 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
     //  Create a socket.
     int fd = socket (AF_INET, SOCK_DGRAM, 0);
-    zmq_assert (fd != -1);
+    assert (fd != -1);
 
     //  Retrieve number of interfaces.
     lifnum ifn;
     ifn.lifn_family = AF_UNSPEC;
     ifn.lifn_flags = 0;
     int rc = ioctl (fd, SIOCGLIFNUM, (char*) &ifn);
-    zmq_assert (rc != -1);
+    assert (rc != -1);
 
     //  Allocate memory to get interface names.
     size_t ifr_size = sizeof (struct lifreq) * ifn.lifn_count;
@@ -65,7 +66,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     ifc.lifc_len = ifr_size;
     ifc.lifc_buf = ifr;
     rc = ioctl (fd, SIOCGLIFCONF, (char*) &ifc);
-    zmq_assert (rc != -1);
+    assert (rc != -1);
 
     //  Find the interface with the specified name and AF_INET family.
     bool found = false;
@@ -74,7 +75,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
           n ++, ifrp ++) {
         if (!strcmp (interface_, ifrp->lifr_name)) {
             rc = ioctl (fd, SIOCGLIFADDR, (char*) ifrp);
-            zmq_assert (rc != -1);
+            assert (rc != -1);
             if (ifrp->lifr_addr.ss_family == AF_INET) {
                 *addr_ = ((sockaddr_in*) &ifrp->lifr_addr)->sin_addr;
                 found = true;
@@ -91,7 +92,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        zmq_assert (rc != 0);
+        assert (rc != 0);
         errno_assert (rc == 1);
     }
 }
@@ -115,7 +116,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
     //  Create a socket.
     int sd = socket (AF_INET, SOCK_DGRAM, 0);
-    zmq_assert (sd != -1);
+    assert (sd != -1);
 
     struct ifreq ifr; 
 
@@ -133,7 +134,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
         //  Assume interface_ is in IP format xxx.xxx.xxx.xxx.
         rc = inet_pton (AF_INET, interface_, addr_);
-        zmq_assert (rc != 0);
+        assert (rc != 0);
     }
 
     //  Clean up.
@@ -157,7 +158,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     in_addr addr;
     ((sockaddr_in*) addr_)->sin_family = AF_INET;
     addr.S_un.S_addr = inet_addr ((const char *) interface_);
-    zmq_assert (addr.S_un.S_addr != INADDR_NONE);
+    assert (addr.S_un.S_addr != INADDR_NONE);
     *addr_ = addr;
 }
 
@@ -183,8 +184,8 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  Get the addresses.
     ifaddrs* ifa = NULL;
     int rc = getifaddrs (&ifa);
-    zmq_assert (rc == 0);    
-    zmq_assert (ifa != NULL);
+    assert (rc == 0);    
+    assert (ifa != NULL);
 
     //  Find the corresponding network interface.
     bool found = false;
@@ -203,7 +204,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
     //  specified in the form of IP address.
     if (!found) {
         rc = inet_pton (AF_INET, interface_, addr_);
-        zmq_assert (rc != 0);
+        assert (rc != 0);
         errno_assert (rc == 1);
     }
 }
@@ -221,7 +222,7 @@ void zmq::resolve_nic_name (in_addr* addr_, char const *interface_)
 
     //  Convert IP address into sockaddr_in structure.
     int rc = inet_pton (AF_INET, interface_, addr_);
-    zmq_assert (rc != 0);
+    assert (rc != 0);
     errno_assert (rc == 1);
 }
 
@@ -240,7 +241,7 @@ void zmq::resolve_ip_interface (sockaddr_in* addr_, char const *interface_)
     if (!delimiter)
         resolve_nic_name (&addr_->sin_addr, interface_);
     else {
-        zmq_assert (delimiter - interface_ < 256);
+        assert (delimiter - interface_ < 256);
         char buf [256];
         memcpy (buf, interface_, delimiter - interface_);
         buf [delimiter - interface_] = 0;
@@ -256,10 +257,10 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
 {
     //  Find the ':' that separates hostname name from port.
     const char *delimiter = strchr (hostname_, ':');
-    zmq_assert (delimiter);
+    assert (delimiter);
 
     //  Get the hostname.
-    zmq_assert (delimiter - hostname_ < 256);
+    assert (delimiter - hostname_ < 256);
     char hostname [256];
     memcpy (hostname, hostname_, delimiter - hostname_);
     hostname [delimiter - hostname_] = 0;
@@ -271,7 +272,7 @@ void zmq::resolve_ip_hostname (sockaddr_in *addr_, const char *hostname_)
     addrinfo *res;
     int rc = getaddrinfo (hostname, NULL, &req, &res);
     gai_assert (rc);
-    zmq_assert (res->ai_addr->sa_family == AF_INET);
+    assert (res->ai_addr->sa_family == AF_INET);
     memcpy (addr_, res->ai_addr, sizeof (sockaddr_in));
     freeaddrinfo (res);
     

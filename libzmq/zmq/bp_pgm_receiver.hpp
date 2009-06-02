@@ -29,16 +29,14 @@
 #include <zmq/pgm_socket.hpp>
 #include <zmq/i_thread.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_engine.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
-#include <zmq/i_demux.hpp>
 
 namespace zmq
 {
 
     class bp_pgm_receiver_t :
-        public i_engine,
-        public i_producer,
+        public engine_base_t <true, false>,
         public i_pollable
     {
     
@@ -48,13 +46,10 @@ namespace zmq
     public:
 
         //  i_engine interface implemtation.
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
-        i_demux *get_demux ();
-        class i_mux *get_mux ();
-
-        //  i_producer interface implementation.
-        void send_to ();
-        void head ();
+        i_pollable *cast_to_pollable ();
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
+        int64_t get_swap_size ();
+        void send_to (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -68,16 +63,11 @@ namespace zmq
 
         //  Creates bp_pgm_engine. Underlying PGM connection is initialised
         //  using network_ parameter.
-        bp_pgm_receiver_t (i_demux *demux_, const char *network_,
-            size_t readbuf_size_, const char *arguments_);
+        bp_pgm_receiver_t (i_thread *calling_thread_, i_thread *thread_,
+            const char *network_, size_t readbuf_size_, 
+            const char *arguments_);
 
         ~bp_pgm_receiver_t ();
-
-        //  i_engine interface implementation.
-        const char *get_arguments ();
-
-        //  Demux.
-        i_demux *demux;
 
         //  Read exactly iov_len_ count APDUs, function returns number
         //  of bytes received. Note that if we did not join message stream 

@@ -18,11 +18,12 @@
 */
 
 #include <algorithm>
+#include <assert.h>
 
 #include <zmq/platform.hpp>
 #include <zmq/dispatcher.hpp>
-#include <zmq/engine_factory.hpp>
 #include <zmq/err.hpp>
+#include <zmq/engine_factory.hpp>
 
 
 zmq::dispatcher_t::dispatcher_t (int thread_count_) :
@@ -32,7 +33,7 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
 {
     //  Alocate NxN matrix of dispatching pipes.
     pipes = new command_pipe_t [thread_count * thread_count];
-    zmq_assert (pipes);
+    assert (pipes);
 
 #ifdef ZMQ_HAVE_WINDOWS
 
@@ -42,8 +43,7 @@ zmq::dispatcher_t::dispatcher_t (int thread_count_) :
     WSADATA wsa_data;
     int rc = WSAStartup (version_requested, &wsa_data);
     errno_assert (rc == 0);
-    zmq_assert (LOBYTE (wsa_data.wVersion) == 2 ||
-        HIBYTE (wsa_data.wVersion) == 2);
+    assert (LOBYTE (wsa_data.wVersion) == 2 || HIBYTE (wsa_data.wVersion) == 2);
 #endif  
 }
 
@@ -81,7 +81,7 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
         used.end (), false);
 
     //  No more thread IDs are available!
-    zmq_assert (it != used.end ());
+    assert (it != used.end ());
 
     //  Mark the thread ID as used.
     *it = true;
@@ -100,12 +100,12 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
 }
 
 void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
-    bool sender_, const char *object_, i_thread *thread_,
+    bool source_, const char *object_, i_thread *thread_,
     i_engine *engine_, scope_t scope_, const char *location_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_)
 {
-    zmq_assert (strlen (object_) < 256);
+    assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
@@ -126,9 +126,10 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
         }
 
         //  Create a listener for the object.
-        i_engine *listener = engine_factory_t::create_listener (object_,
-            sender_, location_, calling_thread_, listener_thread_,
-            handler_thread_count_, handler_threads_, thread_, engine_);
+        i_engine *listener = engine_factory_t::create_listener (
+            calling_thread_, listener_thread_, location_,
+            handler_thread_count_, handler_threads_,
+            source_, thread_, engine_, object_);
 
         //  Regiter the object with the locator.
         locator_->register_endpoint (object_, listener->get_arguments ());
@@ -139,11 +140,11 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
 }
 
 bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
-    bool sender_, const char *object_, i_thread **thread_, i_engine **engine_,
+    const char *object_, i_thread **thread_, i_engine **engine_,
     i_thread *handler_thread_, const char *local_object_,
     const char *engine_arguments_)
 {
-    zmq_assert (strlen (object_) < 256);
+    assert (strlen (object_) < 256);
 
     //  Enter critical section.
     sync.lock ();
@@ -159,9 +160,8 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
         locator_->resolve_endpoint (object_, location, sizeof (location));
 
         //  Create the proxy engine for the object.
-        i_engine *engine = engine_factory_t::create (local_object_,
-            sender_, location, engine_arguments_, calling_thread_,
-            handler_thread_);
+        i_engine *engine = engine_factory_t::create_engine (calling_thread_,
+            handler_thread_, location, local_object_, engine_arguments_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

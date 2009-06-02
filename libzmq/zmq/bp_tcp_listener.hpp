@@ -23,9 +23,9 @@
 #include <vector>
 
 #include <zmq/stdint.hpp>
-#include <zmq/i_engine.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/tcp_listener.hpp>
 
 namespace zmq
@@ -34,7 +34,9 @@ namespace zmq
     //  BP (backend protocol) listener. Listens on a specified network
     //  interface and port and creates a BP engine for every new connection.
 
-    class bp_tcp_listener_t : public i_engine, public i_pollable
+    class bp_tcp_listener_t :
+        public engine_base_t <false, false>,
+        public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -42,9 +44,9 @@ namespace zmq
     public:
 
         //  i_engine implementation.
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
-        class i_demux *get_demux ();
-        class i_mux *get_mux ();
+        i_pollable *cast_to_pollable ();
+        void get_watermarks (int64_t * /* hwm_ */, int64_t * /* lwm_ */);
+        int64_t get_swap_size ();
         const char *get_arguments ();
         
         //  i_pollable implementation.
@@ -58,24 +60,21 @@ namespace zmq
 
         //  Creates a BP listener. Handler thread array determines
         //  the threads that will serve newly-created BP engines.
-        bp_tcp_listener_t (i_thread *thread_,
+        bp_tcp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
-            i_thread **handler_threads_, bool sender_,
+            i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
             const char *peer_name_);
         ~bp_tcp_listener_t ();
 
         //  Determines whether the engine serves as a local source of messages
-        //  (i.e. reads them from the sockets and makes them available; false)
-        //  or a local destination of messages (i.e. gathers the messages and
-        //  sends them to the socket; true).
-        bool sender;
+        //  (i.e. reads them from the sockets and makes them available) or
+        //  a local destination of messages (i.e. gathers the messages and
+        //  sends them to the socket).
+        bool source;
 
         //  Associated poller object.
         i_poller *poller;
-
-        //  Thread the engine runs within.
-        i_thread *thread;
 
         //  Determine the engine and the object (either exchange or queue)
         //  within the engine to serve as a peer to this engine.

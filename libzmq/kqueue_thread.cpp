@@ -30,11 +30,10 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/kqueue.hpp>
+#include <zmq/kqueue_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::kqueue_t::kqueue_t () :
-    stopping (false);
+zmq::kqueue_t::kqueue_t ()
 {
     //  Create event queue
     kqueue_fd = kqueue ();
@@ -67,7 +66,7 @@ void zmq::kqueue_t::kevent_delete (fd_t fd_, short filter_)
 zmq::handle_t zmq::kqueue_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
     poll_entry_t *pe = new poll_entry_t;
-    zmq_assert (pe != NULL);
+    assert (pe != NULL);
     pe->fd = fd_;
     pe->flag_pollin = 0;
     pe->flag_pollout = 0;
@@ -117,98 +116,58 @@ void zmq::kqueue_t::reset_pollout (handle_t handle_)
     kevent_delete (pe->fd, EVFILT_WRITE);
 }
 
-void zmq::kqueue_t::add_timer (i_pollable *engine_)
-{
-     timers.push_back (engine_);
-}
-
-void zmq::kqueue_t::cancel_timer (i_pollable *engine_)
-{
-    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
-    if (it == timers.end ())
-        return;
-    timers.erase (it);
-}
-
-void zmq::kqueue_t::start ()
-{
-    worker.start (worker_routine, this);
-}
-
-void zmq::kqueue_t::initialise_shutdown ()
-{
-    stopping = true;
-}
-
-void zmq::kqueue_t::terminate_shutdown ()
-{
-    worker.stop ();
-}
-
-void zmq::kqueue_t::loop ()
+bool zmq::kqueue_t::process_events (poller_t <kqueue_t> *poller_, bool timers_)
 {
     struct kevent ev_buf [max_io_events];
 
-    while (!stopping) {
+    //  Compute time interval to wait.
+    timespec timeout = {max_timer_period / 1000, 
+        (max_timer_period % 1000) * 1000000};
 
-        //  Compute time interval to wait.
-        timespec timeout = {max_timer_period / 1000, 
-            (max_timer_period % 1000) * 1000000};
-
-        //  Wait for events.
-        int n;
-        while (true) {
-            n = kevent (kqueue_fd, NULL, 0,
-                &ev_buf [0], max_io_events, timers.empty () ? NULL : &timeout);
-            if (!(n == -1 && errno == EINTR)) {
-                errno_assert (n != -1);
-                break;
-            }
+    //  Wait for events.
+    int n;
+    while (true) {
+        n = kevent (kqueue_fd, NULL, 0,
+             &ev_buf [0], max_io_events, timers_ ? &timeout : NULL);
+        if (!(n == -1 && errno == EINTR)) {
+            errno_assert (n != -1);
+            break;
         }
-
-        //  Handle timer.
-        if (!n) {
-
-            //  Use local list of timers as timer handlers may fill new timers
-            //  into the original array.
-            timers_t t;
-            std::swap (timers, t);
-
-            //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-                (*it)->timer_event ();
-
-            return;
-        }
-
-        for (int i = 0; i < n; i ++) {
-            poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
-
-            if (pe->fd == retired_fd)
-                continue;
-            if (ev_buf [i].flags & EV_EOF)
-                pe->engine->in_event ();
-            if (pe->fd == retired_fd)
-                continue;
-            if (ev_buf [i].filter == EVFILT_WRITE)
-                pe->engine->out_event ();
-            if (pe->fd == retired_fd)
-                continue;
-            if (ev_buf [i].filter == EVFILT_READ)
-                pe->engine->in_event ();
-        }
-
-        //  Destroy retired event sources.
-        for (retired_t::iterator it = retired.begin (); it != retired.end ();
-              it ++)
-            delete *it;
-        retired.clear ();
     }
-}
 
-void zmq::kqueue_t::worker_routine (void *arg_)
-{
-    ((kqueue_t*) arg_)->loop ();
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
+
+    for (int i = 0; i < n; i ++) {
+        poll_entry_t *pe = (poll_entry_t*) ev_buf [i].udata;
+
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].flags & EV_EOF)
+            if (poller_->process_event (pe->engine, event_err))
+                return true;
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].filter == EVFILT_WRITE)
+            if (poller_->process_event (pe->engine, event_out))
+                return true;
+        if (pe->fd == retired_fd)
+            continue;
+        if (ev_buf [i].filter == EVFILT_READ)
+            if (poller_->process_event (pe->engine, event_in))
+                return true;
+    }
+
+    //  Destroy retired event sources.
+    for (retired_t::iterator it = retired.begin (); it != retired.end ();
+          it ++)
+        delete *it;
+    retired.clear ();
+
+    return false;
 }
 
 #endif

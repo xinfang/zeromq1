@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <zmq.hpp>
 #include "../../helpers/time.hpp"
-#include <zmq/platform.hpp>
 
 using namespace std;
 
@@ -87,18 +86,11 @@ int main (int argc, char *argv [])
     
     getchar (); 
 
-    //  Create local queue.
+    //  Bind to remote_exchange.
     api->create_queue (q_name);
 
     //  Bind local queue to global exchange.
     api->bind (ex_remote_name, q_name, worker, worker, to_remote_iface); 
-
-    //  Sleep 1s to create pgm infrastructure and send IGMP packets.
-#ifdef ZMQ_HAVE_WINDOWS
-    Sleep (1000);
-#else
-    sleep (1);
-#endif
 
     //  Capture timestamp at the begining of the test.
     perf::time_instant_t start_time = perf::now ();

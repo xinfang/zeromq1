@@ -21,6 +21,7 @@
 #define __ZMQ_ENCODER_HPP_INCLUDED__
 
 #include <stddef.h>
+#include <assert.h>
 #include <string.h>
 #include <algorithm>
 

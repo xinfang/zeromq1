@@ -20,7 +20,6 @@
 #ifndef __ZMQ_YPIPE_HPP_INCLUDED__
 #define __ZMQ_YPIPE_HPP_INCLUDED__
 
-#include <zmq/platform.hpp>
 #include <zmq/atomic_ptr.hpp>
 #include <zmq/yqueue.hpp>
 
@@ -57,11 +56,6 @@ namespace zmq
             c.set (dead_ ? NULL : &queue.back ());
         }
 
-#ifdef ZMQ_HAVE_OPENVMS		// BRC 14-Apr-2009
-#pragma message save
-#pragma message disable(UNINIT)
-#endif
-
         //  Write an item to the pipe.  Don't flush it yet.
         inline void write (const T &value_)
         {
@@ -69,10 +63,6 @@ namespace zmq
             queue.back () = value_;
             queue.push ();
         }
-
-#ifdef ZMQ_HAVE_OPENVMS
-#pragma message restore
-#endif
 
         //  Flush the messages into the pipe. Returns false if the reader
         //  thread is sleeping. In that case, caller is obliged to wake the
@@ -118,7 +108,7 @@ namespace zmq
             //  the following branches will be completely optimised away
             //  by the compiler.)
             if (D) {
-
+                
                 //  If one prefetch was already done since last sleeping,
                 //  don't do a new one, rather ask caller to go asleep.
                 if (stop) {
@@ -177,11 +167,11 @@ namespace zmq
         yqueue_t <T, N> queue;
 
         //  Points to the first un-flushed item. This variable is used
-        //  exclusively by writer thread.
+        //  exclusively by writer thread.  
         T *w;
 
         //  Points to the first un-prefetched item. This variable is used
-        //  exclusively by reader thread.
+        //  exclusively by reader thread.  
         T *r;
 
         //  The single contention point of contention between writer and

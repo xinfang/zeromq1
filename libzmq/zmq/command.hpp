@@ -20,15 +20,53 @@
 #ifndef __ZMQ_COMMAND_HPP_INCLUDED__
 #define __ZMQ_COMMAND_HPP_INCLUDED__
 
+#include <assert.h>
 #include <string.h>
 
 #include <zmq/stdint.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/i_engine.hpp>
 #include <zmq/pipe.hpp>
 #include <zmq/formatting.hpp>
 
 namespace zmq
 {
+
+    //  This structure defines all the commands that can be sent to an engine.
+
+    struct engine_command_t
+    {
+        enum type_t
+        {
+            revive,
+            head,
+            send_to,
+            receive_from,
+            terminate_pipe,
+            terminate_pipe_ack
+        } type;
+
+        union {
+            struct {
+                class pipe_t *pipe;
+            } revive;
+            struct {
+                class pipe_t *pipe;
+                uint64_t position;
+            } head;
+            struct {
+                class pipe_t *pipe;
+            } send_to;
+            struct {
+                class pipe_t *pipe;
+            } receive_from;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe;
+            struct {
+                class pipe_t *pipe;
+            } terminate_pipe_ack;
+        } args;   
+    };
 
     //  This structure defines all the commands that can be sent to a thread.
     //  It also provides 'constructors' for all the commands.
@@ -38,14 +76,8 @@ namespace zmq
         enum type_t
         {
             stop,
-            attach_pipe_to_demux,
-            attach_pipe_to_mux,
-            revive_reader,
-            notify_writer,
-            terminate_pipe_req,
-            terminate_pipe_ack,
-            register_pollable,
-            unregister_pollable,
+            register_engine,
+            unregister_engine,
             engine_command
         } type;
 
@@ -54,32 +86,15 @@ namespace zmq
             struct {
             } stop;
             struct {
-                class pipe_t *pipe;
-                class i_demux *demux;
-            } attach_pipe_to_demux;
+                i_engine *engine;
+            } register_engine;
             struct {
-                class pipe_t *pipe;
-                class i_mux *mux;
-            } attach_pipe_to_mux;
+                i_engine *engine;
+            } unregister_engine;
             struct {
-                class pipe_t *pipe;
-            } revive_reader;
-            struct {
-                class pipe_t *pipe;
-                uint64_t position;
-            } notify_writer;
-            struct {
-                class pipe_t *pipe;
-            } terminate_pipe_req;
-            struct {
-                class pipe_t *pipe;
-            } terminate_pipe_ack;
-            struct {
-                i_pollable *pollable;
-            } register_pollable;
-            struct {
-                i_pollable *pollable;
-            } unregister_pollable;
+                i_engine *engine;
+                engine_command_t command;
+            } engine_command;
         } args;
 
         inline void init_stop ()
@@ -87,59 +102,72 @@ namespace zmq
             type = stop;
         }
 
-        inline void init_attach_pipe_to_demux (class i_demux *demux_,
-            class pipe_t *pipe_)
+        inline void init_register_engine (i_engine *engine_)
         {
-            type = attach_pipe_to_demux;
-            args.attach_pipe_to_demux.pipe = pipe_;
-            args.attach_pipe_to_demux.demux = demux_;
+            type = register_engine;
+            args.register_engine.engine = engine_;
         }
 
-        inline void init_attach_pipe_to_mux (class i_mux *mux_,
-            class pipe_t *pipe_)
+        inline void init_unregister_engine (i_engine *engine_)
         {
-            type = attach_pipe_to_mux;
-            args.attach_pipe_to_mux.pipe = pipe_;
-            args.attach_pipe_to_mux.mux = mux_;
+            type = unregister_engine;
+            args.unregister_engine.engine = engine_;
         }
 
-        inline void init_revive_reader (class pipe_t *pipe_)
+        inline void init_engine_send_to (i_engine *engine_, pipe_t *pipe_)
         {
-            type = revive_reader;
-            args.revive_reader.pipe = pipe_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::send_to;
+            args.engine_command.command.args.send_to.pipe = pipe_;
         }
 
-        inline void init_notify_writer (class pipe_t *pipe_, uint64_t position_)
+        inline void init_engine_receive_from (i_engine *engine_, pipe_t *pipe_)
         {
-            type = notify_writer;
-            args.notify_writer.pipe = pipe_;
-            args.notify_writer.position = position_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::receive_from;
+            args.engine_command.command.args.receive_from.pipe = pipe_;
         }
 
-        inline void init_terminate_pipe_req (class pipe_t *pipe_)
+        inline void init_engine_revive (i_engine *engine_,
+            pipe_t *pipe_)
         {
-            type = terminate_pipe_req;
-            args.terminate_pipe_req.pipe = pipe_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::revive;
+            args.engine_command.command.args.revive.pipe = pipe_;
         }
 
-        inline void init_terminate_pipe_ack (class pipe_t *pipe_)
+        inline void init_engine_head (i_engine *engine_, pipe_t *pipe_,
+            uint64_t position_)
         {
-            type = terminate_pipe_ack;
-            args.terminate_pipe_ack.pipe = pipe_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::head;
+            args.engine_command.command.args.head.pipe = pipe_;
+            args.engine_command.command.args.head.position = position_;
         }
 
-        inline void init_register_pollable (i_pollable *pollable_)
+        inline void init_engine_terminate_pipe (i_engine *engine_,
+            pipe_t *pipe_)
         {
-            type = register_pollable;
-            args.register_pollable.pollable = pollable_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type = engine_command_t::terminate_pipe;
+            args.engine_command.command.args.terminate_pipe.pipe = pipe_;
         }
 
-        inline void init_unregister_pollable (i_pollable *pollable_)
+        inline void init_engine_terminate_pipe_ack (i_engine *engine_,
+            pipe_t *pipe_)
         {
-            type = unregister_pollable;
-            args.unregister_pollable.pollable = pollable_;
+            type = engine_command;
+            args.engine_command.engine = engine_;
+            args.engine_command.command.type =
+                engine_command_t::terminate_pipe_ack;
+            args.engine_command.command.args.terminate_pipe_ack.pipe = pipe_;
         }
-
+        
     };
 
 }    

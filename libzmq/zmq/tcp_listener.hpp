@@ -35,9 +35,7 @@ namespace zmq
         //  Create TCP listining socket. Interface is either interface name,
         //  in that case port number is chosen by OS and can be retrieved
         //  by get_port method, or <interface-name>:<port-number>.
-        //  If 'block' is set to false, accept function may return retired_fd
-        //  if the connection was dropped while in the backlog.
-        ZMQ_EXPORT tcp_listener_t (const char *interface_, bool block_ = false);
+        ZMQ_EXPORT tcp_listener_t (const char *interface_);
 
         //  Closes the socket.
         ZMQ_EXPORT ~tcp_listener_t ();

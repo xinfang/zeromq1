@@ -21,6 +21,7 @@
 #define __ZMQ_I_POLLER_HPP_INCLUDED__
 
 #include <zmq/fd.hpp>
+#include <zmq/i_thread.hpp>
 
 namespace zmq
 {
@@ -31,10 +32,10 @@ namespace zmq
         void *ptr;
     };
 
-    //  Virtual interface to be used by file-descriptor-oriented engines
+    //  Virtual interface to be exposed by file-descriptor-oriented engines
     //  for communication with I/O threads.
 
-    struct i_poller
+    struct i_poller : public i_thread
     {
         virtual ~i_poller () {};
 
@@ -64,19 +65,6 @@ namespace zmq
 
         //  Cancel the timer set by add_timer method.
         virtual void cancel_timer (struct i_pollable *engine_) = 0;
-
-        //  Following methods are to be used by I/O thread owenr. Please
-        //  don't invoke them from individual engines.
-
-        //  Start the execution of the underlying I/O thread.
-        virtual void start () = 0;
-
-        //  First function start asynchronous shutdown of the poller, second
-        //  one waits till the shutdown is finished. If particular API thread
-        //  allows only for synchronous shutdown, initialise_shutdown should
-        //  be left empty and terminate_shutdown should contain actual code.
-        virtual void initialise_shutdown () = 0;
-        virtual void terminate_shutdown () = 0;
     };
 
 }

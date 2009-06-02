@@ -18,11 +18,10 @@
 */
 
 #include <zmq/ypollset.hpp>
-#include <zmq/err.hpp>
 
 void zmq::ypollset_t::signal (int signal_)
 {
-    zmq_assert (signal_ >= 0 && signal_ < wait_signal);
+    assert (signal_ >= 0 && signal_ < wait_signal);
     if (bits.btsr (signal_, wait_signal))
         sem.signal (0); 
 }

@@ -19,13 +19,13 @@
 
 #include <zmq/api_thread.hpp>
 #include <zmq/config.hpp>
-#include <zmq/err.hpp>
 
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
 {
     return new api_thread_t (dispatcher_, locator_);
 }
+
 
 zmq::api_thread_t::api_thread_t (dispatcher_t *dispatcher_,
       i_locator *locator_) :
@@ -57,25 +57,17 @@ int zmq::api_thread_t::create_exchange (const char *name_,
     i_thread *listener_thread_, int handler_thread_count_,
     i_thread **handler_threads_, style_t style_)
 {
-    zmq_assert (scope_ == scope_local || scope_ == scope_process ||
+    assert (scope_ == scope_local || scope_ == scope_process ||
         scope_ == scope_global);
 
     //  Insert the exchange to the local list of exchanges.
     //  Make sure that the exchange doesn't already exist.
     for (exchanges_t::iterator it = exchanges.begin ();
           it != exchanges.end (); it ++)
-        zmq_assert (it->first != name_);
+        assert (it->first != name_);
 
-    //  Create demux for out_engine.
-    i_demux *demux;
-
-    if (style_ == style_load_balancing)
-        demux = new load_balancer_t ();
-    else
-        demux = new data_distributor_t ();
-
-    out_engine_t *engine = out_engine_t::create (demux);
-    engine->start (this, this);
+    out_engine_t *engine = out_engine_t::create (
+        style_ == style_load_balancing);
     exchanges.push_back (exchanges_t::value_type (name_, engine));
 
     //  If the scope of the exchange is local, we won't register it
@@ -84,7 +76,7 @@ int zmq::api_thread_t::create_exchange (const char *name_,
         return exchanges.size () - 1;
 
     //  Register the exchange with the locator.
-    dispatcher->create (locator, this, true, name_, this, engine,
+    dispatcher->create (locator, this, false, name_, this, engine,
         scope_, location_, listener_thread_,
         handler_thread_count_, handler_threads_);
 
@@ -96,20 +88,16 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
     int handler_thread_count_, i_thread **handler_threads_,
     int64_t hwm_, int64_t lwm_, uint64_t swap_)
 {
-    zmq_assert (scope_ == scope_local || scope_ == scope_process ||
+    assert (scope_ == scope_local || scope_ == scope_process ||
         scope_ == scope_global);
 
     //  Insert the queue to the local list of queues.
     //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
-        zmq_assert (it->first != name_);
+        assert (it->first != name_);
 
-    //  Create mux object for in_engine.
-    mux_t *mux = new mux_t (hwm_, lwm_, swap_);
-
-    in_engine_t *engine = in_engine_t::create (mux);
-    engine->start (this, this);
+    in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_);
     queues.push_back (queues_t::value_type (name_, engine));
 
     //  If the scope of the queue is local, we won't register it
@@ -118,7 +106,7 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
         return queues.size ();
 
     //  Register the queue with the locator.
-    dispatcher->create (locator, this, false, name_, this, engine,
+    dispatcher->create (locator, this, true, name_, this, engine,
         scope_, location_, listener_thread_, handler_thread_count_,
         handler_threads_);
 
@@ -142,8 +130,7 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         exchange_engine = eit->second;
     }
     else {
-        //  Proxy engine for global exchange is receiver /sender_ = false/.
-        dispatcher->get (locator, this, false, exchange_name_, &exchange_thread,
+        dispatcher->get (locator, this, exchange_name_, &exchange_thread,
             &exchange_engine, exchange_thread_, queue_name_, exchange_options_);
     }
 
@@ -159,34 +146,31 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
         queue_engine = qit->second;
     }
     else {
-        //  Proxy engine for global queue is sender /sender_ = true/.
-        dispatcher->get (locator, this, true, queue_name_, &queue_thread,
+        dispatcher->get (locator, this, queue_name_, &queue_thread,
             &queue_engine, queue_thread_, exchange_name_, queue_options_);
     }
 
     //  Create the pipe.
-    i_demux *demux = exchange_engine->get_demux ();
-    i_mux *mux = queue_engine->get_mux ();
-    pipe_t *pipe = new pipe_t (exchange_thread, demux,
-        queue_thread, mux, mux->get_swap_size ());
-    zmq_assert (pipe);
+    pipe_t *pipe = new pipe_t (exchange_thread, exchange_engine,
+        queue_thread, queue_engine);
+    assert (pipe);
 
     //  Bind the source end of the pipe.
-    command_t demux_cmd;
-    demux_cmd.init_attach_pipe_to_demux (demux, pipe);
-    send_command (exchange_thread, demux_cmd);
+    command_t cmd_send_to;
+    cmd_send_to.init_engine_send_to (exchange_engine, pipe);
+    send_command (exchange_thread, cmd_send_to);
 
     //  Bind the destination end of the pipe.
-    command_t mux_cmd;
-    mux_cmd.init_attach_pipe_to_mux (mux, pipe);
-    send_command (queue_thread, mux_cmd);
+    command_t cmd_receive_from;
+    cmd_receive_from.init_engine_receive_from (queue_engine, pipe);
+    send_command (queue_thread, cmd_receive_from);
 }
 
 bool zmq::api_thread_t::send (int exchange_, message_t &message_, bool block_)
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    zmq_assert (message_.type () == message_data);
+    assert (message_.type () == message_data);
 
     //  Process pending commands, if any.
     process_commands ();
@@ -218,7 +202,7 @@ bool zmq::api_thread_t::presend (int exchange_, message_t &message_,
 {
     //  Only data messages can be sent. Notifications are intended for notifying
     //  the client about different events rather than for passing them around.
-    zmq_assert (message_.type () == message_data);
+    assert (message_.type () == message_data);
 
     //  Try to send the message.
     bool sent = exchanges [exchange_].second->write (message_);
@@ -253,25 +237,44 @@ int zmq::api_thread_t::receive (message_t *message_, bool block_)
     bool retrieved = false;
     int qid = 0;
 
+    //  Remember the original current queue position. We'll use this value
+    //  as a marker for identifying whether we've inspected all the queues.
+    queues_t::size_type start = current_queue;
+
     //  Big loop - iteration happens each time after new commands
     //  are processed (thus new messages may be available).
     while (true) {
 
-        //  Scan queues and find one with message available.
-        for (queues_t::size_type i = 0;
-            i < queues.size () && !retrieved; i ++) {
+        //  Small loop doesn't make sense if there are no queues.
+        if (!queues.empty ()) {
 
-            //  Get message or notification that the user is subscribed for.
-            retrieved = queues [current_queue].second->read (message_);
-            while (retrieved && (message_->type () & message_mask) == 0)
-                retrieved = queues [current_queue].second->read (message_);
+            //  Small loop - we are iterating over the array of queues
+            //  checking whether any of them has messages available.
+            while (true) {
 
-            //  Remember this queue ID.
-            if (retrieved)
-                qid = current_queue + 1;
+               //  Get a message or notification that user is subscribed for.
+               while (true) {
+                   retrieved = queues [current_queue].second->read (message_);
+                   if (!retrieved || (message_->type () & message_mask))
+                       break;
+               }
 
-            //  Move to the next queue.
-            current_queue = (current_queue + 1) % queues.size ();
+               if (retrieved)
+                   qid = current_queue + 1;
+
+               //  Move to the next queue.
+               current_queue ++;
+               if (current_queue == queues.size ())
+                   current_queue = 0;
+
+               //  If we have a message exit the small loop.
+               if (retrieved)
+                   break;
+
+               //  If we've iterated over all the queues exit the loop.
+               if (current_queue == start)
+                   break;
+            }
         }
 
         //  If we have a message exit the big loop.
@@ -287,7 +290,7 @@ int zmq::api_thread_t::receive (message_t *message_, bool block_)
         //  We wait for commands, we process them and we continue
         //  with getting the messages.
         ypollset_t::integer_t signals = pollset.poll ();
-        zmq_assert (signals);
+        assert (signals);
         process_commands (signals);
         ticks = 0;
     }
@@ -339,43 +342,46 @@ void zmq::api_thread_t::destroy ()
 
 void zmq::api_thread_t::process_command (const command_t &command_)
 {
-    pipe_t *pipe;
-
     switch (command_.type) {
 
-    case command_t::attach_pipe_to_demux:
-        pipe = command_.args.attach_pipe_to_demux.pipe;
-        command_.args.attach_pipe_to_demux.demux->send_to (pipe);
-        break;
+    //  Forward engine command to appropriate engine.
+    case command_t::engine_command:
+        {
+            //  Forward the command to the engine.
+            i_engine *engine = command_.args.engine_command.engine;
+            const engine_command_t &engcmd =
+                command_.args.engine_command.command;
+            switch (engcmd.type) {
+            case engine_command_t::revive:
+                engine->revive (engcmd.args.revive.pipe);
+                break;
+            case engine_command_t::head:
+                engine->head (engcmd.args.head.pipe, engcmd.args.head.position);
+                break;
+            case engine_command_t::send_to:
+                engine->send_to (engcmd.args.send_to.pipe);
+                break;
+            case engine_command_t::receive_from:
+                engine->receive_from (engcmd.args.receive_from.pipe);
+                break;
+            case engine_command_t::terminate_pipe:
+                engine->terminate_pipe (engcmd.args.terminate_pipe.pipe);
+                break;
+            case engine_command_t::terminate_pipe_ack:
+                engine->terminate_pipe_ack (
+                    engcmd.args.terminate_pipe_ack.pipe);
+                break;
+            default:
 
-    case command_t::attach_pipe_to_mux:
-        pipe = command_.args.attach_pipe_to_mux.pipe;
-        command_.args.attach_pipe_to_mux.mux->receive_from (pipe);
-        break;
-
-    case command_t::revive_reader:
-        pipe = command_.args.revive_reader.pipe;
-        pipe->revive_reader ();
-        break;
-
-    case command_t::notify_writer:
-        pipe = command_.args.notify_writer.pipe;
-        pipe->notify_writer (command_.args.notify_writer.position);
-        break;
-
-    case command_t::terminate_pipe_req:
-        pipe = command_.args.terminate_pipe_req.pipe;
-        pipe->terminate_pipe_req ();
-        break;
-
-    case command_t::terminate_pipe_ack:
-        pipe = command_.args.terminate_pipe_ack.pipe;
-        pipe->terminate_pipe_ack ();
-        break;
+                //  Unknown engine command.
+                assert (false);
+            }
+            break;
+        }
 
     //  Unsupported/unknown command.
     default:
-        zmq_assert (false);
+        assert (false);
     }
 }
 
@@ -401,7 +407,7 @@ void zmq::api_thread_t::process_commands ()
     //  last command processing. Command delay varies depending on CPU speed:
     //  It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU etc.
 
-    //  Get timestamp counter.
+	//  Get timestamp counter.
 #if defined __GNUC__
     uint32_t low;
     uint32_t high;
@@ -410,7 +416,7 @@ void zmq::api_thread_t::process_commands ()
     uint64_t current_time = (uint64_t) high << 32 | low;
 #elif defined _MSC_VER
     uint64_t current_time = __rdtsc ();
-#else
+#elif
 #error
 #endif
 

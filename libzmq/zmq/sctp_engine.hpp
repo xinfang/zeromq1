@@ -18,18 +18,27 @@
 */
 
 
-#ifndef __ZMQ_SCTP_RECEIVER_HPP_INCLUDED__
-#define __ZMQ_SCTP_RECEIVER_HPP_INCLUDED__
+#ifndef __ZMQ_SCTP_ENGINE_HPP_INCLUDED__
+#define __ZMQ_SCTP_ENGINE_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
 #if defined ZMQ_HAVE_SCTP
 
-#include <zmq/i_demux.hpp>
-#include <zmq/i_thread.hpp>
-#include <zmq/i_engine.hpp>
-#include <zmq/i_producer.hpp>
+#include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/sctp.h>
+
+#include <zmq/stdint.hpp>
+#include <zmq/export.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
+#include <zmq/i_thread.hpp>
+#include <zmq/mux.hpp>
+#include <zmq/message.hpp>
 
 namespace zmq
 {
@@ -41,9 +50,8 @@ namespace zmq
     //     directly to SCTP messages.
     //  3. Communicates with I/O thread via file descriptors.
 
-    class sctp_receiver_t :
-        public i_engine,
-        public i_producer,
+    class sctp_engine_t :
+        public engine_base_t <true, true>,
         public i_pollable
     {
         //  Allow class factory to create this engine.
@@ -55,13 +63,13 @@ namespace zmq
     public:
 
         //  i_engine interface implementation.
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
-        class i_demux *get_demux ();
-        class i_mux *get_mux ();
-
-        //  i_producer interface implementation.
-        void head ();
-        void send_to ();
+        i_pollable *cast_to_pollable ();
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
+        int64_t get_swap_size ();
+        void revive (pipe_t *pipe_);
+        void head (pipe_t *pipe_, int64_t position_);
+        void send_to (pipe_t *pipe_);
+        void receive_from (pipe_t *pipe_);
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
@@ -70,22 +78,14 @@ namespace zmq
         void timer_event ();
         void unregister_event ();
 
-    protected:
-
-        //  i_engine interface implementation.
-        const char *get_arguments ();
-
     private:
-        sctp_receiver_t (i_demux *demux_, const char *hostname_,
-            const char *local_object_, const char * /* arguments_ */);
 
-        sctp_receiver_t (i_demux *demux_,
+        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
+            const char *hostname_, const char *local_object_,
+            const char * /* arguments_ */);
+        sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             int listener_, const char *local_object_);
-
-        ~sctp_receiver_t ();
-
-        //  Demux.
-        i_demux *demux;
+        ~sctp_engine_t ();
 
         //  Underlying SCTP socket.
         int s;
@@ -103,9 +103,12 @@ namespace zmq
         //  from other threads.
         bool shutting_down;
 
-        sctp_receiver_t (const sctp_receiver_t&);
-        void operator = (const sctp_receiver_t&);
+        sctp_engine_t (const sctp_engine_t&);
+        void operator = (const sctp_engine_t&);
     };
+
 }
+
 #endif
+
 #endif

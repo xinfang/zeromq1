@@ -25,7 +25,7 @@
 #include <zmq/ypipe.hpp>
 #include <zmq/raw_message.hpp>
 #include <zmq/config.hpp>
-#include <zmq/swap.hpp>
+#include <zmq/data_dam.hpp>
 
 namespace zmq
 {
@@ -40,15 +40,16 @@ namespace zmq
     public:
 
         //  Initialise the pipe.
-        pipe_t (struct i_thread *source_thread_, class i_demux *demux_,
-            struct i_thread *destination_thread_, class i_mux *mux_,
-            int64_t swap_size_);
+        pipe_t (struct i_thread *source_thread_,
+            struct i_engine *source_engine_,
+            struct i_thread *destination_thread_,
+            struct i_engine *destination_engine_);
         ~pipe_t ();
 
         //  Check whether message can be written to the pipe (i.e. whether
         //  pipe limits are exceeded. If true, it's OK to write the message
         //  to the pipe.
-        bool check_write (raw_message_t *msg_);
+        bool check_write ();
 
         //  Write a message to the pipe.
         void write (raw_message_t *msg_);
@@ -66,41 +67,23 @@ namespace zmq
         //  Reads a message from the pipe.
         bool read (raw_message_t *msg);
 
+        //  Make the dead pipe alive once more.
+        void revive ();
+
         //  Process the 'head' command from reader thread.
         void set_head (uint64_t position_);
-
-        //  Sets mux index of the pipe. By adding 1 to the index in the
-        //  internal representation we can use value of 0 for 'invalid
-        //  index' tag.
-        inline void set_index (size_t index_)
-        {
-            mux_index = index_ + 1;
-        }
-
-        //  Retrieves mux index of the pipe.
-        inline size_t index ()
-        {
-            return mux_index - 1;
-        }
-
-        //  Wake up the message consumer.
-        ZMQ_EXPORT void revive_reader ();
-
-        //  Inform the message producer about the number of messages
-        //  consumed so far.
-        ZMQ_EXPORT void notify_writer (uint64_t position_);
 
         //  Used by the pipe writer to initialise pipe shut down.
         void terminate_writer ();
 
-        //  The message consumer has requested for pipe shutdown.
-        void terminate_pipe_req ();
+        //  Confirms pipe shut down to the writer.
+        void writer_terminated ();
 
         //  Used by the pipe reader to initialise  pipe shut down.
         void terminate_reader ();
 
-        //  The message producer has acknowledged the shutdown request.
-        void terminate_pipe_ack ();
+        //  Confirms pipe shut down to the reader.
+        void reader_terminated ();
 
     private:
 
@@ -109,23 +92,16 @@ namespace zmq
             underlying_pipe_t;
         underlying_pipe_t pipe;
 
-        //  Identification of the demux sending the messages to the pipe.
+        //  Identification of the engine sending the messages to the pipe.
         i_thread *source_thread;
-        i_demux *demux;
+        i_engine *source_engine;
 
-        //  Identification of the mux receiving the messages from the pipe.
+        //  Identification of the engine receiving the messages from the pipe.
         i_thread *destination_thread;
-        i_mux *mux;
+        i_engine *destination_engine;
 
-        //  When the writer hits the pipe's hwm limit, the flag is set
-        //  to true. When the pipe gets ready to accept another message,
-        //  both the writer is notified and the flag is cleared.
-        bool pipe_full;
-
-        //  Index of this pipe in the mux object containing it.
-        //  It is redundant information, however, it allows the schedular to
-        //  achieve O(1) complexity. Value of 0 means invalid index.
-        size_t mux_index;
+        //  If true we can read messages from the underlying ypipe.
+        bool alive;
 
         //  If hwm is non-zero, the size of pipe is limited. In that case hwm
         //  is the high water mark for the pipe and lwm is the low water mark.
@@ -150,12 +126,12 @@ namespace zmq
         uint64_t in_core_msg_cnt;
 
         //  Message store keeps messages when the memory buffer is full.
-        swap_t *swap;
+        data_dam_t *data_dam;
 
         //  Flag indicating whether the swapping has been activated or not.
         bool swapping;
 
-        //  Number of messages kept in the swap file.
+        //  Number of messages kept in the data dam (swap file).
         size_t in_swap_msg_cnt;
 
         //  Refills the memory buffer from the swap file.

@@ -18,6 +18,8 @@
 */
 
 #include <zmq/platform.hpp>
+#include <zmq/data_dam.hpp>
+#include <zmq/formatting.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -31,13 +33,9 @@
 #include <unistd.h>
 #endif
 
-#include <zmq/swap.hpp>
-#include <zmq/formatting.hpp>
-#include <zmq/err.hpp>
+zmq::atomic_counter_t zmq::data_dam_t::counter;
 
-zmq::atomic_counter_t zmq::swap_t::counter;
-
-zmq::swap_t::swap_t (int64_t filesize_, size_t block_size_) :
+zmq::data_dam_t::data_dam_t (int64_t filesize_, size_t block_size_) :
     filesize (filesize_),
     file_pos (0),
     write_pos (0),
@@ -46,14 +44,14 @@ zmq::swap_t::swap_t (int64_t filesize_, size_t block_size_) :
     block_size (block_size_),
     write_buf_start_addr (0)
 {
-    zmq_assert (filesize > 0);
-    zmq_assert (block_size > 0);
+    assert (filesize > 0);
+    assert (block_size > 0);
 
     buf1 = new char [block_size];
-    zmq_assert (buf1);
+    assert (buf1);
 
     buf2 = new char [block_size];
-    zmq_assert (buf2);
+    assert (buf2);
 
     read_buf = write_buf = buf1;
 
@@ -81,11 +79,11 @@ zmq::swap_t::swap_t (int64_t filesize_, size_t block_size_) :
 #ifdef ZMQ_HAVE_LINUX
     //  Enable more aggresive read-ahead optimization.
     int rc = posix_fadvise (fd, 0, filesize, POSIX_FADV_SEQUENTIAL);
-    zmq_assert (rc == 0);
+    assert (rc == 0);
 #endif
 }
 
-zmq::swap_t::~swap_t ()
+zmq::data_dam_t::~data_dam_t ()
 {
     delete [] buf1;
     delete [] buf2;
@@ -105,27 +103,16 @@ zmq::swap_t::~swap_t ()
     errno_assert (rc == 0);
 }
 
-bool zmq::swap_t::check_capacity (raw_message_t *msg_)
+bool zmq::data_dam_t::store (raw_message_t *msg_)
 {
-    size_t record_size, msg_size = raw_message_size (msg_);
+    size_t msg_size = raw_message_size (msg_);
 
-    if (msg_size > 0)
-        record_size = sizeof (size_t) + msg_size;
-    else
-        record_size = sizeof (size_t) + sizeof (int);
-
-    //  Check swap space availability.
+    //  Check buffer space availability.
     //  NOTE: We always keep one byte open.
-    return (int64_t) record_size < buffer_space ();
-}
-
-void zmq::swap_t::store (raw_message_t *msg_)
-{
-    bool swap_space_available = check_capacity (msg_);
-    zmq_assert (swap_space_available);
+    if (buffer_space () <= (int64_t) (sizeof msg_size + msg_size))
+        return false;
 
     //  Write the message length.
-    size_t msg_size = raw_message_size (msg_);
     copy_to_file (&msg_size, sizeof msg_size);
 
     if (msg_size > 0) {
@@ -139,12 +126,14 @@ void zmq::swap_t::store (raw_message_t *msg_)
 
     //  Update the message counter.
     n_msgs ++;
+
+    return true;
 }
 
-void zmq::swap_t::fetch (raw_message_t *msg_)
+void zmq::data_dam_t::fetch (raw_message_t *msg_)
 {
     //  There must be at least one message available.
-    zmq_assert (n_msgs > 0);
+    assert (n_msgs > 0);
 
     //  Retrieve the message size.
     size_t msg_size;
@@ -168,17 +157,17 @@ void zmq::swap_t::fetch (raw_message_t *msg_)
     n_msgs --;
 }
 
-bool zmq::swap_t::empty ()
+bool zmq::data_dam_t::empty ()
 {
     return n_msgs == 0;
 }
 
-unsigned long zmq::swap_t::size ()
+unsigned long zmq::data_dam_t::size ()
 {
     return n_msgs;
 }
 
-void zmq::swap_t::copy_from_file (void *buffer_, size_t count_)
+void zmq::data_dam_t::copy_from_file (void *buffer_, size_t count_)
 {
     char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
@@ -203,7 +192,7 @@ void zmq::swap_t::copy_from_file (void *buffer_, size_t count_)
     }
 }
 
-void zmq::swap_t::copy_to_file (const void *buffer_, size_t count_)
+void zmq::data_dam_t::copy_to_file (const void *buffer_, size_t count_)
 {
     char *ptr = (char*) buffer_;
     size_t n, n_left = count_;
@@ -234,7 +223,7 @@ void zmq::swap_t::copy_to_file (const void *buffer_, size_t count_)
     }
 }
 
-void zmq::swap_t::fill_read_buf ()
+void zmq::data_dam_t::fill_read_buf ()
 {
     if (file_pos != read_pos) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -262,7 +251,7 @@ void zmq::swap_t::fill_read_buf ()
     file_pos += n;
 }
 
-void zmq::swap_t::save_write_buf ()
+void zmq::data_dam_t::save_write_buf ()
 {
     if (file_pos != write_buf_start_addr) {
 #ifdef ZMQ_HAVE_WINDOWS
@@ -291,7 +280,7 @@ void zmq::swap_t::save_write_buf ()
     file_pos += n;
 }
 
-int64_t zmq::swap_t::buffer_space ()
+int64_t zmq::data_dam_t::buffer_space ()
 {
     if (write_pos < read_pos)
         return read_pos - write_pos;

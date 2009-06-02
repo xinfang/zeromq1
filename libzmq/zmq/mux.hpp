@@ -20,68 +20,48 @@
 #ifndef __ZMQ_MUX_HPP_INCLUDED__
 #define __ZMQ_MUX_HPP_INCLUDED__
 
+#include <assert.h>
 #include <vector>
-#include <algorithm>
 
-#include <zmq/i_mux.hpp>
+#include <zmq/message.hpp>
+#include <zmq/pipe.hpp>
 
 namespace zmq
 {
 
     //  Object to aggregate messages from inbound pipes.
 
-    class mux_t : public i_mux
+    class mux_t
     {
     public:
 
-        mux_t (int64_t hwm_, int64_t lwm_, int64_t swap_size_ = 0);
+        mux_t ();
         ~mux_t ();
 
-        //  i_mux implementation.
-        int64_t get_swap_size ();
-        void register_consumer (class i_consumer *consumer_);
-        void get_watermarks (int64_t &hwm_, int64_t &lwm_);
-        bool read (message_t *msg_);
+        //  Adds a pipe to receive messages from.
         void receive_from (pipe_t *pipe_);
-        void revive (pipe_t *pipe_);
+
+        //  Returns a message, if available. If not, returns false.
+        bool read (message_t *msg_);
+
+        //  Returns true if there are no pipes attached.
         bool empty ();
+
+        //  Drop references to the specified pipe.
         void release_pipe (pipe_t *pipe_);
+
+        //  Initiate shutdown of all associated pipes.
         void initialise_shutdown ();
 
     private:
 
-        //  Message consumer associated with the mux. At most one consumer
-        //  can be associated.
-        i_consumer *consumer;
-
-        //  High and low watermark.
-        int64_t hwm;
-        int64_t lwm;
-
-        //  Size, in bytes, of swap file the pipe creates when
-        //  attaching to the mux. Zeromenas no swap file is created.
-        int64_t swap_size;
-
-        //  The list of inbound pipes. The active pipes are occupying indices
-        //  from 0 to active-1. Suspended pipes occupy indices from 'active'
-        //  to the end of the array.
+        //  The list of inbound pipes.
         typedef std::vector <pipe_t*> pipes_t;
         pipes_t pipes;
-
-        //  The number of active pipes.
-        pipes_t::size_type active;
 
         //  Pipe to retrieve next message from. The messages are retrieved
         //  from the pipes in round-robin fashion (a.k.a. fair queueing).
         pipes_t::size_type current;
-
-        //  Swaps pipes at specified indices. 
-        inline void swap_pipes (pipes_t::size_type i1_, pipes_t::size_type i2_)
-        {
-            std::swap (pipes [i1_], pipes [i2_]);
-            pipes [i1_]->set_index (i1_);
-            pipes [i2_]->set_index (i2_);
-        }
 
         mux_t (const mux_t&);
         void operator = (const mux_t&);

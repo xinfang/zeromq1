@@ -17,75 +17,85 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <zmq/bp_tcp_sender.hpp>
+#include <zmq/bp_tcp_engine.hpp>
 #include <zmq/dispatcher.hpp>
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, const char *hostname_,
-      const char *local_object_, const char * /* options_*/) :
-    mux (mux_),
+zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *hostname_, const char *local_object_,
+      const char * /* arguments_*/) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    encoder (mux),
+    readbuf_size (bp_in_batch_size),
+    read_size (0),
+    read_pos (0),
+    encoder (&mux),
+    decoder (demux),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (true),
     state (engine_connecting),
     socket (hostname_)
 {
-    zmq_assert (mux);
+    
+    //  Allocate read and write buffers.
+    writebuf = (unsigned char*) malloc (writebuf_size);
+    errno_assert (writebuf);
+    readbuf = (unsigned char*) malloc (readbuf_size);
+    errno_assert (readbuf);
 
-    //  Allocate write buffer.
-    writebuf = new unsigned char [writebuf_size];
-    zmq_assert (writebuf);
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
-zmq::bp_tcp_sender_t::bp_tcp_sender_t (i_mux *mux_, fd_t fd_,
-      const char *local_object_) :
-    mux (mux_),
+zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
+      i_thread *thread_, tcp_listener_t &listener_, const char *local_object_) :
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
-    encoder (mux),
+    readbuf_size (bp_in_batch_size),
+    read_size (0),
+    read_pos (0),
+    encoder (&mux),
+    decoder (demux),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
     state (engine_connected),
-    socket (fd_)
+    socket (listener_)
 {
-    zmq_assert (mux);
+    //  Allocate read and write buffers.
+    writebuf = (unsigned char*) malloc (writebuf_size);
+    errno_assert (writebuf);
+    readbuf = (unsigned char*) malloc (readbuf_size);
+    errno_assert (readbuf);
 
-    //  Allocate write buffer.
-    writebuf = new unsigned char [writebuf_size];
-    zmq_assert (writebuf);
-}
-
-zmq::bp_tcp_sender_t::~bp_tcp_sender_t ()
-{
-    delete [] writebuf;
-    //  TODO: For engines with identity mux should not be deleted.
-    delete mux;
-}
-
-void zmq::bp_tcp_sender_t::start (i_thread *current_thread_,
-    i_thread *engine_thread_)
-{
-    mux->register_consumer (this);
-
-    //  Register BP engine with the I/O thread.
+    //  Register BP/TCP engine with the I/O thread.
     command_t command;
-    command.init_register_pollable (this);
-    current_thread_->send_command (engine_thread_, command);
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
 }
 
-void zmq::bp_tcp_sender_t::error ()
+zmq::bp_tcp_engine_t::~bp_tcp_engine_t ()
+{
+    free (readbuf);
+    free (writebuf);
+}
+
+void zmq::bp_tcp_engine_t::error ()
 {
     if (state == engine_connected) {
 
-        //  Clean half-processed outbound data.
+        //  Push a gap notification to the pipes.
+        demux->gap ();
+
+        //  Clean half-processed inbound and outbound data.
         encoder.reset ();
+        decoder.reset ();
     }
 
     //  Report connection failure to the client.
@@ -94,7 +104,7 @@ void zmq::bp_tcp_sender_t::error ()
     //  If error handler returns false, crash the application.
     error_handler_t *eh = get_error_handler ();
     if (eh && !eh (local_object.c_str ()))
-        zmq_assert (false);
+        assert (false);
 
     //  Either reestablish the connection or destroy associated resources.
     if (reconnect_flag)
@@ -103,7 +113,7 @@ void zmq::bp_tcp_sender_t::error ()
         shutdown ();
 }
 
-void zmq::bp_tcp_sender_t::reconnect ()
+void zmq::bp_tcp_engine_t::reconnect ()
 {
     if (state == engine_connected || state == engine_connecting) {
 
@@ -114,6 +124,7 @@ void zmq::bp_tcp_sender_t::reconnect ()
         socket.close ();
 
         //  Clear data buffers.
+        read_pos = read_size;
         write_pos = write_size;
     }
 
@@ -129,7 +140,7 @@ void zmq::bp_tcp_sender_t::reconnect ()
     //  Reopen the socket. This initiates the TCP connection establishment.
     //  If the reconnection is unsuccessfull wait a while till attempting
     //  it anew.
-    socket.reopen ();
+    socket.reopen (); 
     if (socket.get_fd () == retired_fd) {
         poller->add_timer (this);
         state = engine_waiting_for_reconnect;
@@ -144,7 +155,7 @@ void zmq::bp_tcp_sender_t::reconnect ()
     state = engine_connecting;
 }
 
-void zmq::bp_tcp_sender_t::shutdown ()
+void zmq::bp_tcp_engine_t::shutdown ()
 {
     //  Remove the file descriptor from the pollset.
     poller->rm_fd (handle);
@@ -152,24 +163,30 @@ void zmq::bp_tcp_sender_t::shutdown ()
     //  We don't need the socket any more, so close it to allow OS to reuse it.
     socket.close ();
 
-    //  Ask all inbound pipes to shut down.
-    mux->initialise_shutdown ();
+    //  Ask all inbound & outbound pipes to shut down.
+    demux->initialise_shutdown ();
+    mux.initialise_shutdown ();
 
     state = engine_shutting_down;
 }
 
-zmq::i_demux *zmq::bp_tcp_sender_t::get_demux ()
+zmq::i_pollable *zmq::bp_tcp_engine_t::cast_to_pollable ()
 {
-    zmq_assert (false);
-    return NULL;
+    return this;
 }
 
-zmq::i_mux *zmq::bp_tcp_sender_t::get_mux ()
+void zmq::bp_tcp_engine_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
 {
-    return mux;
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
 }
 
-void zmq::bp_tcp_sender_t::register_event (i_poller *poller_)
+int64_t zmq::bp_tcp_engine_t::get_swap_size ()
+{
+    return 0;
+}
+
+void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
 {
     //  Store the callback.
     poller = poller_;
@@ -192,24 +209,67 @@ void zmq::bp_tcp_sender_t::register_event (i_poller *poller_)
         poller->set_pollin (handle);
 }
 
-void zmq::bp_tcp_sender_t::in_event ()
+void zmq::bp_tcp_engine_t::in_event ()
 {
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
-    if (state == engine_connecting)
-        zmq_assert (socket.socket_error ());
-
-    // Is connection down?
-    else {
-        char tmpbuf [1];
-        int n = socket.read (tmpbuf, sizeof tmpbuf);
-        zmq_assert (n == -1);
+    if (state == engine_connecting) {
+        assert (socket.socket_error ());
+        error ();
+        return;
     }
 
-    error ();
+    //  This variable determines whether processing incoming messages is
+    //  stuck because of exceeded pipe limits.
+    bool stuck = read_pos < read_size;
+
+    //  If there's no data to process in the buffer, read new data.
+    if (read_pos == read_size) {
+
+        //  Read as much data as possible to the read buffer.
+        read_size = socket.read (readbuf, readbuf_size);
+        read_pos = 0;
+
+        //  Check whether the peer has closed the connection.
+        if (read_size == -1) {
+            error ();
+            return;
+        }
+    }
+
+    //  If there's at least one unprocessed byte in the buffer, process it.
+    if (read_pos < read_size) {
+
+        //  Push the data to the decoder and adjust read position in the buffer.
+        int  nbytes = decoder.write (readbuf + read_pos, read_size - read_pos);
+        read_pos += nbytes;
+
+         //  If processing was stuck and become unstuck start reading
+         //  from the socket. If it was unstuck and became stuck, stop polling
+         //  for new data.
+         if (stuck) {
+             if (read_pos == read_size)
+
+                 //  TODO: Speculative read should be used at this place to
+                 //  avoid excessive poll. However, it looks like this can
+                 //  result in infinite cycle in some cases, virtually
+                 //  preventing other engines' access to CPU. Fix it.
+                 poller->set_pollin (handle);
+         }
+         else {
+             if (read_pos < read_size) {
+                 poller->reset_pollin (handle);
+             }    
+         }
+
+        //  If at least one byte was processed, flush any messages decoder
+        //  may have produced.
+        if (nbytes > 0)
+            demux->flush ();
+    }
 }
 
-void zmq::bp_tcp_sender_t::out_event ()
+void zmq::bp_tcp_engine_t::out_event ()
 {
     if (state == engine_connecting) {
 
@@ -218,7 +278,7 @@ void zmq::bp_tcp_sender_t::out_event ()
             return;
         }
 
-        if (mux->empty ())
+        if (mux.empty ())
             poller->reset_pollout (handle);
         poller->set_pollin (handle);
         state = engine_connected;
@@ -252,13 +312,13 @@ void zmq::bp_tcp_sender_t::out_event ()
     }
 }
 
-void zmq::bp_tcp_sender_t::timer_event ()
+void zmq::bp_tcp_engine_t::timer_event ()
 {
-    zmq_assert (state == engine_waiting_for_reconnect);
+    assert (state == engine_waiting_for_reconnect);
     reconnect ();
 }
 
-void zmq::bp_tcp_sender_t::unregister_event ()
+void zmq::bp_tcp_engine_t::unregister_event ()
 {
     //  TODO: Implement full-blown shut-down mechanism.
     //  For now, we'll just close the underlying socket.
@@ -269,8 +329,11 @@ void zmq::bp_tcp_sender_t::unregister_event ()
     }
 }
 
-void zmq::bp_tcp_sender_t::revive ()
+void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)
 {
+    //  Mark pipe as alive.
+    engine_base_t <true,true>::revive (pipe_);
+
     //  Don't start polling for output if you are not connected.
     if (state == engine_connected) {
 
@@ -284,14 +347,34 @@ void zmq::bp_tcp_sender_t::revive ()
     }
 }
 
-void zmq::bp_tcp_sender_t::receive_from ()
+void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, int64_t position_)
 {
-    if (state == engine_connected)
-        poller->set_pollout (handle);
+    engine_base_t <true,true>::head (pipe_, position_);
+
+    //  This command may have unblocked the pipe - start receiving messages.
+    in_event ();
 }
 
-const char *zmq::bp_tcp_sender_t::get_arguments ()
+void zmq::bp_tcp_engine_t::send_to (pipe_t *pipe_)
 {
-    zmq_assert (false);
-    return NULL;
+    //  If pipe limits are set, POLLIN may be turned off
+    //  because there are no pipes to send messages to.
+    //  So, if this is the first pipe in demux, start polling.
+    if (state == engine_connected && demux->no_pipes ())
+        poller->set_pollin (handle);    
+
+    engine_base_t <true,true>::send_to (pipe_);
+}
+
+void zmq::bp_tcp_engine_t::receive_from (pipe_t *pipe_)
+{
+    engine_base_t <true,true>::receive_from (pipe_);
+
+    //  If we are already in shut down phase, initiate shut down of the pipe
+    //  immediately.
+    if (state == engine_shutting_down)
+        pipe_->terminate_reader ();
+    
+    if (state == engine_connected)
+        poller->set_pollout (handle);
 }

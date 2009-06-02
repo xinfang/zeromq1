@@ -33,7 +33,7 @@
 
 #include <zmq/stdint.hpp>
 #include <zmq/export.hpp>
-#include <zmq/i_engine.hpp>
+#include <zmq/engine_base.hpp>
 #include <zmq/i_pollable.hpp>
 #include <zmq/i_thread.hpp>
 
@@ -43,7 +43,9 @@ namespace zmq
     //  SCTP listener. Listens on a specified network interface and port and
     //  creates a SCTP engine for every new connection.
 
-    class sctp_listener_t : public i_engine, public i_pollable
+    class sctp_listener_t :
+        public engine_base_t <false, false>, 
+        public i_pollable
     {
         //  Allow class factory to create this engine.
         friend class engine_factory_t;
@@ -51,9 +53,9 @@ namespace zmq
     public:
 
         //  i_engine implementation.
-        void start (i_thread *current_thread_, i_thread *engine_thread_);
-        class i_demux *get_demux ();
-        class i_mux *get_mux ();
+        i_pollable *cast_to_pollable ();
+        void get_watermarks (int64_t *hwm_, int64_t *lwm_);
+        int64_t get_swap_size ();
         const char *get_arguments ();
 
         //  i_pollable implementation.
@@ -67,7 +69,7 @@ namespace zmq
 
         //  Creates a SCTP listener. Handler thread array determines
         //  the threads that will serve newly-created SCTP engines.
-        sctp_listener_t (i_thread *thread_,
+        sctp_listener_t (i_thread *calling_thread_, i_thread *thread_,
             const char *interface_, int handler_thread_count_,
             i_thread **handler_threads_, bool source_,
             i_thread *peer_thread_, i_engine *peer_engine_,
@@ -81,7 +83,7 @@ namespace zmq
         //  (i.e. reads them from the sockets and makes them available) or
         //  a local destination of messages (i.e. gathers the messages and
         //  sends them to the socket).
-        bool sender;
+        bool source;
 
         //  The thread listener is running in.
         i_thread *thread;

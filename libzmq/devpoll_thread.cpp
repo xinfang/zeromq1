@@ -33,11 +33,10 @@
 
 #include <zmq/err.hpp>
 #include <zmq/config.hpp>
-#include <zmq/devpoll.hpp>
+#include <zmq/devpoll_thread.hpp>
 #include <zmq/fd.hpp>
 
-zmq::devpoll_t::devpoll_t () :
-    stopping (false)
+zmq::devpoll_t::devpoll_t ()
 {
     struct rlimit rl;
 
@@ -67,7 +66,7 @@ void zmq::devpoll_t::devpoll_ctl (fd_t fd_, short events_)
 
 zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 {
-    zmq_assert (!fd_table [fd_].in_use);
+    assert (!fd_table [fd_].in_use);
 
     fd_table [fd_].events = 0;
     fd_table [fd_].engine = engine_;
@@ -85,7 +84,7 @@ zmq::handle_t zmq::devpoll_t::add_fd (fd_t fd_, i_pollable *engine_)
 
 void zmq::devpoll_t::rm_fd (handle_t handle_)
 {
-    zmq_assert (fd_table [handle_.fd].in_use);
+    assert (fd_table [handle_.fd].in_use);
     devpoll_ctl (handle_.fd, POLLREMOVE);
     fd_table [handle_.fd].in_use = false;
 }
@@ -122,103 +121,63 @@ void zmq::devpoll_t::reset_pollout (handle_t handle_)
     devpoll_ctl (fd, fd_table [fd].events);
 }
 
-void zmq::devpoll_t::add_timer (i_pollable *engine_)
-{
-     timers.push_back (engine_);
-}
-
-void zmq::devpoll_t::cancel_timer (i_pollable *engine_)
-{
-    timers_t::iterator it = std::find (timers.begin (), timers.end (), engine_);
-    if (it == timers.end ())
-        return;
-    timers.erase (it);
-}
-
-void zmq::devpoll_t::start ()
-{
-    worker.start (worker_routine, this);
-}
-
-void zmq::devpoll_t::initialise_shutdown ()
-{
-    stopping = true;
-}
-
-void zmq::devpoll_t::terminate_shutdown ()
-{
-    worker.stop ();
-}
-
-void zmq::devpoll_t::loop ()
+bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_, bool timers_)
 {
     struct pollfd ev_buf [max_io_events];
     struct dvpoll poll_req;
 
-    while (!stopping) {
+    for (pending_list_t::size_type i = 0; i < pending_list.size (); i ++)
+        fd_table [pending_list [i]].adopted = true;
+    pending_list.clear ();
 
-        for (pending_list_t::size_type i = 0; i < pending_list.size (); i ++)
-            fd_table [pending_list [i]].adopted = true;
-        pending_list.clear ();
+    //  According to the poll(7d) manpage, we can retrieve no more then
+    //  (OPEN_MAX - 1) events.
+    int nfds = max_io_events;
+    if (nfds >= OPEN_MAX)
+        nfds = OPEN_MAX - 1;
 
-        //  According to the poll(7d) manpage, we can retrieve no more then
-        //  (OPEN_MAX - 1) events.
-        int nfds = max_io_events;
-        if (nfds >= OPEN_MAX)
-            nfds = OPEN_MAX - 1;
+    poll_req.dp_fds = &ev_buf [0];
+    poll_req.dp_nfds = nfds;
+    poll_req.dp_timeout = timers_ ? max_timer_period : -1;
 
-        poll_req.dp_fds = &ev_buf [0];
-        poll_req.dp_nfds = nfds;
-        poll_req.dp_timeout = timers.empty () ? -1 : max_timer_period;
-
-        //  Wait for events.
-        int n;
-        while (true) {
-            n = ioctl (devpoll_fd, DP_POLL, &poll_req);
-            if (!(n == -1 && errno == EINTR)) {
-                errno_assert (n != -1);
-                break;
-            }
-        }
-
-        //  Handle timer.
-        if (!n) {
-
-            //  Use local list of timers as timer handlers may fill new timers
-            //  into the original array.
-            timers_t t;
-            std::swap (timers, t);
-
-            //  Trigger all the timers.
-            for (timers_t::iterator it = t.begin (); it != t.end (); it ++)
-                (*it)->timer_event ();
-
-            return;
-        }
-
-        for (int i = 0; i < n; i ++) {
-            fd_t fd = ev_buf [i].fd;
-            i_pollable *engine = fd_table [fd].engine;
-
-            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-                continue;
-            if (ev_buf [i].revents & (POLLERR | POLLHUP))
-                engine->in_event ();
-            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-                continue;
-            if (ev_buf [i].revents & POLLOUT)
-                engine->out_event ();
-            if (!fd_table [fd].in_use || !fd_table [fd].adopted)
-                continue;
-            if (ev_buf [i].revents & POLLIN)
-                engine->in_event ();
+    //  Wait for events.
+    int n;
+    while (true) {
+        n = ioctl (devpoll_fd, DP_POLL, &poll_req);
+        if (!(n == -1 && errno == EINTR)) {
+            errno_assert (n != -1);
+            break;
         }
     }
-}
 
-void zmq::devpoll_t::worker_routine (void *arg_)
-{
-    ((devpoll_t*) arg_)->loop ();
+    //  Handle timer.
+    if (!n) {
+        poller_->timer_event ();
+        return false;
+    }
+
+    for (int i = 0; i < n; i ++) {
+        fd_t fd = ev_buf [i].fd;
+        i_pollable *engine = fd_table [fd].engine;
+
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+            continue;
+        if (ev_buf [i].revents & (POLLERR | POLLHUP))
+            if (poller_->process_event (engine, event_err))
+                return true;
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+            continue;
+        if (ev_buf [i].revents & POLLOUT)
+            if (poller_->process_event (engine, event_out))
+                return true;
+        if (!fd_table [fd].in_use || !fd_table [fd].adopted)
+            continue;
+        if (ev_buf [i].revents & POLLIN)
+            if (poller_->process_event (engine, event_in))
+                return true;
+    }
+
+    return false;
 }
 
 #endif

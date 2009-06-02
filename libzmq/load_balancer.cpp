@@ -17,15 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <algorithm>
-
 #include <zmq/load_balancer.hpp>
-#include <zmq/err.hpp>
 
-zmq::load_balancer_t::load_balancer_t (int64_t hwm_, int64_t lwm_) :
-    producer (NULL),
-    hwm (hwm_),
-    lwm (lwm_),
+zmq::load_balancer_t::load_balancer_t () :
     current (0)
 {
 }
@@ -34,25 +30,10 @@ zmq::load_balancer_t::~load_balancer_t ()
 {
 }
 
-void zmq::load_balancer_t::register_producer (i_producer *producer_)
-{
-    zmq_assert (producer == NULL);
-    producer = producer_;
-}
-
-void zmq::load_balancer_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
-{
-    hwm_ = hwm;
-    lwm_ = lwm;
-}
-
 void zmq::load_balancer_t::send_to (pipe_t *pipe_)
 {
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
-
-    if (producer)
-        producer->send_to ();
 }
 
 bool zmq::load_balancer_t::write (message_t &msg_)
@@ -61,8 +42,16 @@ bool zmq::load_balancer_t::write (message_t &msg_)
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 
-    //  Delimiters go through a different code path.
-    zmq_assert (raw_message_type (msg) != raw_message_t::delimiter_tag);
+    //  For delimiters, the algorithm is straighforward.
+    //  Send it to all pipes. We don't care about pipe limits.
+    //  TODO: Delimiters are special, they should be passed via different
+    //  codepath.
+    if (msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
+        for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+            (*it)->write (msg);
+        raw_message_init (msg, 0);
+        return true;
+    }
 
     if (pipes.size () == 0)
         return false;
@@ -70,13 +59,13 @@ bool zmq::load_balancer_t::write (message_t &msg_)
     //  Find the first pipe that is ready to accept the message.
     bool found = false;
     for (pipes_t::size_type i = 0; !found && i < pipes.size (); i++) {
-        if (pipes [current]->check_write (msg))
+        if (pipes [current]->check_write ())
             found = true;
         else
             current = (current + 1) % pipes.size ();
     }
 
-    //  Oops, no pipe is ready to accept the message.
+    //  Oops, no pipe is ready to accept he message.
     if (!found)
         return false;
 
@@ -97,12 +86,6 @@ void zmq::load_balancer_t::flush ()
         (*it)->flush ();
 }
 
-void zmq::load_balancer_t::pipe_ready (pipe_t *pipe_)
-{
-    if (producer)
-        producer->head ();
-}
-
 void zmq::load_balancer_t::gap ()
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
@@ -120,7 +103,7 @@ void zmq::load_balancer_t::release_pipe (pipe_t *pipe_)
     pipes_t::iterator it = std::find (pipes.begin (), pipes.end (), pipe_);
 
     //  The given pipe must be present in our list.
-    zmq_assert (it != pipes.end ());
+    assert (it != pipes.end ());
 
     //  Remove the pipe from the list.
     pipes.erase (it);

@@ -17,51 +17,40 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <algorithm>
+#include <zmq/publisher.hpp>
 
-#include <zmq/data_distributor.hpp>
-#include <zmq/err.hpp>
-
-zmq::data_distributor_t::data_distributor_t (int64_t hwm_, int64_t lwm_) :
-    producer (NULL),
-    hwm (hwm_),
-    lwm (lwm_)
+zmq::publisher_t::publisher_t ()
 {
 }
 
-zmq::data_distributor_t::~data_distributor_t ()
+zmq::publisher_t::~publisher_t ()
 {
 }
 
-void zmq::data_distributor_t::register_producer (i_producer *producer_)
-{
-    zmq_assert (producer == NULL);
-    producer = producer_;
-}
-
-void zmq::data_distributor_t::get_watermarks (int64_t &hwm_, int64_t &lwm_)
-{
-    hwm_ = hwm;
-    lwm_ = lwm;
-}
-
-void zmq::data_distributor_t::send_to (pipe_t *pipe_)
+void zmq::publisher_t::send_to (pipe_t *pipe_)
 {
     //  Associate demux with a new pipe.
     pipes.push_back (pipe_);
-
-    if (producer)
-        producer->send_to ();
 }
 
-bool zmq::data_distributor_t::write (message_t &msg_)
+bool zmq::publisher_t::write (message_t &msg_)
 {
     //  Underlying layers work with raw_message_t, layers above use message_t.
     //  Demux is the component that translates between the two.
     raw_message_t *msg = (raw_message_t*) &msg_;
 
-    //  Delimiters go through a different code path.
-    zmq_assert (raw_message_type (msg) != raw_message_t::delimiter_tag);
+    //  For delimiters, the algorithm is straighforward.
+    //  Send it to all pipes. Don't care about pipe limits.
+    //  TODO: Delimiters are special, they should be passed via different
+    //  codepath.
+    if (msg->content == (message_content_t*) raw_message_t::delimiter_tag) {
+        for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
+            (*it)->write (msg);
+        raw_message_init (msg, 0);
+        return true;
+    }
 
     int pipes_count = pipes.size ();
 
@@ -74,7 +63,7 @@ bool zmq::data_distributor_t::write (message_t &msg_)
 
     //  First check whether all pipes are available for writing.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
-        if (!(*it)->check_write (msg))
+        if (!(*it)->check_write ())
             return false;
 
     //  For VSMs the copying is straighforward.
@@ -114,31 +103,25 @@ bool zmq::data_distributor_t::write (message_t &msg_)
     return true;
 }
 
-void zmq::data_distributor_t::flush ()
+void zmq::publisher_t::flush ()
 {
     //  Flush all the present messages to the pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->flush ();
 }
 
-void zmq::data_distributor_t::pipe_ready (pipe_t *pipe_)
-{
-    if (producer)
-        producer->head ();
-}
-
-void zmq::data_distributor_t::gap ()
+void zmq::publisher_t::gap ()
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)
         (*it)->gap ();
 }
 
-bool zmq::data_distributor_t::empty ()
+bool zmq::publisher_t::empty ()
 {
     return pipes.empty ();
 }
 
-void zmq::data_distributor_t::release_pipe (pipe_t *pipe_)
+void zmq::publisher_t::release_pipe (pipe_t *pipe_)
 {
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++) {
         if (*it == pipe_) {
@@ -148,7 +131,7 @@ void zmq::data_distributor_t::release_pipe (pipe_t *pipe_)
     }
 }
 
-void zmq::data_distributor_t::initialise_shutdown ()
+void zmq::publisher_t::initialise_shutdown ()
 {
     //  Broadcast 'terminate_writer' to all associated pipes.
     for (pipes_t::iterator it = pipes.begin (); it != pipes.end (); it ++)

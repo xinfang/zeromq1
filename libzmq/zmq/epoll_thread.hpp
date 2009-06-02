@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_EPOLL_HPP_INCLUDED__
-#define __ZMQ_EPOLL_HPP_INCLUDED__
+#ifndef __ZMQ_EPOLL_THREAD_HPP_INCLUDED__
+#define __ZMQ_EPOLL_THREAD_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
 
@@ -26,46 +26,33 @@
 
 #include <sys/epoll.h>
 #include <vector>
-#include <algorithm>
 
-#include <zmq/i_poller.hpp>
-#include <zmq/i_pollable.hpp>
+#include <zmq/poller.hpp>
 #include <zmq/fd.hpp>
-#include <zmq/thread.hpp>
 
 namespace zmq
 {
 
     //  Implements socket polling mechanism using the Linux-specific
-    //  epoll mechanism.
+    //  epoll mechanism. The class is used when  instantiating the poller
+    //  template to generate the epoll_thread_t class.
 
-    class epoll_t : public i_poller
+    class epoll_t
     {
     public:
 
         epoll_t ();
         virtual ~epoll_t ();
 
-        //  i_poller implementation.
         handle_t add_fd (fd_t fd_, i_pollable *engine_);
         void rm_fd (handle_t handle_);
         void set_pollin (handle_t handle_);
         void reset_pollin (handle_t handle_);
         void set_pollout (handle_t handle_);
         void reset_pollout (handle_t handle_);
-        void add_timer (i_pollable *engine_);
-        void cancel_timer (i_pollable *engine_);
-        void start ();
-        void initialise_shutdown ();
-        void terminate_shutdown ();
+        bool process_events (poller_t <epoll_t> *poller_, bool timers_);
 
     private:
-
-        //  Main worker thread routine.
-        static void worker_routine (void *arg_);
-
-        //  Main event loop.
-        void loop ();
 
         // Epoll file descriptor
         fd_t epoll_fd;
@@ -81,19 +68,11 @@ namespace zmq
         typedef std::vector <poll_entry_t*> retired_t;
         retired_t retired;
 
-        //  List of all the engines waiting for the timer event.
-        typedef std::vector <i_pollable*> timers_t;
-        timers_t timers;
-
-        //  If true, thread is in the process of shutting down.
-        bool stopping;
-
-        //  Handle of the physical thread doing the I/O work.
-        thread_t worker;
-
         epoll_t (const epoll_t&);
         void operator = (const epoll_t&);
     };
+
+    typedef poller_t <epoll_t> epoll_thread_t;
 
 }
 

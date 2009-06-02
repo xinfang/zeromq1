@@ -17,11 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ZMQ_SWAP_HPP_INCLUDED__
-#define __ZMQ_SWAP_DAM_HPP_INCLUDED__
+#ifndef __ZMQ_DATA_DAM_HPP_INCLUDED__
+#define __ZMQ_DATA_DAM_HPP_INCLUDED__
 
 #include <zmq/platform.hpp>
-
 #include <string>
 #include <sys/types.h>
 
@@ -31,34 +30,32 @@
 namespace zmq
 {
 
-    //  This class implements a swap. Messages are retrieved from
+    //  This class implements a data dam. Messages are retrieved from
     //  the dam in the same order as they entered it.
 
-    class swap_t
+    class data_dam_t
     {
     public:
 
         enum { default_block_size = 8192 };
 
-        //  Initializes swap.
-        swap_t (int64_t filesize_, size_t block_size_ = default_block_size);
+        //  Initializes data dam.
+        data_dam_t (int64_t filesize_, size_t block_size_ = default_block_size);
 
-        ~swap_t ();
+        ~data_dam_t ();
 
-        //  Tests if the swap can accept the message.
-        bool check_capacity (raw_message_t *msg_);
+        //  Stores the message into the data dam. The function
+        //  returns false if the data dam is full and true otherwise.
+        bool store (raw_message_t *msg_);
 
-        //  Stores the message into the swap.
-        void store (raw_message_t *msg_);
-
-        //  Fetches the oldest message from the swap. It is an error
-        //  to call this function when the swap is empty.
+        //  Fetches the oldest message from the data dam. It is an error
+        //  to call this function when the data dam is empty.
         void fetch (raw_message_t *msg_);
 
-        //  Returns true if the swap is empty and false otherwise.
+        //  Returns true if the data dam is empty and false otherwise.
         bool empty ();
 
-        //  Returns the number of messages kept in the swap.
+        //  Returns the number of messages kept in the data dam.
         unsigned long size ();
 
     private:
@@ -66,11 +63,11 @@ namespace zmq
         //  Class member used for naming swap files.
         static atomic_counter_t counter;
 
-        //  Copies data from the memory buffer to the swap's file.
+        //  Copies data from the memory buffer to the data dam's file.
         //  Wraps around when reaching maximum file size.
         void copy_from_file (void *buffer_, size_t count_);
 
-        //  Copies data from the swap's file to the memory buffer.
+        //  Copies data from the data dam's file to the memory buffer.
         //  Wraps around when reaching end-of-file.
         void copy_to_file (const void *buffer_, size_t count_);
 
@@ -81,10 +78,10 @@ namespace zmq
 
         void save_write_buf ();
 
-        //  File descriptor to the swap's backing file.
+        //  File descriptor to the data dam's backing file.
         int fd;
 
-        //  Name of the swap's backing file.
+        //  Name of the data dam's backing file.
         std::string filename;
 
         //  Maximum size of the backing file.
@@ -99,7 +96,7 @@ namespace zmq
         //  File offset the next message will be read from.
         int64_t read_pos;
 
-        //  Current number of messages kept in the swap.
+        //  Current number of messages kept in the data dam.
         unsigned long n_msgs;
 
         size_t block_size;

@@ -213,23 +213,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\bp_tcp_engine.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\bp_tcp_listener.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_tcp_receiver.cpp"
+				RelativePath="..\..\libzmq\data_dam.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\bp_tcp_sender.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\data_distributor.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\devpoll.cpp"
+				RelativePath="..\..\libzmq\devpoll_thread.cpp"
 				>
 			</File>
 			<File
@@ -241,7 +237,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\epoll.cpp"
+				RelativePath="..\..\libzmq\epoll_thread.cpp"
 				>
 			</File>
 			<File
@@ -253,15 +249,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\io_thread.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\libzmq\ip.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\kqueue.cpp"
+				RelativePath="..\..\libzmq\kqueue_thread.cpp"
 				>
 			</File>
 			<File
@@ -289,7 +281,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\poll.cpp"
+				RelativePath="..\..\libzmq\poll_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\publisher.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\sctp_engine.cpp"
 				>
 			</File>
 			<File
@@ -297,19 +297,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\sctp_receiver.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\sctp_sender.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\select.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\swap.cpp"
+				RelativePath="..\..\libzmq\select_thread.cpp"
 				>
 			</File>
 			<File
@@ -403,15 +391,11 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\bp_tcp_engine.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\bp_tcp_listener.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\bp_tcp_receiver.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\bp_tcp_sender.hpp"
 				>
 			</File>
 			<File
@@ -423,7 +407,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\data_distributor.hpp"
+				RelativePath="..\..\libzmq\zmq\data_dam.hpp"
 				>
 			</File>
 			<File
@@ -431,7 +415,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\devpoll.hpp"
+				RelativePath="..\..\libzmq\zmq\devpoll_thread.hpp"
 				>
 			</File>
 			<File
@@ -443,11 +427,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\engine_base.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\engine_factory.hpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\epoll.hpp"
+				RelativePath="..\..\libzmq\zmq\epoll_thread.hpp"
 				>
 			</File>
 			<File
@@ -511,7 +499,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\kqueue.hpp"
+				RelativePath="..\..\libzmq\zmq\kqueue_thread.hpp"
 				>
 			</File>
 			<File
@@ -551,7 +539,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\poll.hpp"
+				RelativePath="..\..\libzmq\zmq\poll_thread.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\poller.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\libzmq\zmq\publisher.hpp"
 				>
 			</File>
 			<File
@@ -563,19 +559,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\libzmq\zmq\sctp_engine.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\libzmq\zmq\sctp_listener.hpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\libzmq\zmq\sctp_receiver.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\sctp_sender.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\select.hpp"
+				RelativePath="..\..\libzmq\zmq\select_thread.hpp"
 				>
 			</File>
 			<File
@@ -584,10 +576,6 @@
 			</File>
 			<File
 				RelativePath="..\..\libzmq\zmq\stdint.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\libzmq\zmq\swap.hpp"
 				>
 			</File>
 			<File

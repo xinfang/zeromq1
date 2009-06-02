@@ -20,6 +20,8 @@
 #ifndef __ZMQ_RAW_MESSAGE_HPP_INCLUDED__
 #define __ZMQ_RAW_MESSAGE_HPP_INCLUDED__
 
+#include <assert.h>
+
 #include <zmq/stdint.hpp>
 #include <zmq/config.hpp>
 #include <zmq/atomic_counter.hpp>

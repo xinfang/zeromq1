@@ -20,9 +20,8 @@
 #ifndef __ZMQ_I_DEMUX_HPP_INCLUDED__
 #define __ZMQ_I_DEMUX_HPP_INCLUDED__
 
-#include <zmq/i_destination.hpp>
+#include <zmq/message.hpp>
 #include <zmq/pipe.hpp>
-#include <zmq/i_producer.hpp>
 
 namespace zmq
 {
@@ -32,28 +31,24 @@ namespace zmq
     //  messages among its pipes. Also, a message can be sent
     //  to more then one pipe.
 
-    class i_demux : public i_destination
+    class i_demux
     {
     public:
 
         virtual ~i_demux () {};
 
-        //  Returns high and low watermarks for a specified demux. These are
-        //  used to derive high and low watermarks for pipes attached to
-        //  the demux. When hwm is zero, the pipe will be of infinite capacity.
-        virtual void get_watermarks (int64_t &hwm_, int64_t &lwm_) = 0;
-
-        //  Associate the specified engine with the demux.
-        virtual void register_producer (i_producer *producer_) = 0;
-
         //  Starts sending messages to this pipe.
         virtual void send_to (pipe_t *pipe_) = 0;
 
+        //  Distributes the message among attached pipes. The message
+        //  is no delivered until the distributor is flushed. If the message
+        //  has been successfully sent to all appropriate pipes, the message
+        //  is cleared and the function returns true. Otherwise, the false
+        //  is returned.
+        virtual bool write (message_t &msg_) = 0;
+
         //  Flushes all messages.
         virtual void flush () = 0;
-
-        //  Inform the demux that the pipe can accept more messages now.
-        virtual void pipe_ready (pipe_t *pipe_) = 0;
 
         //  Writes the gap notification to all attached pipes.
         virtual void gap () = 0;

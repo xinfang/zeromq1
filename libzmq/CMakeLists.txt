@@ -25,23 +25,20 @@ set(libzmq_headers
   zmq/bp_encoder.hpp
   zmq/bp_pgm_receiver.hpp
   zmq/bp_pgm_sender.hpp
-  zmq/bp_tcp_sender.hpp
-  zmq/bp_tcp_receiver.hpp
+  zmq/bp_tcp_engine.hpp
   zmq/bp_tcp_listener.hpp
   zmq/command.hpp
   zmq/config.hpp
   zmq/decoder.hpp
   zmq/i_demux.hpp
-  zmq/i_destination.hpp
-  zmq/i_source.hpp
-  zmq/data_distributor.hpp
+  zmq/publisher.hpp
   zmq/load_balancer.hpp
-  zmq/devpoll.hpp
+  zmq/devpoll_thread.hpp
   zmq/dispatcher.hpp
   zmq/encoder.hpp
   zmq/engine_base.hpp
   zmq/engine_factory.hpp
-  zmq/epoll.hpp
+  zmq/epoll_thread.hpp
   zmq/err.hpp
   zmq/export.hpp
   zmq/fd.hpp
@@ -56,7 +53,7 @@ set(libzmq_headers
   zmq/i_poller.hpp
   zmq/i_signaler.hpp
   zmq/i_thread.hpp
-  zmq/kqueue.hpp
+  zmq/kqueue_thread.hpp
   zmq/locator.hpp
   zmq/message.hpp
   zmq/mutex.hpp
@@ -64,10 +61,11 @@ set(libzmq_headers
   zmq/out_engine.hpp
   zmq/pgm_socket.hpp
   zmq/pipe.hpp
-  zmq/poll.hpp
+  zmq/poller.hpp
+  zmq/poll_thread.hpp
   zmq/raw_message.hpp
   zmq/scope.hpp
-  zmq/select.hpp
+  zmq/select_thread.hpp
   zmq/server_protocol.hpp
   zmq/stdint.hpp
   zmq/tcp_listener.hpp
@@ -83,7 +81,7 @@ set(libzmq_headers
   zmq/sctp_engine.hpp
   zmq/sctp_listener.hpp
   zmq/xmlParser.hpp
-  zmq/swap.hpp
+  zmq/data_dam.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/zmq/platform.hpp
 )
 
@@ -100,26 +98,25 @@ set(libzmq_sources
   bp_encoder.cpp
   bp_pgm_receiver.cpp
   bp_pgm_sender.cpp
-  bp_tcp_sender.cpp
-  bp_tcp_receiver.cpp
+  bp_tcp_engine.cpp
   bp_tcp_listener.cpp
-  data_distributor.cpp
+  publisher.cpp
   load_balancer.cpp
-  devpoll.cpp
+  devpoll_thread.cpp
   dispatcher.cpp
   engine_factory.cpp
-  epoll.cpp
+  epoll_thread.cpp
   err.cpp
   in_engine.cpp
   ip.cpp
-  kqueue.cpp
+  kqueue_thread.cpp
   locator.cpp
   mux.cpp
   out_engine.cpp
   pgm_socket.cpp
   pipe.cpp
-  poll.cpp
-  select.cpp
+  poll_thread.cpp
+  select_thread.cpp
   tcp_listener.cpp
   tcp_socket.cpp
   thread.cpp
@@ -129,8 +126,7 @@ set(libzmq_sources
   sctp_engine.cpp
   sctp_listener.cpp
   xmlParser.cpp
-  swap.cpp
-  io_thread.cpp
+  data_dam.cpp
 )
 
 set(libzmq_libraries
