@@ -126,8 +126,13 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     swap.cpp \
     io_thread.cpp
 
+if BUILD_PGM
+libzmq_la_LDFLAGS = -L$(top_srcdir)/third-party/openpgm/build/lib/ -lpgm-pic -version-info 0:0:0 
+libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@
+else
 libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -pedantic -Werror @LIBZMQ_EXTRA_CXXFLAGS@
+endif
 
 dist-hook:
 		-rm $(distdir)/zmq/platform.hpp

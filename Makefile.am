@@ -30,10 +30,14 @@ if BUILD_CLRZMQ
 DIR_CLR = mono/clrzmq/clrzmq
 endif
 
-SUBDIRS = libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
+if BUILD_PGM
+DIR_PGM = third-party/openpgm
+endif
+
+SUBDIRS = $(DIR_PGM) libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
 examples $(DIR_MAN) $(DIR_CLR) $(DIR_R)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
-mono/clrzmq/clrzmq librbzmq
+mono/clrzmq/clrzmq librbzmq third-party/openpgm
 
 EXTRA_DIST = \
     $(top_srcdir)/examples/exchange/graph.pl \
@@ -50,5 +54,7 @@ EXTRA_DIST = \
     $(top_srcdir)/libclrzmq/zmq.cs \
     $(top_srcdir)/librbzmq/extconf.rb \
     $(top_srcdir)/mono/clrzmq/clrzmq/zmq_strong_name.snk \
-    $(top_srcdir)/mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs
+    $(top_srcdir)/mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs \
+    $(top_srcdir)/third-party/openpgm/libpgm-1.0.0rc8.tar.bz2 \
+    $(top_srcdir)/third-party/openpgm/CMakeLists.txt
 

@@ -423,22 +423,6 @@ fi
 pgm_ext="no"
 pgm_name=""
 
-AC_ARG_WITH(pgm_headersdir,
-    AC_HELP_STRING([--with-pgm-headersdir], [pgm.h header file location]),
-        [pgm_headersdir="$withval"], [pgm_headersdir="no"])
-
-if test "x$pgm_headersdir" != "xno"; then
-    CPPFLAGS="${CPPFLAGS} -I${pgm_headersdir}"
-fi
-
-AC_ARG_WITH(pgm_libdir,
-    AC_HELP_STRING([--with-pgm-libdir],[libpgm-plus library file location]),
-        [pgm_libdir="$withval"], [pgm_libdir="no"])
-
-if test "x$pgm_libdir" != "xno"; then
-    LDFLAGS="${LDFLAGS} -L${pgm_libdir}"
-fi
-
 AC_ARG_WITH([pgm], [AS_HELP_STRING([--with-pgm], 
     [build libzmq with PGM extension [default=no]])], 
     [with_pgm_ext=yes], [with_pgm_ext=no])
@@ -460,21 +444,50 @@ if test "x$with_pgm_ext" != "xno"; then
         ;;
     esac
 
-    #  Check for OpenPGM
+    AC_CHECK_PROG(have_tar, tar, yes, no)
+    if test "x$have_tar" != "xyes"; then
+        AC_MSG_ERROR([Could not find tar.])
+    fi
+
+    AC_CHECK_PROG(have_bunzip2, bunzip2, yes, no)
+    if test "x$have_bunzip2" != "xyes"; then
+        AC_MSG_ERROR([Could not find bunzip2.])
+    fi
+
+    AC_CHECK_PROG(have_cp, cp, yes, no)
+    if test "x$have_cp" != "xyes"; then
+        AC_MSG_ERROR([Could not find cp.])
+    fi
+
+    #  Unpack libpgm-1.0.0rc8.tar.bz2
+    AC_MSG_CHECKING([Unpacking libpgm-1.0.0rc8.tar.bz2])
+
+    if tar -xjf third-party/openpgm/libpgm-1.0.0rc8.tar.bz2 -C third-party/openpgm/; then
+        AC_MSG_RESULT([yes])
+    else
+        AC_MSG_ERROR([Could not unpack third-paty/openpgm/libpgm-1.0.0rc7.tar.bz2 file])
+    fi
+
+    AC_MSG_CHECKING([Updating CMakeList.txt file])
+
+    if cp third-party/openpgm/CMakeLists.txt third-party/openpgm/libpgm-1.0.0/openpgm/pgm/; then
+        AC_MSG_RESULT([yes])
+    else
+        AC_MSG_ERROR([Could not update third-paty/openpgm/libpgm-1.0.0/openpgm/pgm/CMakeList.txt file])
+    fi
+
+    AC_CHECK_PROG(have_cmake, cmake, yes, no)
+
+    if test "x$have_cmake" != "xyes"; then
+        AC_MSG_ERROR([Could not find cmake.])
+    fi
+
+    #  Check for OpenPGM nedded libraries.
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
 
     CPPFLAGS="${CPPFLAGS} ${GLIB_CFLAGS}"
 
     LIBS="${LIBS} ${GLIB_LIBS}"
-
-    AC_CHECK_HEADERS([pgm/pgm.h], [], 
-        [AC_MSG_ERROR([Could not find OpenPGM header files, Set --with-pgm-headersdir to OpenPGM include directory.])])
-
-    AC_CHECK_LIB(pgm-pic, main, 
-        [openpgm_link=yes],
-        [AC_MSG_ERROR([Could not link with pgm-pic library. Set --with-pgm-libdir to OpenPGM lib directory.])])
-
-    LIBS="${LIBS} -lpgm-pic"
 
     AC_DEFINE(ZMQ_HAVE_OPENPGM, 1, [Have OpenPGM extension.])
     pgm_name="OpenPGM"
@@ -545,7 +558,7 @@ examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
 mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
-librbzmq/Makefile)
+librbzmq/Makefile third-party/openpgm/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])

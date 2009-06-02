@@ -226,7 +226,7 @@ void zmq::bp_pgm_sender_t::unregister_event ()
 
 void zmq::bp_pgm_sender_t::receive_from ()
 {
-    if (!shutting_down)
+    if (!shutting_down && poller)
         poller->set_pollout (handle);
 }
 
