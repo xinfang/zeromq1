@@ -345,12 +345,12 @@ AC_ARG_WITH([clrdir], [AS_HELP_STRING([--with-clrdir],
     [clrdir="$withval"], [clrdir="_default_"])
 
 if test "$clrdir" = "_default_"; then
-    clrdir=$libdir/clrzmq
+    clrdir=${libdir}/clrzmq
 else
-    clrdir=$libdir/$clrdir
+    clrdir=${clrdir}
 fi
 
-CLRDIR="$clrdir"
+CLRDIR="${clrdir}"
 AC_SUBST([CLRDIR])
 
 # RUBY
@@ -388,9 +388,9 @@ AC_ARG_WITH([rubydir], [AS_HELP_STRING([--with-rubydir],
     [rubydir="$withval"], [rubydir="_default_"])
 
 if test "$rubydir" = "_default_"; then
-    rubydir=$libdir
+    rubydir=${libdir}
 else
-    rubydir=$libdir/$rubydir
+    rubydir=${rubydir}
 fi
 
 RUBYDIR="$rubydir"
