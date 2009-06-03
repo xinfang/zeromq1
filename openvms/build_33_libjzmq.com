@@ -10,14 +10,19 @@ $!
 $ @sys$startup:java$150_setup		! Set up the Java environment
 $!
 $ def="''f$environment("DEFAULT")'"     ! save default
-$ set default zmqRoot:[libjzmq]		! ..where the source is
+$ set default zmqRoot:[libjzmq.org.zmq]		! ..where the Zmq.java is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $! Do the java first as the output from javah is required in the
 $! C++ compile.
 $!
 $ javac Zmq.java
-$ javah -jni -force -classpath [] Zmq
+$! 
+$! Go back to zmqRoot:[libjzmq] directory
+$!
+$ set default zmqRoot:[libjzmq]         ! ..where headers should be generated
+$ javah -jni -force -classpath [] org.zmq.Zmq
+$ jar cfv Zmq.jar [.org.zmq]Zmq.class [.org.zmq]Zmq$InboundData.class
 $!
 $ write sys$output ""
 $ write sys$output -
@@ -42,13 +47,13 @@ GSMATCH=LEQUAL,1,1
 !
 case_sensitive=YES
 SYMBOL_VECTOR = ( -
-	Java_Zmq_createExchange = PROCEDURE, -
-	Java_Zmq_bind           = PROCEDURE, -
-	Java_Zmq_send           = PROCEDURE, -
-	Java_Zmq_receive        = PROCEDURE, -
-	Java_Zmq_construct      = PROCEDURE, -
-	Java_Zmq_createQueue    = PROCEDURE, -
-	Java_Zmq_finalize       = PROCEDURE  -
+	Java_org_zmq_Zmq_createExchange = PROCEDURE, -
+	Java_org_zmq_Zmq_bind           = PROCEDURE, -
+	Java_org_zmq_Zmq_send           = PROCEDURE, -
+	Java_org_zmq_Zmq_receive        = PROCEDURE, -
+	Java_org_zmq_Zmq_construct      = PROCEDURE, -
+	Java_org_zmq_Zmq_createQueue    = PROCEDURE, -
+	Java_org_zmq_Zmq_finalize       = PROCEDURE  -
         )
 $!
 $ purge/nolog [...]
