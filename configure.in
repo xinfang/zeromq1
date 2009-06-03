@@ -327,17 +327,15 @@ AC_ARG_WITH([clr], [AS_HELP_STRING([--with-clr],
     [build libclrzmq [default=no]])],
     [with_clr=yes], [with_clr=no])
 if test "x$with_clr" != "xno"; then
-    #  c wrapper has to build as well.
-    if test "x$czmq" = "xno"; then
-        AC_MSG_ERROR([To run configure with --with-clr option, --with-c option has to be anabled.]);
-    fi
-
-
     AC_PATH_PROG(GMCS, gmcs, no)
     if test "x$GMCS" = "xno"; then
         AC_MSG_ERROR([To run configure with --with-clr option, gmcs has to be installed.]);
     fi
+
     clrzmq="yes"
+
+    #  c wrapper has to build as well.
+    czmq="yes"
 fi
 
 AC_ARG_WITH([clrdir], [AS_HELP_STRING([--with-clrdir],
