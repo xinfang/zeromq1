@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import org.zmq.Zmq;
+
 class j_local_lat
 {
      public static void main (String [] args)
