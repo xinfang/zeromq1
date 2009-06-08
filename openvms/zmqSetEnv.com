@@ -8,6 +8,7 @@ $!  2009-03-30 pm - changed include dirs for libcmzq and lijzmq
 $!  2009-04-07 pm - added homeDir variable
 $!  2009-05-04 ja - added homeDisk variable and moved the java_include
 $!                  logical name into the OPEN/READ section
+$!  2009-06-08 pm - added logical name jzmq for java JNI image
 $! Use this to set the environment for a particular build version, e.g.,
 $! zmq-dev
 $!-
@@ -76,6 +77,7 @@ $    part1 = "''f$trnlnm("JAVA$JRE_HOME_VMS")'" - ".jre]" + ".include]"
 $    part2 = "''f$trnlnm("JAVA$JRE_HOME_VMS")'" - ".jre]" + ".include.vms]"
 $!
 $    def/job java_include  "''part1'", "''part2'" ! has the Java include dirs
+$    def/job jzmq       zmqRoot:[libjzmq]zmq.exe  ! Java JNI image
 $ close java_file
 $!
 $ noJava:
