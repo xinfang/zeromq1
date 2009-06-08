@@ -79,7 +79,7 @@ int main (int argc, const char *argv [])
         char timebuf [256];
         time_t current_time;
         time (&current_time);
-        zmq_snprintf (timebuf, 256, ctime (&current_time));
+        zmq_snprintf (timebuf, 256, "%s", ctime (&current_time));
         timebuf [strlen (timebuf) - 1] = ' ';
 
         //  Create and fill in the message
