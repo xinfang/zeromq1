@@ -265,7 +265,7 @@ template <class T>
 bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
 {
     if (!engine_) {
-        uint32_t signals = signaler.check ();
+        ysocketpair_t::integer_t signals = signaler.check ();
         assert (signals);
 
         //  Iterate through all the threads in the process and find out
