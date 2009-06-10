@@ -58,6 +58,8 @@ namespace zmq
     {
     public:
 
+        typedef uint64_t integer_t;
+
         //  Initialise the object.
         ZMQ_EXPORT ysocketpair_t ();
 
@@ -71,7 +73,7 @@ namespace zmq
         //  Signal with index 0 corresponds to value 1, index 1 to value 2,
         //  index 2 to value 4 etc. If there is no signal available,
         //  it returns zero immediately.
-        uint32_t check ();
+        integer_t check ();
 
         //  Get the file descriptor associated with the object.
         ZMQ_EXPORT fd_t get_fd ();

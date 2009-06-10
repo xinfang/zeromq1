@@ -49,21 +49,21 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (signal_ >= 0 && signal_ < 32);
-    uint64_t inc = 1;
+    assert (signal_ >= 0 && signal_ < 64);
+    integer_t inc = 1;
     inc <<= signal_;
-    ssize_t sz = write (fd, &inc, sizeof (uint64_t));
-    errno_assert (sz == sizeof (uint64_t));
+    ssize_t sz = write (fd, &inc, sizeof (integer_t));
+    errno_assert (sz == sizeof (integer_t));
 }
 
-uint32_t zmq::ysocketpair_t::check ()
+zmq::ysocketpair_t::integer_t zmq::ysocketpair_t::check ()
 {
-    uint64_t val;
-    ssize_t sz = read (fd, &val, sizeof (uint64_t));
+    integer_t val;
+    ssize_t sz = read (fd, &val, sizeof (integer_t));
     if (sz == -1 && errno == EAGAIN)
         return 0;
     errno_assert (sz != -1);
-    return (uint32_t) val;
+    return val;
 }
 
 zmq::fd_t zmq::ysocketpair_t::get_fd ()
@@ -126,22 +126,22 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (signal_ >= 0 && signal_ < 31);
+    assert (signal_ >= 0 && signal_ < 64);
     char c = (char) signal_;
     int rc = send (w, &c, 1, 0);
     win_assert (rc != SOCKET_ERROR);
 }
 
-uint32_t zmq::ysocketpair_t::check ()
+zmq::ysocketpair_t::integer_t zmq::ysocketpair_t::check ()
 {
-    char buffer [256];      
-    int nbytes = recv (r, buffer, 256, 0);
+    char buffer [32]; 
+    int nbytes = recv (r, buffer, 32, 0);
     win_assert (nbytes != -1);
 
-    uint32_t signals = 0;
+    integer_t signals = 0;
     for (int pos = 0; pos != nbytes; pos++) {
-        assert (buffer [pos] < 31);
-        signals |= (1 << (buffer [pos]));
+        assert (buffer [pos] < 64);
+        signals |= (integer_t (1) << (buffer [pos]));
     }
     return signals;
 }
@@ -177,21 +177,21 @@ zmq::ysocketpair_t::~ysocketpair_t ()
 
 void zmq::ysocketpair_t::signal (int signal_)
 {
-    assert (signal_ >= 0 && signal_ < 31);
+    assert (signal_ >= 0 && signal_ < 64);
     unsigned char c = (unsigned char) signal_;
     ssize_t nbytes = send (w, &c, 1, 0);
     errno_assert (nbytes == 1);
 }
 
-uint32_t zmq::ysocketpair_t::check ()
+zmq::ysocketpair_t::integer_t zmq::ysocketpair_t::check ()
 {
-    unsigned char buffer [256];
-    ssize_t nbytes = recv (r, buffer, 256, 0);
+    unsigned char buffer [32];
+    ssize_t nbytes = recv (r, buffer, 32, 0);
     errno_assert (nbytes != -1);
-    uint32_t signals = 0;
+    integer_t signals = 0;
     for (int pos = 0; pos != nbytes; pos ++) {
-        assert (buffer [pos] < 31);
-        signals |= (1 << (buffer [pos]));
+        assert (buffer [pos] < 64);
+        signals |= (integer_t (1) << (buffer [pos]));
     }
     return signals;
 }

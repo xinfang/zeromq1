@@ -273,7 +273,7 @@ bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
         for (int source_thread_id = 0;
               source_thread_id != dispatcher->get_thread_count ();
               source_thread_id ++) {
-            if (signals & (1 << source_thread_id)) {
+            if (signals & (ysocketpair_t::integer_t (1) << source_thread_id)) {
 
                 //  Read all the commands from particular thread.
                 command_t command;

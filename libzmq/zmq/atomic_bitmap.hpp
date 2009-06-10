@@ -59,7 +59,8 @@ namespace zmq
     {
     public:
 
-#if defined ZMQ_ATOMIC_BITMAP_X86 && defined __x86_64__
+#if (defined ZMQ_ATOMIC_BITMAP_X86 || defined ZMQ_FORCE_MUTEXES) \
+    && defined __x86_64__
         typedef uint64_t integer_t;
 #else
         typedef uint32_t integer_t;

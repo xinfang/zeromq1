@@ -390,7 +390,7 @@ void zmq::api_thread_t::process_commands (ypollset_t::integer_t signals_)
     for (int source_thread_id = 0;
           source_thread_id != dispatcher->get_thread_count ();
           source_thread_id ++) {
-        if (signals_ & (1 << source_thread_id)) {
+        if (signals_ & (ypollset_t::integer_t (1) << source_thread_id)) {
             command_t command;
             while (dispatcher->read (source_thread_id, thread_id, &command))
                 process_command (command);
