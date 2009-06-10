@@ -87,14 +87,14 @@ int zmq::dispatcher_t::allocate_thread_id (i_thread *thread_,
     *it = true;
     int thread_id = it - used.begin ();
 
-    //  Unlock the mutex.
-    sync.unlock ();
-
     //  Set the signaler.
     signalers [thread_id] = signaler_;
 
     //  Store the pointer to the thread to be used during shutdown.
     threads.push_back (thread_);
+
+    //  Unlock the mutex.
+    sync.unlock ();
 
     return thread_id;
 }
