@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry excluding="libjzmq.exp|libjzmq.ilk|libjzmq.lib|libjzmq.pdb|libzmq.dll|libzmq.exp|libzmq.ilk|libzmq.pdb|local_lat.exe|local_lat.exp|local_lat.ilk|local_lat.lib|local_lat.pdb|local_thr.exe|local_thr.ilk|local_thr.lib|remote_lat.exe|remote_lat.exp|remote_lat.ilk|remote_lat.lib|remote_thr.exe|remote_thr.exp|remote_thr.ilk|remote_thr.lib|remote_thr.pdb|tests.dat|zmq_server.exe|zmq_server.exp|zmq_server.lib|zmq_server.pdb" including="libjzmq.dll" kind="src" path="Debug"/>
-	<classpathentry excluding="*.c *.cpp *.py" including="*.java" kind="src" path="zmq"/>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry excluding="*.cpp" including="*.java" kind="src" path="libjzmq"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>
