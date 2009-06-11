@@ -22,10 +22,15 @@
 
 #include <zmq/platform.hpp>
 
-#if ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+#if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
+	defined ZMQ_HAVE_WINDOWS
 
+#ifdef ZMQ_HAVE_LINUX
 #include <glib.h>
 #include <pgm/pgm.h>
+#else
+#include <Winsock2.h>
+#endif
 
 #include <zmq/stdint.hpp>
 
@@ -34,6 +39,9 @@ namespace zmq
     //  Encapsulates PGM socket.
     class pgm_socket_t
     {
+
+#ifdef ZMQ_HAVE_LINUX
+
     public:
         //  If receiver_ is true PGM transport is not generating SPM packets.
         //  interface format: iface;mcast_group:port for raw PGM socket
@@ -135,6 +143,83 @@ namespace zmq
         //  Previous peer TSI.
         pgm_tsi_t retired_tsi;
 
+#else
+
+    public:
+        //  If receiver_ is true PGM transport is not generating SPM packets.
+        //  interface format: iface;mcast_group:port for raw PGM socket
+        pgm_socket_t (bool receiver_, const char *interface_,
+            size_t readbuf_size_ = 0);
+
+        //  Closes the transport.
+        ~pgm_socket_t ();
+
+        //  Open PGM transport.
+        void open_transport (void);
+
+        //  Close transport.
+        void close_transport (void);
+
+        //  Get receiver fds and store them into user allocated memory.
+        void get_receiver_fds (int *recv_fd_);
+
+        //  Set receiver fd.
+        void set_receiver_fd (int recv_fd_);
+
+        void get_receiver_listener_fd (int *list_fd_);
+
+        //   Get sender and store it to user allocated
+        //   memory. Receive fd is used to process NAKs from peers.
+        void get_sender_fds (int *send_fd_);
+
+        //  Send data as one APDU, transmit window owned memory.
+        size_t send_data (unsigned char *data_, size_t data_len_);
+
+        //  Receive data from pgm socket.
+        int receive (void **data_);
+
+        //  To determine whether in_event in bp_pgm_receiver was called in
+        //  order to call accept on receiver_listener_socket.
+        bool created_receiver_socket;
+
+    protected:
+        SOCKET sender_socket;
+        SOCKET receiver_socket;
+        SOCKET receiver_listener_socket;
+
+    private:
+
+        //  Returns max tsdu size without fragmentation.
+        size_t get_max_tsdu_size (void);
+
+        //  Returns maximum count of apdus which fills readbuf_size_
+        size_t get_max_apdu_at_once (size_t readbuf_size_);
+
+        //  true when pgm_socket should create receiving side.
+        bool receiver;
+
+        //  TIBCO Rendezvous format network info.
+        char network [256];
+        char multicast [256];
+
+        //  PGM transport port number.
+        uint16_t port_number;
+
+        //  Size of the receiver buffer.
+        size_t readbuf_size;
+
+        // How many bytes were read from pgm socket.
+        int nbytes_rec;
+
+        //  How many bytes were processed from last pgm socket read.
+        int nbytes_processed;
+
+        //  How many messages from pgm_msgv were already sent up.
+        int pgm_msgv_processed;
+
+        //  Array to store pgm messages.
+        char pgm_msgv[pgm_max_tpdu];
+#endif
     };
 }
 #endif
