@@ -146,8 +146,7 @@ namespace zmq
 #else
 
     public:
-        //  If receiver_ is true PGM transport is not generating SPM packets.
-        //  interface format: iface;mcast_group:port for raw PGM socket
+        //  Interface format: iface;mcast_group:port for raw PGM socket
         pgm_socket_t (bool receiver_, const char *interface_,
             size_t readbuf_size_ = 0);
 
@@ -160,7 +159,7 @@ namespace zmq
         //  Close transport.
         void close_transport (void);
 
-        //  Get receiver fds and store them into user allocated memory.
+        //  Get receiver fd and store them into user allocated memory.
         void get_receiver_fds (int *recv_fd_);
 
         //  Set receiver fd.
@@ -168,11 +167,10 @@ namespace zmq
 
         void get_receiver_listener_fd (int *list_fd_);
 
-        //   Get sender and store it to user allocated
-        //   memory. Receive fd is used to process NAKs from peers.
+        //   Get sender and store it to user allocated memory.
         void get_sender_fds (int *send_fd_);
 
-        //  Send data as one APDU, transmit window owned memory.
+        //  Send data.
         size_t send_data (unsigned char *data_, size_t data_len_);
 
         //  Receive data from pgm socket.

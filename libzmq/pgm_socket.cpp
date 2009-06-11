@@ -659,8 +659,8 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     //  Check if we are encapsulating into UDP.
     const char* iface = interface_;
     if (strlen (iface) >= 4 && iface [0] == 'u' &&
-          iface [1] == 'd' && iface [2] == 'p' &&
-          iface [3] == ':') {
+        iface [1] == 'd' && iface [2] == 'p' &&
+        iface [3] == ':') {
 
         //  Ms-pgm does not support udp encapsulation.
         assert (false);
@@ -707,68 +707,65 @@ void zmq::pgm_socket_t::open_transport ()
     int rc = WSAStartup (version_requested, &wsa_data);
     assert (rc == 0);
     assert (LOBYTE (wsa_data.wVersion) == 2 || 
-        HIBYTE (wsa_data.wVersion) == 2);
+        IBYTE (wsa_data.wVersion) == 2);
 
     //  Verify version of winsock in use.
-       if (LOBYTE(wsa_data.wVersion) != 2 ||
-           HIBYTE(wsa_data.wVersion) != 2)
-       {
-            printf ("Winsock %d.%d is required, this machine provides version %d.%d.\n",
-                LOBYTE(wsa_data.wVersion), HIBYTE(wsa_data.wVersion));
-               WSACleanup();
-               assert (false);
-       }
+    if (LOBYTE(wsa_data.wVersion) != 2 ||
+          IBYTE(wsa_data.wVersion) != 2) {
+        printf ("Winsock %d.%d is required, this machine provides version %d.%d.\n",
+            LOBYTE(wsa_data.wVersion), HIBYTE(wsa_data.wVersion));
+        WSACleanup();
+        assert (false);
+    }
 
     //  Check for PGM support.
     //  1: query winsock for required buffer size.
-    int        protocol_list[] = { IPPROTO_RM, 0 };
+    int protocol_list[] = { IPPROTO_RM, 0 };
     WSAPROTOCOL_INFOW* lpProtocolBuf = NULL;
     DWORD dwBufLen = 0;
     int err;
-    int protocols = 
-        WSCEnumProtocols (protocol_list, lpProtocolBuf, &dwBufLen, &err);
+    int protocols = WSCEnumProtocols (protocol_list, lpProtocolBuf, 
+        &dwBufLen, &err);
     if (SOCKET_ERROR != protocols) {
-          WSACleanup();
-          assert (false);
-    }
-    else if (WSAENOBUFS != err) {
-            WSACleanup();
-            assert (false);
+        WSACleanup();
+        assert (false);
+    } else if (WSAENOBUFS != err) {
+        WSACleanup();
+        assert (false);
     }
 
     //  2: query with allocated buffer.
     lpProtocolBuf = (WSAPROTOCOL_INFOW*)malloc (dwBufLen);
-       if (NULL == lpProtocolBuf) {
-               WSACleanup();
-               assert (false);
-       }
-    protocols = 
-        WSCEnumProtocols (protocol_list, lpProtocolBuf, &dwBufLen, &err);
+    if (NULL == lpProtocolBuf) {
+        WSACleanup();
+        assert (false);
+    }
+    protocols = WSCEnumProtocols (protocol_list, lpProtocolBuf, 
+        &dwBufLen, &err);
     if (SOCKET_ERROR == protocols) {
-               free (lpProtocolBuf);
-               WSACleanup();
-               assert (false);
-       }
+        free (lpProtocolBuf);
+        WSACleanup();
+        assert (false);
+    }
 
-       bool found = FALSE;
-       for (int i = 0; i < protocols; i++) {
-               if (AF_INET == lpProtocolBuf[i].iAddressFamily &&
-                       IPPROTO_RM == lpProtocolBuf[i].iProtocol &&
-                       SOCK_RDM == lpProtocolBuf[i].iSocketType)
-               {
-                       found = TRUE;
-                       break;
-               }
-       }
+    bool found = FALSE;
+    for (int i = 0; i < protocols; i++) {
+        if (AF_INET == lpProtocolBuf[i].iAddressFamily &&
+              IPPROTO_RM == lpProtocolBuf[i].iProtocol &&
+              SOCK_RDM == lpProtocolBuf[i].iSocketType) {
+            found = TRUE;
+            break;
+        }
+    }
 
-       if (!found) {
-               puts ("PGM support is not installed on this machine.");
-               free (lpProtocolBuf);
-               WSACleanup();
-               assert (false);
-       }
+    if (!found) {
+        puts ("PGM support is not installed on this machine.");
+        free (lpProtocolBuf);
+        WSACleanup();
+        assert (false);
+    }
 
-       free (lpProtocolBuf);
+    free (lpProtocolBuf);
 
     //  Zero counter used in msgrecv.
     nbytes_rec = 0;
@@ -836,7 +833,7 @@ void zmq::pgm_socket_t::open_transport ()
 
         //  Set multicast address and port number.
         sasession.sin_family = AF_INET;
-        sasession.sin_port   = htons (port_number);
+        sasession.sin_port = htons (port_number);
         sasession.sin_addr.s_addr = inet_addr (multicast);
 
         rc = connect (sender_socket, (SOCKADDR *)&sasession, 
@@ -862,8 +859,7 @@ void zmq::pgm_socket_t::close_transport (void)
         closesocket (receiver_socket);
 }
 
-//   Get receiver fds. recv_fd is from transport->recv_sock
-//   waiting_pipe_fd is from transport->waiting_pipe [0]
+//   Get receiver fd.
 void zmq::pgm_socket_t::get_receiver_fds (int *recv_fd_)
 {
     *recv_fd_ = receiver_socket;
@@ -891,7 +887,7 @@ size_t zmq::pgm_socket_t::send_data (unsigned char *data_, size_t data_len_)
     int nbytes = send (sender_socket, (const char*) data_, data_len_, 0);
     wsa_assert (nbytes != SOCKET_ERROR);
 
-    // We have to write all data as one packet.
+    // We have to write all data as one send.
     if (nbytes > 0) {
         assert (nbytes == (int) data_len_);
     }
