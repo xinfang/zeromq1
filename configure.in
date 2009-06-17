@@ -267,6 +267,11 @@ fi
 
 # Python
 pyzmq="no"
+
+AC_ARG_WITH(python_headersdir,
+    AC_HELP_STRING([--with-python-headersdir], [Python.h header file location]),
+        [python_headersdir="$withval"], [python_headersdir="no"])
+
 AC_ARG_WITH([python], [AS_HELP_STRING([--with-python], [build Python language binding [default=no]])], [with_python=yes], [with_python=no])
 if test "x$with_python" != "xno"; then
     AM_PATH_PYTHON([2.4], , [:])
@@ -274,15 +279,29 @@ if test "x$with_python" != "xno"; then
         AC_MSG_ERROR([To run configure with --with-python option, Python has to be installed.]);
     fi
 
-    py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
-    py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
-    PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
-    if test "$py_prefix" != "$py_exec_prefix"; then
-        PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
-    fi
-    AC_SUBST(PYTHON_INCLUDES)
+    if test "x$python_headersdir" != "xno"; then
+        PYTHON_INCLUDES="-I${python_headersdir}"
+        PYTHON_SETUP_INCLUDES="${python_headersdir}"
 
-    AC_CHECK_HEADERS($py_prefix/include/python${PYTHON_VERSION}/Python.h, [] , [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be installed.])])
+        AC_CHECK_HEADERS($python_headersdir/Python.h, [] , 
+            [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be usable.])])
+
+    else 
+        py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
+        py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
+        PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
+        PYTHON_SETUP_INCLUDES="${py_prefix}/include/python${PYTHON_VERSION}"
+
+        if test "$py_prefix" != "$py_exec_prefix"; then
+            PYTHON_INCLUDES="${PYTHON_INCLUDES} -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
+        fi
+
+        AC_CHECK_HEADERS($py_prefix/include/python${PYTHON_VERSION}/Python.h, [] , 
+            [AC_MSG_ERROR([To run configure with --with-python option, Python.h has to be usable.])])
+    fi
+
+    AC_SUBST(PYTHON_INCLUDES)
+    AC_SUBST(PYTHON_SETUP_INCLUDES)
 
     pyzmq="yes"
 fi
@@ -598,7 +617,7 @@ examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
 mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
-librbzmq/Makefile third-party/openpgm/Makefile)
+librbzmq/Makefile third-party/openpgm/Makefile libpyzmq/setup.py)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
