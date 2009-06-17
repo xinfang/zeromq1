@@ -95,7 +95,7 @@ namespace zmq
             const char *hostname_, const char *local_object_,
             const char * /* arguments_*/);
         bp_tcp_engine_t (i_thread *calling_thread_, i_thread *thread_,
-            tcp_listener_t &listener_, const char *local_object_);
+            fd_t fd_, const char *local_object_);
 
         ~bp_tcp_engine_t ();
 

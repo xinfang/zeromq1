@@ -84,8 +84,12 @@ void zmq::bp_tcp_listener_t::in_event ()
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
+    fd_t fd = listener.accept ();
+    if (fd == retired_fd)
+        return;
+
     bp_tcp_engine_t *engine = new bp_tcp_engine_t (poller,
-        handler_threads [current_handler_thread], listener, peer_name);
+        handler_threads [current_handler_thread], fd, peer_name);
     assert (engine);
 
     if (source) {

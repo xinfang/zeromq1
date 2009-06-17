@@ -44,9 +44,8 @@ namespace zmq
         //  state.
         ZMQ_EXPORT tcp_socket_t (const char *hostname_,  bool block_ = false);
 
-        //  Opens a socket by accepting a connection from TCP listener object
-        ZMQ_EXPORT tcp_socket_t (tcp_listener_t &listener,
-            bool block_ = false);
+        //  Associates a socket with a native socket descriptor from TCP listener
+        ZMQ_EXPORT tcp_socket_t (fd_t fd_, bool block_ = false);
          
         //  Closes the socket.
         ZMQ_EXPORT ~tcp_socket_t ();

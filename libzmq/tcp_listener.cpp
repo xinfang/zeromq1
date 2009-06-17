@@ -38,6 +38,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <fcntl.h>
 #endif
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -56,6 +57,11 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     int flag = 1;
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR,
         (const char*) &flag, sizeof (int));
+    wsa_assert (rc != SOCKET_ERROR);
+
+    //  Set non-blocking flag.
+    flag = 1;
+    rc = ioctlsocket (s, FIONBIO, &flag);
     wsa_assert (rc != SOCKET_ERROR);
 
     //  Bind the socket to the network interface_i and port.
@@ -103,6 +109,10 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     fd_t sock = ::accept (s, NULL, NULL);
+    if (sock == INVALID_SOCKET && 
+        (WSAGetLastError () == WSAEWOULDBLOCK || WSAGetLastError () == WSAECONNRESET))
+        return retired_fd;
+
     wsa_assert (sock != INVALID_SOCKET);
     return sock;
 }
@@ -131,6 +141,13 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     int flag = 1;
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
+
+    //  Set non-blocking flag.
+    flag = fcntl (s, F_GETFL, 0);
+    if (flag == -1) 
+        flag = 0;
+    rc = fcntl (s, F_SETFL, flag | O_NONBLOCK);
+    errno_assert (rc != -1);
 
     //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
@@ -178,6 +195,27 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 {
     //  Accept one incoming connection.
     fd_t sock = ::accept (s, NULL, NULL);
+
+#if defined ZMQ_HAVE_QNXNTO 
+    if (sock == -1 && 
+        (errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED))
+        return retired_fd;
+#elif defined ZMQ_HAVE_HPUX
+    if (sock == -1 && 
+        (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR || 
+         errno == ECONNABORTED || errno == ENOBUFS))
+        return retired_fd;
+#elif defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_AIX
+    if (sock == -1 && 
+        (errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED || errno == EPROTO))
+        return retired_fd;
+#elif defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD || \
+      defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_OSX 
+    if (sock == -1 && 
+        (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED))
+        return retired_fd;
+#endif
+
     errno_assert (sock != -1); 
     return sock;
 }

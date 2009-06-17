@@ -48,14 +48,12 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     reopen ();
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
-    s (retired_fd),
+zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
+    s (fd_),
     hostname (""),
     block (block_)
 {
-    //  Accept the socket.
-    s = listener.accept ();
-    wsa_assert (s != INVALID_SOCKET);
+    wsa_assert (s != retired_fd);
  
     //  Set socket properties to non-blocking mode. 
     if (! block) {
@@ -202,12 +200,12 @@ zmq::tcp_socket_t::tcp_socket_t (const char *hostname_, bool block_) :
     reopen ();
 }
 
-zmq::tcp_socket_t::tcp_socket_t (tcp_listener_t &listener, bool block_) :
+zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
+    s (fd_),
     hostname (""),
     block (block_)
 {
-    //  Accept the socket.
-    s = listener.accept ();
+    assert (s != retired_fd);
     
     if (! block) {
 
