@@ -92,7 +92,7 @@ int main (int argc, char *argv [])
     //  Create a tcp_listener.
     char location [256];
     zmq_snprintf (location, sizeof (location), "0.0.0.0:%d", port);
-    tcp_listener_t listening_socket (location);
+    tcp_listener_t listening_socket (location, true);
      
     //	Create list of descriptors.
     typedef vector <tcp_socket_t*> socket_list_t;
