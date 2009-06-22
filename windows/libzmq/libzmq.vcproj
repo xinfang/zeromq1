@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../libzmq"
-				PreprocessorDefinitions="ZMQ_HAVE_AMQP;ZMQ_BUILDING_LIBZMQ;_USE_XMLPARSER_DLL;_DLL_EXPORTS_"
+				PreprocessorDefinitions="ZMQ_HAVE_AMQP;ZMQ_BUILDING_LIBZMQ;_USE_XMLPARSER_DLL;_DLL_EXPORTS_;ZMQ_HAVE_OPENPGM"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
