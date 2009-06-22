@@ -32,8 +32,10 @@ int main (int argc, char *argv [])
             << endl << "<roundtrip count>" << endl;
         cerr << "local exchange network: iface;mcast_group:port "
             "for raw PGM" << std::endl;
+#ifdef ZMQ_HAVE_LINUX
         cerr << "                        udp:iface;mcast_group:port "
             "for UDP encapsulation" << std::endl;
+#endif
         return 1;
     }
 
@@ -86,11 +88,18 @@ int main (int argc, char *argv [])
     
     getchar (); 
 
-    //  Bind to remote_exchange.
+    //  Create local queue.
     api->create_queue (q_name);
 
     //  Bind local queue to global exchange.
     api->bind (ex_remote_name, q_name, worker, worker, to_remote_iface); 
+
+    //  Sleep 1s to create pgm infrastructure and send IGMP packets.
+#ifdef ZMQ_HAVE_WINDOWS
+    Sleep (1000);
+#else
+    sleep (1);
+#endif
 
     //  Capture timestamp at the begining of the test.
     perf::time_instant_t start_time = perf::now ();
@@ -113,7 +122,11 @@ int main (int argc, char *argv [])
     api->send (ex_id, sync_message);
 
     //  Stop for a while that sync message is being send.
+#ifdef ZMQ_HAVE_LINUX
     sleep (1);
+#else
+    Sleep (1000);
+#endif
 
     //  Set 2 fixed decimal places.
     std::cout.setf(std::ios::fixed);

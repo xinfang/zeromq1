@@ -73,7 +73,11 @@ int main (int argc, char *argv [])
         zmq::message_t message (msg_size);
         api->send (ex_id, message);
 
+#ifdef ZMQ_HAVE_LINUX
         sleep (1);
+#else
+        Sleep (1000);
+#endif
     }
 
     return 0;
