@@ -73,7 +73,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
 
     const char *interface_ptr = interface_;
 
-    if (strlen (interface_) > 4= && interface_ [0] == 'u' && 
+    if (strlen (interface_) >= 4 && interface_ [0] == 'u' && 
           interface_ [1] == 'd' && interface_ [2] == 'p' && 
           interface_ [3] == ':') {
     
