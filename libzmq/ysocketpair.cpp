@@ -23,6 +23,7 @@
 
 #if defined (ZMQ_HAVE_OPENVMS)
 #include <netinet/tcp.h>
+#include <ioctl.h>
 #endif
 
 #if defined ZMQ_HAVE_EVENTFD
@@ -162,10 +163,15 @@ zmq::ysocketpair_t::ysocketpair_t ()
     r = sv [1];
                       
     //  Set to non-blocking mode.
+#ifdef ZMQ_HAVE_OPENVMS
+    int flags = 1;
+    rc = ioctl (r, FIONBIO, &flags);
+#else
     int flags = fcntl (r, F_GETFL, 0);
     if (flags == -1)
         flags = 0;
     rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);
+#endif
     errno_assert (rc != -1);
 }
 

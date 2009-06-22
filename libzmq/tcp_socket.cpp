@@ -35,6 +35,10 @@
 #include <fcntl.h>
 #endif
 
+#ifdef ZMQ_HAVE_OPENVMS
+#include <ioctl.h>
+#endif
+
 #include <zmq/err.hpp>
 #include <zmq/ip.hpp>
 
@@ -67,13 +71,6 @@ zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
-
-#ifdef ZMQ_HAVE_OPENVMS
-    //  Disable delayed acknowledgements.
-    flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-#endif
 }
 
 zmq::tcp_socket_t::~tcp_socket_t ()
@@ -115,13 +112,6 @@ void zmq::tcp_socket_t::reopen ()
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
-
-#ifdef ZMQ_HAVE_OPENVMS
-    //  Disable delayed acknowledgements.
-    flag = 1;
-    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-#endif
 
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);
@@ -210,10 +200,15 @@ zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
     if (! block) {
 
         // Set to non-blocking mode.
+#ifdef ZMQ_HAVE_OPENVMS
+        int flags = 1;
+        int rc = ioctl (s, FIONBIO, &flags);
+#else
         int flags = fcntl (s, F_GETFL, 0);
         if (flags == -1) 
             flags = 0;
         int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+#endif
         errno_assert (rc != -1);
     }
 
@@ -222,6 +217,13 @@ zmq::tcp_socket_t::tcp_socket_t (fd_t fd_, bool block_) :
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     errno_assert (rc == 0);
+
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    errno_assert (rc != -1);
+#endif
 }
 
 zmq::tcp_socket_t::~tcp_socket_t ()
@@ -254,10 +256,15 @@ void zmq::tcp_socket_t::reopen ()
     if (! block) {
 
         //  Set to non-blocking mode.
+#ifdef ZMQ_HAVE_OPENVMS
+        int flags = 1;
+        int rc = ioctl (s, FIONBIO, &flags);
+#else
         int flags = fcntl (s, F_GETFL, 0);
         if (flags == -1)
             flags = 0;
         int rc = fcntl (s, F_SETFL, flags | O_NONBLOCK);
+#endif
         errno_assert (rc != -1);        
     }
 
@@ -266,6 +273,13 @@ void zmq::tcp_socket_t::reopen ()
     int rc = setsockopt (s, IPPROTO_TCP, TCP_NODELAY, (char*) &flag,
         sizeof (int));
     errno_assert (rc == 0);
+
+#ifdef ZMQ_HAVE_OPENVMS
+    //  Disable delayed acknowledgements.
+    flag = 1;
+    rc = setsockopt (s, IPPROTO_TCP, TCP_NODELACK, (char*) &flag, sizeof (int));
+    errno_assert (rc != -1);
+#endif
 
     //  Connect to the remote peer.
     rc = connect (s, (sockaddr*) &ip_address, sizeof ip_address);

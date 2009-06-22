@@ -2,6 +2,7 @@ $! BUILD_5_TESTS_ZMQ.COM
 $! 2009-02-17
 $! Modified:
 $!    2009-03-18 ja - changed to relect new zmqRoot definition
+$!    2009-22-06 pm - deleted compilation and linking of PGM test progs.
 $!+
 $! Build the ZMQ test programs.
 $!-
@@ -12,26 +13,18 @@ $ set default zmqRoot:[perf.tests.zmq]         ! where the source is
 $ write sys$output "Building ''f$environment("DEFAULT")'"
 $!
 $ compit local_lat.cpp
-$ compit pgm_local_lat.cpp
 $ compit local_thr.cpp
-$ compit pgm_local_thr.cpp
 $ compit remote_lat.cpp
-$ compit pgm_remote_lat.cpp
 $ compit remote_thr.cpp
-$ compit pgm_remote_thr.cpp
 $!
 $! Note: 
 $! the "foreign commands" for these programmes are
 $! defined by setEnv.com
 $!
 $ linkit local_lat.obj, 	libzmq:libzmq.olb/lib
-$ linkit pgm_local_lat.obj, 	libzmq:libzmq.olb/lib
 $ linkit local_thr.obj, 	libzmq:libzmq.olb/lib
-$ linkit pgm_local_thr.obj, 	libzmq:libzmq.olb/lib
 $ linkit remote_lat.obj,	libzmq:libzmq.olb/lib
-$ linkit pgm_remote_lat.obj,	libzmq:libzmq.olb/lib
 $ linkit remote_thr.obj,	libzmq:libzmq.olb/lib
-$ linkit pgm_remote_thr.obj,	libzmq:libzmq.olb/lib
 $
 $ purge/nolog
 $ rename *.* *.*;1
