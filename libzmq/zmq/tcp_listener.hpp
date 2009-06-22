@@ -35,7 +35,7 @@ namespace zmq
         //  Create TCP listining socket. Interface is either interface name,
         //  in that case port number is chosen by OS and can be retrieved
         //  by get_port method, or <interface-name>:<port-number>.
-        ZMQ_EXPORT tcp_listener_t (const char *interface_);
+        ZMQ_EXPORT tcp_listener_t (const char *interface_, bool block = false);
 
         //  Closes the socket.
         ZMQ_EXPORT ~tcp_listener_t ();

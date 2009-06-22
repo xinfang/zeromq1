@@ -22,7 +22,8 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+#if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
+    defined ZMQ_HAVE_WINDOWS
 
 #include <vector>
 #include <zmq/stdint.hpp>
@@ -95,10 +96,16 @@ namespace zmq
         handle_t handle;
 
         //  Output buffer from pgm_socket.
+#ifdef ZMQ_HAVE_WINDOWS
+        unsigned char out_buffer [pgm_win_max_apdu];
+#else
         unsigned char *out_buffer;
-
+        
         //  Output buffer size.
         size_t out_buffer_size;
+#endif
+
+        
 
         size_t write_size;
         size_t write_pos;

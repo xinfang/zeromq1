@@ -19,14 +19,18 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+#if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
+    defined ZMQ_HAVE_WINDOWS
+
+
+#include <iostream>
 
 #include <zmq/bp_pgm_sender.hpp>
 #include <zmq/config.hpp>
 #include <zmq/formatting.hpp>
 #include <zmq/ip.hpp>
 #include <zmq/wire.hpp>
-#include <iostream>
+#include <zmq/err.hpp>
 
 //#define PGM_SENDER_DEBUG
 //#define PGM_SENDER_DEBUG_LEVEL 4
@@ -42,6 +46,7 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
+#ifdef ZMQ_HAVE_LINUX
 zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
       i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
       i_engine *peer_engine_) :
@@ -63,7 +68,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
     //  If we are using UDP encapsulation "zmq.pgm://udp:mcast_address:port" is
     //  registered into zmq_server.
-    if (strlen (interface_) > 4 && interface_ [0] == 'u' && 
+    if (strlen (interface_) >= 4 && interface_ [0] == 'u' && 
           interface_ [1] == 'd' && interface_ [2] == 'p' && 
           interface_ [3] == ':') {
         sprintf (arguments, "zmq.pgm://udp:%s", delim);
@@ -267,5 +272,215 @@ size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_,
 
     return nbytes;
 }
+#else
+zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
+      i_thread *thread_, const char *interface_, i_thread *peer_thread_, 
+      i_engine *peer_engine_) :
+    shutting_down (false),
+    encoder (&mux),
+    pgm_socket (false, interface_, 0),
+    write_size (0),
+    write_pos (0),
+    first_message_offset (-1),
+    poller (NULL)
+{
+    zmq_log (1, "bp_pgm_sender: interface %s\n", interface_);
+    
+    if (strlen (interface_) >= 4 && interface_ [0] == 'u' && 
+          interface_ [1] == 'd' && interface_ [2] == 'p' && 
+          interface_ [3] == ':') {
+        
+          //  Udp encapsulation is not supported in windows.
+          assert (false);
+    }
+
+    //  Store interface. Note that interface name is not stored in locator.
+    char *delim = strchr ((char *) interface_, ':');
+    assert (delim);
+    delim++;
+    
+    char *mcast_delim = strchr ((char *) interface_, ';');
+    
+    if (mcast_delim != NULL)
+        sprintf (arguments, "zmq.pgm://%s", mcast_delim + 1);
+    else
+        sprintf (arguments, "zmq.pgm://%s", interface_);
+   
+    //  Register BP engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
+
+    //  The newly created engine serves as a local destination of messages
+    //  I.e. it sends messages received from the peer engine to the socket.
+    i_engine *destination_engine = this;
+
+    //  Create the pipe to the newly created engine.
+    pipe_t *pipe = new pipe_t (peer_thread_, peer_engine_,
+        thread_, destination_engine);
+    assert (pipe);
+
+    //  Bind new engine to the destination end of the pipe.
+    command_t cmd_receive_from;
+    cmd_receive_from.init_engine_receive_from (
+        destination_engine, pipe);
+    calling_thread_->send_command (thread_, cmd_receive_from);
+
+    //  Bind the peer to the source end of the pipe.
+    command_t cmd_send_to;
+    cmd_send_to.init_engine_send_to (peer_engine_, pipe);
+    calling_thread_->send_command (peer_thread_, cmd_send_to);
+}
+
+zmq::bp_pgm_sender_t::~bp_pgm_sender_t ()
+{
+
+}
+
+zmq::i_pollable *zmq::bp_pgm_sender_t::cast_to_pollable ()
+{
+    return this;
+}
+
+void zmq::bp_pgm_sender_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
+{
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
+}
+
+int64_t zmq::bp_pgm_sender_t::get_swap_size ()
+{
+    return 0;
+}
+
+void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
+{
+    //  Store the callback.
+    poller = poller_;
+   
+    //  Alocate fd for PGM socket.
+    int downlink_socket_fd;
+
+    //  Fill socket_fd from PGM transport.
+    pgm_socket.get_sender_fd (&downlink_socket_fd);
+
+    //  Add downlink_socket_fd into poller.
+    handle = poller->add_fd (downlink_socket_fd, this);
+
+    //  Set POLLOUT for downlink_socket_handle.
+    poller->set_pollout (handle);
+}
+
+void zmq::bp_pgm_sender_t::in_event ()
+{
+
+}
+
+void zmq::bp_pgm_sender_t::out_event ()
+{
+
+    //  POLLOUT event from send socket. If write buffer is empty,
+    //  try to read new data from the encoder.
+    if (write_pos == write_size) {
+
+        //  Get buffer if we do not have already one.
+        write_size = encoder.read (out_buffer + sizeof (uint16_t),
+            pgm_win_max_apdu - sizeof (uint16_t), &first_message_offset);
+        write_pos = 0;
+        
+        //  If there are no data to write stop polling for output.
+        if (!write_size) {
+            poller->reset_pollout (handle);
+        } else {
+  
+            // Adding uint16_t for offset in a case when encoder returned > 0B.
+            write_size += sizeof (uint16_t);
+        }
+    }
+
+    //  If there are any data to write, write them into the socket.
+    //  Note that all data has to be written in one write_one_pkt_with_offset call.
+    if (write_pos < write_size) {
+        size_t nbytes = write_one_pkt_with_offset (out_buffer + write_pos,
+            write_size - write_pos, first_message_offset);
+
+        //  We can write all data or 0 which means rate limit reached.
+        if (write_size - write_pos != nbytes && nbytes != 0) {
+            zmq_log (1, "write_size - write_pos %i, nbytes %i, %s(%i)",
+                (int)(write_size - write_pos), (int)nbytes, __FILE__, __LINE__);
+
+            assert (false);
+        }
+
+        //  PGM rate limit reached nbytes is 0.
+        if (!nbytes) {
+            zmq_log (1, "pgm rate limit reached, %s(%i)\n", __FILE__, __LINE__);
+        }
+
+        write_pos += nbytes;
+    } 
+}
+
+void zmq::bp_pgm_sender_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
+void zmq::bp_pgm_sender_t::unregister_event ()
+{
+    // TODO: Implement this. For now we just ignore the event.
+}
+
+void zmq::bp_pgm_sender_t::receive_from (pipe_t *pipe_)
+{    
+    engine_base_t <false, true>::receive_from (pipe_);
+    
+    if (shutting_down)
+        pipe_->terminate_reader ();
+    else if (!shutting_down && poller)
+        poller->set_pollout (handle);
+}
+
+void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
+{
+    //  We have some messages in encoder.
+    if (!shutting_down) {
+
+        //  Forward the revive command to the pipe. 
+        engine_base_t <false, true>::revive (pipe_);
+
+        //  There is at least one engine (that one which sent revive) that 
+        //  has messages ready. Try to write data to the socket, thus 
+        //  eliminating one polling for POLLOUT event.
+        //  Note that if write_size is zero it means that buffer is empty and
+        //  we can read data from encoder.
+        if (!write_size) {
+            poller->set_pollout (handle);
+            out_event ();
+        }
+    }
+}
+
+const char *zmq::bp_pgm_sender_t::get_arguments ()
+{
+    return arguments;
+}
+
+size_t zmq::bp_pgm_sender_t::write_one_pkt_with_offset (unsigned char *data_, 
+    size_t size_, uint16_t offset_)
+{
+
+    //  Put offset information in the buffer.
+    put_uint16 (data_, offset_);
+   
+    //  Send data.
+    size_t nbytes = pgm_socket.send_data (data_, size_);
+
+    return nbytes;
+}
+
+
+#endif
 
 #endif

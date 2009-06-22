@@ -158,17 +158,18 @@ namespace zmq
 
         //  Close transport.
         void close_transport (void);
-
-        //  Get receiver fd and store them into user allocated memory.
-        void get_receiver_fds (int *recv_fd_);
+  
+        //  Get receiver fd and store it into user allocated memory.
+        void get_receiver_fd (int *recv_fd_);
 
         //  Set receiver fd.
         void set_receiver_fd (int recv_fd_);
 
         void get_receiver_listener_fd (int *list_fd_);
-
-        //   Get sender and store it to user allocated memory.
-        void get_sender_fds (int *send_fd_);
+        
+        //   Get sender and store it to user allocated 
+        //   memory. Receive fd is used to process NAKs from peers.
+        void get_sender_fd (int *send_fd_);
 
         //  Send data.
         size_t send_data (unsigned char *data_, size_t data_len_);
@@ -186,12 +187,6 @@ namespace zmq
         SOCKET receiver_listener_socket;
 
     private:
-
-        //  Returns max tsdu size without fragmentation.
-        size_t get_max_tsdu_size (void);
-
-        //  Returns maximum count of apdus which fills readbuf_size_
-        size_t get_max_apdu_at_once (size_t readbuf_size_);
 
         //  true when pgm_socket should create receiving side.
         bool receiver;
@@ -216,7 +211,8 @@ namespace zmq
         int pgm_msgv_processed;
 
         //  Array to store pgm messages.
-        char pgm_msgv[pgm_max_tpdu];
+        char pgm_msgv[pgm_win_max_apdu];
+
 #endif
     };
 }

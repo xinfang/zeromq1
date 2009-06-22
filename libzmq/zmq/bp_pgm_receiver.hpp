@@ -22,7 +22,8 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+#if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
+    defined ZMQ_HAVE_WINDOWS
 
 #include <zmq/i_pollable.hpp>
 #include <zmq/bp_decoder.hpp>
@@ -73,7 +74,11 @@ namespace zmq
         //  of bytes received. Note that if we did not join message stream 
         //  before and there is not message beginning in the APDUs being 
         //  received iov_len for such a APDUs will be 0.
+#ifdef ZMQ_HAVE_WINDOWS
+        int receive_with_offset (void **data_);
+#else
         ssize_t receive_with_offset (void **data_);
+#endif
 
         // If receiver joined the messages stream.
         bool joined;
@@ -93,9 +98,12 @@ namespace zmq
 
         //  Poll handle associated with PGM socket.
         handle_t socket_handle;
-
+#ifdef ZMQ_HAVE_WINDOWS
+        handle_t socket_listener_handle;
+#else
         //  Poll handle associated with engine PGM waiting pipe.
         handle_t pipe_handle;
+#endif
 
         bp_pgm_receiver_t (const bp_pgm_receiver_t&);
         void operator = (const bp_pgm_receiver_t&);

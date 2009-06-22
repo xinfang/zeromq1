@@ -39,6 +39,9 @@ namespace zmq
         //  Maximum transport data unit size for PGM (TPDU).
         pgm_max_tpdu = 1500,
 
+        //  Maximum transport data unit size for PGM in WINDOWS (APDU).
+        pgm_win_max_apdu = 1400,
+
         //  PGM engine buffer (receiver).
         pgm_in_batch_size = 1000,
 

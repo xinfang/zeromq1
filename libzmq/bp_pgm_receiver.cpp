@@ -19,14 +19,21 @@
 
 #include <zmq/platform.hpp>
 
-#if defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX
+#if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
+    defined ZMQ_HAVE_WINDOWS
+
+#include <string>
 
 #include <zmq/bp_pgm_receiver.hpp>
 #include <zmq/wire.hpp>
-#include <string>
+#include <zmq/err.hpp>
+
+#ifdef ZMQ_HAVE_WINDOWS
+#include <Wsrm.h>
+#endif
 
 //#define PGM_RECEIVER_DEBUG
-//#define PGM_RECEIVER_DEBUG_LEVEL 0
+//#define PGM_RECEIVER_DEBUG_LEVEL 4
 
 // level 1 = key behaviour
 // level 2 = processing flow
@@ -39,6 +46,7 @@
         { printf (__VA_ARGS__);}} while (0)
 #endif
 
+#ifdef ZMQ_HAVE_LINUX
 zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
       i_thread *thread_, const char *network_, size_t readbuf_size_, 
       const char *arguments_) :
@@ -272,5 +280,269 @@ ssize_t zmq::bp_pgm_receiver_t::receive_with_offset
     return nbytes;
 }
 
+#else
+
+zmq::bp_pgm_receiver_t::bp_pgm_receiver_t (i_thread *calling_thread_, 
+      i_thread *thread_, const char *network_, size_t readbuf_size_, 
+      const char *arguments_) :
+    shutting_down (false),
+    decoder (demux),
+    joined (false),
+    pgm_socket (NULL),
+    poller (NULL)
+{
+    if (strlen (network_) >= 4 && network_ [0] == 'u' && 
+          network_ [1] == 'd' && network_ [2] == 'p' && 
+          network_ [3] == ':') {
+        
+          //  Udp encapsulation is not supported in Windows pgm.
+          assert (false);  
+    }
+    
+
+    std::string transport_info (network_);
+    std::string mcast_interface (arguments_);
+    std::string network;
+
+    network = mcast_interface + ";" + network_;
+    
+    //  Create pgm_socket object
+    pgm_socket = new pgm_socket_t (true, network.c_str (), readbuf_size_);
+    assert (pgm_socket);
+
+    //  Register PGM engine with the I/O thread.
+    command_t command;
+    command.init_register_engine (this);
+    calling_thread_->send_command (thread_, command);
+}
+
+zmq::bp_pgm_receiver_t::~bp_pgm_receiver_t ()
+{
+    //  Cleanup.
+    delete pgm_socket;
+}
+
+zmq::i_pollable *zmq::bp_pgm_receiver_t::cast_to_pollable ()
+{
+    return this;
+}
+
+void zmq::bp_pgm_receiver_t::get_watermarks (int64_t *hwm_, int64_t *lwm_)
+{
+    *hwm_ = bp_hwm;
+    *lwm_ = bp_lwm;
+}
+
+int64_t zmq::bp_pgm_receiver_t::get_swap_size ()
+{
+    return 0;
+}
+
+void zmq::bp_pgm_receiver_t::register_event (i_poller *poller_)
+{
+    //  The receiver socket will be created in in_event.
+    pgm_socket->created_receiver_socket = false;
+
+    //  Store the callback.
+    poller = poller_;
+
+    //  Allocate fds for socket.
+    int socket_fd;
+
+    //  Fill socket_fd from PGM transport
+    pgm_socket->get_receiver_listener_fd (&socket_fd);
+
+    //  Add socket_fd into poller.
+    socket_listener_handle = poller->add_fd (socket_fd, this);
+
+    //  Set POLLIN for socket handler.
+    poller->set_pollin (socket_listener_handle);
+}
+
+void zmq::bp_pgm_receiver_t::reconnect (void)
+{
+    //  The receiver socket will be created in in_event.
+    pgm_socket->created_receiver_socket = false;
+
+    int socket_fd;
+    int receiver_fd;
+ 
+    //  Remove old fd from poller.
+    poller->rm_fd (socket_handle);
+    
+    //  Get the receiver socket.
+    pgm_socket->get_receiver_fd (&receiver_fd);
+
+    //  Close socket.
+    closesocket (receiver_fd);
+
+    //  Fill socket_fd from new PGM transport
+    pgm_socket->get_receiver_listener_fd (&socket_fd);
+    
+    socket_listener_handle = poller->add_fd (socket_fd, this);
+    poller->set_pollin (socket_listener_handle);
+
+    int rc = listen (socket_fd, 10);
+    wsa_assert (rc != SOCKET_ERROR);
+}
+
+//  POLLIN event from socket or waiting_pipe.
+void zmq::bp_pgm_receiver_t::in_event ()
+{
+    if (!pgm_socket->created_receiver_socket) {
+        
+        int socket_fd;
+        int receiver_fd;
+        int sasessionsz;
+        SOCKADDR_IN sasession;
+
+        pgm_socket->get_receiver_listener_fd (&socket_fd);
+
+        //  Accept the socket.
+        sasessionsz = sizeof(sasession);
+   
+        receiver_fd = accept (socket_fd, (SOCKADDR *)&sasession, &sasessionsz);
+        if (receiver_fd == WSAEWOULDBLOCK) {
+            
+        }
+        else if (receiver_fd == EAGAIN || receiver_fd != SOCKET_ERROR) {
+
+            //  Set the receiver socket to non-blocking mode.
+            u_long flag = 1;
+            int rc = ioctlsocket (receiver_fd, FIONBIO, &flag);
+            wsa_assert (rc != SOCKET_ERROR);
+
+            //  Add socket_fd into poller.
+            socket_handle = poller->add_fd (receiver_fd, this);
+            poller->set_pollin (socket_handle);
+           
+            ULONG val = 1;
+            setsockopt (receiver_fd, IPPROTO_RM, RM_HIGH_SPEED_INTRANET_OPT, (char*)&val, 
+               sizeof(val));
+
+            pgm_socket->set_receiver_fd (receiver_fd);
+
+            pgm_socket->created_receiver_socket = true;
+        }
+        else
+            wsa_assert (receiver_fd != SOCKET_ERROR);
+    }
+
+    if (pgm_socket->created_receiver_socket) {     
+        void *data_with_offset;
+        int nbytes = 0;
+
+        //  Read all data from pgm socket.
+        while ((nbytes = receive_with_offset (&data_with_offset)) > 0) {
+            zmq_log (4, "bp_pgm_receiver_t::in_event nbytes = %d\n", nbytes); 
+            
+            //  Push all the data to the decoder.
+            decoder.write ((unsigned char*)data_with_offset, nbytes);
+        }
+
+        //  Flush any messages decoder may have produced to the dispatcher.
+        demux->flush ();
+
+        //  Data loss detected.
+        if (nbytes == -1) {
+
+            //  Throw message in progress from decoder
+            decoder.reset ();
+
+            //  Insert "gap" message into the pipes.
+            demux->gap ();
+
+            //  PGM receive is not joined anymore.
+            joined = false;
+       
+            //  Recreate PGM transport.
+            reconnect ();
+        }
+    }
+}
+
+void zmq::bp_pgm_receiver_t::out_event ()
+{
+    assert (false);
+}
+
+void zmq::bp_pgm_receiver_t::timer_event ()
+{
+    //  We are setting no timers. We shouldn't get this event.
+    assert (false);
+}
+
+void zmq::bp_pgm_receiver_t::unregister_event ()
+{
+    // TODO: Implement this. For now we just ignore the event.
+}
+
+void zmq::bp_pgm_receiver_t::send_to (pipe_t *pipe_)
+{
+    //  If pipe limits are set, POLLIN may be turned off
+    //  because there are no pipes to send messages to.
+    //  So, if this is the first pipe in demux, start polling.
+    if ((!shutting_down && demux->no_pipes ()) && poller)
+        poller->set_pollin (socket_listener_handle);
+
+    //  Start sending messages to a pipe.
+    engine_base_t <true, false>::send_to (pipe_);
+}
+
+int zmq::bp_pgm_receiver_t::receive_with_offset 
+    (void **data_)
+{
+    //  Data from PGM socket.
+    void *rd = NULL;
+    unsigned char *raw_data = NULL;
+
+    // Read data from underlying pgm_socket.
+    int nbytes = pgm_socket->receive ((void**) &rd);
+    raw_data = (unsigned char*) rd;
+
+    //  No ODATA or RDATA.
+    if (!nbytes)
+        return 0;
+
+    //  Data loss.
+    if (nbytes == -1)
+        return -1;
+    
+    // Read offset of the fist message in current APDU.
+    uint16_t apdu_offset = get_uint16 (raw_data);
+ 
+    // Shift raw_data & decrease nbytes by the first message offset 
+    // information (sizeof uint16_t).
+    *data_ = raw_data +  sizeof (uint16_t);
+    nbytes -= sizeof (uint16_t);
+    
+    //  There is not beginning of the message in current APDU and we
+    //  are not joined jet -> throwing data.
+    if (apdu_offset == 0xFFFF && !joined) {
+        zmq_log (2, "throwing data, %s(%i)\n", 
+            __FILE__, __LINE__);
+        *data_ = NULL;
+        return 0;
+    }
+
+    //  Now is the possibility to join the stream.
+    if (!joined) {
+           
+        //  We have to move data to the begining of the first message.
+        *data_ = (unsigned char *)*data_ + apdu_offset;
+        nbytes -= apdu_offset;
+
+        // Joined the stream.
+        joined = true;
+
+        zmq_log (2, "joined into the stream, %s(%i)\n", 
+            __FILE__, __LINE__);
+    }
+    
+
+    return nbytes;
+}
+
+#endif
 #endif
 

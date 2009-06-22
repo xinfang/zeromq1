@@ -43,7 +43,7 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 
-zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -59,10 +59,13 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
         (const char*) &flag, sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 
-    //  Set non-blocking flag.
-    flag = 1;
-    rc = ioctlsocket (s, FIONBIO, &flag);
-    wsa_assert (rc != SOCKET_ERROR);
+    if (!block) {
+    
+        //  Set non-blocking flag.
+        flag = 1;
+        rc = ioctlsocket (s, FIONBIO, (u_long *) &flag);
+        wsa_assert (rc != SOCKET_ERROR);
+    }
 
     //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
@@ -127,7 +130,7 @@ void zmq::tcp_listener_t::close ()
 
 #else
 
-zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
+zmq::tcp_listener_t::tcp_listener_t (const char *iface_, bool block)
 {
     //  Convert the hostname into sockaddr_in structure.
     sockaddr_in ip_address;
@@ -142,12 +145,15 @@ zmq::tcp_listener_t::tcp_listener_t (const char *iface_)
     int rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 
-    //  Set non-blocking flag.
-    flag = fcntl (s, F_GETFL, 0);
-    if (flag == -1) 
-        flag = 0;
-    rc = fcntl (s, F_SETFL, flag | O_NONBLOCK);
-    errno_assert (rc != -1);
+    if (!block) {
+    
+        //  Set non-blocking flag.
+        flag = fcntl (s, F_GETFL, 0);
+        if (flag == -1) 
+            flag = 0;
+        rc = fcntl (s, F_SETFL, flag | O_NONBLOCK);
+        errno_assert (rc != -1);
+    }
 
     //  Bind the socket to the network interface_i and port.
     rc = bind (s, (struct sockaddr*) &ip_address, sizeof (ip_address));
