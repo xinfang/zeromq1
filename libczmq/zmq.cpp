@@ -107,7 +107,7 @@ void zmq_bind (void *object_, const char *exchange_name_,
         exchange_options_, queue_options_);
 }
 
-int zmq_send (void *object_, int exchange_, void *data_, uint64_t size_,
+int zmq_send (void *object_, int exchange_, const void *data_, uint64_t size_,
     int block_)
 {
     //  Get the context.
