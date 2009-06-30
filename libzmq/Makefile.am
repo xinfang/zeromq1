@@ -77,7 +77,24 @@ pkginclude_HEADERS = \
 
 lib_LTLIBRARIES = libzmq.la
 
-libzmq_la_SOURCES = $(pkginclude_HEADERS) \
+if BUILD_PGM
+pgm_sources = ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/packet.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/timer.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/if.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/gsi.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/signal.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/txwi.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/rxwi.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/transport.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/rate_control.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/async.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/checksum.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/reed_solomon.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/version.c \
+    ../third-party/openpgm/libpgm-1.0.0/openpgm/pgm/galois_tables.c
+endif
+
+libzmq_la_SOURCES = $(pkginclude_HEADERS) $(pgm_sources) \
     tcp_socket.cpp \
     ysocketpair.cpp \
     ypollset.cpp \
@@ -118,11 +135,50 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) \
     xmlParser.cpp \
     data_dam.cpp
 
+
+libzmq_la_LDFLAGS = -version-info @LTVER@
+
 if BUILD_PGM
-libzmq_la_LDFLAGS = -L$(top_srcdir)/third-party/openpgm/build/lib/ -lpgm-pic -version-info 0:0:0 
 libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall -Werror @LIBZMQ_EXTRA_CXXFLAGS@
+libzmq_la_CFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ \
+    -pipe \
+    -Wall \
+    -Wextra \
+    -Wfloat-equal \
+    -Wshadow \
+    -Wunsafe-loop-optimizations \
+    -Wpointer-arith \
+    -Wbad-function-cast \
+    -Wcast-qual \
+    -Wcast-align \
+    -Wwrite-strings \
+    -Waggregate-return \
+    -Wstrict-prototypes \
+    -Wold-style-definition \
+    -Wmissing-prototypes \
+    -Wmissing-declarations \
+    -Wmissing-noreturn \
+    -Wmissing-format-attribute \
+    -Wredundant-decls \
+    -Wnested-externs \
+    -Winline \
+    -pedantic \
+    -std=gnu99 \
+    --param max-inline-insns-single=600 \
+    -D_REENTRANT \
+    -D_GNU_SOURCE \
+    -D__need_IOV_MAX \
+    -DCONFIG_HAVE_EPOLL \
+    -DCONFIG_HAVE_RTC \
+    -DCONFIG_HAVE_TSC \
+    -DCONFIG_HAVE_IFR_NETMASK \
+    -DCONFIG_HAVE_GETIFADDRS \
+    -DCONFIG_HAVE_GETHOSTBYNAME2 \
+    -DCONFIG_HAVE_GETPROTOBYNAME_R \
+    -DCONFIG_HAVE_SIGHANDLER_T \
+    -DCONFIG_BIND_INADDR_ANY \
+    -DCONFIG_GALOIS_MUL_LUT
 else
-libzmq_la_LDFLAGS = -version-info 0:0:0
 libzmq_la_CXXFLAGS = -Wall -Werror @LIBZMQ_EXTRA_CXXFLAGS@
 endif
 

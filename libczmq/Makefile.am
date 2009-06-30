@@ -7,6 +7,6 @@ lib_LTLIBRARIES = libczmq.la
 
 libczmq_la_SOURCES = $(pkginclude_HEADERS) zmq.cpp
 
-libczmq_la_LDFLAGS = -version-info 0:0:0
+libczmq_la_LDFLAGS = -version-info @CLTVER@
 libczmq_la_CXXFLAGS = -Wall -pedantic
 libczmq_la_LIBADD = $(top_builddir)/libzmq/libzmq.la

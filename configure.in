@@ -7,6 +7,18 @@ AM_CONFIG_HEADER(libzmq/zmq/config.h)
 AM_CONFIG_HEADER(libzmq/zmq/platform.hpp)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
+# libzmq -version-info
+LTVER="1:0:0"
+AC_SUBST(LTVER)
+
+# libczmq -version-info
+CLTVER="1:0:0"
+AC_SUBST(CLTVER)
+
+# libjzmq -version-info
+JLTVER="1:0:0"
+AC_SUBST(JLTVER)
+
 AM_PROG_CC_C_O
 
 # Enable to create shared libs under Win32
@@ -506,9 +518,9 @@ if test "x$with_pgm_ext" != "xno"; then
         AC_MSG_ERROR([Could not find bunzip2.])
     fi
 
-    AC_CHECK_PROG(have_cp, cp, yes, no)
-    if test "x$have_cp" != "xyes"; then
-        AC_MSG_ERROR([Could not find cp.])
+    AC_CHECK_PROG(have_perl, perl, yes, no)
+    if test "x$have_perl" != "xyes"; then
+        AC_MSG_ERROR([Could not find perl.])
     fi
 
     if test "x$pyzmq" != "xyes"; then
@@ -527,19 +539,15 @@ if test "x$with_pgm_ext" != "xno"; then
         AC_MSG_ERROR([Could not unpack third-paty/openpgm/libpgm-1.0.0rc7.tar.bz2 file])
     fi
 
-    AC_MSG_CHECKING([Updating CMakeList.txt file])
+    #  Generate galois_tables.c
+    AC_CONFIG_COMMANDS([galois_tables.c], 
+        [perl third-party/openpgm/libpgm-1.0.0/openpgm/pgm/galois_generator.pl > \
+            third-party/openpgm/libpgm-1.0.0/openpgm/pgm/galois_tables.c])
 
-    if cp third-party/openpgm/CMakeLists.txt third-party/openpgm/libpgm-1.0.0/openpgm/pgm/; then
-        AC_MSG_RESULT([yes])
-    else
-        AC_MSG_ERROR([Could not update third-paty/openpgm/libpgm-1.0.0/openpgm/pgm/CMakeList.txt file])
-    fi
-
-    AC_CHECK_PROG(have_cmake, cmake, yes, no)
-
-    if test "x$have_cmake" != "xyes"; then
-        AC_MSG_ERROR([Could not find cmake.])
-    fi
+    #  Generate version.c
+    AC_CONFIG_COMMANDS([version.c],
+        [python third-party/openpgm/libpgm-1.0.0/openpgm/pgm/version_generator.py > \
+            third-party/openpgm/libpgm-1.0.0/openpgm/pgm/version.c])
 
     #  Check for OpenPGM nedded libraries.
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
@@ -617,7 +625,7 @@ examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
 mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
-librbzmq/Makefile third-party/openpgm/Makefile libpyzmq/setup.py)
+librbzmq/Makefile libpyzmq/setup.py)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
