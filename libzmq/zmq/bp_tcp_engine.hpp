@@ -126,6 +126,9 @@ namespace zmq
         //  Backend wire-level protocol decoder.
         bp_decoder_t decoder;
 
+        //  Pipe counter.
+        int pipe_cnt;
+
         //  Callback to poller.
         i_poller *poller;
 

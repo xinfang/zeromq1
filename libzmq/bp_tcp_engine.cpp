@@ -33,6 +33,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (demux),
+    pipe_cnt (0),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (true),
@@ -62,6 +63,7 @@ zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
     read_pos (0),
     encoder (&mux),
     decoder (demux),
+    pipe_cnt (0),
     poller (NULL),
     local_object (local_object_),
     reconnect_flag (false),
@@ -204,7 +206,7 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
     if (state == engine_connecting)
         //  Wait for completion of connect() call.
         poller->set_pollout (handle);
-    else
+    else if (pipe_cnt > 0)
         //  Start receiving 'backend protocol' messages.
         poller->set_pollin (handle);
 }
@@ -280,7 +282,8 @@ void zmq::bp_tcp_engine_t::out_event ()
 
         if (mux.empty ())
             poller->reset_pollout (handle);
-        poller->set_pollin (handle);
+        if (pipe_cnt > 0)
+            poller->set_pollin (handle);
         state = engine_connected;
         return;
     }
@@ -360,7 +363,9 @@ void zmq::bp_tcp_engine_t::send_to (pipe_t *pipe_)
     //  If pipe limits are set, POLLIN may be turned off
     //  because there are no pipes to send messages to.
     //  So, if this is the first pipe in demux, start polling.
-    if (state == engine_connected && demux->no_pipes ())
+    pipe_cnt ++;
+
+    if (state == engine_connected && pipe_cnt == 1)
         poller->set_pollin (handle);    
 
     engine_base_t <true,true>::send_to (pipe_);
@@ -374,7 +379,12 @@ void zmq::bp_tcp_engine_t::receive_from (pipe_t *pipe_)
     //  immediately.
     if (state == engine_shutting_down)
         pipe_->terminate_reader ();
-    
-    if (state == engine_connected)
+
+    pipe_cnt ++;
+
+    if (state == engine_connected) {
         poller->set_pollout (handle);
+        if (pipe_cnt == 1)
+            poller->set_pollin (handle);
+    }
 }
