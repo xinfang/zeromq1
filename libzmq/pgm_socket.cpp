@@ -711,12 +711,12 @@ void zmq::pgm_socket_t::open_transport ()
         assert (false);
     else if (err != WSAENOBUFS)
         assert (false);
-    
 
     //  Allocate needed space for lpProtocolBuf.
     lpProtocolBuf = (WSAPROTOCOL_INFOW*)malloc (dwBufLen);
     if (lpProtocolBuf == NULL)
         assert (false);
+
     //  Get information about available protocols, the information will be
     //  placed to lpProtocolBuf.
 	protocols = WSCEnumProtocols (protocol_list, lpProtocolBuf, 

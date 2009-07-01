@@ -67,7 +67,11 @@ class j_local_thr
          long end = System.currentTimeMillis ();
 
          //  Compute and print out the throughput.
-         long messageThroughput = 1000 * messageCount / (end - start);
+         long messageThroughput;
+         if (end - start != 0)
+            messageThroughput = 1000 * messageCount / (end - start);
+         else
+            messageThroughput = 1000 * messageCount;
          long megabitThroughput = messageThroughput * messageSize * 8 / 1000000;
          System.out.println ("Your average throughput is " + messageThroughput +
              "[msg/s]");

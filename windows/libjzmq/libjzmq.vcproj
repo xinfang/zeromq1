@@ -59,7 +59,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\jzmq.dll"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -85,7 +84,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java"
+				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -133,7 +132,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
 				OutputFile="$(OutDir)\jzmq.dll"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -161,7 +159,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java"
+				CommandLine="javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_lat.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_local_thr.java&#x0D;&#x0A;javac -classpath ..\..\libjzmq ..\..\perf\tests\zmq\j_remote_thr.java&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

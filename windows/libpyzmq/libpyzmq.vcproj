@@ -58,7 +58,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib python26.lib"
+				AdditionalDependencies="python26.lib"
 				OutputFile="$(OutDir)\$(ProjectName).pyd"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -130,7 +130,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib python26.lib"
+				AdditionalDependencies="python26.lib"
 				OutputFile="$(OutDir)\$(ProjectName).pyd"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
