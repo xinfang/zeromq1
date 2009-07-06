@@ -1,3 +1,26 @@
+Version 1.0.0
+ZMQ-269  Constness is better for the zmq_send data_ argument
+ZMQ-267  assert in api_thread.cpp:384: void zmq::api_thread_t::process_command
+ZMQ-266  Memory coruption in api_thread_t::create
+ZMQ-265  Missing librbzmq.vcproj file
+ZMQ-264  Java examples can not be run on OpenVMS
+ZMQ-263  Warning preventing compilation of chat example
+ZMQ-262  CLONE -QNX port -- working in 6.4.0?
+ZMQ-261  add --with-rubydir configure option
+ZMQ-260  syntax error caught by gcc 4.4
+ZMQ-253  Allow to establish arbitrary AMQP wiring on connection startup
+ZMQ-249  Handle EAGAIN and EWOULDBLOCK as the same error
+ZMQ-248  Call in/out events directly from I/O thread
+ZMQ-247  Move physical thread from poller to individual I/O threads
+ZMQ-240  Pack Java classes into a .jar
+ZMQ-239  make --with-clr imply --with-c
+ZMQ-237  Java extension not working with Win32 package
+ZMQ-235  JAVA build fails if PATH is not set to JDK/bin
+ZMQ-228  Make java documentation via JavaDoc
+ZMQ-226  Move Jzmq to org.zmq package
+ZMQ-204  Use non-blocking accept
+ZMQ-130  Optimise mux_t for large number of idle connections
+
 Version 0.6.1
 
 ZMQ-254: Race condition in pipe_t::writer_terminated
