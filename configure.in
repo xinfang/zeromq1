@@ -19,6 +19,10 @@ AC_SUBST(CLTVER)
 JLTVER="1:0:0"
 AC_SUBST(JLTVER)
 
+# libclqzmq AssemblyVersion
+CLRTVER="1.0.0.0"
+AC_SUBST(CLRTVER)
+
 AM_PROG_CC_C_O
 
 # Enable to create shared libs under Win32
@@ -41,6 +45,8 @@ install_man="yes"
 # Extra CXXFLAGS are appended at the end of CXXFLAGS for libzmq.
 LIBZMQ_EXTRA_CXXFLAGS=""
 
+# Extra LDFLAGS are appended at the end of LDFLAGS for libzmq.
+LIBZMQ_EXTRA_LDFLAFS=""
 # By default compiling with -pedantic except QNX.
 pedantic="yes"
 
@@ -552,9 +558,13 @@ if test "x$with_pgm_ext" != "xno"; then
     #  Check for OpenPGM nedded libraries.
     PKG_CHECK_MODULES([GLIB], [glib-2.0 gthread-2.0])
 
-    CPPFLAGS="${CPPFLAGS} ${GLIB_CFLAGS}"
+    LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} ${GLIB_CFLAGS} "
 
-    LIBS="${LIBS} ${GLIB_LIBS}"
+    LIBZMQ_EXTRA_LDFLAFS="${LIBZMQ_EXTRA_LDFLAFS} ${GLIB_LIBS}"
+
+    #CPPFLAGS="${CPPFLAGS} ${GLIB_CFLAGS}"
+
+    #LIBS="${LIBS} ${GLIB_LIBS}"
 
     AC_DEFINE(ZMQ_HAVE_OPENPGM, 1, [Have OpenPGM extension.])
     pgm_name="OpenPGM"
@@ -610,9 +620,9 @@ fi
 AC_SUBST(stdint)
 AC_SUBST(inttypes)
 
-# Subst LIBZMQ_EXTRA_CXXFLAGS
+# Subst LIBZMQ_EXTRA_CXXFLAGS & LDFLAGS
 AC_SUBST(LIBZMQ_EXTRA_CXXFLAGS)
-
+AC_SUBST(LIBZMQ_EXTRA_LDFLAFS)
 
 # Checks for library functions.
 AC_FUNC_MALLOC
@@ -624,8 +634,8 @@ libjzmq/Makefile perf/Makefile perf/tests/Makefile perf/tests/zmq/Makefile \
 examples/Makefile examples/exchange/Makefile examples/camera/Makefile \
 examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
-mono/clrzmq/clrzmq/Makefile libzmq/zmq.pc mono/clrzmq/clrzmq/clrzmq.pc \
-librbzmq/Makefile libpyzmq/setup.py)
+mono/clrzmq/clrzmq/Makefile libzmq/libzmq.pc mono/clrzmq/clrzmq/libclrzmq.pc \
+librbzmq/Makefile libpyzmq/setup.py mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])

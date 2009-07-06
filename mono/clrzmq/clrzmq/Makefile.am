@@ -1,6 +1,9 @@
 libclrzmq.dlldir=@CLRDIR@
 libclrzmq.dll_DATA = bin/Release/libclrzmq.dll
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libclrzmq.pc
+
 gmcs_options = -noconfig -codepage:utf8 -warn:4 -optimize+ "-define:TRACE"
 gmcs_keyfile = "-keyfile:zmq_strong_name.snk"
 gmcs_out = -out:bin/Release/libclrzmq.dll

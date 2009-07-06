@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle ("libclrzmq")]
-[assembly: AssemblyDescription ("zmq clr library")]
+[assembly: AssemblyDescription ("0MQ clr library")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("zeromq")]
-[assembly: AssemblyProduct ("zeromq")]
+[assembly: AssemblyCompany ("FastMQ Inc.")]
+[assembly: AssemblyProduct ("libclrzmq")]
 [assembly: AssemblyCopyright ("Copyright FastMQ Inc. 2007-2009")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
@@ -30,4 +30,5 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 [assembly: AssemblyVersion ("1.0.0.0")]
-[assembly: AssemblyFileVersion ("0.0.0.5")]
+[assembly: AssemblyFileVersion ("0.0.0.1")]
+

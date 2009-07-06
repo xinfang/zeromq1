@@ -1,5 +1,8 @@
 INCLUDES                = -I$(top_builddir) -I$(top_srcdir)
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libzmq.pc
+
 include_HEADERS = zmq.hpp
 
 pkginclude_HEADERS = \
@@ -136,11 +139,11 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) $(pgm_sources) \
     data_dam.cpp
 
 
-libzmq_la_LDFLAGS = -version-info @LTVER@
+libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAFS@
 
 if BUILD_PGM
 libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall -Werror @LIBZMQ_EXTRA_CXXFLAGS@
-libzmq_la_CFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ \
+libzmq_la_CFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ @LIBZMQ_EXTRA_CXXFLAGS@ \
     -pipe \
     -Wall \
     -Wextra \
