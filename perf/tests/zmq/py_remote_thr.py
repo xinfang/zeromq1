@@ -23,7 +23,7 @@ import libpyzmq
 import time
 
 def main ():
-    if len (sys.argv) < 4:
+    if len (sys.argv) != 4:
         print 'usage: py_remote_thr <hostname> <message-size> <message-count>'
         sys.exit (1)
 

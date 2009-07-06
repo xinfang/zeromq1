@@ -24,7 +24,7 @@ import time
 
 
 def main ():
-    if len (sys.argv) < 4:
+    if len (sys.argv) != 4:
         print 'usage: py_local_lat <hostname> <message-size> <roundtrip-count>'
         sys.exit (1)
 
