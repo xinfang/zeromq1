@@ -23,6 +23,10 @@ AC_SUBST(JLTVER)
 CLRTVER="1.0.0.0"
 AC_SUBST(CLRTVER)
 
+# librbzmq -version-info
+RBLTVER="1:0:0"
+AC_SUBST(RBLTVER)
+
 AM_PROG_CC_C_O
 
 # Enable to create shared libs under Win32
