@@ -1,7 +1,7 @@
 libclrzmq.dlldir=@CLRDIR@
 libclrzmq.dll_DATA = bin/Release/libclrzmq.dll
 
-pkgconfigdir = $(libdir)/pkgconfig
+pkgconfigdir = $(datadir)/pkgconfig
 pkgconfig_DATA = libclrzmq.pc
 
 gmcs_options = -noconfig -codepage:utf8 -warn:4 -optimize+ "-define:TRACE"
