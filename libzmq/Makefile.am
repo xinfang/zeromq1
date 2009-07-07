@@ -142,7 +142,7 @@ libzmq_la_SOURCES = $(pkginclude_HEADERS) $(pgm_sources) \
 libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAFS@
 
 if BUILD_PGM
-libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall -Werror @LIBZMQ_EXTRA_CXXFLAGS@
+libzmq_la_CXXFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ -Wall @LIBZMQ_EXTRA_CXXFLAGS@
 libzmq_la_CFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/include/ @LIBZMQ_EXTRA_CXXFLAGS@ \
     -pipe \
     -Wall \
@@ -182,7 +182,7 @@ libzmq_la_CFLAGS = -I$(top_srcdir)/third-party/openpgm/libpgm-1.0.0/openpgm/pgm/
     -DCONFIG_BIND_INADDR_ANY \
     -DCONFIG_GALOIS_MUL_LUT
 else
-libzmq_la_CXXFLAGS = -Wall -Werror @LIBZMQ_EXTRA_CXXFLAGS@
+libzmq_la_CXXFLAGS = -Wall @LIBZMQ_EXTRA_CXXFLAGS@
 endif
 
 dist-hook:

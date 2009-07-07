@@ -47,8 +47,11 @@ LIBZMQ_EXTRA_CXXFLAGS=""
 
 # Extra LDFLAGS are appended at the end of LDFLAGS for libzmq.
 LIBZMQ_EXTRA_LDFLAFS=""
-# By default compiling with -pedantic except QNX.
+# By default compiling with -pedantic except QNX and OSX.
 pedantic="yes"
+
+#By default compiling with -Werror except OSX.
+werror="yes"
 
 case "${host_os}" in
     *linux*)
@@ -85,6 +88,8 @@ case "${host_os}" in
         LIBS="-pthread"
         ;;
     *darwin*)
+        pedantic="no"
+        werror="no"
         AC_DEFINE(ZMQ_HAVE_OSX, 1, [Have DarwinOSX OS])
         LIBS="-pthread"
         LIBZMQ_EXTRA_CXXFLAGS"${LIBZMQ_EXTRA_CXXFLAGS} -Wno-uninitialized"
@@ -129,11 +134,6 @@ case "${host_os}" in
         AC_MSG_ERROR([Not supported os: $host.])
         ;;
 esac
-
-# If not on QNX add -pedantic into LIBZMQ_EXTRA_CXXFLAGS.
-if test "x$pedantic" = "xyes"; then
-    LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} -pedantic"
-fi
 
 # Check if we are running at sparc harware
 AC_MSG_CHECKING([wheter __sparc__ is defined])
@@ -570,6 +570,17 @@ if test "x$with_pgm_ext" != "xno"; then
     pgm_name="OpenPGM"
     pgm_ext="yes"
 fi
+
+# If not on QNX nor OSX add -pedantic into LIBZMQ_EXTRA_CXXFLAGS.
+if test "x$pedantic" = "xyes"; then
+    LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} -pedantic"
+fi
+
+# If not on QNX nor --with-pgm add -Werror into LIBZMQ_EXTRA_CXXFLAGS.
+if test "x$werror" = "xyes" -a "x$pgm_ext" = "xno"; then
+    LIBZMQ_EXTRA_CXXFLAGS="${LIBZMQ_EXTRA_CXXFLAGS} -Werror"
+fi
+
 
 #  AMQP extension.
 amqp_ext="no"
