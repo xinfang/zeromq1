@@ -31,8 +31,10 @@ int main (int argc, char *argv [])
             << endl << "<message size> <roundtrip count>" << endl;
         cerr << "local_exchange network: iface;mcast_group:port "
             "for raw PGM" << std::endl;
+#ifdef ZMQ_HAVE_LINUX
         cerr << "                        udp:iface;mcast_group:port "
             "for UDP encapsulation" << std::endl;
+#endif
         return 1;
     }
 

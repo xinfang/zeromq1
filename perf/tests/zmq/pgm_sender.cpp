@@ -29,8 +29,10 @@ int main (int argc, char *argv [])
             "<exchange interface> <message size> <message count>" << endl;
         cerr << "exchange interface format: iface;mcast_group:port "
             "for raw PGM" << std::endl;
+#ifdef ZMQ_HAVE_LINUX
         cerr << "                           udp:iface;mcast_group:port "
             "for UDP encapsulation" << std::endl;
+#endif
         return 1;
     }
 
