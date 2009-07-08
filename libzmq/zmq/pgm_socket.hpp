@@ -211,7 +211,7 @@ namespace zmq
         int pgm_msgv_processed;
 
         //  Array to store pgm messages.
-        char pgm_msgv[pgm_win_max_apdu];
+        char pgm_msgv_recv [pgm_max_tpdu];
 
 #endif
     };

@@ -56,7 +56,7 @@ namespace zmq
         //   10mb :    1250000
         //  100mb :   12500000
         //    1gb :  125000000
-        pgm_max_rte = 12500000,
+        pgm_max_rte = 1250000,
 
         //  PGM reliability time interval.
         pgm_secs = 10,

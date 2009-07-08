@@ -889,7 +889,7 @@ size_t zmq::pgm_socket_t::send_data (unsigned char *data_, size_t data_len_)
 int zmq::pgm_socket_t::receive (void **raw_data_)
 {
     //  Receive.
-    nbytes_rec = recv (receiver_socket, pgm_msgv, pgm_win_max_apdu, 0);
+    nbytes_rec = recv (receiver_socket, pgm_msgv_recv, pgm_max_tpdu, 0);
     
     if (nbytes_rec == 0) {
     
@@ -917,7 +917,7 @@ int zmq::pgm_socket_t::receive (void **raw_data_)
           
     assert (nbytes_rec > 0);
 
-    *raw_data_ = pgm_msgv;
+    *raw_data_ = pgm_msgv_recv;
     assert (*raw_data_ != NULL);
     int raw_data_len = nbytes_rec;
     

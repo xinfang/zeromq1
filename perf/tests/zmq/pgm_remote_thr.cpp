@@ -50,7 +50,7 @@ int main (int argc, char *argv [])
 
     cout << "iface to connect to local_exchange: " << to_local_interface << endl;
     cout << "message size: " << msg_size << " [B]" << endl;
-    cout << "roundtrip count: " << msg_count << endl;
+    cout << "message count: " << msg_count << endl;
 
     //  Create dispatcher.
     zmq::dispatcher_t dispatcher (2); 
