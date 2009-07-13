@@ -1,4 +1,6 @@
 Version 1.0.0
+ZMQ-271  Build OpenPGM with 0MQ build system
+ZMQ-270  0MQ windows pgm support
 ZMQ-269  Constness is better for the zmq_send data_ argument
 ZMQ-267  assert in api_thread.cpp:384: void zmq::api_thread_t::process_command
 ZMQ-266  Memory coruption in api_thread_t::create
