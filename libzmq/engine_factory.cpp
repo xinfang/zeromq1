@@ -59,7 +59,8 @@ zmq::i_engine *zmq::engine_factory_t::create_listener (
         return engine;
     }
 
-#if (defined ZMQ_HAVE_OPENPGM || defined ZMQ_HAVE_WINDOWS)
+#if (defined ZMQ_HAVE_OPENPGM ||\
+    (defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_MINGW32))
     if (transport_type == "zmq.pgm") {
         i_engine *engine = new bp_pgm_sender_t (calling_thread_, thread_,
             transport_args.c_str (), peer_thread_, peer_engine_);
@@ -113,7 +114,8 @@ zmq::i_engine *zmq::engine_factory_t::create_engine (
         return engine;
     }
 
-#if (defined ZMQ_HAVE_OPENPGM || defined ZMQ_HAVE_WINDOWS)
+#if (defined ZMQ_HAVE_OPENPGM ||\
+    (defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_MINGW32))
     if (transport_type == "zmq.pgm") {
         i_engine *engine = new bp_pgm_receiver_t (calling_thread_,
             thread_, transport_args.c_str (), pgm_in_batch_size,

@@ -20,8 +20,7 @@
 #include <zmq/platform.hpp>
 
 #if (defined ZMQ_HAVE_OPENPGM && defined ZMQ_HAVE_LINUX) ||\
-    defined ZMQ_HAVE_WINDOWS
-
+    (defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_MINGW32)
 
 #include <iostream>
 
