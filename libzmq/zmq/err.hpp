@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <zmq/export.hpp>
 #include <zmq/platform.hpp>
@@ -72,7 +73,13 @@ namespace zmq
     abort ();\
 }} while (false)
 
-// Provides convenient way to check for errors from getaddrinfo.
+//  Provides convenient way to check for POSIX errors.
+#define posix_assert(x) do {\
+   fprintf (stderr, "%s (%s:%d)\n", strerror (x), __FILE__, __LINE__);\
+   abort ();\
+} while (false)
+
+//  Provides convenient way to check for errors from getaddrinfo.
 #define gai_assert(x) do { if (x) {\
     const char *errstr = gai_strerror (x);\
     fprintf (stderr, "%s (%s:%d)\n", errstr, __FILE__, __LINE__);\
