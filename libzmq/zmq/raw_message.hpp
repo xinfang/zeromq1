@@ -21,6 +21,7 @@
 #define __ZMQ_RAW_MESSAGE_HPP_INCLUDED__
 
 #include <assert.h>
+#include <new>
 
 #include <zmq/stdint.hpp>
 #include <zmq/config.hpp>
@@ -92,6 +93,7 @@ namespace zmq
             msg_->content->data = (void*) (msg_->content + 1);
             msg_->content->size = size_;
             msg_->content->ffn = NULL;
+            new (&msg_->content->refcount) atomic_counter_t ();
         }
 
     }
@@ -112,6 +114,7 @@ namespace zmq
         msg_->content->data = data_;
         msg_->content->size = size_;
         msg_->content->ffn = ffn_;
+        new (&msg_->content->refcount) atomic_counter_t ();
     }
 
     //  Initialises raw_message_t to be of a non-data type.
@@ -140,6 +143,11 @@ namespace zmq
         //  If the content is not shared, or if it is shared and the reference
         //  count has dropped to zero, deallocate it.
         if (!msg_->shared || !msg_->content->refcount.sub (1)) {
+
+            //  We used "placement new" operator to initialize the reference
+            //  counter so we call its destructor now.
+            msg_->content->refcount.~atomic_counter_t ();
+
             if (msg_->content->ffn)
                 msg_->content->ffn (msg_->content->data);
             free (msg_->content);
