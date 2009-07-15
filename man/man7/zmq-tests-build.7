@@ -126,7 +126,7 @@ $ ./perf/helpers/estimate_cpu_freq
 CPU frequency measured with busy loop: 2009147377 [Hz]
 CPU frequency measured with sleep: 2009138406 [Hz]
 
-Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891 and run
+Please export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891UL and run
 configure and make in the top of the source tree again.
 .fi
 \fP
@@ -135,7 +135,7 @@ Export proper CXXFLAGS and configure 0MQ package \-with\-perf switch again
 .RS 4
 \f(CR
 .nf
-$ export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891 
+$ export CXXFLAGS=-DPERF_CPU_FREQUENCY=2009142891UL 
 $ ./configure --with-perf
 checking for a BSD-compatible install... /usr/bin/install -c
 checking whether build environment is sane... yes
