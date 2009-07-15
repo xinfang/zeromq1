@@ -84,7 +84,7 @@ zmq::pgm_socket_t::pgm_socket_t (bool receiver_, const char *interface_,
     }
  
     //  Parse port number.
-    char *port_delim = strchr (interface_ptr, ':');
+    const char *port_delim = strchr (interface_ptr, ':');
     assert (port_delim);
 
     port_number = atoi (port_delim + 1);

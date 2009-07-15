@@ -60,7 +60,7 @@ zmq::bp_pgm_sender_t::bp_pgm_sender_t (i_thread *calling_thread_,
 
 {
     //  Store interface. Note that interface name is not stored in locator.
-    char *delim = strchr (interface_, ';');
+    const char *delim = strchr (interface_, ';');
     assert (delim);
 
     delim++;
