@@ -30,10 +30,14 @@ if BUILD_CLRZMQ
 DIR_CLR = mono/clrzmq/clrzmq
 endif
 
+if BUILD_TCLZMQ
+DIR_TCL = libtclzmq
+endif
+
 SUBDIRS = $(DIR_PGM) libzmq $(DIR_C) $(DIR_P) $(DIR_J) $(DIR_PERF) $(DIR_ZMQ_SERVER) \
-examples $(DIR_MAN) $(DIR_CLR) $(DIR_R)
+examples $(DIR_MAN) $(DIR_CLR) $(DIR_R) $(DIR_TCL)
 DIST_SUBDIRS = libzmq libczmq libpyzmq libjzmq perf zmq_server examples man \
-mono/clrzmq/clrzmq librbzmq 
+mono/clrzmq/clrzmq librbzmq libtclzmq
 
 EXTRA_DIST = \
     $(top_srcdir)/examples/exchange/graph.pl \
@@ -42,6 +46,7 @@ EXTRA_DIST = \
     $(top_srcdir)/perf/tests/zmq/cs_*.cs \
     $(top_srcdir)/perf/tests/zmq/cob_*.cob \
     $(top_srcdir)/perf/tests/zmq/rb_*.rb \
+    $(top_srcdir)/perf/tests/zmq/tcl_*.tcl \
     $(top_srcdir)/man/man3/*.3 \
     $(top_srcdir)/openvms/*.com \
     $(top_srcdir)/openvms/platform.hpp \
