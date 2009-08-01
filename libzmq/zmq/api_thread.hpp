@@ -136,6 +136,10 @@ namespace zmq
         void stop ();
         void destroy ();
 
+        int fetch_message (message_t *message_);
+        int blocking_receive (message_t *message);
+        int non_blocking_receive (message_t *message);
+
         //  Processes single command.
         void process_command (const command_t &command_);
 

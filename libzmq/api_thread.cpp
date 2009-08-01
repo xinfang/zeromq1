@@ -232,68 +232,68 @@ void zmq::api_thread_t::flush ()
         it->second->flush ();
 }
 
-int zmq::api_thread_t::receive (message_t *message_, bool block_)
+int zmq::api_thread_t::fetch_message (message_t *message_)
 {
-    bool retrieved = false;
-    int qid = 0;
+    for (queues_t::size_type i = 0; i < queues.size (); i ++) {
 
-    //  Remember the original current queue position. We'll use this value
-    //  as a marker for identifying whether we've inspected all the queues.
-    queues_t::size_type start = current_queue;
+        //  Move to the next queue.
+        current_queue ++;
+        if (current_queue == queues.size ())
+           current_queue = 0;
 
-    //  Big loop - iteration happens each time after new commands
-    //  are processed (thus new messages may be available).
-    while (true) {
-
-        //  Small loop doesn't make sense if there are no queues.
-        if (!queues.empty ()) {
-
-            //  Small loop - we are iterating over the array of queues
-            //  checking whether any of them has messages available.
-            while (true) {
-
-               //  Get a message or notification that user is subscribed for.
-               while (true) {
-                   retrieved = queues [current_queue].second->read (message_);
-                   if (!retrieved || (message_->type () & message_mask))
-                       break;
-               }
-
-               if (retrieved)
-                   qid = current_queue + 1;
-
-               //  Move to the next queue.
-               current_queue ++;
-               if (current_queue == queues.size ())
-                   current_queue = 0;
-
-               //  If we have a message exit the small loop.
-               if (retrieved)
-                   break;
-
-               //  If we've iterated over all the queues exit the loop.
-               if (current_queue == start)
-                   break;
-            }
+        bool retrieved = queues [current_queue].second->read (message_);
+        while (retrieved) {
+            if ((message_->type () & message_mask) != 0)
+                return current_queue + 1;
+            retrieved = queues [current_queue].second->read (message_);
         }
+    }
 
-        //  If we have a message exit the big loop.
-        if (retrieved)
-            break;
+    return 0;
+}
 
-        //  If we don't have a message and no blocking is required
-        //  skip the big loop.
-        if (!block_)
-            break;
+int zmq::api_thread_t::blocking_receive (message_t *message_)
+{
+    int qid = fetch_message (message_);
 
-        //  This is a blocking call and we have no messages
-        //  We wait for commands, we process them and we continue
+    while (!qid) {
+        //  This is a blocking call and we have no messages.
+        //  We wait for commands, process them and continue
         //  with getting the messages.
         ypollset_t::integer_t signals = pollset.poll ();
         assert (signals);
         process_commands (signals);
         ticks = 0;
+
+        qid = fetch_message (message_);
     }
+
+    return qid;
+}
+
+int zmq::api_thread_t::non_blocking_receive (message_t *message_)
+{
+    int qid = fetch_message (message_);
+
+    if (!qid) {
+        ypollset_t::integer_t signals = pollset.check ();
+        if (signals) {
+            process_commands (signals);
+            qid = fetch_message (message_);
+        }
+    }
+
+    return qid;
+}
+
+int zmq::api_thread_t::receive (message_t *message_, bool block_)
+{
+    int qid;
+
+    if (block_)
+        qid = blocking_receive (message_);
+    else
+        qid = non_blocking_receive (message_);
 
     //  Once every api_thread_poll_rate messages check for signals and process
     //  incoming commands. This happens only if we are not polling altogether
