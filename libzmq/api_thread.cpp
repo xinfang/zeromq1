@@ -20,6 +20,12 @@
 #include <zmq/api_thread.hpp>
 #include <zmq/config.hpp>
 
+#ifdef _MSC_VER
+#include <stdio.h>
+#include <intrin.h>
+#pragma intrinsic(__rdtsc)
+#endif
+
 zmq::api_thread_t *zmq::api_thread_t::create (dispatcher_t *dispatcher_,
     i_locator *locator_)
 {

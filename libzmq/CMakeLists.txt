@@ -146,5 +146,9 @@ IF(ZMQ_HAVE_OPENPGM)
   INCLUDE_DIRECTORIES (${GLIB2_INCLUDE_DIRS})
 ENDIF(ZMQ_HAVE_OPENPGM)
 
+IF(ZMQ_HAVE_WINDOWS)
+  add_definitions(-DZMQ_BUILDING_LIBZMQ -D_USE_XMLPARSER_DLL -D_DLL_EXPORTS_)
+ENDIF(ZMQ_HAVE_WINDOWS)
+
 zmq_add_library(zmq ${libzmq_sources})
 target_link_libraries( zmq ${libzmq_libraries})
