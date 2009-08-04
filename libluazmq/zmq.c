@@ -258,7 +258,8 @@ static int l_receive (lua_State *L)
 
     qid = zmq_receive (obj, &data, &olen, &type, block);
 
-    assert ((buf = (buffer_t *) malloc (sizeof(buffer_t))));
+    buf = malloc (sizeof (buffer_t));
+    assert (buf != NULL);
 
     buf->dlen = olen;
     buf->type = type;
@@ -301,12 +302,14 @@ static int l_buffer (lua_State *L)
     char                tmp[16];
 
 
-    assert ((buf = (buffer_t *) malloc (sizeof(buffer_t))));
+    buf = malloc (sizeof (buffer_t));
+    assert (buf != NULL);
 
     buf->dlen = len;
     buf->type = 0;
 
-    assert ((buf->data = (void *) malloc (len)));
+    buf->data = malloc (buf->dlen);
+    assert (buf->data != NULL);
 
     memset (buf->data, '\0', len);
 
