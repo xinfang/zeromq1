@@ -31,6 +31,10 @@ AC_SUBST(RBLTVER)
 TCLLTVER="1:0:0"
 AC_SUBST(TCLLTVER)
 
+# libluazmq -version-info
+LUALTVER="1:0:0"
+AC_SUBST(LUALTVER)
+
 AM_PROG_CC_C_O
 
 # Enable to create shared libs under Win32
@@ -40,6 +44,7 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_PROG_SED
+AC_PROG_AWK
 
 # Checks for libraries.
 AC_CHECK_LIB(pthread, pthread_create)
@@ -490,14 +495,13 @@ AC_ARG_WITH([tcl], [AS_HELP_STRING([--with-tcl],
     [build libtclzmq [default=no]])],
     [with_tcl=yes], [with_tcl=no])
 if test "x$with_tcl" != "xno"; then
-    AC_PROG_AWK
     AC_MSG_CHECKING(tcl.h)
     tcl_include_dirs="/usr/include/tcl /usr/include /usr/local/include /usr/tcl/include"
     TCL_DIR=0
     for i in $tcl_include_dirs ; do
         if test -r $i/tcl.h ; then
-            MAJOR=`grep TCL_MAJOR_VERSION $i/tcl.h | awk '{print $3}'`
-            if test $MAJOR -ge 8; then
+            TCL_MAJOR=`grep TCL_MAJOR_VERSION $i/tcl.h | awk '{print $3}'`
+            if test $TCL_MAJOR -ge 8; then
                 TCL_DIR=$i
                 break
             fi
@@ -512,6 +516,47 @@ if test "x$with_tcl" != "xno"; then
     AC_MSG_RESULT($TCL_DIR)
     AC_SUBST(TCL_DIR)
     tclzmq="yes"
+
+    #  c wrapper has to build as well.
+    czmq="yes"
+fi
+
+# Lua
+luazmq="no"
+AC_ARG_WITH([lua], [AS_HELP_STRING([--with-lua],
+    [build libluazmq [default=no]])],
+    [with_lua=yes], [with_lua=no])
+if test "x$with_lua" != "xno"; then
+    #  Test if we have pkg-config
+    if test "x$have_pkg_config" != "xyes"; then
+        AC_MSG_ERROR([To run configure with --with-lua option, pkg-config has to be installed.]);
+    fi
+
+    AC_CHECK_PROG(have_lua, lua, yes, no)
+    if test "x$have_lua" != "xyes"; then
+        AC_MSG_ERROR([Could not find Lua.])
+    fi
+
+    AC_MSG_CHECKING([Lua version 5.1 or higher])
+
+    LUA_MAJOR=`lua -v 2>&1 | awk '{print $2}' | cut -f1 -d.`
+    LUA_MINOR=`lua -v 2>&1 | awk '{print $2}' | cut -f2 -d.`
+    LUA_PATCH=`lua -v 2>&1 | awk '{print $2}' | cut -f3 -d.`
+    
+    if test $LUA_MAJOR -ge 5 -a $LUA_MINOR -ge 1; then
+        AC_MSG_RESULT([$LUA_MAJOR.$LUA_MINOR.$LUA_PATCH])
+    else
+        AC_MSG_RESULT([$LUA_MAJOR.$LUA_MINOR.$LUA_PATCH])
+        AC_MSG_ERROR([Could not find Lula version 5.1 or higher])
+    fi
+
+#    PKG_CHECK_MODULES([LUA], [lua$LUA_MAJOR.$LUA_MINOR]) 
+    PKG_CHECK_MODULES([LUA], [lua]) 
+
+    AC_SUBST(LUA_LIBS)
+    AC_SUBST(LUA_CFLAGS)
+
+    luazmq="yes"
 
     #  c wrapper has to build as well.
     czmq="yes"
@@ -674,6 +719,7 @@ AM_CONDITIONAL(INSTALL_MAN, test "x$install_man" = "xyes")
 AM_CONDITIONAL(BUILD_PGM, test "x$pgm_ext" = "xyes")
 AM_CONDITIONAL(BUILD_CLRZMQ, test "x$clrzmq" = "xyes")
 AM_CONDITIONAL(BUILD_TCLZMQ, test "x$tclzmq" = "xyes")
+AM_CONDITIONAL(BUILD_LUAZMQ, test "x$luazmq" = "xyes")
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -715,7 +761,7 @@ examples/butterfly/Makefile perf/tests/tcp/Makefile perf/helpers/Makefile \
 examples/chat/Makefile man/Makefile zmq_server/Makefile \
 mono/clrzmq/clrzmq/Makefile libzmq/libzmq.pc mono/clrzmq/clrzmq/libclrzmq.pc \
 librbzmq/Makefile libpyzmq/setup.py libtclzmq/Makefile \
-mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs)
+mono/clrzmq/clrzmq/Properties/AssemblyInfo.cs libluazmq/Makefile)
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ ******************************************************** ])
@@ -761,5 +807,6 @@ if test "x$clrzmq" = "xyes"; then
 AC_MSG_RESULT([   CLR library install dir: $clrdir])
 fi
 AC_MSG_RESULT([   TCL language binding: $tclzmq])
+AC_MSG_RESULT([   Lua language binding: $luazmq])
 AC_MSG_RESULT([])
 
