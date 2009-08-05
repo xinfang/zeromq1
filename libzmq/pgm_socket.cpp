@@ -177,7 +177,15 @@ void zmq::pgm_socket_t::open_transport (void)
 
     //  Receiver transport.
     if (receiver) {
-  
+
+        //  When using UDP-encapsulation enables socket address sharing via 
+        //  SO_REUSEADDR to allow multiple applications to bind to the same 
+        //  UDP port. 
+        if (udp_encapsulation) {
+            rc = pgm_transport_set_multicast_loop (g_transport, TRUE);
+            assert (rc == 0);
+        }
+
         //  Set transport->may_close_on_failure to true,
         //  after data los recvmsgv returns -1 errno set to ECONNRESET.
         rc = pgm_transport_set_close_on_failure (g_transport, TRUE);
