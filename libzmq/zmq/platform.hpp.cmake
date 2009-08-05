@@ -25,7 +25,9 @@
 #define _WINSOCKAPI_
 #define NOMINMAX
 #define _CRT_SECURE_NO_WARNINGS
+#ifndef ZMQ_EXPORT
 #define ZMQ_EXPORT __declspec(dllexport)
+#endif
 #endif
 
 /* else ? */

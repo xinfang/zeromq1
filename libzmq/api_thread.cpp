@@ -20,8 +20,7 @@
 #include <zmq/api_thread.hpp>
 #include <zmq/config.hpp>
 
-#ifdef _MSC_VER
-#include <stdio.h>
+#if defined(_MSC_VER) && defined(ZMQ_HAVE_RDTSC_IN_API_THREAD)
 #include <intrin.h>
 #pragma intrinsic(__rdtsc)
 #endif
