@@ -73,7 +73,7 @@ int main (int argc, char *argv [])
         network, worker, 1, &worker);
 
     cout << "Start pgm_remote_thr on remote host and "
-            "pres enter to continue." << endl;
+            "press enter to continue." << endl;
     getchar ();
 
 
@@ -86,7 +86,7 @@ int main (int argc, char *argv [])
     }
 
     //  Wait for enter to finish.
-    cout << "Pres enter when pgm_remote_thr exits." << endl;
+    cout << "Press enter when pgm_remote_thr exits." << endl;
     getchar ();
 
     return 0;
