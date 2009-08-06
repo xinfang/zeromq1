@@ -232,7 +232,7 @@ static int l_send (lua_State *L)
 
     lua_pushinteger (L, rv);
 
-    return (0);
+    return 1;
 }
 
 
