@@ -27,7 +27,7 @@ qid = zmq.queue(obj, "QG", zmq.SCOPE_GLOBAL, "127.0.0.1:5763",
     zmq.NO_LIMIT, zmq.NO_LIMIT, zmq.NO_SWAP)
 
 while 1 do
-   obuf = zmq.receive(obj, 1)
-   zmq.send(obj, eid, obuf, 1)
+   obuf = zmq.receive(obj, true)
+   zmq.send(obj, eid, obuf, true)
    zmq.free(obuf)
 end

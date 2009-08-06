@@ -215,11 +215,11 @@ static int l_send (lua_State *L)
     luaL_checktype (L, 3, LUA_TLIGHTUSERDATA);
     buf = lua_touserdata (L, 3);
 
-    block = luaL_checkinteger (L, 4);
+    luaL_checktype (L, 4, LUA_TBOOLEAN);
+    block = lua_toboolean (L, 4) ? ZMQ_TRUE : ZMQ_FALSE;
 
     rv = zmq_send (obj, eid, buf->data, buf->dlen, block);
-
-    lua_pushinteger (L, rv);
+    lua_pushboolean (L, rv);
 
     return 1;
 }
@@ -241,7 +241,8 @@ static int l_receive (lua_State *L)
     luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
     obj = lua_touserdata (L, 1);
 
-    block = luaL_checkinteger (L, 2);
+    luaL_checktype (L, 2, LUA_TBOOLEAN);
+    block = lua_toboolean (L, 2) ? ZMQ_TRUE : ZMQ_FALSE;
 
     qid = zmq_receive (obj, &data, &olen, &type, block);
 
@@ -669,8 +670,6 @@ int luaopen_libluazmq (lua_State *L)
     SETVAR("STYLE_LOAD_BALANCING", ZMQ_STYLE_LOAD_BALANCING)
     SETVAR("NO_LIMIT", ZMQ_NO_LIMIT)
     SETVAR("NO_SWAP", ZMQ_NO_SWAP)
-    SETVAR("TRUE", ZMQ_TRUE)
-    SETVAR("FALSE", ZMQ_FALSE)
 
     SETVAR("char", z_char)
     SETVAR("string", z_string)

@@ -38,8 +38,8 @@ ibuf = zmq.buffer(bytes)
 t0 = zmq.now()
 
 for i = 1, count do
-   zmq.send(obj, eid, ibuf, 1)
-   obuf = zmq.receive(obj, 1)
+   zmq.send(obj, eid, ibuf, true)
+   obuf = zmq.receive(obj, true)
    zmq.free(obuf)
 end
 
