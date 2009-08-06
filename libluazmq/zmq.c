@@ -59,15 +59,9 @@ static int l_create (lua_State *L)
 
     void *              obj;
 
-    char                tmp[16] = "-1";
 
-
-    if ((obj = zmq_create (host)) != NULL)
-    {
-       sprintf (tmp, "%#lx", (unsigned long) obj);
-    }
-
-    lua_pushstring (L, tmp);
+    obj = zmq_create (host);
+    lua_pushlightuserdata (L, obj);
 
     return (1);
 }
@@ -75,12 +69,11 @@ static int l_create (lua_State *L)
 
 static int l_destroy (lua_State *L)
 {
-    const char *   	loc  = luaL_checkstring (L, 1);
-
     void *              obj;
 
 
-    obj = (void *) strtoul (loc, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     zmq_destroy (obj);
 
@@ -94,10 +87,9 @@ static int l_mask (lua_State *L)
 
     void *              obj;
 
-    const char *    	loc = luaL_checkstring (L, 1);
 
-
-    obj = (void *) strtoul (loc, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     zmq_mask (obj, notifications);
 
@@ -114,12 +106,12 @@ static int l_create_exchange (lua_State *L)
 
     void *              obj;
 
-    const char *        addr = luaL_checkstring (L, 1);
     const char *        name = luaL_checkstring (L, 2);
     const char *      	locn = luaL_checkstring (L, 4);
 
 
-    obj = (void *) strtoul (addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     if (*locn == '\0')
     {
@@ -142,14 +134,14 @@ static int l_create_queue (lua_State *L)
 
     void *              obj;
 
-    const char *     	addr = luaL_checkstring (L, 1);
     const char *    	name = luaL_checkstring (L, 2);
     const char *    	locn = luaL_checkstring (L, 4);
 
 
     scope = luaL_checkinteger (L, 3);
 
-    obj = (void *) strtoul(addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     hwm = luaL_checkinteger (L, 5);
     lwm = luaL_checkinteger (L, 6);
@@ -171,8 +163,6 @@ static int l_create_queue (lua_State *L)
 
 static int l_bind (lua_State *L)
 {
-    const char *      	addr = luaL_checkstring (L, 1);
-
     void *              obj;
 
     const char *     	ename;
@@ -182,7 +172,8 @@ static int l_bind (lua_State *L)
     const char *     	qopts;
 
 
-    obj = (void *) strtoul(addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     ename = luaL_checkstring (L, 2);
     qname = luaL_checkstring (L, 3);
@@ -208,8 +199,6 @@ static int l_bind (lua_State *L)
 
 static int l_send (lua_State *L)
 {
-    char * 		addr;
-
     void *              obj;
 
     buffer_t *          buf;
@@ -218,13 +207,13 @@ static int l_send (lua_State *L)
 
     int                 rv;
 
-    addr = (char *) luaL_checkstring (L, 1);
-    obj = (void *) strtoul(addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     eid = luaL_checkinteger (L, 2);
 
-    addr = (char *) luaL_checkstring (L, 3);
-    buf = (buffer_t *) strtoul(addr, NULL, 0);
+    luaL_checktype (L, 3, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 3);
 
     block = luaL_checkinteger (L, 4);
 
@@ -238,8 +227,6 @@ static int l_send (lua_State *L)
 
 static int l_receive (lua_State *L)
 {
-    char                tmp[16];
-
     uint64_t            olen;
     uint32_t            type;
 
@@ -251,8 +238,8 @@ static int l_receive (lua_State *L)
 
     void *              data;
 
-
-    obj = (void *) strtoul (luaL_checkstring (L, 1), NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    obj = lua_touserdata (L, 1);
 
     block = luaL_checkinteger (L, 2);
 
@@ -265,9 +252,7 @@ static int l_receive (lua_State *L)
     buf->type = type;
     buf->data = data;
 
-    sprintf (tmp, "%#lx", (unsigned long) buf);
-
-    lua_pushstring (L, tmp);
+    lua_pushlightuserdata (L, buf);
 
     return (1);
 }
@@ -275,11 +260,12 @@ static int l_receive (lua_State *L)
 
 static int l_free (lua_State *L)
 {
-    const char *     	addr = luaL_checkstring (L, 1);
-
     buffer_t *          buf;
 
-    if ((buf = (buffer_t *) strtoul (addr, NULL, 0)) != NULL)
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
+
+    if (buf != NULL)
     {
        if (buf->data != NULL)
        {
@@ -299,8 +285,6 @@ static int l_buffer (lua_State *L)
 
     buffer_t *          buf;
 
-    char                tmp[16];
-
 
     buf = malloc (sizeof (buffer_t));
     assert (buf != NULL);
@@ -313,10 +297,7 @@ static int l_buffer (lua_State *L)
 
     memset (buf->data, '\0', len);
 
-    sprintf (tmp, "%#lx", (unsigned long) buf);
-
-
-    lua_pushstring (L, tmp);
+    lua_pushlightuserdata (L, buf);
 
     return (1);
 }
@@ -324,14 +305,15 @@ static int l_buffer (lua_State *L)
 
 static int l_size (lua_State *L)
 {
-    const char *     	addr = luaL_checkstring (L, 1);
-
     buffer_t *          buf;
 
     int 		dlen = -1;
 
 
-    if ((buf = (buffer_t *) strtoul (addr, NULL, 0)) != NULL)
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
+
+    if (buf != NULL)
     {
        dlen = buf->dlen;
     }
@@ -362,8 +344,6 @@ static int b_check (buffer_t *buf)
 
 static int l_dump (lua_State *L)
 {
-    const char *     	addr = luaL_checkstring (L, 1);
-
     unsigned char *     tmp;
 
     int                 rv = 0;
@@ -376,7 +356,8 @@ static int l_dump (lua_State *L)
     int                 j;
 
 
-    buf = (buffer_t *) strtoul (addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
 
     if ((rv = b_check (buf)) == 0)
     {
@@ -415,14 +396,13 @@ static int l_dump (lua_State *L)
 
 static int l_clear (lua_State *L)
 {
-    const char *     	addr = luaL_checkstring (L, 1);
-
     buffer_t *          buf;
 
     int                 rv = 0;
 
 
-    buf = (buffer_t *) strtoul (addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
 
     if ((rv = b_check (buf)) == 0)
     {
@@ -447,13 +427,12 @@ static int l_set (lua_State *L)
 
     int                 rv;
 
-    const char *        addr = luaL_checkstring (L, 1);
-
     int                 off;
     int 		idx;
 
 
-    buf = (buffer_t *) strtoul (addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
 
     idx = luaL_checkinteger (L, 3);
     off = luaL_checkinteger (L, 4);
@@ -561,13 +540,12 @@ static int l_get (lua_State *L)
 {
     buffer_t *          buf;
 
-    const char *        addr = luaL_checkstring (L, 1);
-
     int                 idx;
     int                 off;
     int                 len;
 
-    buf = (buffer_t *) strtoul (addr, NULL, 0);
+    luaL_checktype (L, 1, LUA_TLIGHTUSERDATA);
+    buf = lua_touserdata (L, 1);
 
     idx = luaL_checkinteger (L, 2);
     off = luaL_checkinteger (L, 3);
