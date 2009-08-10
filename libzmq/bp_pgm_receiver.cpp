@@ -364,7 +364,15 @@ void zmq::bp_pgm_receiver_t::reconnect (void)
     //  The receiver socket will be created in in_event.
     pgm_socket->created_receiver_socket = false;
 
-    int socket_fd;
+	//  Throw message in progress from decoder
+	decoder.reset ();
+
+	//  Insert "gap" message into the pipes.
+	demux->gap ();
+
+	//  PGM receive is not joined anymore.
+	joined = false;
+
     int receiver_fd;
  
     //  Remove old fd from poller.
@@ -376,88 +384,89 @@ void zmq::bp_pgm_receiver_t::reconnect (void)
     //  Close socket.
     closesocket (receiver_fd);
 
-    //  Fill socket_fd from new PGM transport
-    pgm_socket->get_receiver_listener_fd (&socket_fd);
-    
-    socket_listener_handle = poller->add_fd (socket_fd, this);
-    poller->set_pollin (socket_listener_handle);
-
-    int rc = listen (socket_fd, 10);
-    wsa_assert (rc != SOCKET_ERROR);
 }
 
 //  POLLIN event from socket or waiting_pipe.
 void zmq::bp_pgm_receiver_t::in_event (handle_t handle_)
 {
+
     if (!pgm_socket->created_receiver_socket) {
-        
-        int socket_fd;
-        int receiver_fd;
-        int sasessionsz;
-        SOCKADDR_IN sasession;
 
-        pgm_socket->get_receiver_listener_fd (&socket_fd);
+		//  First in_event from listener socket - accepting connection.
+		if (handle_.fd == socket_listener_handle.fd) {
 
-        //  Accept the socket.
-        sasessionsz = sizeof(sasession);
+			int socket_fd;
+			int receiver_fd;
+			int sasessionsz;
+			SOCKADDR_IN sasession;
+
+			pgm_socket->get_receiver_listener_fd (&socket_fd);
+
+			//  Accept the socket.
+			sasessionsz = sizeof(sasession);
    
-        receiver_fd = accept (socket_fd, (SOCKADDR *)&sasession, &sasessionsz);
-        if (receiver_fd == WSAEWOULDBLOCK) {
+			receiver_fd = accept (socket_fd, (SOCKADDR *)&sasession, &sasessionsz);
+			if (receiver_fd == WSAEWOULDBLOCK) {
             
-        }
-        else if (receiver_fd == EAGAIN || receiver_fd != SOCKET_ERROR) {
+			} else if (receiver_fd == EAGAIN || receiver_fd != SOCKET_ERROR) {
 
-            //  Set the receiver socket to non-blocking mode.
-            u_long flag = 1;
-            int rc = ioctlsocket (receiver_fd, FIONBIO, &flag);
-            wsa_assert (rc != SOCKET_ERROR);
+				//  Set the receiver socket to non-blocking mode.
+				u_long flag = 1;
+				int rc = ioctlsocket (receiver_fd, FIONBIO, &flag);
+				wsa_assert (rc != SOCKET_ERROR);
 
-            //  Add socket_fd into poller.
-            socket_handle = poller->add_fd (receiver_fd, this);
-            poller->set_pollin (socket_handle);
+				//  Add socket_fd into poller.
+				socket_handle = poller->add_fd (receiver_fd, this);
+				poller->set_pollin (socket_handle);
            
-            ULONG val = 1;
-            setsockopt (receiver_fd, IPPROTO_RM, RM_HIGH_SPEED_INTRANET_OPT, (char*)&val, 
-               sizeof(val));
+				ULONG val = 1;
+				setsockopt (receiver_fd, IPPROTO_RM, RM_HIGH_SPEED_INTRANET_OPT, 
+					(char*)&val, sizeof(val));
 
-            pgm_socket->set_receiver_fd (receiver_fd);
+				pgm_socket->set_receiver_fd (receiver_fd);
 
-            pgm_socket->created_receiver_socket = true;
-        }
-        else
-            wsa_assert (receiver_fd != SOCKET_ERROR);
-    }
+				pgm_socket->created_receiver_socket = true;
+			} else {
+				wsa_assert (receiver_fd != SOCKET_ERROR);
+			}
+		} else {
+			//  in_event not from listener socket before 
+			//  created_receiver_socket still false.
+			assert (false);
+		}
 
-    if (pgm_socket->created_receiver_socket) {     
-        void *data_with_offset;
-        int nbytes = 0;
+	} else { // if (pgm_socket->created_receiver_socket)
+		
+		//  New connection from listener socket - destroying old connection
+		//  and reconnect.
+        if (handle_.fd == socket_listener_handle.fd) {
 
-        //  Read all data from pgm socket.
-        while ((nbytes = receive_with_offset (&data_with_offset)) > 0) {
-            zmq_log (4, "bp_pgm_receiver_t::in_event nbytes = %d\n", nbytes); 
+			//  Recreate PGM transport.
+			reconnect ();
+
+		} else {
+
+			void *data_with_offset;
+			int nbytes = 0;
+
+			//  Read all data from pgm socket.
+			while ((nbytes = receive_with_offset (&data_with_offset)) > 0) {
+				zmq_log (4, "bp_pgm_receiver_t::in_event nbytes = %d\n", nbytes); 
             
-            //  Push all the data to the decoder.
-            decoder.write ((unsigned char*)data_with_offset, nbytes);
-        }
+				//  Push all the data to the decoder.
+				decoder.write ((unsigned char*)data_with_offset, nbytes);
+			}
 
-        //  Flush any messages decoder may have produced to the dispatcher.
-        demux->flush ();
+			//  Flush any messages decoder may have produced to the dispatcher.
+			demux->flush ();
 
-        //  Data loss detected.
-        if (nbytes == -1) {
-
-            //  Throw message in progress from decoder
-            decoder.reset ();
-
-            //  Insert "gap" message into the pipes.
-            demux->gap ();
-
-            //  PGM receive is not joined anymore.
-            joined = false;
+			//  Data loss detected.
+			if (nbytes == -1) {
        
-            //  Recreate PGM transport.
-            reconnect ();
-        }
+				//  Recreate PGM transport.
+				reconnect ();
+			}
+		}
     }
 }
 
