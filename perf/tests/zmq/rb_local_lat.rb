@@ -57,7 +57,7 @@ end
 
 	#  The message loop.
     for i in 0...roundtrip_count.to_i do
-    	rb_zmq.send(eid, out_buf.to_s, message_size.to_i, ZMQ_TRUE)
+        rb_zmq.send(eid, out_buf.join.to_s, ZMQ_TRUE)
         in_buf = rb_zmq.receive(ZMQ_TRUE)
         assert (in_buf.msg.to_s.length == message_size.to_i)
    	end

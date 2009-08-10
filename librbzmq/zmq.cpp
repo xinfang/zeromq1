@@ -130,17 +130,17 @@ static VALUE rb_bind (VALUE self_, VALUE exchange_name_, VALUE queue_name_,
     return self_;	
 }
 
-static VALUE rb_send (VALUE self_, VALUE exchange_, VALUE data_, VALUE size_,
-    VALUE block_)
+static VALUE rb_send (VALUE self_, VALUE exchange_, VALUE data_, VALUE block_)
 {
     //  Get the context.
     context_t* context;
     Data_Get_Struct (self_, context_t, context);
-	
+    
     //  Forward the call to native 0MQ library.
-    zmq::message_t msg ((size_t) NUM2ULL (size_));
-    memcpy (msg.data (), (void*) StringValueCStr (data_), 
-    	(size_t) NUM2ULL (size_));
+    zmq::message_t msg ((size_t) RSTRING_LEN (data_));
+    memcpy (msg.data (), (void*) RSTRING_PTR (data_),
+    RSTRING_LEN (data_)); 
+    
     return context->api_thread->send (NUM2INT (exchange_), msg,
         NUM2INT (block_) ? true : false);
 }
@@ -156,7 +156,7 @@ static VALUE rb_receive (VALUE self_, VALUE block_)
     int qid = context->api_thread->receive (&msg, 
         NUM2INT(block_) ? true : false);
     
-    VALUE rb_msg = rb_str_new ((char *) msg.data (), msg.size ());
+    VALUE rb_msg = rb_str_new ((char *) msg.data (), msg.size ());   
     VALUE rb_type = INT2NUM (msg.type ());
     VALUE rb_qid = INT2NUM (qid);
     
@@ -177,7 +177,7 @@ void Init_librbzmq() {
     rb_define_method (rb_zmq, "create_queue", 
         (VALUE(*)(...)) rb_create_queue, 6);
     rb_define_method (rb_zmq, "bind", (VALUE(*)(...)) rb_bind, 4);
-    rb_define_method (rb_zmq, "send", (VALUE(*)(...)) rb_send, 4);
+    rb_define_method (rb_zmq, "send", (VALUE(*)(...)) rb_send, 3);
     rb_define_method (rb_zmq, "receive", (VALUE(*)(...)) rb_receive, 1);
     rb_define_method (rb_zmq, "free", (VALUE(*)(...)) rb_free, 0);
 	

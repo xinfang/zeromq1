@@ -50,7 +50,7 @@ end
     for i in 0...roundtrip_count.to_i do
     	data = rb_zmq.receive(ZMQ_TRUE)
     	assert (data.msg.to_s.length == message_size.to_i)
-        rb_zmq.send(eid, data.msg.to_s, data.msg.to_s.length, ZMQ_TRUE)	        
+        rb_zmq.send(eid, data.msg.to_s, ZMQ_TRUE)	        
     end
 
 sleep 2
