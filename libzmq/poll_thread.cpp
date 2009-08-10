@@ -115,6 +115,9 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
         return false;
     }
 
+    //  handle to be used as a parameter in in/out_event in process_event call.
+    handle_t handle;
+
     for (pollset_t::size_type i = 0; i < pollset.size (); i ++) {
         assert (!(pollset [i].revents & POLLNVAL));
 
@@ -123,18 +126,22 @@ bool zmq::poll_t::process_events (poller_t <poll_t> *poller_, bool timers_)
 
         if (pollset [i].fd == retired_fd)
            continue;
+
+        //  Store actual fd into handle union.
+        handle.fd = pollset [i].fd;
+
         if (pollset [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (engine, event_err))
+            if (poller_->process_event (handle, engine, event_err))
                 return true;
         if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLOUT)
-            if (poller_->process_event (engine, event_out))
+            if (poller_->process_event (handle, engine, event_out))
                 return true;
         if (pollset [i].fd == retired_fd)
            continue;
         if (pollset [i].revents & POLLIN)
-            if (poller_->process_event (engine, event_in))
+            if (poller_->process_event (handle, engine, event_in))
                 return true;
     }
 

@@ -156,24 +156,31 @@ bool zmq::devpoll_t::process_events (poller_t <devpoll_t> *poller_, bool timers_
         return false;
     }
 
+    //  handle to be used as a parameter in in/out_event in process_event call.
+    handle_t handle;
+
     for (int i = 0; i < n; i ++) {
         fd_t fd = ev_buf [i].fd;
         i_pollable *engine = fd_table [fd].engine;
 
         if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
+
+        //  Store actual fd into handle union.
+        handle.fd = ev_buf [i].fd;
+
         if (ev_buf [i].revents & (POLLERR | POLLHUP))
-            if (poller_->process_event (engine, event_err))
+            if (poller_->process_event (handle, engine, event_err))
                 return true;
         if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & POLLOUT)
-            if (poller_->process_event (engine, event_out))
+            if (poller_->process_event (handle, engine, event_out))
                 return true;
         if (!fd_table [fd].in_use || !fd_table [fd].adopted)
             continue;
         if (ev_buf [i].revents & POLLIN)
-            if (poller_->process_event (engine, event_in))
+            if (poller_->process_event (handle, engine, event_in))
                 return true;
     }
 

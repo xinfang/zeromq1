@@ -80,7 +80,7 @@ void zmq::bp_tcp_listener_t::register_event (i_poller *poller_)
     poller->set_pollin (handle);
 }
 
-void zmq::bp_tcp_listener_t::in_event ()
+void zmq::bp_tcp_listener_t::in_event (handle_t handle_)
 {
     //  Create the engine to take care of the connection.
     //  TODO: make buffer size configurable by user
@@ -146,7 +146,7 @@ void zmq::bp_tcp_listener_t::in_event ()
         current_handler_thread = 0;
 }
 
-void zmq::bp_tcp_listener_t::out_event ()
+void zmq::bp_tcp_listener_t::out_event (handle_t handle_)
 {
     //  We will never get POLLOUT when listening for incoming connections.
     assert (false);

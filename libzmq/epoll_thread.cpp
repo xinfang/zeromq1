@@ -121,23 +121,30 @@ bool zmq::epoll_t::process_events (poller_t <epoll_t> *poller_, bool timers_)
         return false;
     }
 
+    //  handle to be used as a parameter in in/out_event in process_event call.
+    handle_t handle;
+
     for (int i = 0; i < n; i ++) {
         poll_entry_t *pe = ((poll_entry_t*) ev_buf [i].data.ptr);
 
         if (pe->fd == retired_fd)
             continue;
+
+        //  Store actual ptr into handle union.
+        handle.ptr = pe;
+
         if (ev_buf [i].events & (EPOLLERR | EPOLLHUP))
-            if (poller_->process_event (pe->engine, event_err))
+            if (poller_->process_event (handle, pe->engine, event_err))
                 return true;
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLOUT)
-            if (poller_->process_event (pe->engine, event_out))
+            if (poller_->process_event (handle, pe->engine, event_out))
                 return true;
         if (pe->fd == retired_fd)
             continue;
         if (ev_buf [i].events & EPOLLIN)
-            if (poller_->process_event (pe->engine, event_in))
+            if (poller_->process_event (handle, pe->engine, event_in))
                 return true;
     }
 

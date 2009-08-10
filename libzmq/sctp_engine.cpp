@@ -135,7 +135,7 @@ void zmq::sctp_engine_t::register_event (i_poller *poller_)
     poller->set_pollin (handle);
 }
 
-void zmq::sctp_engine_t::in_event ()
+void zmq::sctp_engine_t::in_event (handle_t handle_)
 {
     //  Receive N messages in one go if possible - this way we'll avoid
     //  excessive polling.
@@ -163,7 +163,7 @@ void zmq::sctp_engine_t::in_event ()
         demux->flush ();
 }
 
-void zmq::sctp_engine_t::out_event ()
+void zmq::sctp_engine_t::out_event (handle_t handle_)
 {
     message_t msg;
     if (!mux.read (&msg)) {
@@ -201,14 +201,14 @@ void zmq::sctp_engine_t::revive (pipe_t *pipe_)
         //  write data to the socket, thus eliminating one polling
         //  for POLLOUT event.
         poller->set_pollout (handle);
-        out_event ();
+        out_event (handle);
     }
 }
 
 void zmq::sctp_engine_t::head (pipe_t *pipe_, int64_t position_)
 {
     engine_base_t <true,true>::head (pipe_, position_);
-    in_event ();
+    in_event (handle);
 }
 
 void zmq::sctp_engine_t::send_to (pipe_t *pipe_)

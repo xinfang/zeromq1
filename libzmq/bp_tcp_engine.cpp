@@ -211,7 +211,7 @@ void zmq::bp_tcp_engine_t::register_event (i_poller *poller_)
         poller->set_pollin (handle);
 }
 
-void zmq::bp_tcp_engine_t::in_event ()
+void zmq::bp_tcp_engine_t::in_event (handle_t handle_)
 {
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
@@ -271,7 +271,7 @@ void zmq::bp_tcp_engine_t::in_event ()
     }
 }
 
-void zmq::bp_tcp_engine_t::out_event ()
+void zmq::bp_tcp_engine_t::out_event (handle_t handle_)
 {
     if (state == engine_connecting) {
 
@@ -345,7 +345,7 @@ void zmq::bp_tcp_engine_t::revive (pipe_t *pipe_)
         //  for POLLOUT event.
         if (write_size == 0) {
             poller->set_pollout (handle);
-            out_event ();
+            out_event (handle);
         }
     }
 }
@@ -355,7 +355,7 @@ void zmq::bp_tcp_engine_t::head (pipe_t *pipe_, int64_t position_)
     engine_base_t <true,true>::head (pipe_, position_);
 
     //  This command may have unblocked the pipe - start receiving messages.
-    in_event ();
+    in_event (handle);
 }
 
 void zmq::bp_tcp_engine_t::send_to (pipe_t *pipe_)

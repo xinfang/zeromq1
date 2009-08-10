@@ -164,7 +164,7 @@ void zmq::bp_pgm_receiver_t::reconnect (void)
 }
 
 //  POLLIN event from socket or waiting_pipe.
-void zmq::bp_pgm_receiver_t::in_event ()
+void zmq::bp_pgm_receiver_t::in_event (handle_t handle_)
 {
 
     void *data_with_offset;
@@ -197,7 +197,7 @@ void zmq::bp_pgm_receiver_t::in_event ()
     }
 }
 
-void zmq::bp_pgm_receiver_t::out_event ()
+void zmq::bp_pgm_receiver_t::out_event (handle_t handle_)
 {
     assert (false);
 }
@@ -387,7 +387,7 @@ void zmq::bp_pgm_receiver_t::reconnect (void)
 }
 
 //  POLLIN event from socket or waiting_pipe.
-void zmq::bp_pgm_receiver_t::in_event ()
+void zmq::bp_pgm_receiver_t::in_event (handle_t handle_)
 {
     if (!pgm_socket->created_receiver_socket) {
         
@@ -461,7 +461,7 @@ void zmq::bp_pgm_receiver_t::in_event ()
     }
 }
 
-void zmq::bp_pgm_receiver_t::out_event ()
+void zmq::bp_pgm_receiver_t::out_event (handle_t handle_)
 {
     assert (false);
 }

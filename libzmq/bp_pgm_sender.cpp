@@ -151,12 +151,12 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
 }
 
 //  In event on sender side means NAK or SPMR receiving from some peer.
-void zmq::bp_pgm_sender_t::in_event ()
+void zmq::bp_pgm_sender_t::in_event (handle_t handle_)
 {
     pgm_socket.process_upstream ();
 }
 
-void zmq::bp_pgm_sender_t::out_event ()
+void zmq::bp_pgm_sender_t::out_event (handle_t handle_)
 {
 
     //  POLLOUT event from send socket. If write buffer is empty, 
@@ -249,7 +249,7 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
         //  we can read data from encoder.
         if (!write_size) {
             poller->set_pollout (handle);
-            out_event ();
+            out_event (handle);
         }
     }
 }
@@ -370,12 +370,12 @@ void zmq::bp_pgm_sender_t::register_event (i_poller *poller_)
     poller->set_pollout (handle);
 }
 
-void zmq::bp_pgm_sender_t::in_event ()
+void zmq::bp_pgm_sender_t::in_event (handle_t handle_)
 {
 
 }
 
-void zmq::bp_pgm_sender_t::out_event ()
+void zmq::bp_pgm_sender_t::out_event (handle_t handle_)
 {
 
     //  POLLOUT event from send socket. If write buffer is empty,
@@ -456,7 +456,7 @@ void zmq::bp_pgm_sender_t::revive (pipe_t *pipe_)
         //  we can read data from encoder.
         if (!write_size) {
             poller->set_pollout (handle);
-            out_event ();
+            out_event (handle);
         }
     }
 }

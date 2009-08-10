@@ -63,7 +63,8 @@ namespace zmq
         void cancel_timer (i_pollable *engine_);
 
         //  Callback functions called by event_monitor.
-        bool process_event (i_pollable *engine_, event_t event_);
+        bool process_event (handle_t handle_, i_pollable *engine_,
+            event_t event_);
         void timer_event ();
 
     private:
@@ -262,7 +263,7 @@ void zmq::poller_t <T>::loop ()
 }
 
 template <class T>
-bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
+bool zmq::poller_t <T>::process_event (handle_t handle_, i_pollable *engine_, event_t event_)
 {
     if (!engine_) {
         ysocketpair_t::integer_t signals = signaler.check ();
@@ -287,11 +288,11 @@ bool zmq::poller_t <T>::process_event (i_pollable *engine_, event_t event_)
     else {
         switch (event_) {
         case event_out:
-            engine_->out_event ();
+            engine_->out_event (handle_);
             break;
         case event_err:
         case event_in:
-            engine_->in_event ();
+            engine_->in_event (handle_);
             break;
         }
     }

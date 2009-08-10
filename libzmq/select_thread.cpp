@@ -164,21 +164,28 @@ bool zmq::select_t::process_events (poller_t <select_t> *poller_, bool timers_)
             break;
     }
 
+    //  handle to be used as a parameter in in/out_event in process_event call.
+    handle_t handle;
+
     for (fd_set_t::size_type i = 0; i < fds.size (); i ++) {
         if (fds [i].fd == retired_fd)
             continue;
+
+        //  Store actual fd into handle union.
+        handle.fd = fds [i].fd;
+
         if (FD_ISSET (fds [i].fd, &writefds))
-            if (poller_->process_event (fds [i].engine, event_out))
+            if (poller_->process_event (handle, fds [i].engine, event_out))
                 return true;
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &readfds))
-            if (poller_->process_event (fds [i].engine, event_in))
+            if (poller_->process_event (handle, fds [i].engine, event_in))
                 return true;
         if (fds [i].fd == retired_fd)
             continue;
         if (FD_ISSET (fds [i].fd, &exceptfds))
-            if (poller_->process_event (fds [i].engine, event_err))
+            if (poller_->process_event (handle, fds [i].engine, event_err))
                 return true;
     }
 
