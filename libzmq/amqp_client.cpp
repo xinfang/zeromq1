@@ -97,7 +97,7 @@ void zmq::amqp_client_t::revive (pipe_t *pipe_)
         //  for POLLOUT event.
         if (write_size == 0) {
 	    poller->set_pollout (handle);
-            out_event ();
+            out_event (handle);
         }
     }
 }
@@ -107,7 +107,7 @@ void zmq::amqp_client_t::head (pipe_t *pipe_, int64_t position_)
     //  Forward pipe head position to the appropriate pipe.
     if (state != state_connecting && state != state_shutting_down) {
         engine_base_t <true, true>::head (pipe_, position_);
-        in_event ();
+        in_event (handle);
     }
 }
 
@@ -149,7 +149,7 @@ void zmq::amqp_client_t::register_event (i_poller *poller_)
     poller->set_pollout (handle);
 }
 
-void zmq::amqp_client_t::in_event ()
+void zmq::amqp_client_t::in_event (handle_t handle_)
 {
     //  Following code should be invoked when async connect causes POLLERR
     //  rather than POLLOUT.
@@ -210,7 +210,7 @@ void zmq::amqp_client_t::in_event ()
     }
 }
 
-void zmq::amqp_client_t::out_event ()
+void zmq::amqp_client_t::out_event (handle_t handle_)
 {
     //  Following code is a handler for async connect termination.
     if (state == state_connecting) {

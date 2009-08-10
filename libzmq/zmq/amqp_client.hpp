@@ -59,8 +59,8 @@ namespace zmq
 
         //  i_pollable interface implementation.
         void register_event (i_poller *poller_);
-        void in_event ();
-        void out_event ();
+        void in_event (handle_t handle_);
+        void out_event (handle_t handle_);
         void timer_event ();
         void unregister_event ();
 
