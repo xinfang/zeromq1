@@ -100,10 +100,13 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
     //  Make sure that the queue doesn't already exist.
     for (queues_t::iterator it = queues.begin ();
           it != queues.end (); it ++)
-        assert (it->first != name_);
+        assert (it->name != name_);
 
     in_engine_t *engine = in_engine_t::create (hwm_, lwm_, swap_);
-    queues.push_back (queues_t::value_type (name_, engine));
+
+    //  Fill queue_t structure, by the default receiving messages is enabled.
+    queue_t queue = {name_, engine, true};
+    queues.push_back (queue);
 
     //  If the scope of the queue is local, we won't register it
     //  with the locator.
@@ -116,6 +119,12 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
         handler_threads_);
 
     return queues.size ();
+}
+
+void zmq::api_thread_t::flow (int queue_id_, bool enabled_)
+{
+    assert (queue_id_ > 0 && queue_id_ <= (int)queues.size ());
+    queues [queue_id_ - 1].flow = enabled_;
 }
 
 void zmq::api_thread_t::bind (const char *exchange_name_,
@@ -144,11 +153,11 @@ void zmq::api_thread_t::bind (const char *exchange_name_,
     i_engine *queue_engine;
     queues_t::iterator qit;
     for (qit = queues.begin (); qit != queues.end (); qit ++)
-        if (qit->first == queue_name_)
+        if (qit->name == queue_name_)
             break;
     if (qit != queues.end ()) {
         queue_thread = this;
-        queue_engine = qit->second;
+        queue_engine = qit->engine;
     }
     else {
         dispatcher->get (locator, this, queue_name_, &queue_thread,
@@ -246,11 +255,15 @@ int zmq::api_thread_t::fetch_message (message_t *message_)
         if (current_queue == queues.size ())
            current_queue = 0;
 
-        bool retrieved = queues [current_queue].second->read (message_);
+        // If receiving messages from this queue is disabled, continue.
+        if (!queues [current_queue].flow)
+            continue;
+
+        bool retrieved = queues [current_queue].engine->read (message_);
         while (retrieved) {
             if ((message_->type () & message_mask) != 0)
                 return current_queue + 1;
-            retrieved = queues [current_queue].second->read (message_);
+            retrieved = queues [current_queue].engine->read (message_);
         }
     }
 

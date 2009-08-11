@@ -94,6 +94,9 @@ namespace zmq
             int64_t hwm_ = no_limit, int64_t lwm_ = no_limit,
             uint64_t swap_ = no_swap);
 
+        // Enable / disable receiving messages from queue (flow).
+        ZMQ_EXPORT void flow (int queue_id_, bool enabled_);
+
         //  Binds an exchange to a queue.
         ZMQ_EXPORT void bind (const char *exchange_name_,
             const char *queue_name_, i_thread *exchange_thread_,
@@ -171,9 +174,18 @@ namespace zmq
             exchanges_t;
         exchanges_t exchanges;
 
+        //  Structure to keep queue name, API thread and msg flow status.
+        //  flow: true  - receiving messages enabled
+        //        false - receiving messages disabled
+        struct queue_t
+        {
+            std::string name;
+            in_engine_t* engine;
+            bool flow;
+        };
+
         //  List of queues belonging to the API thread.
-        typedef std::vector <std::pair <std::string, in_engine_t*> >
-            queues_t;
+        typedef std::vector <queue_t> queues_t;
         queues_t queues;
 
         //  Current queue points to the queue to be used to retrieving
