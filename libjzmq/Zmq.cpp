@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_org_zmq_Zmq_finalize (JNIEnv *env, jobject obj)
 }
 
 JNIEXPORT void JNICALL Java_org_zmq_Zmq_mask (JNIEnv *env, jobject obj,
-    int notifications)
+    jint notifications)
 {
     //  Get the context.
     context_t *context = (context_t*) env->GetLongField (obj, context_fid);
