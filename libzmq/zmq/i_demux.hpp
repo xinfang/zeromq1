@@ -56,6 +56,10 @@ namespace zmq
         //  Returns true if no pipe is attached to this message distributor.
         virtual bool empty () = 0;
 
+        //  Returns true if demux implements load balancing style of
+        //  message distribution.
+        virtual bool load_balancing () = 0;
+
         //  Stops sending messages to this pipe.
         virtual void release_pipe (pipe_t *pipe_) = 0;
 

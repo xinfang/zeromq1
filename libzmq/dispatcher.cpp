@@ -119,10 +119,12 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
 
         //  If location of the global object is not specified, retrieve it
         //  from the directory service.
-        char buff [256];
         if (!location_ || strlen (location_) == 0) {
-            locator_->resolve_endpoint (object_, buff, sizeof (buff));
-            location_ = buff;
+            attr_list_t attrs;
+            locator_->resolve_endpoint (object_, attrs);
+            attr_list_t::iterator it = attrs.find ("location");
+            assert (it != attrs.end ());
+            location_ = (*it).second.c_str ();
         }
 
         //  Create a listener for the object.
@@ -131,8 +133,17 @@ void zmq::dispatcher_t::create (i_locator *locator_, i_thread *calling_thread_,
             handler_thread_count_, handler_threads_,
             source_, thread_, engine_, object_);
 
-        //  Regiter the object with the locator.
-        locator_->register_endpoint (object_, listener->get_arguments ());
+        //  Register the object with the locator.
+        attr_list_t attrs;
+        attrs.insert (attr_list_t::value_type ("location",
+            listener->get_arguments ()));
+
+        if (!source_) {
+            attrs.insert (attr_list_t::value_type ("load_balancing",
+                engine_->load_balancing () ? "true" : "false"));
+        }
+
+        locator_->register_endpoint (object_, attrs);
     }
 
     //  Leave critical section.
@@ -156,12 +167,25 @@ bool zmq::dispatcher_t::get (i_locator *locator_, i_thread *calling_thread_,
     if (it == objects.end ()) {
 
         //  Get the location of the object from the locator.
-        char location [256];
-        locator_->resolve_endpoint (object_, location, sizeof (location));
+        attr_list_t attrs;
+        locator_->resolve_endpoint (object_, attrs);
+
+        attr_list_t::iterator entry = attrs.find ("location");
+        assert (entry != attrs.end ());
+        const char *location = entry->second.c_str ();
+
+        bool load_balancing = false;
+        entry = attrs.find ("load_balancing");
+        if (entry != attrs.end ()) {
+            assert ((*entry).second == "true" || (*entry).second == "false");
+            if ((*entry).second == "true")
+                load_balancing = true;
+        }
 
         //  Create the proxy engine for the object.
         i_engine *engine = engine_factory_t::create_engine (calling_thread_,
-            handler_thread_, location, local_object_, engine_arguments_);
+            handler_thread_, location, local_object_, load_balancing,
+            engine_arguments_);
 
         //  Write it into object repository.
         object_info_t info = {handler_thread_, engine};

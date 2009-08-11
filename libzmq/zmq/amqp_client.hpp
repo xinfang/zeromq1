@@ -68,7 +68,7 @@ namespace zmq
 
         amqp_client_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
-            const char *arguments_);
+            bool load_balancing_, const char *arguments_);
         ~amqp_client_t ();
 
         void connection_start (

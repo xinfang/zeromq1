@@ -45,6 +45,7 @@ using namespace std;
 #endif
 
 #include <zmq.hpp>
+#include <zmq/i_locator.hpp>
 #include <zmq/fd.hpp>
 #include <zmq/tcp_socket.hpp>
 #include <zmq/tcp_listener.hpp>
@@ -52,8 +53,152 @@ using namespace std;
 #include <zmq/xmlParser.hpp>
 using namespace zmq;
 
-//  Maps object name to object info.
-typedef map <string, string> objects_t;
+typedef map <string, attr_list_t> object_table_t;
+
+//  Object repository.
+static object_table_t objects;
+
+static int register_object (tcp_socket_t *s)
+{
+    unsigned char size, reply;
+    char buf [255];
+    attr_list_t attrs;
+
+    //  Read name.
+    int n = s->read (&size, 1);
+    if (n != 1)
+        return -1;
+    n = s->read (buf, size);
+    if (n != size)
+        return -1;
+    string name = string (buf, n);
+
+    n = s->read (&size, 1);
+    if (n != 1)
+        return -1;
+
+    //  Read attributes.
+    while (size > 0) {
+
+        n = s->read (buf, size);
+        if (n != size)
+            return -1;
+        string key = string (buf, n);
+
+        n = s->read (&size, 1);
+        if (n != 1)
+            return -1;
+
+        n = s->read (buf, size);
+        if (n != size)
+            return -1;
+        string value = string (buf, n);
+
+        attrs [key] = value;
+
+        n = s->read (&size, 1);
+        if (n != 1)
+            return -1;
+    }
+
+    //  Signal success.
+    reply = create_ok_id;
+    n = s->write (&reply, 1);
+    if (n != 1)
+        return -1;
+
+#ifdef ZMQ_TRACE
+    printf("Object %s registered:\n", name.c_str ());
+    for (attr_list_t::iterator it = attrs.begin (); it != attrs.end (); it ++)
+        printf ("\t%s = %s\n", (*it).first.c_str (), (*it).second.c_str ());
+#endif
+
+    //  Register object.
+    pair <object_table_t::iterator, bool> res =
+        objects.insert (object_table_t::value_type (name, attrs));
+    if (!res.second)
+        res.first->second = attrs;
+
+    return 0;
+}
+
+static int query_object (tcp_socket_t *s)
+{
+    unsigned char size, reply;
+    char buf [255];
+
+    //  Read name.
+    int n = s->read (&size, 1);
+    if (n != 1)
+        return -1;
+    n = s->read (buf, size);
+    if (n != size)
+        return -1;
+    string name = string (buf, n);
+
+    //  Loop up object in the registry.
+    object_table_t::iterator obj = objects.find (name);
+    if (obj == objects.end ()) {
+
+        //  Signal error.
+        reply = fail_id;
+        n = s->write (&reply, 1);
+        if (n != 1)
+            return -1;
+
+#ifdef ZMQ_TRACE
+        printf ("Error when looking for an object: "
+            "object %s not registered\n", name.c_str ());
+#endif
+        return 0;
+    }
+
+    attr_list_t &attrs = (*obj).second;
+
+    //  Signal success.
+    reply = get_ok_id;
+    n = s->write (&reply, 1);
+    if (n != 1)
+        return -1;
+
+    //  Write attributes.
+    for (attr_list_t::iterator it = attrs.begin ();
+            it != attrs.end (); it ++) {
+
+        const string &key = (*it).first;
+        const string &val = (*it).second;
+
+        size = key.size ();
+        n = s->write (&size, 1);
+        if (n != 1)
+            return -1;
+        n = s->write (key.c_str (), size);
+        if (n != size)
+            return -1;
+
+        size = val.size ();
+        n = s->write (&size, 1);
+        if (n != 1)
+            return -1;
+        n = s->write (val.c_str (), size);
+        if (n != size)
+            return -1;
+    }
+
+    //  Write terminator.
+    size = 0;
+    n = s->write (&size, 1);
+    if (n != 1)
+        return -1;
+
+#ifdef ZMQ_TRACE
+    printf ("Object %s retrieved:\n", name.c_str ());
+    for (attr_list_t::iterator it = attrs.begin (); it != attrs.end (); it ++)
+        printf ("\t%s = %s\n", (*it).first.c_str (), (*it).second.c_str ());
+#endif
+
+    return 0;
+}
 
 int main (int argc, char *argv [])
 {
@@ -109,8 +254,6 @@ int main (int argc, char *argv [])
     FD_SET (fd_int, &source_set_fds);
     fd_t maxfdp1 = fd_int + 1;
         
-    //  Object repository.
-    objects_t objects;
 
     if (!config_file.empty ()) {
 
@@ -131,7 +274,9 @@ int main (int argc, char *argv [])
             assert (name);
             const char *location = node.getAttribute ("location");
             assert (location);
-            objects.insert (std::make_pair (name, location));
+            attr_list_t attrs;
+            attrs ["location"] = location;
+            objects.insert (std::make_pair (name, attrs));
 #ifdef ZMQ_TRACE
             printf ("Object %s created (%s).\n", name, location);
 #endif
@@ -189,7 +334,7 @@ int main (int argc, char *argv [])
            
                 //  Read command ID.
                 unsigned char cmd;
-                unsigned char reply;
+
                 int nbytes = socket_list [pos]->read (&cmd, 1);
                 if (nbytes != 1)
                     goto error;
@@ -197,105 +342,19 @@ int main (int argc, char *argv [])
                 //  Process individual commands.
                 switch (cmd) {
                 case create_id:
-                    {
-                        //  Parse object name.
-                        unsigned char size;
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        if (nbytes != 1)
-                            goto error;
-                        char name [256];
-                        nbytes = socket_list [pos]->read (&name, size);
-                        if (nbytes != size)
-                            goto error;
-                        name [size] = 0;
-
-                        //  Parse location.
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        if (nbytes != 1)
-                            goto error;
-                        char location [256];
-                        nbytes = socket_list [pos]->read (&location, size);
-                        if (nbytes != size)
-                            goto error;
-                        location [size] = 0;
-
-                        //  Insert object to the repository.
-                        pair<objects_t::iterator, bool> res =
-                            objects.insert (
-                            objects_t::value_type (name, location));
-                        if (!res.second)
-                           res.first->second = location;
-
-                        //  Send reply command.
-                        reply = create_ok_id;
-                        nbytes = socket_list [pos]->write (&reply, 1);
-                        if (nbytes != 1)
-                            goto error;
-#ifdef ZMQ_TRACE
-                        printf ("Object %s created (%s).\n", name,
-                            location);
-#endif
-                        break;
-                    }
+                    rc = register_object (socket_list [pos]);
+                    break;
                 case get_id:
-                    {
-                        //  Parse object name.
-                        unsigned char size;
-                        nbytes = socket_list [pos]->read (&size, 1);
-                        if (nbytes != 1)
-                            goto error;
-                        char name [256];
-                        nbytes = socket_list [pos]->read (&name, size);
-                        if (nbytes != size)
-                            goto error;
-                        name [size] = 0;
-
-                        //  Find the exchange in the repository.
-                        objects_t::iterator it = objects.find (name);
-                        if (it == objects.end ()) {
-
-                            //  Send the error.
-                            reply = fail_id;
-
-                            nbytes = socket_list [pos]->write (&reply, 1);                             
-                            if (nbytes != 1)
-                                goto error;
-#ifdef ZMQ_TRACE
-                            printf ("Error when looking for an object: "
-                                "object %s does not exist.\n", name);
-#endif
-                            break;
-                        }
-
-                        //  Send reply command.
-                        reply = get_ok_id;
-                        nbytes = socket_list [pos]->write (&reply, 1);
-                        if (nbytes != 1)
-                            goto error;
-
-                        //  Send the location.
-                        size = it->second.size ();
-                        nbytes = socket_list [pos]->write (&size, 1);
-                        if (nbytes != 1)
-                            goto error;
-                        nbytes = socket_list [pos]->write (
-                            it->second.c_str (), size);
-                        if (nbytes != size)
-                            goto error;
-#ifdef ZMQ_TRACE
-                        printf ("Object %s retrieved (%s).\n",
-                            name, it->second.c_str ());
-#endif
-                        break;
-                    }
+                    rc = query_object (socket_list [pos]);
+                    break;
                 default:
                     goto error;
                 }
             }
 
-            //  Everything is OK. Move to next socket.
-            continue;
-
+            //  If everything is OK, move to next socket.
+            if (!rc)
+                continue;
 error:
 #ifdef ZMQ_TRACE
             printf ("Closing connection.\n");

@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <string>
 
 #include <zmq/locator.hpp>
 #include <zmq/config.hpp>
@@ -51,13 +52,11 @@ zmq::locator_t::~locator_t ()
         delete global_locator;
 }
 
-void zmq::locator_t::register_endpoint (const char *name_,
-    const char *location_)
+void zmq::locator_t::register_endpoint (const char *name_, attr_list_t &attrs_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
     assert (global_locator);
     assert (strlen (name_) <= 255);
-    assert (strlen (location_) <= 255);
 
     //  Send to 'create' command.
     unsigned char cmd = create_id;
@@ -65,18 +64,34 @@ void zmq::locator_t::register_endpoint (const char *name_,
     unsigned char size = (unsigned char) strlen (name_);
     global_locator->write (&size, 1);
     global_locator->write (name_, size);
-    size = (unsigned char) strlen (location_);
+
+    for (attr_list_t::iterator it = attrs_.begin ();
+            it != attrs_.end (); it ++) {
+
+        const std::string &key = (*it).first;
+        const std::string &value = (*it).second;
+
+        assert (key.size () < 256);
+        size = key.size ();
+        global_locator->write (&size, 1);
+        global_locator->write (key.c_str (), size);
+
+        assert (value.size () < 256);
+        size = value.size ();
+        global_locator->write (&size, 1);
+        global_locator->write (value.c_str (), size);
+    }
+
+    //  Write terminator.
+    size = 0;
     global_locator->write (&size, 1);
-    global_locator->write (location_, size);
 
     //  Read the response.
     global_locator->read (&cmd, 1);
     assert (cmd == create_ok_id);
-
 }
 
-void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
-    size_t location_size_)
+void zmq::locator_t::resolve_endpoint (const char *name_, attr_list_t &attrs_)
 {
     //  If 0MQ is used for in-process messaging, we shouldn't even get here.
     assert (global_locator);
@@ -91,9 +106,18 @@ void zmq::locator_t::resolve_endpoint (const char *name_, char *location_,
     //  Read the response.
     global_locator->read (&cmd, 1);
     assert (cmd == get_ok_id);
-    assert (location_size_ >= 256);
-    global_locator->read (&size, 1);
-    global_locator->read (location_, size);
-    location_ [size] = 0;
-}
 
+    //  Read attributes.
+    global_locator->read (&size, 1);
+
+    while (size > 0) {
+        char buf [255];
+        global_locator->read (buf, size);
+        std::string key = std::string (buf, size);
+        global_locator->read (&size, 1);
+        global_locator->read (buf, size);
+        std::string value = std::string (buf, size);
+        attrs_ [key] = value;
+        global_locator->read (&size, 1);
+    }
+}

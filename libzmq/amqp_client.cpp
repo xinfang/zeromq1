@@ -29,7 +29,8 @@
 
 zmq::amqp_client_t::amqp_client_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char *arguments_) :
+      bool load_balancing_, const char *arguments_) :
+    engine_base_t <true, true> (load_balancing_),
     state (state_connecting),
     writebuf_size (bp_out_batch_size),
     write_size (0),

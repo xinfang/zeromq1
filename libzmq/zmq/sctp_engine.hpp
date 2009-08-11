@@ -82,7 +82,7 @@ namespace zmq
 
         sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             const char *hostname_, const char *local_object_,
-            const char * /* arguments_ */);
+            bool load_balancing_, const char * /* arguments_ */);
         sctp_engine_t (i_thread *calling_thread_, i_thread *thread_,
             int listener_, const char *local_object_);
         ~sctp_engine_t ();

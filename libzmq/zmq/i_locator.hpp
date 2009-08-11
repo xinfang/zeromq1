@@ -20,19 +20,23 @@
 #ifndef __ZMQ_I_LOCATOR_HPP_INCLUDED__
 #define __ZMQ_I_LOCATOR_HPP_INCLUDED__
 
+#include <map>
+#include <string>
 #include <stddef.h>
 
 namespace zmq
 {
+
+    typedef std::map <std::string, std::string> attr_list_t;
 
     struct i_locator
     {
         virtual ~i_locator () {};
 
         virtual void register_endpoint (const char *name_,
-            const char *location_) = 0;
+            attr_list_t &attrs_) = 0;
         virtual void resolve_endpoint (const char *name_,
-            char *location_, size_t location_size_) = 0;
+            attr_list_t &attrs_) = 0;
     };
 
 }

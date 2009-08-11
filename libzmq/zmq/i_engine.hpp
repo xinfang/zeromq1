@@ -32,6 +32,10 @@ namespace zmq
     {
         virtual ~i_engine () {};
 
+        //  Returns true if engine supports load balancing style of
+        //  message distribution.
+        virtual bool load_balancing () = 0;
+
         //  Returns i_pollable interface of the engine. If the engine is not
         //  pollable, it fails.
         virtual struct i_pollable *cast_to_pollable () = 0;

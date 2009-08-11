@@ -103,6 +103,14 @@ namespace zmq
 
         mux_t mux;
         i_demux *demux;
+
+    public:
+
+        bool load_balancing ()
+        {
+            return demux->load_balancing ();
+        }
+
     };
 
 }

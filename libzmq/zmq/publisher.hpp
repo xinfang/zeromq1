@@ -45,6 +45,11 @@ namespace zmq
         void release_pipe (pipe_t *pipe_);
         void initialise_shutdown ();
 
+        bool load_balancing ()
+        {
+            return false;
+        }
+
     private:
 
         //  The list of outbound pipes.

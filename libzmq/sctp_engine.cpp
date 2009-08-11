@@ -31,7 +31,8 @@
 
 zmq::sctp_engine_t::sctp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_ */) :
+      bool load_balancing_, const char * /* arguments_ */) :
+    engine_base_t <true,true> (load_balancing_),
     poller (NULL),
     local_object (local_object_),
     shutting_down (false)

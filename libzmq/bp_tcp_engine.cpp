@@ -24,7 +24,8 @@
 
 zmq::bp_tcp_engine_t::bp_tcp_engine_t (i_thread *calling_thread_,
       i_thread *thread_, const char *hostname_, const char *local_object_,
-      const char * /* arguments_*/) :
+      bool load_balancing_, const char * /* arguments_*/) :
+    engine_base_t <true,true> (load_balancing_),
     writebuf_size (bp_out_batch_size),
     write_size (0),
     write_pos (0),
