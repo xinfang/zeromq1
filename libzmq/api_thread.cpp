@@ -121,10 +121,10 @@ int zmq::api_thread_t::create_queue (const char *name_, scope_t scope_,
     return queues.size ();
 }
 
-void zmq::api_thread_t::flow (int queue_id_, bool enabled_)
+void zmq::api_thread_t::consume (int queue_id_, bool enabled_)
 {
     assert (queue_id_ > 0 && queue_id_ <= (int)queues.size ());
-    queues [queue_id_ - 1].flow = enabled_;
+    queues [queue_id_ - 1].consume = enabled_;
 }
 
 void zmq::api_thread_t::bind (const char *exchange_name_,
@@ -256,7 +256,7 @@ int zmq::api_thread_t::fetch_message (message_t *message_)
            current_queue = 0;
 
         // If receiving messages from this queue is disabled, continue.
-        if (!queues [current_queue].flow)
+        if (!queues [current_queue].consume)
             continue;
 
         bool retrieved = queues [current_queue].engine->read (message_);
