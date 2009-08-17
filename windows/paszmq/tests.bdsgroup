@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{4381E216-928F-4461-86A5-6AF0D7835039}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  
+    
+    <Projects>
+      <Projects Name="pas_local_lat.exe">tests\pas_local_lat.bdsproj</Projects>
+      <Projects Name="pas_remote_lat.exe">tests\pas_remote_lat.bdsproj</Projects>
+      <Projects Name="pas_local_thr.exe">tests\pas_local_thr.bdsproj</Projects>
+      <Projects Name="pas_remote_thr.exe">tests\pas_remote_thr.bdsproj</Projects>
+      <Projects Name="Targets">pas_local_lat.exe pas_remote_lat.exe pas_local_thr.exe pas_remote_thr.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
